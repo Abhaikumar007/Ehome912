@@ -249,7 +249,7 @@ const quizDisplay = (questionCount) => {
 //Quiz Creation
 function quizCreator() {
     //randomly sort questions
-    quizArray.sort(() => Math.random() - 0.5);
+   // quizArray.sort(() => Math.random() - 0.5);
     //generate quiz
     const progressPercentage = (questionCount / quizArray.length) * 100;
     progressBar.style.width = progressPercentage + "%";
