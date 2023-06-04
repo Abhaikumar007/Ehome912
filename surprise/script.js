@@ -11,7 +11,7 @@ let startScreen = document.querySelector(".start-screen");
 let startButton = document.getElementById("start-button");
 let questionCount;
 let scoreCount = 0;
-let count = 31;
+let count = 60;
 let clickCount = 0;
 let progressBar = document.querySelector(".progress-bar");
 let countdown;
@@ -83,7 +83,7 @@ const shareButton = document.getElementById("share-button");
 shareButton.addEventListener("click", () => {
 
     // Redirect to WhatsApp with a pre-filled message
-    const text = "*🎉Edu Home Mega Gift Surprise* 😱🎊;                                                      Take Our Survey and claim your 100% guaranteed *GIFT*💯 worth ₹1000 and more.  https://myeduhome.netlify.app/surprise/index.html#  \n```                                  Exciting News!💎 Eduhome is now at Muslim Street,Kottarakkara``` \nAdmission Open";
+    const text = "*🎉Edu Home Mega Gift Surprise* 😱🎊;                                                      Take Our Survey and claim your 100% guaranteed *GIFT*💯 worth ₹1000 and more.  https://myeduhome.netlify.app/surprise/index.html  \n```                                  Exciting News!💎 Eduhome is now at Muslim Street,Kottarakkara``` \nAdmission Open";
     const phoneNumber = ""; // Replace with your phone number
     const whatsappLink = `https://api.whatsapp.com/send?text=${text}`;
    //const whatsappLink = `#`;
@@ -101,7 +101,7 @@ shareButton.addEventListener("click", () => {
                 questionCount + 1 + " of " + quizArray.length + " Question";
             //display quiz
             quizDisplay(questionCount);
-            count = 31;
+            count = 61;
             clearInterval(countdown);
             timerDisplay();
         }
@@ -333,7 +333,7 @@ function initial() {
     quizContainer.innerHTML = "";
     questionCount = 0;
     scoreCount = 0;
-    count = 31;
+    count = 61;
     clearInterval(countdown);
     timerDisplay();
     quizCreator();
