@@ -79,8 +79,8 @@ shareButton.addEventListener("click", () => {
     // Redirect to WhatsApp with a pre-filled message
     const text = "*🎉Edu Home Mega Gift Surprise* 😱🎊;                                                      Take Our Survey and claim your 100% guaranteed gift💯 worth ₹1000 and more.  {url} \n```                                  Exciting News!💎 Eduhome is now at Muslim Street,Kottarakkara``` \nAdmission Open";
     const phoneNumber = ""; // Replace with your phone number
-    const whatsappLink = `https://api.whatsapp.com/send?text=${text}`;
-  // const whatsappLink = `#`;
+    //const whatsappLink = `https://api.whatsapp.com/send?text=${text}`;
+   const whatsappLink = `#`;
     window.location.href = whatsappLink;
 });
 
