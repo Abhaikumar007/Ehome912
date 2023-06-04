@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">  
+    <link rel="stylesheet" href="style.css">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Edu Home - Win and Earn, Quiz </title>
+ <style>
+        .logo {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .typing-demo {
+            text-align: center;
+            font-size: 30px;
+            color: #ffffff;
+            margin-top: 110px;
+			font-family:sans-serif;
+        }
+
+        .start-screen {
+            text-align: center;
+        }
+
+        .start-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+<div class="logo">
+ <img src="eduhome_with.png"></img></div>
+<div class="progress-bar-container">
+  <div class="progress-bar"></div>
+</div>
+    <div class="typing-demo">
+      Start the <b>Survey &#x1F3F7;</b><br><b>Win Exciting Gifts &#x1F973;...</b>
+    </div>
+<div class="start-screen">
+
+    <button id="start-button">Let's Try it</button>
+</div>
+<div id="display-container">
+    <div class="header">
+        <div class="number-of-count">
+            <span class="number-of-question">1 of 3 questions</span>
+        </div>
+        <div class="timer-div">
+            <img src="https://cdn-icons-png.flaticon.com/512/2421/2421935.png"
+                width="20px" />
+            <span class="time-left">30s</span>
+        </div>
+    </div>
+    <div id="container">
+        <!-- questions and options will be displayed here -->
+    </div>
+    <button id="next-button">Next</button>
+</div>
+
+<div class="box hide">
+<div  class="score-container hide" >
+    <h2>Thank You for taking our Survey &#x1F603; &#x1F389;</h2>
+	<h4><u>Gift Rules</u></h4><div  style="text-align: left;">
+	<ol>
+	<li><h5>Share until the green bar is full<b>(min 10 people)</b></h5></li>
+	<li><h5>Provide your name </h5></li>
+	<li><h5>Claim your exclusive GIFT</h5></li>
+	<li><h5>Get ready for the surprise &#x1F973;</h5></li>
+	</ol>
+	<div class="share-container hide">
+  <button id="share-button">Share <i class="fa fa-whatsapp"></i></button>
+  <!-- this is the progress bar -->
+  <div class="share-progress-bar-container">
+    <div class="share-progress-bar"></div>
+  </div>
+</div>
+</div>
+	<form>
+        <div class="form-group">
+            <input type="text" id="name" placeholder="Name" required>
+        </div>
+       
+	<button id="claim-button" class="hide">Claim it  &#x1F91D;</button>
+	</form>
+	
+</div>
+</div>
+
+     <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

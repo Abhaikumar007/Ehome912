@@ -1,0 +1,220 @@
+<html>
+<head><title>hi</title> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  #image-container {
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  #image-container img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .download-button {
+    display: block;
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  /* Responsive Styles */
+  @media screen and (max-width: 480px) {
+    #image-container {
+      margin-bottom: 10px;
+    }
+
+    .download-button {
+      margin-top: 5px;
+    }
+  }
+  
+  
+/* Custom navbar styles */
+  .navbar {
+    background: linear-gradient(to left, #2563eb, #102a6e, #fff);
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .navbar-brand img {
+    height: 40px;
+    width: auto;
+  }
+
+  .navbar-brand span {
+    font-size: 20px;
+    font-weight: bold;
+    margin-left: 10px;
+    color: #fff;
+  }
+
+  .navbar-nav .nav-link {
+    color: #fff;
+  }
+
+  .navbar-nav .nav-link:hover,
+  .navbar-nav .nav-link:focus {
+    color: #f8f9fa;
+  }
+  
+  
+.button-9 {
+  appearance: button;
+  backface-visibility: hidden;
+  background-color: #405cf5;
+  border-radius: 6px;
+  border-width: 0;
+  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset,rgba(50, 50, 93, .1) 0 2px 5px 0,rgba(0, 0, 0, .07) 0 1px 1px 0;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: -apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Ubuntu,sans-serif;
+  font-size: 14px; /* Adjust the font size to make it smaller */
+  height: 30px; /* Adjust the height to make it smaller */
+  line-height: 1;
+  margin: 6px 0 0; /* Adjust the margin to make it smaller */
+  outline: none;
+  overflow: hidden;
+  padding: 0 10px; /* Adjust the padding to make it smaller */
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  transform: translateZ(0);
+  transition: all .2s,box-shadow .08s ease-in;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: 100px; /* Adjust the width to make it smaller */
+}
+
+.button-9:disabled {
+  cursor: default;
+}
+
+.button-9:focus {
+  box-shadow: rgba(50, 50, 93, .1) 0 0 0 1px inset, rgba(50, 50, 93, .2) 0 6px 15px 0, rgba(0, 0, 0, .1) 0 2px 2px 0, rgba(50, 151, 211, .3) 0 0 0 4px;
+}
+
+#button-container {
+  text-align: center;
+  margin-top: 10px; /* Adjust the margin as needed */
+}
+
+
+
+#banner-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+#banner-container img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Responsive Styles */
+@media screen and (max-width: 480px) {
+  #banner-container {
+    margin-bottom: 10px;
+  }
+
+  #image-container {
+    margin-bottom: 10px;
+  }
+
+  .download-button {
+    margin-top: 5px;
+  }
+}
+
+#image-container img {
+  max-width: 100%;
+  height: auto;
+   border: 4px solid #405cf5; /* Add a border to the image */
+  border-radius: 6px; /* Add border-radius for rounded corners */
+   box-shadow: 0 13px 4px rgba(0, 0, 0, 0.2); 
+}
+
+h4 {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  margin-top: 20px;
+  padding: 10px;
+  border: 2px solid #405cf5; /* Add a border */
+  border-radius: 6px; /* Add border-radius for rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Add box shadow */
+  background-color: #f5f5f5; /* Add a background color */
+}
+
+
+
+</style>
+
+<link href="https://fonts.googleapis.com/css?family=Poppins:400,700" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+<nav class="navbar navbar-expand-md navbar-dark">
+  <a class="navbar-brand" href="#">
+    <img src="eduhome.png" alt="Logo">
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarCollapse">
+
+  </div>
+</nav>
+
+
+</head>
+<body>
+
+
+<div id="banner-container">
+  <img src="banner.png" alt="Banner Image">
+</div>
+
+
+<h4>NOTE:<br><ul><li><h6>The Gift is specified in the gift coupon provided below </h6></li><li><h6><b>Please download the gift coupon</b></h6></li>
+<li><h6>The Gift coupon can only be redeemed at the time of admission</h6></li></ul></h4>
+
+
+<div id="image-container">
+</div>
+<div id="download"></div>
+
+<div id="button-container">
+<button class="button-9" onclick="download()">Download</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/js-confetti@latest/dist/js-confetti.browser.js"></script>
+</body>
+<script>
+
+
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+const imageUrl = urlParams.get('image');
+const imageContainer = document.getElementById('image-container');
+imageContainer.innerHTML = `<img src="${imageUrl}" alt="Image">`;
+const jsConfetti =new JSConfetti()
+jsConfetti.addConfetti()
+
+function toDataURL(url) {
+    return fetch(url)
+      .then((response) => response.blob())
+      .then((blob) => URL.createObjectURL(blob));
+  }
+
+  async function download() {
+    const a = document.createElement("a");
+    a.href = await toDataURL(imageUrl);
+    a.download = "image.jpg";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
+</html>
