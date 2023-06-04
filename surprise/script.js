@@ -118,7 +118,7 @@ if (complete) {
     // Increase the progress bar width by a specific amount
     const shareProgressBar = document.querySelector('.share-progress-bar');
     const currentWidth = shareProgressBar.style.width;
-    const newWidth = currentWidth ? parseInt(currentWidth) + 50 : 50;
+    const newWidth = currentWidth ? parseInt(currentWidth) + 100 : 100;
     shareProgressBar.style.width = `${newWidth}%`;
 
     // Check if the progress has reached the desired value (e.g., 100)
