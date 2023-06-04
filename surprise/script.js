@@ -58,6 +58,12 @@ const quizArray = [
 nextBtn.addEventListener(
     "click",
     (displayNext = () => {
+    const selectedOption = document.querySelector(".option-div.correct");
+    if (!selectedOption) {
+        alert("Please Answer the Questions");
+        return;
+    }
+	 nextBtn.disabled = true;
         //increment questionCount
         questionCount += 1;
         //if last question
@@ -298,8 +304,9 @@ function checker(userOption) {
     // Remove celebration message and confetti after 2 seconds
     setTimeout(() => {
       celebrationMessage.remove();
+	    displayNext();
       
-    }, 2000);
+    }, 1000);
   } else {
     userOption.classList.add("incorrect");
     // For marking the correct option
