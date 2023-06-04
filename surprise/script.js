@@ -157,7 +157,7 @@ function sendToken(token,userSolutions) {
   const nameInput = document.getElementById("name");
   const name = nameInput.value;
   // Specify the endpoint URL for the POST request
-  const endpointUrl = "http://eduhome.pythonanywhere.com/claim";
+  const endpointUrl = "https://eduhome.pythonanywhere.com/claim";
   //const endpointUrl = "http://localhost:5000/claim";
   console.log(userSolutions)
   const usersol=userSolutions
