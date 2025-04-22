@@ -1,0 +1,465 @@
+/* --- Add these styles to your existing style.css --- */
+/* Basic Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+/* --- Add this CSS to your existing style.css --- */
+
+.back-link-container {
+    max-width: 1200px;
+    margin: -10px auto 15px auto; /* Position below breadcrumbs */
+    padding: 0 15px;
+}
+
+.back-link {
+    display: inline-block; /* Allow padding/margin */
+    padding: 5px 10px;
+    background-color: #e9ecef; /* Light background */
+    color: #005a87;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    transition: background-color 0.2s ease;
+}
+
+.back-link:hover {
+    background-color: #ced4da; /* Darker on hover */
+    text-decoration: none;
+}
+
+.back-link i { /* Style icon if needed */
+    margin-right: 5px;
+}
+
+/* Adjust breadcrumb margin slightly */
+.breadcrumbs {
+    margin: -10px auto 10px auto; /* Reduced bottom margin */
+}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+    color: #333;
+    padding-bottom: 60px; /* Ensure footer doesn't overlap content */
+}
+
+header {
+    background-color: #005a87; /* Kerala-inspired blue */
+    color: #fff;
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-bottom: 20px;
+}
+
+header h1 {
+    margin-bottom: 0.5rem;
+    font-size: 2.5rem;
+}
+
+header p {
+    font-size: 1.1rem;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+
+/* Search Section */
+.search-section {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+#searchBar {
+    padding: 12px 15px;
+    width: 80%;
+    max-width: 500px;
+    border: 1px solid #ccc;
+    border-radius: 25px; /* Rounded search bar */
+    font-size: 1rem;
+    transition: box-shadow 0.3s ease;
+}
+
+#searchBar:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 90, 135, 0.5); /* Subtle focus glow */
+}
+
+
+/* Subject Grid */
+.subject-grid-container {
+    text-align: center;
+}
+
+.subject-grid-container h2 {
+    margin-bottom: 25px;
+    font-size: 1.8rem;
+    color: #005a87;
+}
+
+.subject-grid {
+    display: grid;
+    /* Responsive Grid: Adjust minmax as needed */
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 25px; /* Increased gap */
+}
+
+.subject-card {
+    display: flex; /* Use flexbox for alignment */
+    flex-direction: column; /* Stack icon and text vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+    background-color: #fff;
+    padding: 25px 15px; /* Increased padding */
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    min-height: 150px; /* Ensure cards have a minimum height */
+}
+
+.subject-card:hover {
+    transform: translateY(-5px); /* Lift effect */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-color: #005a87;
+}
+
+.subject-card i {
+    margin-bottom: 15px; /* Space below icon */
+    color: #0077cc; /* Default icon color */
+}
+
+.subject-card .subject-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: block; /* Ensure it takes its own line */
+}
+
+.subject-card .subject-detail {
+    font-size: 0.8rem;
+    color: #666;
+    display: block;
+    margin-top: 5px;
+}
+
+/* Optional: Subtle background colors/borders per subject */
+.subject-card.maths i { color: #e85d04; }
+.subject-card.science i { color: #2a9d8f; }
+/* .subject-card.science-phy i { color: #fca311; } */
+/* .subject-card.science-che i { color: #9b5de5; } */
+/* .subject-card.science-bio i { color: #52b788; } */
+.subject-card.social i { color: #457b9d; }
+.subject-card.english i { color: #d90429; }
+.subject-card.malayalam1 i { color: #1a7431; } /* Green */
+.subject-card.malayalam2 i { color: #006400; } /* Darker Green */
+.subject-card.hindi i { color: #ff9f1c; } /* Saffron/Orange */
+.subject-card.arabic i { color: #006d77; }
+.subject-card.sanskrit i { color: #8d0801; }
+.subject-card.urdu i { color: #3c6e71; }
+.subject-card.art-health-we i { color: #7678ed; }
+
+
+/* Footer */
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 30px;
+    position: fixed; /* Optional: Keep footer at bottom */
+    bottom: 0;
+    width: 100%;
+}
+
+footer a {
+    color: #aed6f1;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 2rem;
+    }
+    .subject-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
+    }
+    .subject-card {
+        padding: 20px 10px;
+        min-height: 130px;
+    }
+    .subject-card i {
+       font-size: 2.5rem; /* Slightly smaller icons on mobile */
+    }
+     .subject-card .subject-name {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .subject-grid {
+        grid-template-columns: repeat(2, 1fr); /* Force 2 columns on very small screens */
+    }
+     header h1 {
+        font-size: 1.8rem;
+    }
+     header p {
+        font-size: 1rem;
+    }
+}
+/* Breadcrumbs */
+.breadcrumbs {
+    max-width: 1200px;
+    margin: -10px auto 20px auto; /* Position below header */
+    padding: 0 15px;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.breadcrumbs a {
+    color: #005a87;
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+
+/* Board Selection */
+.board-selection-container h2,
+.class-selection-container h2 {
+     text-align: center;
+     margin-bottom: 25px;
+     font-size: 1.8rem;
+     color: #005a87;
+}
+
+.board-grid, .class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly wider cards */
+    gap: 25px;
+    margin-bottom: 30px;
+}
+
+.board-card, .class-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    padding: 25px 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    text-decoration: none;
+    color: #333;
+    text-align: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    min-height: 120px;
+}
+
+.board-card:hover, .class-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.board-card i {
+    margin-bottom: 15px;
+    color: #005a87; /* Default board icon color */
+}
+
+.board-card .board-name,
+.class-card .class-name {
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.board-card .board-status,
+.class-card .class-status {
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Style disabled cards */
+.board-card.disabled, .class-card.disabled {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    pointer-events: none; /* Disable clicking */
+}
+.board-card.disabled i, .class-card.disabled i {
+     color: #adb5bd;
+}
+.board-card.disabled:hover, .class-card.disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+
+/* Subject Page Specific Styles */
+.subject-header {
+    background-color: #e7f5ff; /* Lighter background for subject pages */
+    color: #005a87; /* Darker text */
+    padding: 1.5rem 1rem;
+}
+.subject-header h1 {
+    font-size: 2.2rem;
+}
+.subject-header i {
+    margin-right: 10px;
+    vertical-align: middle; /* Align icon with text */
+}
+
+/* Specific header colors (optional) */
+.maths-header { background-color: #fff5e6; color: #e85d04; }
+.maths-header i { color: #e85d04; }
+/* Add more for other subjects as needed */
+
+
+.papers-container h2 {
+     margin-bottom: 20px;
+     text-align: left; /* Align left on subject page */
+     font-size: 1.6rem;
+}
+
+.year-section {
+    background-color: #fff;
+    margin-bottom: 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden; /* Needed for border-radius with details/summary */
+}
+
+.year-section summary {
+    padding: 15px 20px;
+    font-size: 1.3rem;
+    font-weight: 600;
+    cursor: pointer;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex; /* Align icon and text */
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+.year-section summary:hover {
+    background-color: #e9ecef;
+}
+
+.year-section summary h3 {
+    display: inline-block; /* Keep h3 on same line */
+    margin: 0;
+    font-size: 1.3rem; /* Match summary font size */
+}
+.year-section summary i {
+    margin-right: 10px;
+    color: #6c757d;
+}
+
+/* Styling for the open state */
+.year-section[open] summary {
+    border-bottom: 1px solid #e0e0e0; /* Keep border when open */
+}
+.year-section[open] {
+     border-bottom: 1px solid #e0e0e0; /* Re-apply bottom border when open */
+}
+
+.paper-list {
+    list-style: none;
+    padding: 15px 20px 20px 40px; /* Indent list items */
+}
+
+.paper-list li {
+    padding: 8px 0;
+    border-bottom: 1px dashed #eee;
+    display: flex; /* Align icon, text, info */
+    align-items: center;
+    flex-wrap: wrap; /* Allow info to wrap on small screens */
+}
+.paper-list li:last-child {
+    border-bottom: none;
+}
+
+.paper-list a {
+    color: #0077cc;
+    text-decoration: none;
+    font-weight: 500;
+    margin-left: 10px; /* Space after icon */
+    flex-grow: 1; /* Allow link to take available space */
+}
+.paper-list a:hover {
+    text-decoration: underline;
+}
+
+.paper-list .file-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-left: 15px;
+    white-space: nowrap; /* Keep size info on one line */
+}
+
+.paper-list i { /* Icons for paper list */
+    width: 20px; /* Fixed width for alignment */
+    text-align: center;
+}
+.pdf-icon { color: #d90429; } /* Red for PDF */
+.key-icon { color: #fca311; } /* Orange for Key */
+.error-icon { color: #adb5bd; } /* Grey for Not Available */
+
+/* Ensure subject grid spacing is good */
+.subject-grid {
+    margin-bottom: 30px;
+}
+
+/* Info Section on Homepage */
+.info-section {
+    text-align: center;
+    margin-top: 40px;
+    color: #555;
+}
+
+/* Footer adjustments if needed */
+footer {
+     position: relative; /* Change from fixed if it overlaps too much */
+     margin-top: 50px;
+}
+
+
+/* Responsive tweaks for new elements */
+@media (max-width: 768px) {
+    .board-grid, .class-grid {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 20px;
+    }
+    .subject-header h1 { font-size: 1.8rem; }
+    .year-section summary h3, .year-section summary { font-size: 1.1rem; }
+    .paper-list { padding-left: 20px; }
+}
+@media (max-width: 480px) {
+     .board-grid, .class-grid {
+         grid-template-columns: 1fr; /* Stack board/class cards */
+     }
+     .paper-list li {
+         flex-direction: column; /* Stack icon/link and info vertically */
+         align-items: flex-start;
+     }
+     .paper-list .file-info {
+         margin-left: 0; /* Align left below link */
+         margin-top: 5px;
+     }
+      .paper-list a {
+         margin-left: 5px; /* Reduce margin */
+     }
+}
