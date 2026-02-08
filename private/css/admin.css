@@ -1,0 +1,79 @@
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+}
+
+.dashboard-card {
+    background: #fff;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+}
+
+.dashboard-card h3 {
+    margin-top: 15px;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.dashboard-card i {
+    font-size: 3rem;
+    color: #007bff;
+}
+
+.page-header {
+    margin-bottom: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Add Student Form */
+.form-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+/* Timetable Card */
+#timetable-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px auto;
+    max-width: 500px;
+}
+#timetable-card h2 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+}
+#timetable-card p {
+    font-size: 1.2rem;
+}
+
+/* Fees Table */
+.fee-status {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+}
+.fee-paid {
+    background-color: #28a745;
+}
+.fee-pending {
+    background-color: #dc3545;
+}

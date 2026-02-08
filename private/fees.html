@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fees - Edu Home Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <script src="js/security.js"></script>
+
+    <div class="container mt-5">
+        <div class="page-header">
+            <h2><a href="index.html" class="text-dark"><i class="fas fa-arrow-left"></i></a> Fee Management</h2>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-5">
+                <select class="form-control" id="feesClassSelect">
+                    <option value="">Select Class to View</option>
+                    <option value="7">Class 7</option>
+                    <option value="8">Class 8</option>
+                    <option value="9">Class 9</option>
+                    <option value="10">Class 10</option>
+                    <option value="11">Class 11</option>
+                    <option value="12">Class 12</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select class="form-control" id="feeMonthSelect">
+                    <option value="January">January</option>
+                    <option value="February">February</option>
+                    <option value="March">March</option>
+                    <option value="April">April</option>
+                    <option value="May">May</option>
+                    <option value="June">June</option>
+                    <option value="July">July</option>
+                    <option value="August">August</option>
+                    <option value="September">September</option>
+                    <option value="October">October</option>
+                    <option value="November">November</option>
+                    <option value="December">December</option>
+                </select>
+            </div>
+            <div class="col-md-4 text-right">
+                <h4 id="displayMonth"></h4>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="col-md-12">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="feeTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Fee Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feeTableBody">
+                            <tr>
+                                <td colspan="3" class="text-center">Select Class to view student fees.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

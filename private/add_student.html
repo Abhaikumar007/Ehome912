@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student - Edu Home Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <script src="js/security.js"></script>
+
+    <div class="container mt-5">
+        <div class="page-header">
+            <h2><a href="index.html" class="text-dark"><i class="fas fa-arrow-left"></i></a> Add New Student</h2>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="form-section">
+                    <form id="addStudentForm">
+                        <div class="form-group">
+                            <label>Student Name</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Class</label>
+                            <select class="form-control" id="class" required>
+                                <option value="">Select Class</option>
+                                <option value="7">Class 7</option>
+                                <option value="8">Class 8</option>
+                                <option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                                <option value="11">Class 11</option>
+                                <option value="12">Class 12</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Subjects (Select Multiple)</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="subject" value="Physics"
+                                        id="phy">
+                                    <label class="form-check-label" for="phy">Physics</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="subject" value="Chemistry"
+                                        id="chem">
+                                    <label class="form-check-label" for="chem">Chemistry</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="subject" value="Maths"
+                                        id="math">
+                                    <label class="form-check-label" for="math">Maths</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="subject" value="Biology"
+                                        id="bio">
+                                    <label class="form-check-label" for="bio">Biology</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" name="subject"
+                                        value="Computer Science" id="cs">
+                                    <label class="form-check-label" for="cs">Computer Science</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Date of Joining</label>
+                            <input type="date" class="form-control" id="joiningDate" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>School</label>
+                            <input type="text" class="form-control" id="school" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Add Student</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="row justify-content-center mt-5 mb-5">
+            <div class="col-md-10">
+                <h3 class="text-center mb-3">Manage Students</h3>
+                <div class="table-responsive bg-white p-3 shadow-sm rounded">
+                    <table class="table table-bordered table-striped" id="studentManagementTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th>Name</th>
+                                <th>Class</th>
+                                <th>Phone</th>
+                                <th>Subjects</th>
+                                <th style="width: 100px;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentListBody">
+                            <!-- Students populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/admin.js"></script>
+</body>
+
+</html>

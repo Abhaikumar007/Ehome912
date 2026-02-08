@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable - Edu Home Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <script src="js/security.js"></script>
+
+    <div class="container mt-5">
+        <div class="page-header">
+            <h2><a href="index.html" class="text-dark"><i class="fas fa-arrow-left"></i></a> Create Timetable</h2>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="form-section">
+                    <h4>Add Class Entry</h4>
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" class="form-control" id="timetableDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Time</label>
+                        <input type="time" class="form-control" id="timetableTime">
+                    </div>
+                    <div class="form-group">
+                        <label>Class</label>
+                        <select class="form-control" id="timetableClass">
+                            <option value="7">Class 7</option>
+                            <option value="8">Class 8</option>
+                            <option value="9">Class 9</option>
+                            <option value="10">Class 10</option>
+                            <option value="11">Class 11</option>
+                            <option value="12">Class 12</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select class="form-control" id="timetableSubject">
+                            <option value="Physics">Physics</option>
+                            <option value="Chemistry">Chemistry</option>
+                            <option value="Maths">Maths</option>
+                            <option value="Biology">Biology</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="No Class">No Class</option>
+                        </select>
+                    </div>
+                    <!-- Note/Topic removed as per user request for simpler table columns or can be kept if needed but user described columns: Date, Time, Class, Subject -->
+                    <button class="btn btn-success btn-block" id="addTimetableEntryBtn"><i class="fas fa-plus"></i> Add
+                        Entry</button>
+                </div>
+            </div>
+
+            <div class="col-md-8">
+                <!-- Container to capture -->
+                <div id="timetable-container" style="padding: 20px; background: white;">
+                    <div class="text-center mb-3">
+                        <h2>📅 Class Schedule</h2>
+                        <p class="text-muted">Edu Home - 912</p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead class="thead-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                    <th>Class</th>
+                                    <th>Subject</th>
+                                    <th class="no-capture" style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="timetableTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">No entries added yet.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="shareSection" style="display:none; text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary btn-lg" id="shareWhatsappBtn">
+                        <i class="fab fa-whatsapp"></i> Download Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+
+</html>
