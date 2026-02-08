@@ -14,9 +14,60 @@ function getFees() {
     return JSON.parse(localStorage.getItem('fees')) || {}; // Structure: { studentId_Month_Year: 'Paid' }
 }
 
+// Helper to save fees
 function saveFees(fees) {
     localStorage.setItem('fees', JSON.stringify(fees));
 }
+
+// --- DATA MANAGEMENT (BACKUP & RESTORE) ---
+window.backupData = function () {
+    const data = {
+        students: getStudents(),
+        fees: getFees(),
+        timestamp: new Date().toISOString()
+    };
+
+    const dataStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.download = `eduhome_backup_${new Date().toISOString().slice(0, 10)}.json`;
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    alert("Backup file downloaded! Keep it safe.");
+};
+
+window.restoreData = function (input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (!confirm("WARNING: This will replace all current data with the backup file. Continue?")) {
+        input.value = ''; // Reset
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            if (data.students && data.fees) {
+                saveStudents(data.students);
+                saveFees(data.fees);
+                alert("Data Restored Successfully! Reloading...");
+                window.location.reload();
+            } else {
+                alert("Invalid Backup File. Missing student or fee data.");
+            }
+        } catch (err) {
+            alert("Error parsing backup file: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+};
 
 
 // --- ADD STUDENT PAGE ---
