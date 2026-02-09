@@ -140,20 +140,55 @@ if (document.getElementById('feesClassSelect')) {
         if (!classSelect) return;
 
         const selectedClass = classSelect.value;
-        const students = getStudents();
-        const filteredStudents = students.filter(s => s.class === selectedClass);
         const fees = getFees();
 
         // Month handling
         const selectedMonth = document.getElementById('feeMonthSelect') ? document.getElementById('feeMonthSelect').value : new Date().toLocaleString('default', { month: 'long' });
-        const currentYear = new Date().getFullYear(); // Simplified for now
+        const currentYear = new Date().getFullYear();
 
         if (displayMonth) displayMonth.textContent = `${selectedMonth} ${currentYear}`;
 
         feeTableBody.innerHTML = '';
 
+        // --- 1. Future Month Check ---
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        const monthIndex = monthNames.indexOf(selectedMonth);
+        const now = new Date();
+        const currentMonthIndex = now.getMonth();
+        const realCurrentYear = now.getFullYear();
+
+        // If selected year is future OR (same year AND selected month > current month)
+        if (currentYear > realCurrentYear || (currentYear === realCurrentYear && monthIndex > currentMonthIndex)) {
+            feeTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Cannot view fees for future months (${selectedMonth}).</td></tr>`;
+            return;
+        }
+
+        // --- 2. Filter Students by Class AND Date of Joining ---
+        let students = getStudents(); // Get all
+        let filteredStudents = students.filter(s => {
+            // Class Check
+            if (s.class !== selectedClass) return false;
+
+            // Date of Joining Check
+            if (s.joiningDate) {
+                const joinDate = new Date(s.joiningDate);
+                // Compare Month/Year indices to be safe
+                // We compare: View Month Start Date vs Join Date
+                // If View Month is BEFORE Join Month/Year, exclude.
+
+                // Construct Date objects for comparison (First day of respective months)
+                const viewMonthStart = new Date(currentYear, monthIndex, 1);
+                const joinMonthStart = new Date(joinDate.getFullYear(), joinDate.getMonth(), 1);
+
+                if (viewMonthStart < joinMonthStart) {
+                    return false; // Student joined after this month
+                }
+            }
+            return true;
+        });
+
         if (filteredStudents.length === 0) {
-            feeTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No students found for this class.</td></tr>';
+            feeTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No active students found for this class in ' + selectedMonth + '.</td></tr>';
             return;
         }
 
@@ -170,6 +205,7 @@ if (document.getElementById('feesClassSelect')) {
                 let reminderBtn = '';
                 if (status === 'Pending') {
                     const msg = `Dear Parent, fee for student ${student.name} (Class ${student.class}) for ${sub} - ${selectedMonth} is PENDING. Please pay at the earliest.`;
+                    // Use verified whatsapp logic (wa.me)
                     const whatsappUrl = `https://wa.me/91${student.phone}?text=${encodeURIComponent(msg)}`;
                     reminderBtn = `<a href="${whatsappUrl}" target="_blank" class="btn btn-sm btn-warning ml-2 shadow-sm" style="font-weight:bold;"><i class="fab fa-whatsapp"></i> Share Reminder</a>`;
                 }
