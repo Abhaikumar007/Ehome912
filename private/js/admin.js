@@ -238,6 +238,37 @@ if (document.getElementById('timetableTableBody')) {
         document.getElementById('timetableSubject').value = '';
     });
 
+    function formatDateFriendly(dateString) {
+        if (!dateString) return '';
+        const inputDate = new Date(dateString);
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Reset hours to compare dates only
+        inputDate.setHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
+        tomorrow.setHours(0, 0, 0, 0);
+
+        if (inputDate.getTime() === today.getTime()) {
+            return "Today";
+        } else if (inputDate.getTime() === tomorrow.getTime()) {
+            return "Tomorrow";
+        } else {
+            return new Date(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+        }
+    }
+
+    function formatTime12Hour(timeString) {
+        if (!timeString) return '';
+        const [hours, minutes] = timeString.split(':');
+        const h = parseInt(hours, 10);
+        const m = parseInt(minutes, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        const h12 = h % 12 || 12;
+        return `${h12}:${m < 10 ? '0' + m : m} ${ampm}`;
+    }
+
     function renderTimetable() {
         tableBody.innerHTML = '';
         if (timetableEntries.length === 0) {
@@ -254,13 +285,13 @@ if (document.getElementById('timetableTableBody')) {
         });
 
         timetableEntries.forEach((entry, index) => {
-            const dateObj = new Date(entry.date);
-            const dateString = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            const dateDisplay = formatDateFriendly(entry.date);
+            const timeDisplay = formatTime12Hour(entry.time);
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${dateString}</td>
-                <td>${entry.time}</td>
+                <td>${dateDisplay}</td>
+                <td>${timeDisplay}</td>
                 <td>${entry.class}</td>
                 <td>${entry.subject}</td>
                 <td class="no-capture"><button class="btn btn-sm btn-danger" onclick="removeTimetableEntry(${index})">&times;</button></td>
@@ -285,11 +316,11 @@ if (document.getElementById('timetableTableBody')) {
         let message = `*📅 Class Schedule*\n\n`;
 
         timetableEntries.forEach(entry => {
-            const dateObj = new Date(entry.date);
-            const dateString = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-            const timeStr = entry.time ? `🕒 ${entry.time}` : '';
+            const dateDisplay = formatDateFriendly(entry.date);
+            const timeDisplay = formatTime12Hour(entry.time);
+            const timeStr = timeDisplay ? `🕒 ${timeDisplay}` : '';
 
-            message += `🗓 *${dateString}* ${timeStr}\n`;
+            message += `🗓 *${dateDisplay}* ${timeStr}\n`;
             message += `🏫 Class: ${entry.class}\n`;
             message += `📖 Subject: ${entry.subject}\n`;
             message += `-------------------\n`;
