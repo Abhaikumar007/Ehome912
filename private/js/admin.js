@@ -291,8 +291,9 @@ if (document.getElementById('timetableTableBody')) {
             link.download = `timetable-schedule-${Date.now()}.jpg`;
             link.href = imgData;
             link.click();
-            alert("Timetable downloaded for sharing!");
-            window.open("https://web.whatsapp.com/", "_blank");
+            alert("Timetable downloaded for sharing! Please attach it in WhatsApp.");
+            // Use api.whatsapp.com which handles mobile/desktop better
+            window.location.href = "https://api.whatsapp.com/send";
         });
     });
 }
@@ -377,8 +378,9 @@ if (document.getElementById('attendanceClassSelect')) {
                 link.download = `attendance-${attDate.value}.jpg`;
                 link.href = imgData;
                 link.click();
-                alert("Attendance Sheet downloaded!");
-                window.open("https://web.whatsapp.com/", "_blank");
+                alert("Attendance Sheet downloaded! Please attach it in WhatsApp.");
+                // Use api.whatsapp.com which handles mobile/desktop better
+                window.location.href = "https://api.whatsapp.com/send";
             });
         });
     }
