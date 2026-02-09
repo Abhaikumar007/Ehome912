@@ -223,7 +223,10 @@ if (document.getElementById('feesClassSelect')) {
             });
 
             tr.innerHTML = `
-                <td>${student.name}</td>
+                <td>
+                    ${student.name}
+                    ${student.joiningDate ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${new Date(student.joiningDate).toLocaleDateString()}</small>` : ''}
+                </td>
                 <td>${student.phone}</td>
                 <td>${subjectsHtml}</td>
             `;
@@ -506,7 +509,10 @@ if (document.getElementById('studentListBody')) {
         students.forEach((s) => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td>${s.name}</td>
+                <td>
+                    ${s.name}
+                    ${s.joiningDate ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${new Date(s.joiningDate).toLocaleDateString()}</small>` : ''}
+                </td>
                 <td>${s.class}</td>
                 <td>${s.phone}</td>
                 <td>${s.subjects.join(', ')}</td>
