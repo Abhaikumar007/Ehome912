@@ -198,23 +198,65 @@ if (document.getElementById('feesClassSelect')) {
             let subjectsHtml = '';
             student.subjects.forEach(sub => {
                 const feeKey = `${student.id}_${sub}_${selectedMonth}_${currentYear}`;
-                const status = fees[feeKey] === 'Paid' ? 'Paid' : 'Pending';
-                const statusClass = status === 'Paid' ? 'fee-paid' : 'fee-pending';
+
+                let status = fees[feeKey] === 'Paid' ? 'Paid' : 'Pending';
+                let statusClass = '';
+                let canToggle = true;
+
+                // Day-Based Logic for Pending Fees
+                if (status === 'Pending' && student.joiningDate) {
+                    const joinDate = new Date(student.joiningDate);
+                    const joinDay = joinDate.getDate(); // e.g., 10th
+
+                    // Determine Due Date for THIS selected month
+                    // Be careful with months having fewer days
+                    const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
+                    const dueDay = Math.min(joinDay, daysInMonth);
+
+                    const dueDate = new Date(currentYear, monthIndex, dueDay);
+                    // Compare with Today (stripped of time for fair comparison)
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    // If we are looking at the current month/year AND today is BEFORE due date
+                    if (currentYear === realCurrentYear && monthIndex === currentMonthIndex) {
+                        if (today < dueDate) {
+                            status = `Upcoming (Due: ${dueDay})`;
+                            statusClass = 'fee-upcoming'; // Yellow/Orange
+                            canToggle = true; // User can still mark as paid if they want? Yes, typically.
+                        } else {
+                            statusClass = 'fee-pending'; // Red
+                        }
+                    } else if (currentYear < realCurrentYear || (currentYear === realCurrentYear && monthIndex < currentMonthIndex)) {
+                        // Past Month: Always Pending if not paid
+                        statusClass = 'fee-pending';
+                    } else {
+                        // Future Month: Should be hidden by top logic, but if not:
+                        statusClass = 'fee-upcoming';
+                    }
+                } else if (status === 'Pending') {
+                    // No join date? Default to pending
+                    statusClass = 'fee-pending';
+                } else {
+                    statusClass = 'fee-paid';
+                }
 
                 // Reminder Check
                 let reminderBtn = '';
-                if (status === 'Pending') {
+                // Only show reminder if actually PENDING (Red)
+                if (statusClass === 'fee-pending') {
                     const msg = `Dear Parent, fee for student ${student.name} (Class ${student.class}) for ${sub} - ${selectedMonth} is PENDING. Please pay at the earliest.`;
                     // Use verified whatsapp logic (wa.me)
                     const whatsappUrl = `https://wa.me/91${student.phone}?text=${encodeURIComponent(msg)}`;
-                    reminderBtn = `<a href="${whatsappUrl}" target="_blank" class="btn btn-sm btn-warning ml-2 shadow-sm" style="font-weight:bold;"><i class="fab fa-whatsapp"></i> Share Reminder</a>`;
+                    // Removed ml-2, added mobile styling
+                    reminderBtn = `<a href="${whatsappUrl}" target="_blank" class="btn btn-sm btn-warning shadow-sm" style="font-weight:bold; margin-top: 5px;"><i class="fab fa-whatsapp"></i> Share Reminder</a>`;
                 }
 
                 subjectsHtml += `
-                    <div style="margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
-                        <span>${sub}</span>
-                        <div>
-                            <span class="fee-status ${statusClass}" onclick="toggleFee('${student.id}', '${sub}', '${selectedMonth}', '${currentYear}')">
+                    <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                        <span style="font-weight: 500; margin-top: 4px;">${sub}</span>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <span class="fee-status ${statusClass}" onclick="toggleFee('${student.id}', '${sub}', '${selectedMonth}', '${currentYear}')" style="min-width: 90px; text-align: center;">
                                 ${status}
                             </span>
                             ${reminderBtn}

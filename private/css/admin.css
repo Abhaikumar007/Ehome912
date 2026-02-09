@@ -1,4 +1,3 @@
-
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
@@ -9,7 +8,7 @@ body {
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     text-align: center;
     transition: transform 0.2s;
     cursor: pointer;
@@ -41,7 +40,7 @@ body {
     background: #fff;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 /* Timetable Card */
@@ -54,10 +53,12 @@ body {
     margin: 20px auto;
     max-width: 500px;
 }
+
 #timetable-card h2 {
     font-size: 2.5rem;
     margin-bottom: 10px;
 }
+
 #timetable-card p {
     font-size: 1.2rem;
 }
@@ -71,9 +72,18 @@ body {
     font-weight: bold;
     text-align: center;
 }
+
 .fee-paid {
     background-color: #28a745;
 }
+
 .fee-pending {
     background-color: #dc3545;
+}
+
+.fee-upcoming {
+    background-color: #ffc107;
+    /* Warning yellow */
+    color: #333;
+    /* Dark text for contrast */
 }
