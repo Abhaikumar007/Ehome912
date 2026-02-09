@@ -444,20 +444,36 @@ if (document.getElementById('studentListBody')) {
                 <td>${s.phone}</td>
                 <td>${s.subjects.join(', ')}</td>
                 <td>
-                    <button class="btn btn-sm btn-danger" onclick="deleteStudent('${s.id}')">Delete</button>
+                    <button class="btn btn-sm btn-danger" onclick="askDeleteStudent('${s.id}', this)">Delete</button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
     }
 
-    window.deleteStudent = function (id) {
-        if (confirm("Are you sure you want to delete this student?")) {
-            const students = getStudents();
-            const updated = students.filter(s => s.id !== id);
-            saveStudents(updated);
-            renderStudentManagementList();
-        }
+    // Two-step delete to avoid native confirm() issues in WebViews
+    window.askDeleteStudent = function (id, btn) {
+        btn.innerText = "Confirm?";
+        btn.classList.remove('btn-danger');
+        btn.classList.add('btn-warning');
+        btn.setAttribute('onclick', `confirmDeleteStudent('${id}')`);
+
+        // Revert after 3 seconds if not clicked
+        setTimeout(() => {
+            if (document.body.contains(btn)) {
+                btn.innerText = "Delete";
+                btn.classList.add('btn-danger');
+                btn.classList.remove('btn-warning');
+                btn.setAttribute('onclick', `askDeleteStudent('${id}', this)`);
+            }
+        }, 3000);
+    };
+
+    window.confirmDeleteStudent = function (id) {
+        const students = getStudents();
+        const updated = students.filter(s => s.id !== id);
+        saveStudents(updated);
+        renderStudentManagementList();
     };
 
     // Call render initially
