@@ -277,24 +277,27 @@ if (document.getElementById('timetableTableBody')) {
     };
 
     shareBtn.addEventListener('click', function () {
-        const captureArea = document.getElementById('timetable-container');
+        if (timetableEntries.length === 0) {
+            alert("No entries to share.");
+            return;
+        }
 
-        // Hide delete buttons for capture
-        document.querySelectorAll('.no-capture').forEach(el => el.style.display = 'none');
+        let message = `*📅 Class Schedule*\n\n`;
 
-        html2canvas(captureArea).then(canvas => {
-            // Restore delete buttons
-            document.querySelectorAll('.no-capture').forEach(el => el.style.display = '');
+        timetableEntries.forEach(entry => {
+            const dateObj = new Date(entry.date);
+            const dateString = dateObj.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            const timeStr = entry.time ? `🕒 ${entry.time}` : '';
 
-            const imgData = canvas.toDataURL("image/jpeg", 0.9);
-            const link = document.createElement('a');
-            link.download = `timetable-schedule-${Date.now()}.jpg`;
-            link.href = imgData;
-            link.click();
-            alert("Timetable downloaded for sharing! Please attach it in WhatsApp.");
-            // Use api.whatsapp.com which handles mobile/desktop better
-            window.location.href = "https://api.whatsapp.com/send";
+            message += `🗓 *${dateString}* ${timeStr}\n`;
+            message += `🏫 Class: ${entry.class}\n`;
+            message += `📖 Subject: ${entry.subject}\n`;
+            message += `-------------------\n`;
         });
+
+        // Open WhatsApp with text to specific number using wa.me
+        const whatsappUrl = `https://wa.me/918547457536?text=${encodeURIComponent(message)}`;
+        window.location.href = whatsappUrl;
     });
 }
 
@@ -371,17 +374,43 @@ if (document.getElementById('attendanceClassSelect')) {
                 return;
             }
 
-            const captureArea = document.getElementById('attendance-capture-area');
-            html2canvas(captureArea).then(canvas => {
-                const imgData = canvas.toDataURL("image/jpeg", 0.9);
-                const link = document.createElement('a');
-                link.download = `attendance-${attDate.value}.jpg`;
-                link.href = imgData;
-                link.click();
-                alert("Attendance Sheet downloaded! Please attach it in WhatsApp.");
-                // Use api.whatsapp.com which handles mobile/desktop better
-                window.location.href = "https://api.whatsapp.com/send";
+            // Construct Text Message
+            let message = `*📅 Attendance Report*\n`;
+            message += `🗓 Date: ${attDate.value}\n`;
+            message += `🏫 Class: ${attClass.value}\n`;
+            message += `📖 Subject: ${attSubject.value}\n\n`;
+            message += `*Students:*\n`;
+
+            const rows = attTable.querySelectorAll('tr');
+            if (rows.length === 0 || (rows.length === 1 && rows[0].innerText.includes("Select Class"))) {
+                alert("No students to share.");
+                return;
+            }
+
+            let presentCount = 0;
+            let totalCount = 0;
+
+            rows.forEach((row, index) => {
+                const nameCell = row.cells[0];
+                if (!nameCell) return;
+
+                const name = nameCell.innerText;
+                const checkbox = row.querySelector('input[type="checkbox"]');
+                if (checkbox) {
+                    totalCount++;
+                    const isPresent = checkbox.checked;
+                    if (isPresent) presentCount++;
+                    const statusIcon = isPresent ? '✅' : '❌';
+                    const statusText = isPresent ? 'Present' : 'Absent';
+                    message += `${index + 1}. ${name}: ${statusIcon} ${statusText}\n`;
+                }
             });
+
+            message += `\n📊 *Summary:* ${presentCount}/${totalCount} Present`;
+
+            // Open WhatsApp with text to specific number using wa.me for robustness
+            const whatsappUrl = `https://wa.me/918547457536?text=${encodeURIComponent(message)}`;
+            window.location.href = whatsappUrl;
         });
     }
 
