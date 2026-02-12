@@ -644,9 +644,45 @@ if (document.getElementById('attendanceClassSelect')) {
                 return;
             }
 
+            // Date Formatting
+            const dateObj = new Date(attDate.value);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const dateObjMidnight = new Date(dateObj);
+            dateObjMidnight.setHours(0, 0, 0, 0);
+
+            let dateString = '';
+            if (dateObjMidnight.getTime() === today.getTime()) {
+                dateString = "Today's";
+            } else if (dateObjMidnight.getTime() === today.getTime() - 86400000) {
+                dateString = "Yesterday's";
+            } else {
+                // dd-mm-yyyy format
+                const d = dateObj.getDate().toString().padStart(2, '0');
+                const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                const y = dateObj.getFullYear();
+                dateString = `${d}-${m}-${y}`;
+            }
+
             // Construct Text Message
-            let message = `*📅 Attendance Report*\n`;
-            message += `🗓 Date: ${attDate.value}\n`;
+            let message = `*📅 ${dateString} Attendance Report*\n`;
+            if (dateString !== "Today's" && dateString !== "Yesterday's") {
+                // For specific dates, we already have it in the title, but redundant to add line? 
+                // User said "attendance report date must be in 12-02-2026", "not like the reverse".
+                // Let's keep it simple.
+            } else {
+                // If Today/Yesterday, maybe add specific date in brackets? Or just leave as is. User said "Today's attendance report...".
+                const d = dateObj.getDate().toString().padStart(2, '0');
+                const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+                const y = dateObj.getFullYear();
+                message += `🗓 Date: ${d}-${m}-${y}\n`;
+            }
+            if (dateString !== "Today's" && dateString !== "Yesterday's") {
+                // If not today/yesterday, the title is "12-02-2026 Attendance Report", so no need for extra date line?
+                // Actually, "12-02-2026 Attendance Report" is a bit weird.
+                // Let's stick to standard user request: "Attendance Report (12-02-2026)"
+                message = `*📅 Attendance Report (${dateString})*\n`;
+            }
             message += `🏫 Class: ${attClass.value}\n`;
             message += `📖 Subject: ${attSubject.value}\n\n`;
             message += `*Students:*\n`;
