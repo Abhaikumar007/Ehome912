@@ -75,12 +75,13 @@ if (document.getElementById('addStudentForm')) {
     document.getElementById('addStudentForm').addEventListener('submit', function (e) {
         e.preventDefault();
 
+        const id = document.getElementById('studentId').value;
         const name = document.getElementById('name').value;
         const studentClass = document.getElementById('class').value;
         const school = document.getElementById('school').value;
         const phone = document.getElementById('phone').value;
-
         const joiningDate = document.getElementById('joiningDate').value;
+        const amount = document.getElementById('amount').value; // New Amount Field
 
         // Get selected subjects
         const subjects = [];
@@ -88,22 +89,47 @@ if (document.getElementById('addStudentForm')) {
             subjects.push(checkbox.value);
         });
 
-        const newStudent = {
-            id: Date.now().toString(), // Simple ID
-            name,
-            class: studentClass,
-            school,
-            phone,
-            joiningDate,
-            subjects
-        };
-
         const students = getStudents();
-        students.push(newStudent);
-        saveStudents(students);
 
-        alert('Student Added Successfully!');
+        if (id) {
+            // EDIT MODE
+            const index = students.findIndex(s => s.id === id);
+            if (index !== -1) {
+                students[index] = {
+                    ...students[index], // Keep existing fees logic if any attached to ID (fees stored separately though)
+                    name,
+                    class: studentClass,
+                    school,
+                    phone,
+                    joiningDate,
+                    amount,
+                    subjects
+                };
+                alert('Student Updated Successfully!');
+            }
+        } else {
+            // ADD MODE
+            const newStudent = {
+                id: Date.now().toString(),
+                name,
+                class: studentClass,
+                school,
+                phone,
+                joiningDate,
+                amount,
+                subjects
+            };
+            students.push(newStudent);
+            alert('Student Added Successfully!');
+        }
+
+        saveStudents(students);
         e.target.reset();
+        document.getElementById('studentId').value = ''; // Clear ID
+        document.getElementById('submitStudentBtn').innerText = 'Add Student'; // Reset Button
+
+        // Uncheck all checkboxes
+        document.querySelectorAll('input[name="subject"]').forEach(cb => cb.checked = false);
     });
 }
 
@@ -245,7 +271,21 @@ if (document.getElementById('feesClassSelect')) {
                 let reminderBtn = '';
                 // Only show reminder if actually PENDING (Red)
                 if (statusClass === 'fee-pending') {
-                    const msg = `Dear Parent, fee for student ${student.name} (Class ${student.class}) for ${sub} - ${selectedMonth} is PENDING. Please pay at the earliest.`;
+                    // Check logic for ALL pending months
+                    // We need to calculate this dynamically here or helper?
+                    // Let's do a meaningful check here.
+
+                    const pendingInfo = getPendingDues(student, fees);
+                    const pendingMonths = pendingInfo.months.join(', ');
+                    const pendingSubjects = pendingInfo.subjects.join(', ');
+                    const amountMsg = student.amount ? `Amount per month: ₹${student.amount}` : 'Amount: Not Set';
+
+                    const msg = `Dear Parent, fee for student *${student.name}* (Class ${student.class}) is pending.\n\n` +
+                        `*Pending Months:* ${pendingMonths}\n` +
+                        `*Subjects:* ${pendingSubjects}\n` +
+                        `*${amountMsg}*\n\n` +
+                        `Please pay at the earliest.`;
+
                     // Use verified whatsapp logic (wa.me)
                     const whatsappUrl = `https://wa.me/91${student.phone}?text=${encodeURIComponent(msg)}`;
                     // Removed ml-2, added mobile styling
@@ -276,6 +316,49 @@ if (document.getElementById('feesClassSelect')) {
         });
     }
 
+    function getPendingDues(student, fees) {
+        if (!student.joiningDate) return { months: [], subjects: [] };
+
+        const joinDate = new Date(student.joiningDate);
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonthIndex = now.getMonth();
+
+        const pendingMonths = [];
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Iterate from Join Month/Year to Current Month/Year
+        let iterDate = new Date(joinDate.getFullYear(), joinDate.getMonth(), 1);
+        const endDate = new Date(currentYear, currentMonthIndex, 1);
+
+        while (iterDate <= endDate) {
+            const mIndex = iterDate.getMonth();
+            const y = iterDate.getFullYear();
+            const mName = monthNames[mIndex];
+
+            // Check if ANY subject is pending for this month
+            let isMonthPending = false;
+            student.subjects.forEach(sub => {
+                const key = `${student.id}_${sub}_${mName}_${y}`;
+                if (fees[key] !== 'Paid') {
+                    isMonthPending = true;
+                }
+            });
+
+            if (isMonthPending) {
+                pendingMonths.push(`${mName} ${y}`);
+            }
+
+            // Next month
+            iterDate.setMonth(iterDate.getMonth() + 1);
+        }
+
+        return {
+            months: pendingMonths,
+            subjects: student.subjects // Return all subjects they take, as user requested "if he has other subjects it hsould go in after ','"
+        };
+    }
+
     window.toggleFee = function (studentId, subject, month, year) {
         const key = `${studentId}_${subject}_${month}_${year}`;
         const fees = getFees();
@@ -301,21 +384,23 @@ if (document.getElementById('timetableTableBody')) {
 
     document.getElementById('addTimetableEntryBtn').addEventListener('click', function () {
         const date = document.getElementById('timetableDate').value;
-        const time = document.getElementById('timetableTime').value;
+        const startTime = document.getElementById('timetableStartTime').value;
+        const endTime = document.getElementById('timetableEndTime').value;
         const studentClass = document.getElementById('timetableClass').value;
         const subject = document.getElementById('timetableSubject').value;
 
-        if (!date || !studentClass || !subject) {
-            alert("Please fill in Date, Class and Subject");
+        if (!date || !startTime || !endTime || !studentClass || !subject) {
+            alert("Please fill in Date, Start Time, End Time, Class and Subject");
             return;
         }
 
-        const entry = { date, time, class: studentClass, subject };
+        const entry = { date, startTime, endTime, class: studentClass, subject };
         timetableEntries.push(entry);
         renderTimetable();
 
         // Don't clear date to make adding multiple slots for same day easier
-        document.getElementById('timetableTime').value = '';
+        document.getElementById('timetableStartTime').value = '';
+        document.getElementById('timetableEndTime').value = '';
         document.getElementById('timetableSubject').value = '';
     });
 
@@ -358,21 +443,22 @@ if (document.getElementById('timetableTableBody')) {
             return;
         }
 
-        // Sort by Date then Time (handle empty time)
+        // Sort by Date then Start Time
         timetableEntries.sort((a, b) => {
-            const timeA = a.time || '00:00';
-            const timeB = b.time || '00:00';
+            const timeA = a.startTime || '00:00';
+            const timeB = b.startTime || '00:00';
             return new Date(a.date + ' ' + timeA) - new Date(b.date + ' ' + timeB);
         });
 
         timetableEntries.forEach((entry, index) => {
-            const dateDisplay = formatDateFriendly(entry.date);
-            const timeDisplay = formatTime12Hour(entry.time);
+            const startTimeDisplay = formatTime12Hour(entry.startTime);
+            const endTimeDisplay = formatTime12Hour(entry.endTime);
+            const timeRange = `${startTimeDisplay} - ${endTimeDisplay}`;
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${dateDisplay}</td>
-                <td>${timeDisplay}</td>
+                <td>${timeRange}</td>
                 <td>${entry.class}</td>
                 <td>${entry.subject}</td>
                 <td class="no-capture"><button class="btn btn-sm btn-danger" onclick="removeTimetableEntry(${index})">&times;</button></td>
@@ -398,8 +484,9 @@ if (document.getElementById('timetableTableBody')) {
 
         timetableEntries.forEach(entry => {
             const dateDisplay = formatDateFriendly(entry.date);
-            const timeDisplay = formatTime12Hour(entry.time);
-            const timeStr = timeDisplay ? `🕒 ${timeDisplay}` : '';
+            const startTimeDisplay = formatTime12Hour(entry.startTime);
+            const endTimeDisplay = formatTime12Hour(entry.endTime);
+            const timeStr = `🕒 ${startTimeDisplay} - ${endTimeDisplay}`;
 
             message += `🗓 *${dateDisplay}* ${timeStr}\n`;
             message += `🏫 Class: ${entry.class}\n`;
@@ -465,15 +552,51 @@ if (document.getElementById('attendanceClassSelect')) {
             tr.innerHTML = `
                 <td>${s.name}</td>
                 <td>
-                    <div class="custom-control custom-switch">
-                        <input type="checkbox" class="custom-control-input" id="att_${s.id}" checked>
-                        <label class="custom-control-label" for="att_${s.id}">Present</label>
+                    <div style="display:flex; align-items:center;">
+                        <div class="custom-control custom-switch mr-2">
+                            <input type="checkbox" class="custom-control-input" id="att_${s.id}" checked onchange="togglePresent('${s.id}')">
+                            <label class="custom-control-label" for="att_${s.id}">Present</label>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning" id="late_btn_${s.id}" onclick="markLate('${s.id}')">Late?</button>
+                        <input type="hidden" id="late_time_${s.id}" value=""> <!-- Store late time -->
+                        <span id="late_badge_${s.id}" class="badge badge-warning ml-2" style="display:none;"></span>
                     </div>
                 </td>
             `;
             attTable.appendChild(tr);
         });
     }
+
+    // Attendance Helpers
+    window.togglePresent = function (id) {
+        const cb = document.getElementById(`att_${id}`);
+        const lateBtn = document.getElementById(`late_btn_${id}`);
+        const lateBadge = document.getElementById(`late_badge_${id}`);
+        const lateInput = document.getElementById(`late_time_${id}`);
+
+        if (!cb.checked) {
+            // If marked absent, clear late status
+            lateInput.value = '';
+            lateBadge.style.display = 'none';
+            lateBtn.style.display = 'none'; // Optional: hide late button if absent? Or keep it to re-enable present?
+            // Actually, if absent, cannot be late. 
+            // If they click Present again, Late is reset.
+        } else {
+            lateBtn.style.display = 'inline-block';
+        }
+    };
+
+    window.markLate = function (id) {
+        const time = prompt("How late is the student? (e.g., '15 mins')");
+        if (time) {
+            document.getElementById(`att_${id}`).checked = true; // Ensure present
+            document.getElementById(`late_time_${id}`).value = time;
+
+            const badge = document.getElementById(`late_badge_${id}`);
+            badge.innerText = `Late: ${time}`;
+            badge.style.display = 'inline-block';
+        }
+    };
 
     if (attDate) attDate.addEventListener('change', updateAttendanceView);
     if (attSubject) attSubject.addEventListener('change', updateAttendanceView);
@@ -511,10 +634,21 @@ if (document.getElementById('attendanceClassSelect')) {
                 if (checkbox) {
                     totalCount++;
                     const isPresent = checkbox.checked;
-                    if (isPresent) presentCount++;
-                    const statusIcon = isPresent ? '✅' : '❌';
-                    const statusText = isPresent ? 'Present' : 'Absent';
-                    message += `${index + 1}. ${name}: ${statusIcon} ${statusText}\n`;
+
+                    if (isPresent) {
+                        presentCount++;
+                        const id = checkbox.id.split('_')[1];
+                        const lateTimeInput = document.getElementById(`late_time_${id}`);
+                        const lateTime = lateTimeInput ? lateTimeInput.value : '';
+
+                        if (lateTime) {
+                            message += `${index + 1}. ${name}: ⚠️ Present (Late: ${lateTime})\n`;
+                        } else {
+                            message += `${index + 1}. ${name}: ✅ Present\n`;
+                        }
+                    } else {
+                        message += `${index + 1}. ${name}: ❌ Absent\n`;
+                    }
                 }
             });
 
@@ -556,9 +690,11 @@ if (document.getElementById('studentListBody')) {
                     ${s.joiningDate ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${new Date(s.joiningDate).toLocaleDateString()}</small>` : ''}
                 </td>
                 <td>${s.class}</td>
+                <td>₹${s.amount || '-'}</td>
                 <td>${s.phone}</td>
                 <td>${s.subjects.join(', ')}</td>
                 <td>
+                    <button class="btn btn-sm btn-info mb-1" onclick="editStudent('${s.id}')">Edit</button>
                     <button class="btn btn-sm btn-danger" onclick="askDeleteStudent('${s.id}', this)">Delete</button>
                 </td>
             `;
@@ -612,4 +748,32 @@ if (document.getElementById('studentListBody')) {
             setTimeout(renderStudentManagementList, 100);
         });
     }
+
+
+    // Edit Student Function
+    window.editStudent = function (id) {
+        const students = getStudents();
+        const student = students.find(s => s.id === id);
+        if (!student) return;
+
+        // Populate Form
+        document.getElementById('studentId').value = student.id;
+        document.getElementById('name').value = student.name;
+        document.getElementById('class').value = student.class;
+        document.getElementById('school').value = student.school;
+        document.getElementById('phone').value = student.phone;
+        document.getElementById('joiningDate').value = student.joiningDate || '';
+        document.getElementById('amount').value = student.amount || '';
+
+        // Subjects
+        document.querySelectorAll('input[name="subject"]').forEach(cb => {
+            cb.checked = student.subjects.includes(cb.value);
+        });
+
+        // Change Button Text and scroll to top
+        const btn = document.getElementById('submitStudentBtn');
+        if (btn) btn.innerText = "Update Student";
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
 }
