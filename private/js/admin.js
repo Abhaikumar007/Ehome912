@@ -389,8 +389,8 @@ if (document.getElementById('timetableTableBody')) {
         const studentClass = document.getElementById('timetableClass').value;
         const subject = document.getElementById('timetableSubject').value;
 
-        if (!date || !startTime || !endTime || !studentClass || !subject) {
-            alert("Please fill in Date, Start Time, End Time, Class and Subject");
+        if (!date || !studentClass || !subject) {
+            alert("Please fill in Date, Class and Subject. Times are optional.");
             return;
         }
 
@@ -451,9 +451,16 @@ if (document.getElementById('timetableTableBody')) {
         });
 
         timetableEntries.forEach((entry, index) => {
-            const startTimeDisplay = formatTime12Hour(entry.startTime);
-            const endTimeDisplay = formatTime12Hour(entry.endTime);
-            const timeRange = `${startTimeDisplay} - ${endTimeDisplay}`;
+            const dateDisplay = formatDateFriendly(entry.date);
+
+            let timeRange = '';
+            if (entry.startTime && entry.endTime) {
+                timeRange = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
+            } else if (entry.startTime) {
+                timeRange = formatTime12Hour(entry.startTime);
+            } else {
+                timeRange = '-';
+            }
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -552,14 +559,21 @@ if (document.getElementById('attendanceClassSelect')) {
             tr.innerHTML = `
                 <td>${s.name}</td>
                 <td>
-                    <div style="display:flex; align-items:center;">
-                        <div class="custom-control custom-switch mr-2">
-                            <input type="checkbox" class="custom-control-input" id="att_${s.id}" checked onchange="togglePresent('${s.id}')">
-                            <label class="custom-control-label" for="att_${s.id}">Present</label>
+                    <div style="display:flex; flex-direction: column;">
+                        <div style="display:flex; align-items:center; margin-bottom: 5px;">
+                            <div class="custom-control custom-switch mr-2">
+                                <input type="checkbox" class="custom-control-input" id="att_${s.id}" checked onchange="togglePresent('${s.id}')">
+                                <label class="custom-control-label" for="att_${s.id}">Present</label>
+                            </div>
+                            <button class="btn btn-sm btn-outline-warning" id="late_btn_${s.id}" onclick="showLateInput('${s.id}')" type="button">Late?</button>
                         </div>
-                        <button class="btn btn-sm btn-outline-warning" id="late_btn_${s.id}" onclick="markLate('${s.id}')">Late?</button>
-                        <input type="hidden" id="late_time_${s.id}" value=""> <!-- Store late time -->
-                        <span id="late_badge_${s.id}" class="badge badge-warning ml-2" style="display:none;"></span>
+                        
+                        <div id="late_input_group_${s.id}" style="display:none; align-items:center;">
+                            <input type="text" class="form-control form-control-sm mr-1" id="late_time_${s.id}" placeholder="Late time (e.g. 15m)" style="width: 120px;">
+                            <button class="btn btn-sm btn-success mr-1" onclick="saveLate('${s.id}')" type="button">✓</button>
+                            <button class="btn btn-sm btn-danger" onclick="cancelLate('${s.id}')" type="button">×</button>
+                        </div>
+                        <span id="late_badge_${s.id}" class="badge badge-warning" style="display:none; align-self: flex-start;"></span>
                     </div>
                 </td>
             `;
@@ -571,31 +585,52 @@ if (document.getElementById('attendanceClassSelect')) {
     window.togglePresent = function (id) {
         const cb = document.getElementById(`att_${id}`);
         const lateBtn = document.getElementById(`late_btn_${id}`);
+        const lateGroup = document.getElementById(`late_input_group_${id}`);
         const lateBadge = document.getElementById(`late_badge_${id}`);
         const lateInput = document.getElementById(`late_time_${id}`);
 
         if (!cb.checked) {
-            // If marked absent, clear late status
-            lateInput.value = '';
+            // Absent: Hide all late controls
+            lateBtn.style.display = 'none';
+            lateGroup.style.display = 'none';
             lateBadge.style.display = 'none';
-            lateBtn.style.display = 'none'; // Optional: hide late button if absent? Or keep it to re-enable present?
-            // Actually, if absent, cannot be late. 
-            // If they click Present again, Late is reset.
+            lateInput.value = '';
         } else {
-            lateBtn.style.display = 'inline-block';
+            // Present: Show Late button (if not already marked late)
+            if (lateInput.value === '') {
+                lateBtn.style.display = 'inline-block';
+                lateBadge.style.display = 'none';
+            } else {
+                // Already marked late
+                lateBadge.style.display = 'inline-block';
+            }
         }
     };
 
-    window.markLate = function (id) {
-        const time = prompt("How late is the student? (e.g., '15 mins')");
-        if (time) {
-            document.getElementById(`att_${id}`).checked = true; // Ensure present
-            document.getElementById(`late_time_${id}`).value = time;
+    window.showLateInput = function (id) {
+        document.getElementById(`late_btn_${id}`).style.display = 'none';
+        document.getElementById(`late_input_group_${id}`).style.display = 'flex';
+        // Auto-focus logic
+        setTimeout(() => document.getElementById(`late_time_${id}`).focus(), 100);
+    };
 
+    window.saveLate = function (id) {
+        const time = document.getElementById(`late_time_${id}`).value;
+        if (time && time.trim() !== '') {
+            document.getElementById(`late_input_group_${id}`).style.display = 'none';
             const badge = document.getElementById(`late_badge_${id}`);
             badge.innerText = `Late: ${time}`;
             badge.style.display = 'inline-block';
+        } else {
+            // Treat as cancel if empty
+            cancelLate(id);
         }
+    };
+
+    window.cancelLate = function (id) {
+        document.getElementById(`late_input_group_${id}`).style.display = 'none';
+        document.getElementById(`late_time_${id}`).value = ''; // Clear
+        document.getElementById(`late_btn_${id}`).style.display = 'inline-block';
     };
 
     if (attDate) attDate.addEventListener('change', updateAttendanceView);
