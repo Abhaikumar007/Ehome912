@@ -487,7 +487,7 @@ if (document.getElementById('timetableTableBody')) {
             return;
         }
 
-        let message = `*📅 Class Schedule*\n\n`;
+        let message = `*Class Schedule*\n\n`;
 
         timetableEntries.forEach(entry => {
             const dateDisplay = formatDateFriendly(entry.date);
@@ -495,7 +495,7 @@ if (document.getElementById('timetableTableBody')) {
             const endTimeDisplay = formatTime12Hour(entry.endTime);
             const timeStr = `🕒 ${startTimeDisplay} - ${endTimeDisplay}`;
 
-            message += `🗓 *${dateDisplay}* ${timeStr}\n`;
+            message += `*${dateDisplay}* ${timeStr}\n`;
             message += `🏫 Class: ${entry.class}\n`;
             message += `📖 Subject: ${entry.subject}\n`;
             message += `-------------------\n`;
@@ -665,7 +665,7 @@ if (document.getElementById('attendanceClassSelect')) {
             }
 
             // Construct Text Message
-            let message = `*📅 ${dateString} Attendance Report*\n`;
+            let message = `*${dateString} Attendance Report*\n`;
             if (dateString !== "Today's" && dateString !== "Yesterday's") {
                 // For specific dates, we already have it in the title, but redundant to add line? 
                 // User said "attendance report date must be in 12-02-2026", "not like the reverse".
@@ -675,13 +675,13 @@ if (document.getElementById('attendanceClassSelect')) {
                 const d = dateObj.getDate().toString().padStart(2, '0');
                 const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
                 const y = dateObj.getFullYear();
-                message += `🗓 Date: ${d}-${m}-${y}\n`;
+                message += `Date: ${d}-${m}-${y}\n`;
             }
             if (dateString !== "Today's" && dateString !== "Yesterday's") {
                 // If not today/yesterday, the title is "12-02-2026 Attendance Report", so no need for extra date line?
                 // Actually, "12-02-2026 Attendance Report" is a bit weird.
                 // Let's stick to standard user request: "Attendance Report (12-02-2026)"
-                message = `*📅 Attendance Report (${dateString})*\n`;
+                message = `*Attendance Report (${dateString})*\n`;
             }
             message += `🏫 Class: ${attClass.value}\n`;
             message += `📖 Subject: ${attSubject.value}\n\n`;
