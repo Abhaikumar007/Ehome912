@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://myeduhome.netlify.app/sitemap.xml
