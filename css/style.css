@@ -476,40 +476,54 @@ LOADER
  .img-responsive {
      max-width: 100%;
 }
- .slide_text h3 {
-     font-size: 50px;
-     font-weight: 700;
+ .slide_text h1 {
+     font-size: 45px;
+     font-weight: 800;
      line-height: 50px;
+     margin: 0;
+     padding: 0;
+     color: #fff;
+}
+ .slide_text h3 {
+     font-size: 40px;
+     font-weight: 700;
+     line-height: 45px;
      margin: 0;
      padding: 0;
 }
  .slide_text h4 {
-     font-size: 35px;
-     font-weight: 300;
-     margin: 0;
+     font-size: 28px;
+     font-weight: 400;
+     margin: 10px 0;
      padding: 0;
      line-height: normal;
+	 color: #fff;
 }
  .slide_text p {
-     color: #0892fd;
-     line-height: 21px;
+     color: #fff;
+     line-height: 24px;
      font-size: 18px;
-     font-weight: 200;
+     font-weight: 300;
+	 margin-bottom: 25px;
 }
  .contact_bt {
-     width: 145px;
+     width: 160px;
      height: 50px;
-     background: #07528d;
+     background: #0892fd;
      color: #fff;
-     float: left;
-     line-height: 48px;
+     line-height: 50px;
      text-align: center;
      font-size: 16px;
-     font-weight: 300;
-     margin-top: 50px;
+     font-weight: 400;
+	 border-radius: 5px;
+	 display: inline-block;
 }
+ .contact_bt:hover, .contact_bt:focus {
+	 background: #333;
+	 color: #fff;
+ }
 .slide_text {
-    margin-top: 21%;
+    margin-top: 15%;
 }
 /*------------------------------------------------------------------ About -------------------------------------------------------------------*/
  .tooltip-1 {
