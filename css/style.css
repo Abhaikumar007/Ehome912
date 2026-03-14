@@ -482,7 +482,7 @@ LOADER
      line-height: 50px;
      margin: 0;
      padding: 0;
-     color: #fff;
+     color: #1f1f1f;
 }
  .slide_text h3 {
      font-size: 40px;
@@ -490,6 +490,7 @@ LOADER
      line-height: 45px;
      margin: 0;
      padding: 0;
+     color: #1f1f1f;
 }
  .slide_text h4 {
      font-size: 28px;
@@ -497,10 +498,10 @@ LOADER
      margin: 10px 0;
      padding: 0;
      line-height: normal;
-	 color: #fff;
+	 color: #333;
 }
  .slide_text p {
-     color: #fff;
+     color: #666;
      line-height: 24px;
      font-size: 18px;
      font-weight: 300;
