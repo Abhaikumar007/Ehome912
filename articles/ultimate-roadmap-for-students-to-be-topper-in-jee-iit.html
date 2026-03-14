@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Ultimate All-In-One Guide: The Roadmap No One Talks About to Top JEE & IIT | EduHome</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--deep:#060e1f;--navy:#0b1d3a;--mid:#123062;--bright:#1a56db;--sky:#3b82f6;--light:#93c5fd;--pale:#dbeafe;--mist:#eff6ff;--white:#ffffff;--off:#f8fafc;--gold:#f59e0b;--green:#10b981;--t1:#0f172a;--t2:#334155;--t3:#64748b;--border:rgba(59,130,246,.14)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--white);color:var(--t1);overflow-x:hidden;line-height:1.8}
+#prog{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--bright),var(--light),var(--bright));background-size:200%;width:0%;z-index:9999;animation:ps 2s linear infinite;box-shadow:0 0 10px var(--sky)}
+@keyframes ps{0%{background-position:0%}100%{background-position:200%}}
+nav{position:fixed;top:0;left:0;right:0;z-index:900;padding:.9rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(6,14,31,.88);backdrop-filter:blur(20px);border-bottom:1px solid rgba(59,130,246,.1)}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--white);text-decoration:none}.nav-logo span{color:var(--sky)}
+.nav-links{display:flex;gap:1.4rem;list-style:none}
+.nav-links a{font-size:.75rem;font-weight:500;color:rgba(255,255,255,.55);text-decoration:none;letter-spacing:.04em;transition:color .2s}
+.nav-links a:hover{color:var(--light)}
+@media(max-width:700px){.nav-links{display:none}}
+.hero{min-height:100vh;background:var(--deep);position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;padding:6rem 1.5rem 4rem}
+.h-mesh{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 20% 40%,rgba(26,86,219,.18) 0%,transparent 60%),radial-gradient(ellipse 60% 50% at 80% 70%,rgba(14,165,233,.12) 0%,transparent 60%)}
+.h-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(59,130,246,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(59,130,246,.06) 1px,transparent 1px);background-size:50px 50px;animation:gd 40s linear infinite}
+@keyframes gd{100%{background-position:50px 50px}}
+.h-content{position:relative;z-index:2;text-align:center;max-width:820px;animation:rise 1.2s cubic-bezier(.22,1,.36,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(50px)}to{opacity:1;transform:translateY(0)}}
+.badge{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);color:var(--light);font-size:.7rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:6px 18px;border-radius:100px;margin-bottom:2rem}
+.bdot{width:7px;height:7px;background:var(--sky);border-radius:50%;animation:bl 2s infinite}
+@keyframes bl{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.6)}}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,6.5vw,5.2rem);font-weight:900;color:var(--white);line-height:1.08;margin-bottom:1.75rem}
+.hero h1 em{font-style:italic;background:linear-gradient(135deg,var(--sky),var(--light));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-sub{font-size:clamp(.95rem,2vw,1.15rem);color:rgba(255,255,255,.58);font-weight:300;max-width:580px;margin:0 auto 3rem;line-height:1.9}
+.hcta{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+.bp{display:inline-block;background:linear-gradient(135deg,var(--bright),var(--sky));color:var(--white);font-weight:600;font-size:.88rem;padding:.9rem 2.2rem;border-radius:100px;text-decoration:none;transition:all .3s;box-shadow:0 8px 28px rgba(26,86,219,.4)}
+.bp:hover{transform:translateY(-3px);box-shadow:0 16px 40px rgba(26,86,219,.55)}
+.bs{display:inline-block;background:rgba(255,255,255,.07);color:rgba(255,255,255,.8);font-weight:500;font-size:.88rem;padding:.9rem 2.2rem;border-radius:100px;text-decoration:none;border:1px solid rgba(255,255,255,.15);transition:all .3s}
+.bs:hover{background:rgba(255,255,255,.12)}
+.hscroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:rgba(255,255,255,.35);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;animation:bob 2.5s ease-in-out infinite}
+.hscroll::after{content:'';width:1px;height:40px;background:linear-gradient(to bottom,rgba(255,255,255,.35),transparent)}
+@keyframes bob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(9px)}}
+.wrap{max-width:860px;margin:0 auto;padding:0 1.5rem}
+.wrap-wide{max-width:1100px;margin:0 auto;padding:0 1.5rem}
+/* INDEX */
+.idx-sec{background:var(--navy);padding:7rem 0 5rem;position:relative;overflow:hidden}
+.idx-sec::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='%233b82f6' fill-opacity='.07'/%3E%3C/svg%3E")}
+.idx-head{text-align:center;margin-bottom:4rem;position:relative;z-index:1}
+.idx-head h2{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,4vw,2.8rem);font-weight:900;color:var(--white);margin-bottom:1rem}
+.idx-head p{color:rgba(255,255,255,.5);font-size:.95rem;max-width:500px;margin:0 auto}
+.idx-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.25rem;position:relative;z-index:1}
+.ic{background:rgba(255,255,255,.04);border:1px solid rgba(59,130,246,.18);border-radius:18px;padding:1.75rem;cursor:pointer;text-decoration:none;transition:all .3s;display:block;position:relative;overflow:hidden}
+.ic:hover{border-color:rgba(59,130,246,.5);transform:translateY(-4px);box-shadow:0 20px 40px rgba(26,86,219,.2);background:rgba(59,130,246,.06)}
+.ic-num{font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;color:var(--sky);letter-spacing:.12em;margin-bottom:.6rem;display:block}
+.ic-icon{font-size:1.75rem;margin-bottom:.6rem;display:block}
+.ic h3{font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:.35rem;line-height:1.3}
+.ic p{font-size:.78rem;color:rgba(255,255,255,.42);line-height:1.55;margin:0}
+.ic-arr{position:absolute;bottom:1.25rem;right:1.25rem;color:var(--sky);font-size:1rem;opacity:.4;transition:all .3s}
+.ic:hover .ic-arr{opacity:1;transform:translateX(4px)}
+/* SECTIONS */
+.sl{background:var(--white);padding:7rem 0}
+.so{background:var(--off);padding:7rem 0}
+.sd{background:var(--deep);padding:7rem 0;position:relative;overflow:hidden}
+.sd::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 70% 50% at 20% 50%,rgba(26,86,219,.1) 0%,transparent 60%),radial-gradient(ellipse 60% 60% at 80% 20%,rgba(14,165,233,.07) 0%,transparent 60%)}
+.sn{background:var(--navy);padding:7rem 0}
+/* LABELS */
+.slabel{display:flex;align-items:center;gap:.9rem;margin-bottom:2rem}
+.stag{font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;letter-spacing:.14em;text-transform:uppercase;padding:5px 13px;border-radius:100px;white-space:nowrap}
+.stag-l{background:var(--mist);color:var(--bright);border:1px solid var(--pale)}
+.stag-d{background:rgba(59,130,246,.15);color:var(--light);border:1px solid rgba(59,130,246,.3)}
+.sline{height:1px;flex:1}
+.sline-l{background:linear-gradient(to right,var(--pale),transparent)}
+.sline-d{background:linear-gradient(to right,rgba(255,255,255,.1),transparent)}
+h2.st{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,4vw,2.9rem);font-weight:800;line-height:1.2;margin-bottom:1.25rem}
+h2.st-l{color:var(--deep)} h2.st-d{color:var(--white)}
+h2.st em{font-style:italic} h2.st-l em{color:var(--bright)} h2.st-d em{color:var(--light)}
+p.sl{font-size:1.03rem;color:var(--t2);line-height:1.9;margin-bottom:1.25rem}
+p.sl-d{color:rgba(255,255,255,.62)}
+/* STATS */
+.sbar{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:1.25rem;margin:3rem 0}
+.stat{background:var(--deep);border-radius:16px;padding:1.75rem 1.5rem;text-align:center;transition:transform .3s,box-shadow .3s;position:relative;overflow:hidden}
+.stat:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(26,86,219,.28)}
+.stat::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(59,130,246,.08),transparent)}
+.sn2{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;color:var(--sky);display:block;line-height:1;margin-bottom:.4rem}
+.sl2{font-size:.7rem;font-weight:500;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.09em}
+/* QUOTE */
+.hq{border-left:4px solid var(--bright);padding:1.75rem 2.25rem;margin:3rem 0;background:linear-gradient(135deg,var(--mist),rgba(219,234,254,.25));border-radius:0 16px 16px 0;font-family:'Playfair Display',serif;font-size:1.2rem;font-style:italic;color:var(--navy);position:relative}
+.hq::before{content:'\201C';font-size:5rem;color:var(--pale);position:absolute;top:-1.2rem;left:1.2rem;font-family:'Playfair Display',serif;line-height:1;pointer-events:none}
+/* PHASES */
+.phase-list{display:grid;gap:1.25rem;margin:2.5rem 0}
+.phase{background:var(--white);border:1px solid var(--border);border-radius:18px;padding:2rem;transition:all .3s;position:relative;overflow:hidden}
+.phase:hover{border-color:var(--sky);box-shadow:0 12px 32px rgba(59,130,246,.1);transform:translateX(6px)}
+.ptag{display:inline-block;font-family:'DM Mono',monospace;font-size:.63rem;font-weight:500;color:var(--bright);background:var(--mist);border:1px solid var(--pale);padding:4px 11px;border-radius:100px;margin-bottom:.9rem;letter-spacing:.1em;text-transform:uppercase}
+.phase h4{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:700;color:var(--navy);margin-bottom:.55rem}
+.phase p{font-size:.9rem;color:var(--t2);margin:0;line-height:1.75}
+.pnum{position:absolute;right:-10px;top:-10px;font-family:'Playfair Display',serif;font-size:5rem;font-weight:900;color:rgba(26,86,219,.05);line-height:1;user-select:none;pointer-events:none}
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:18px;border:1px solid var(--border);box-shadow:0 2px 12px rgba(0,0,0,.06);margin:2.5rem 0}
+table{width:100%;border-collapse:collapse;font-size:.875rem}
+thead{background:var(--deep);color:var(--white)}
+thead th{padding:1rem 1.25rem;text-align:left;font-weight:600;font-size:.73rem;letter-spacing:.07em;text-transform:uppercase}
+tbody tr{border-bottom:1px solid var(--border);transition:background .2s}
+tbody tr:hover{background:var(--mist)} tbody tr:last-child{border-bottom:none}
+tbody td{padding:.875rem 1.25rem;color:var(--t2);vertical-align:top}
+tbody td:first-child{font-weight:700;color:var(--navy);white-space:nowrap}
+.del{display:inline-block;font-size:.63rem;font-weight:600;padding:2px 9px;border-radius:100px;background:#fee2e2;color:#b91c1c;margin:2px 3px 2px 0}
+/* HY CARDS */
+.hy-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:1.5rem 0}
+.hy{padding:1.25rem;border-radius:14px;border:1px solid;transition:all .3s}
+.hy:hover{transform:translateY(-3px)}
+.hy h5{font-size:.85rem;font-weight:700;margin-bottom:.35rem}
+.hy p{font-size:.78rem;margin:0;line-height:1.5}
+.hp{background:#eff6ff;border-color:#bfdbfe}.hp h5{color:var(--mid)}.hp p{color:var(--bright)}
+.hc{background:#f0fdf4;border-color:#bbf7d0}.hc h5{color:#14532d}.hc p{color:#15803d}
+.hm{background:#faf5ff;border-color:#e9d5ff}.hm h5{color:#4c1d95}.hm p{color:#7c3aed}
+/* BOOKS */
+.books-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:1.5rem;margin:2.5rem 0}
+.bc{background:var(--white);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .3s;text-decoration:none;display:block}
+.bc:hover{box-shadow:0 20px 50px rgba(10,22,56,.18);transform:translateY(-5px);border-color:var(--sky)}
+.bcover{height:175px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.bspine{position:absolute;left:0;top:0;bottom:0;width:10px}
+.bcc{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.5rem;text-align:center;padding:1.25rem;width:100%;height:100%}
+.bcc-icon{font-size:2rem}
+.bcc-t{font-family:'Playfair Display',serif;font-size:.85rem;font-weight:700;line-height:1.3}
+.bcc-a{font-size:.7rem;font-weight:500;opacity:.7}
+.binfo{padding:1.1rem 1.25rem}
+.binfo h5{font-size:.83rem;font-weight:700;color:var(--navy);margin-bottom:.25rem;line-height:1.3}
+.binfo p{font-size:.75rem;color:var(--t3);margin-bottom:.75rem;line-height:1.5}
+.bbuy{display:flex;align-items:center;justify-content:space-between}
+.bsubj{font-size:.62rem;font-weight:600;padding:2px 9px;border-radius:100px;text-transform:uppercase;letter-spacing:.07em}
+.blink{font-size:.72rem;font-weight:600;color:var(--bright);text-decoration:none;display:flex;align-items:center;gap:3px;transition:gap .2s}
+.blink:hover{gap:7px}
+/* YT */
+.yt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin:2rem 0}
+.ytc{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:1.25rem;transition:all .25s;text-decoration:none;display:block}
+.ytc:hover{border-color:var(--sky);box-shadow:0 6px 20px rgba(59,130,246,.1);transform:translateY(-2px)}
+.yt-th{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.yt-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.yt-nm{font-size:.87rem;font-weight:700;color:var(--navy)}
+.yt-sub2{font-size:.7rem;color:var(--sky);font-weight:600}
+.ytc p{font-size:.78rem;color:var(--t3);margin:0;line-height:1.55}
+/* HOW TO STUDY */
+.sp{display:flex;gap:1.5rem;align-items:flex-start;padding:1.75rem;background:var(--white);border:1px solid var(--border);border-radius:16px;margin-bottom:1rem;transition:all .3s}
+.sp:hover{border-color:var(--sky);box-shadow:0 8px 24px rgba(59,130,246,.08)}
+.sp-ico{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--bright),var(--sky));display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;box-shadow:0 6px 16px rgba(26,86,219,.28)}
+.sp-b h4{font-weight:700;font-size:.93rem;color:var(--navy);margin-bottom:.3rem}
+.sp-b p{font-size:.87rem;color:var(--t2);margin:0;line-height:1.65}
+.tt-note{background:linear-gradient(135deg,var(--mist),rgba(219,234,254,.4));border:1px solid var(--pale);border-radius:18px;padding:2.5rem;margin:2.5rem 0;text-align:center}
+.tt-note h3{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--navy);margin-bottom:.9rem}
+.tt-note p{font-size:.93rem;color:var(--t2);max-width:560px;margin:0 auto 1.5rem;line-height:1.8}
+.slots{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center}
+.slot{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:.5rem 1rem;font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;color:var(--bright);transition:all .25s;cursor:default}
+.slot:hover{background:var(--mist);border-color:var(--sky)}
+/* SUBJECT CARDS */
+.sh{border-radius:20px;padding:2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.sh h3{font-family:'Playfair Display',serif;font-size:1.55rem;font-weight:800;margin-bottom:.7rem}
+.sh p{font-size:.93rem;line-height:1.8;max-width:680px;margin:0}
+.sh .shb{display:inline-block;font-family:'DM Mono',monospace;font-size:.63rem;font-weight:500;padding:4px 11px;border-radius:100px;margin-bottom:.9rem;letter-spacing:.1em;text-transform:uppercase}
+.sh-p{background:linear-gradient(135deg,#0a1628,#0d2247);color:var(--white)}
+.sh-p p{color:rgba(255,255,255,.7)}
+.sh-c{background:linear-gradient(135deg,#052e16,#064e3b);color:var(--white)}
+.sh-c p{color:rgba(255,255,255,.7)}
+.sh-m{background:linear-gradient(135deg,#2e1065,#3b0764);color:var(--white)}
+.sh-m p{color:rgba(255,255,255,.7)}
+.sh-p .shb{background:rgba(59,130,246,.2);color:var(--light)}
+.sh-c .shb{background:rgba(16,185,129,.2);color:#6ee7b7}
+.sh-m .shb{background:rgba(167,139,250,.2);color:#c4b5fd}
+.stips{list-style:none;display:grid;gap:.75rem;margin:1.5rem 0}
+.stips li{display:flex;align-items:flex-start;gap:.9rem;padding:1rem 1.25rem;background:var(--off);border:1px solid var(--border);border-radius:12px;font-size:.88rem;color:var(--t2);transition:all .25s}
+.stips li:hover{background:var(--mist);border-color:var(--light)}
+.ti{flex-shrink:0;font-size:1.1rem;margin-top:.1em}
+/* TODO */
+.todo-c{counter-reset:tn;display:grid;gap:0}
+.todo-item{display:flex;gap:0;position:relative}
+.tline{width:2px;background:linear-gradient(to bottom,var(--bright),rgba(26,86,219,.3));margin-left:23px;flex-shrink:0}
+.todo-item:last-child .tline{background:linear-gradient(to bottom,var(--bright),transparent)}
+.tdw{display:flex;flex-direction:column;align-items:center;flex-shrink:0;padding-top:.2rem}
+.tdot{width:48px;height:48px;background:linear-gradient(135deg,var(--bright),var(--sky));border-radius:14px;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.78rem;font-weight:700;color:var(--white);flex-shrink:0;box-shadow:0 6px 20px rgba(26,86,219,.35);z-index:1}
+.tcon{flex:1;padding:0 0 3rem 1.75rem}
+.tcon h3{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:800;color:var(--white);margin-bottom:.5rem;line-height:1.25}
+.tcon .twhy{font-size:.9rem;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:1.25rem}
+.tres{background:rgba(255,255,255,.04);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:1.25rem}
+.tres h5{font-size:.7rem;font-weight:700;color:var(--sky);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.75rem;display:flex;align-items:center;gap:.5rem}
+.tres h5::before{content:'';display:block;width:16px;height:2px;background:var(--sky)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.06);border:1px solid rgba(59,130,246,.2);border-radius:100px;padding:5px 12px;font-size:.73rem;font-weight:600;color:rgba(255,255,255,.75);transition:all .25s;cursor:default}
+.chip:hover{border-color:var(--sky);background:rgba(59,130,246,.12);color:var(--light)}
+.chip-i{font-size:.82rem}
+.tst{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:.62rem;font-weight:500;padding:4px 11px;border-radius:100px;margin-bottom:.7rem;letter-spacing:.07em;text-transform:uppercase}
+.st1{background:#fef3c7;color:#92400e;border:1px solid #fde68a}
+.st2{background:rgba(59,130,246,.15);color:var(--light);border:1px solid rgba(59,130,246,.3)}
+.st3{background:rgba(16,185,129,.15);color:#6ee7b7;border:1px solid rgba(16,185,129,.3)}
+.st4{background:rgba(167,139,250,.15);color:#c4b5fd;border:1px solid rgba(167,139,250,.3)}
+/* EDUHOME */
+.eduhome-sec{background:var(--deep);padding:7rem 0;position:relative;overflow:hidden}
+.eduhome-sec::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(26,86,219,.12) 0%,transparent 70%)}
+.ecard{position:relative;z-index:1;background:rgba(255,255,255,.04);border:1px solid rgba(59,130,246,.25);border-radius:24px;padding:3.5rem;overflow:hidden}
+.ecard::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--bright),var(--sky),var(--light),var(--sky),var(--bright));background-size:300%;animation:sh 4s linear infinite}
+@keyframes sh{0%{background-position:0%}100%{background-position:300%}}
+.elogo{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--white);margin-bottom:.4rem}
+.elogo span{color:var(--sky)}
+.etag{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;color:var(--light);letter-spacing:.15em;text-transform:uppercase;margin-bottom:2rem}
+.epromise{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2.3vw,1.5rem);font-style:italic;color:rgba(255,255,255,.85);line-height:1.85;margin-bottom:2.5rem;padding-left:1.5rem;border-left:3px solid var(--sky)}
+.efeatures{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin:2.5rem 0}
+.ef{background:rgba(255,255,255,.04);border:1px solid rgba(59,130,246,.2);border-radius:14px;padding:1.5rem;transition:all .3s}
+.ef:hover{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.4);transform:translateY(-3px)}
+.ef-i{font-size:1.75rem;margin-bottom:.7rem}
+.ef h5{font-size:.87rem;font-weight:700;color:var(--white);margin-bottom:.3rem}
+.ef p{font-size:.77rem;color:rgba(255,255,255,.5);margin:0;line-height:1.6}
+.esubjs{display:flex;flex-wrap:wrap;gap:.6rem;margin:1.5rem 0}
+.esub{background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.25);border-radius:100px;padding:5px 14px;font-size:.74rem;font-weight:600;color:var(--light)}
+.epbadge{display:flex;align-items:center;gap:.75rem;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);border-radius:12px;padding:1rem 1.5rem;margin-top:2rem}
+.epbadge span:first-child{font-size:1.5rem}
+.epbadge p{font-size:.85rem;font-weight:600;color:#6ee7b7;margin:0;line-height:1.5}
+/* CLOSING */
+.closing{background:linear-gradient(135deg,var(--deep) 0%,var(--navy) 100%);padding:9rem 0;text-align:center;position:relative;overflow:hidden}
+.closing::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(59,130,246,.12) 0%,transparent 70%)}
+.ci{position:relative;z-index:1}
+.ci h2{font-family:'Playfair Display',serif;font-size:clamp(2.2rem,5.5vw,4.2rem);color:var(--white);font-weight:900;line-height:1.15;margin-bottom:1.5rem}
+.ci h2 em{font-style:italic;color:var(--light)}
+.ci>p{font-size:1.05rem;color:rgba(255,255,255,.5);max-width:460px;margin:0 auto 3rem;font-weight:300}
+.lbox{max-width:680px;margin:4rem auto 0;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:24px;padding:3rem;text-align:left}
+.lbox p{font-family:'Playfair Display',serif;font-size:1.08rem;font-style:italic;color:rgba(255,255,255,.8);line-height:2;margin-bottom:1.5rem}
+.lsign{font-family:'Playfair Display',serif;font-size:.93rem;color:var(--light);font-style:italic}
+/* CALLOUT */
+.callout{background:var(--mist);border:1px solid var(--pale);border-radius:16px;padding:1.75rem 2rem;margin:2rem 0}
+.callout h4{font-size:.88rem;font-weight:700;color:var(--navy);margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem}
+.callout p{font-size:.88rem;color:var(--t2);margin:0;line-height:1.7}
+/* REVEAL */
+.rev{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease}
+.rev.vis{opacity:1;transform:translateY(0)}
+.r1{transition-delay:.1s}.r2{transition-delay:.2s}.r3{transition-delay:.3s}.r4{transition-delay:.4s}
+/* BACK TOP */
+#bk{position:fixed;bottom:2rem;right:2rem;width:44px;height:44px;background:var(--bright);border-radius:12px;display:flex;align-items:center;justify-content:center;color:var(--white);font-size:1.1rem;cursor:pointer;box-shadow:0 8px 24px rgba(26,86,219,.4);transition:all .3s;opacity:0;pointer-events:none;z-index:800;border:none;text-decoration:none}
+#bk.show{opacity:1;pointer-events:all}
+#bk:hover{transform:translateY(-3px);box-shadow:0 16px 36px rgba(26,86,219,.5)}
+@media(max-width:640px){
+  .ecard{padding:2rem}.tcon{padding:0 0 2rem 1.25rem}
+  .tdot{width:38px;height:38px;font-size:.7rem}.tline{margin-left:18px}
+  .sp{flex-direction:column;gap:1rem}.lbox{padding:2rem}
+}
+</style>
+</head>
+<body>
+
+<div id="prog"></div>
+
+<nav>
+  <a href="#top" class="nav-logo">IIT<span>Guide</span> · Eduhome</a>
+  <ul class="nav-links">
+    <li><a href="#strategies">Strategies</a></li>
+    <li><a href="#books">Books</a></li>
+    <li><a href="#howtostudy">How to Study</a></li>
+    <li><a href="#subjects">Subjects</a></li>
+    <li><a href="#todo">TODO List</a></li>
+    <li><a href="#eduhome">Eduhome</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="h-mesh"></div>
+  <div class="h-grid"></div>
+  <div class="h-content">
+    <div class="badge"><span class="bdot"></span>The Ultimate All-In-One Roadmap · 2025–2026</div>
+    <h1>The Ultimate All-In-One Roadmap to <br>Top <em>JEE & IIT.</em></h1>
+    <p class="hero-sub">An honest, complete guide for every student staring at the ceiling wondering if this dream is actually possible. It is. And this is exactly how — step by step, with every resource attached.</p>
+    <div class="hcta">
+      <a href="#idx" class="bp">Explore the Full Roadmap ↓</a>
+      <a href="#todo" class="bs">Jump to TODO List</a>
+    </div>
+  </div>
+  <div class="hscroll">Scroll</div>
+</section>
+
+<!-- INDEX PAGE -->
+<section id="idx" class="idx-sec">
+  <div class="wrap-wide">
+    <div class="idx-head rev">
+      <h2>Your Complete Journey, Section by Section</h2>
+      <p>Read in order for maximum clarity, or jump directly to what you need right now.</p>
+    </div>
+    <div class="idx-grid">
+      <a href="#strategies" class="ic rev r1">
+        <span class="ic-num">01 / Start Here</span>
+        <span class="ic-icon">🎯</span>
+        <h3>Strategies & Smart Study Tips</h3>
+        <p>The four phases of JEE prep, deleted syllabus topics for 2026, and your highest-ROI chapters.</p>
+        <div class="ic-arr">→</div>
+      </a>
+      <a href="#books" class="ic rev r2">
+        <span class="ic-num">02 / Then This</span>
+        <span class="ic-icon">📚</span>
+        <h3>Books & Free Resources</h3>
+        <p>Exactly which books to get, YouTube channels to follow, and free platforms — with buy links.</p>
+        <div class="ic-arr">→</div>
+      </a>
+      <a href="#howtostudy" class="ic rev r3">
+        <span class="ic-num">03 / Core Mindset</span>
+        <span class="ic-icon">🧠</span>
+        <h3>How to Study Without Coaching</h3>
+        <p>The principles that power autonomous learning. Build your own schedule — your life, your rhythm.</p>
+        <div class="ic-arr">→</div>
+      </a>
+      <a href="#subjects" class="ic rev r4">
+        <span class="ic-num">04 / Deep Dive</span>
+        <span class="ic-icon">⚗️</span>
+        <h3>Subject-by-Subject Strategy</h3>
+        <p>Physics, Chemistry, and Maths — three completely different animals. Here's how to tame each one.</p>
+        <div class="ic-arr">→</div>
+      </a>
+      <a href="#todo" class="ic rev r1" style="border-color:rgba(245,158,11,.25)">
+        <span class="ic-num">05 / Take Action</span>
+        <span class="ic-icon">✅</span>
+        <h3>Your Master TODO List</h3>
+        <p>Do this first. Then this. Then this. Sequential steps with every resource attached to each one.</p>
+        <div class="ic-arr" style="color:var(--gold)">→</div>
+      </a>
+      <a href="#eduhome" class="ic rev r2" style="border-color:rgba(16,185,129,.25)">
+        <span class="ic-num">06 / Support System</span>
+        <span class="ic-icon">🏫</span>
+        <h3>Eduhome — Your Academic Backbone</h3>
+        <p>Concept-oriented coaching for Classes 6–12. Small batches. 100% Improvement Promised.</p>
+        <div class="ic-arr" style="color:var(--green)">→</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 1: STRATEGIES -->
+<section id="strategies" class="sl">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-l">01 / Strategies & Tips</span><div class="sline sline-l"></div></div>
+    <h2 class="st st-l rev">The Four Phases That<br><em>Actually Work.</em></h2>
+    <p class="sl rev">Forget cramming everything at once. JEE prep is a structured two-year journey — like building a house. You cannot put the roof on before the walls. Each phase prepares you for the next. Skip one and you'll feel it in your mock scores.</p>
+    <div class="phase-list rev">
+      <div class="phase"><div class="pnum">I</div><div class="ptag">Class 11 · April – February</div><h4>Phase 1 — Foundation Building</h4><p>Deep NCERT reading, H.C. Verma concepts, understanding before problem-solving. Every chapter you half-understand now will haunt you in mocks later. Build the bedrock right. No rushing.</p></div>
+      <div class="phase"><div class="pnum">II</div><div class="ptag">Class 12 · March – October</div><h4>Phase 2 — The Syllabus Sprint</h4><p>Cover the entire JEE syllabus by October — no exceptions. 80% on Class 12 topics, 20% weekends recalling Class 11. Mid-level practice papers begin. Your error-tracking notebook starts here.</p></div>
+      <div class="phase"><div class="pnum">III</div><div class="ptag">November – January</div><h4>Phase 3 — Diagnostic Refinement</h4><p>No new topics. Zero. Full-length mocks on Sundays. Ruthless error profiling every single time. Identify every weakness, classify it, fix it. This phase separates aspirants from qualifiers.</p></div>
+      <div class="phase"><div class="pnum">IV</div><div class="ptag">February – May</div><h4>Phase 4 — Advanced Pivot & Boards</h4><p>After January JEE Main, boards briefly. Then post-March, pivot entirely to JEE Advanced — Vikas Gupta, Pathfinder, deep multi-concept problems. This is where your All India Rank gets decided.</p></div>
+    </div>
+    <div class="hq rev">Coaching can give you structure. But it cannot give you <em>understanding</em>. Only you can build that — one difficult problem at a time, alone, in the silence of your own room.</div>
+    <div class="sbar rev">
+      <div class="stat"><span class="sn2" data-target="6">0</span><span class="sl2">Min Hours Daily</span></div>
+      <div class="stat"><span class="sn2" data-target="2">0</span><span class="sl2">Year Journey</span></div>
+      <div class="stat"><span class="sn2" data-target="11">0</span><span class="sl2">% Core Topics Repeat</span></div>
+      <div class="stat"><span class="sn2">₹0</span><span class="sl2">Cost of Best Tools</span></div>
+    </div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:800;color:var(--deep);margin:3.5rem 0 1rem" class="rev">⚠️ Deleted Topics — Don't Study These</h3>
+    <p class="sl rev" style="font-size:.93rem">The NTA rationalized the JEE syllabus in 2024. These chapters no longer exist in the 2026 exam. If you're using old study materials, you're wasting hours on nothing.</p>
+    <div class="tbl-wrap rev">
+      <table>
+        <thead><tr><th>Subject</th><th>Deleted from 2026 JEE</th></tr></thead>
+        <tbody>
+          <tr><td>⚡ Physics</td><td><span class="del">Geostationary Satellites</span><span class="del">Reynolds Number</span><span class="del">Newton's Law of Cooling</span><span class="del">Carnot Engine</span><span class="del">Zero Vector</span><span class="del">Lens Formula</span></td></tr>
+          <tr><td>🧪 Chemistry</td><td><span class="del">States of Matter</span><span class="del">Surface Chemistry</span><span class="del">Metallurgy</span><span class="del">s-Block Elements</span><span class="del">Environmental Chemistry</span><span class="del">Polymers</span><span class="del">Hydrogen</span><span class="del">Chemistry in Everyday Life</span></td></tr>
+          <tr><td>📐 Maths</td><td><span class="del">Mathematical Induction</span><span class="del">Mathematical Reasoning</span><span class="del">Heights & Distances</span><span class="del">Bernoulli Trials</span><span class="del">Arithmetic-Geometric Progression</span><span class="del">Triangle Inequality</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h3 style="font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:800;color:var(--deep);margin:3rem 0 1rem" class="rev">📊 High-Yield Chapters (Your ROI Map)</h3>
+    <div class="hy-row rev">
+      <div class="hy hp"><h5>⚡ Physics Priorities</h5><p>Current Electricity (6.57%), Modern Physics (6.6%), Mechanics, Electrostatics, Thermodynamics</p></div>
+      <div class="hy hc"><h5>🧪 Chemistry Priorities</h5><p>Coordination Compounds, GOC, Chemical Bonding, p-Block Elements, Thermodynamics</p></div>
+      <div class="hy hm"><h5>📐 Maths Priorities</h5><p>Calculus + Algebra = 12–15 questions per paper. 3D Geometry, Vectors, Matrices, Sequences</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 2: BOOKS -->
+<section id="books" class="sd">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-d">02 / Books & Resources</span><div class="sline sline-d"></div></div>
+    <h2 class="st st-d rev">The Only Books You <em>Actually Need.</em></h2>
+    <p class="sl sl-d rev">The biggest mistake: collecting too many books. Students download 8 PDFs, feel productive, finish none. Choose 1–2 per subject and read them until the spine breaks. Here are the exact books that toppers use — with buy links.</p>
+
+    <h3 style="color:var(--light);font-family:'Playfair Display',serif;font-size:1.25rem;margin:2.5rem 0 1rem;font-weight:800" class="rev">⚡ Physics</h3>
+    <div class="books-grid rev">
+      <a href="https://www.amazon.in/s?k=NCERT+Physics+Class+11+12" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#0a1628,#1a3a6e)"><div class="bspine" style="background:var(--bright)"></div><div class="bcc"><span class="bcc-icon">📗</span><div class="bcc-t" style="color:#93c5fd">NCERT Physics</div><div class="bcc-a" style="color:rgba(147,197,253,.6)">Class 11 & 12</div></div></div>
+        <div class="binfo"><h5>NCERT Physics</h5><p>Read every line, every example, every exercise. 70% of JEE Main is here.</p><div class="bbuy"><span class="bsubj" style="background:#dbeafe;color:#1e40af">Must-Have</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=Concepts+of+Physics+HC+Verma" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#1e3a5f,#2563eb)"><div class="bspine" style="background:#f59e0b"></div><div class="bcc"><span class="bcc-icon">⚡</span><div class="bcc-t" style="color:#fef3c7">Concepts of Physics</div><div class="bcc-a" style="color:rgba(254,243,199,.7)">H.C. Verma Vol 1 & 2</div></div></div>
+        <div class="binfo"><h5>H.C. Verma — Concepts of Physics</h5><p>The gold standard. Theory + objectives to fix flawed physical intuition.</p><div class="bbuy"><span class="bsubj" style="background:#fef3c7;color:#92400e">Gold Standard</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=DC+Pandey+Physics+Arihant+JEE" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#312e81,#4f46e5)"><div class="bspine" style="background:#818cf8"></div><div class="bcc"><span class="bcc-icon">🔬</span><div class="bcc-t" style="color:#e0e7ff">D.C. Pandey</div><div class="bcc-a" style="color:rgba(224,231,255,.7)">Arihant Series</div></div></div>
+        <div class="binfo"><h5>D.C. Pandey — Arihant Physics</h5><p>Graduated numericals. Bridges basics to Advanced-level multi-concept problems.</p><div class="bbuy"><span class="bsubj" style="background:#ede9fe;color:#6d28d9">Practice</span><span class="blink">Amazon →</span></div></div>
+      </a>
+    </div>
+
+    <h3 style="color:var(--light);font-family:'Playfair Display',serif;font-size:1.25rem;margin:2.5rem 0 1rem;font-weight:800" class="rev">🧪 Chemistry</h3>
+    <div class="books-grid rev">
+      <a href="https://www.amazon.in/s?k=NCERT+Chemistry+Class+11+12" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#064e3b,#065f46)"><div class="bspine" style="background:#10b981"></div><div class="bcc"><span class="bcc-icon">📗</span><div class="bcc-t" style="color:#a7f3d0">NCERT Chemistry</div><div class="bcc-a" style="color:rgba(167,243,208,.6)">Class 11 & 12</div></div></div>
+        <div class="binfo"><h5>NCERT Chemistry — Inorganic Bible</h5><p>JEE extracts questions verbatim from NCERT tables & footnotes. Read every word.</p><div class="bbuy"><span class="bsubj" style="background:#d1fae5;color:#065f46">Must-Have</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=N+Awasthi+Physical+Chemistry+JEE" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#1e3a5f,#0d5f4f)"><div class="bspine" style="background:#34d399"></div><div class="bcc"><span class="bcc-icon">🔢</span><div class="bcc-t" style="color:#d1fae5">N. Awasthi</div><div class="bcc-a" style="color:rgba(209,250,229,.7)">Physical Chemistry</div></div></div>
+        <div class="binfo"><h5>N. Awasthi — Physical Chemistry</h5><p>Heavy numerical practice. Volume is the game for Physical Chem.</p><div class="bbuy"><span class="bsubj" style="background:#d1fae5;color:#065f46">Physical</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=MS+Chouhan+Organic+Chemistry+JEE" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#3f1d0a,#7c3a00)"><div class="bspine" style="background:#f59e0b"></div><div class="bcc"><span class="bcc-icon">🧬</span><div class="bcc-t" style="color:#fef3c7">M.S. Chouhan</div><div class="bcc-a" style="color:rgba(254,243,199,.7)">Organic Chemistry</div></div></div>
+        <div class="binfo"><h5>M.S. Chouhan — Organic Chemistry</h5><p>Master GOC first, then use this for mechanism practice.</p><div class="bbuy"><span class="bsubj" style="background:#fef3c7;color:#92400e">Organic</span><span class="blink">Amazon →</span></div></div>
+      </a>
+    </div>
+
+    <h3 style="color:var(--light);font-family:'Playfair Display',serif;font-size:1.25rem;margin:2.5rem 0 1rem;font-weight:800" class="rev">📐 Mathematics</h3>
+    <div class="books-grid rev">
+      <a href="https://www.amazon.in/s?k=Cengage+Mathematics+JEE+full+series" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#4c1d95,#6d28d9)"><div class="bspine" style="background:#a78bfa"></div><div class="bcc"><span class="bcc-icon">📐</span><div class="bcc-t" style="color:#ede9fe">Cengage Maths</div><div class="bcc-a" style="color:rgba(237,233,254,.7)">Full JEE Series</div></div></div>
+        <div class="binfo"><h5>Cengage Mathematics Series</h5><p>Pick Cengage OR Arihant — not both. Complete it end to end.</p><div class="bbuy"><span class="bsubj" style="background:#ede9fe;color:#5b21b6">Series Pick</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=Amit+Agarwal+Arihant+JEE+Mathematics" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#1e1a4a,#3b3490)"><div class="bspine" style="background:#818cf8"></div><div class="bcc"><span class="bcc-icon">∑</span><div class="bcc-t" style="color:#e0e7ff">Arihant Maths</div><div class="bcc-a" style="color:rgba(224,231,255,.7)">Amit M. Agarwal</div></div></div>
+        <div class="binfo"><h5>Arihant Maths — Amit M. Agarwal</h5><p>Alternative to Cengage. Equally powerful. Choose one and commit fully.</p><div class="bbuy"><span class="bsubj" style="background:#ede9fe;color:#5b21b6">Series Pick</span><span class="blink">Amazon →</span></div></div>
+      </a>
+      <a href="https://www.amazon.in/s?k=Vikas+Gupta+Black+Book+Maths+JEE" target="_blank" rel="noopener" class="bc">
+        <div class="bcover" style="background:linear-gradient(135deg,#0f0f0f,#1f1f1f)"><div class="bspine" style="background:#f59e0b"></div><div class="bcc"><span class="bcc-icon">🖤</span><div class="bcc-t" style="color:#fef3c7">The Black Book</div><div class="bcc-a" style="color:rgba(254,243,199,.7)">Vikas Gupta</div></div></div>
+        <div class="binfo"><h5>Vikas Gupta — Black Book</h5><p>Advanced only. Brutal multi-concept problems. Touch after completing standard material.</p><div class="bbuy"><span class="bsubj" style="background:#1f2937;color:#f9fafb">Advanced</span><span class="blink">Amazon →</span></div></div>
+      </a>
+    </div>
+
+    <h3 style="color:var(--light);font-family:'Playfair Display',serif;font-size:1.25rem;margin:2.5rem 0 1rem;font-weight:800" class="rev">📺 Free YouTube & Online Platforms</h3>
+    <div class="yt-grid rev">
+      <a href="https://youtube.com/@JEEWallah" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:#ff0000;color:white">▶</div><div><div class="yt-nm">JEE Wallah (PW)</div><div class="yt-sub2">Full JEE Lectures</div></div></div><p>Free complete Physics, Chemistry & Maths — full structured syllabus.</p></a>
+      <a href="https://youtube.com/@MohitTyagi" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:var(--bright);color:white">∑</div><div><div class="yt-nm">Mohit Tyagi</div><div class="yt-sub2">Mathematics</div></div></div><p>Deep concept building from scratch. Slow, methodical, powerful for Maths.</p></a>
+      <a href="https://sathee.iitk.ac.in" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:#10b981;color:white">🏛</div><div><div class="yt-nm">SATHEE — IIT Kanpur</div><div class="yt-sub2">Government Free</div></div></div><p>IIT professors, live doubt clearing, AI mock tests. 100% free.</p></a>
+      <a href="https://www.embibe.com" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:#7c3aed;color:white">📊</div><div><div class="yt-nm">Embibe</div><div class="yt-sub2">50,000+ Questions</div></div></div><p>AI analytics, CBT mocks, performance tracking. Best mock platform.</p></a>
+      <a href="https://youtube.com/@Eduniti" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:#0ea5e9;color:white">⚡</div><div><div class="yt-nm">Eduniti</div><div class="yt-sub2">Revision & PYQs</div></div></div><p>Mohit Goenka Sir — rapid revision, PYQ strategy, competition tricks.</p></a>
+      <a href="https://doubtbuddy.com" target="_blank" rel="noopener" class="ytc"><div class="yt-th"><div class="yt-ico" style="background:#f59e0b;color:white">❓</div><div><div class="yt-nm">Doubt Buddy</div><div class="yt-sub2">Instant Answers</div></div></div><p>Photo your doubt, get an expert answer in seconds. Kills the no-tutor gap.</p></a>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 3: HOW TO STUDY -->
+<section id="howtostudy" class="so">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-l">03 / How to Study Without Coaching</span><div class="sline sline-l"></div></div>
+    <h2 class="st st-l rev">No Coach. No Problem.<br><em>Here's the Real Mindset.</em></h2>
+    <p class="sl rev">Autonomous preparation is not just the absence of a coaching teacher — it's the active decision to become your own teacher, your own diagnostician, and your own performance analyst. These are the principles that power students who make it without coaching.</p>
+
+    <div class="rev">
+      <div class="sp"><div class="sp-ico">🎯</div><div class="sp-b"><h4>Understand First. Memorize Never.</h4><p>JEE doesn't reward memorization — it punishes it. Every formula you memorize without understanding breaks under a slightly unfamiliar question. Ask "why does this work?" before "what is the formula?" Build concepts from the ground up.</p></div></div>
+      <div class="sp"><div class="sp-ico">🔄</div><div class="sp-b"><h4>Spaced Repetition — The 2357 Method</h4><p>Your brain discards 80% of new material within 24 hours. Fight it: revisit a new concept after 2 days, 3 days, 5 days, 7 days, then monthly. This simple habit builds long-term memory that survives a 3-hour high-pressure exam.</p></div></div>
+      <div class="sp"><div class="sp-ico">🗣️</div><div class="sp-b"><h4>The Feynman Technique — Teach It to Know It</h4><p>Think you understand rotational dynamics or stereochemistry? Explain it aloud as if teaching a 10th-grader. Every moment your words stumble is a blind spot. Fix it. Then explain again. Repeat until it flows without hesitation.</p></div></div>
+      <div class="sp"><div class="sp-ico">🪚</div><div class="sp-b"><h4>The Woodpecker Method — For Impossible Problems</h4><p>Stuck for 7+ minutes? Study the exact logical step you missed — not the answer, but the technique. Set the problem aside. Return 3 days later and reattempt under timed conditions. This is how you truly internalize mathematical manipulation.</p></div></div>
+      <div class="sp"><div class="sp-ico">📝</div><div class="sp-b"><h4>Cornell Notes — Your Revision Weapon</h4><p>Divide your notebook: narrow left column for cue keywords, wide right column for notes and diagrams, bottom strip for a one-line summary. During revision, cover the right side and use left cues to test yourself. Active recall built directly into your notebook.</p></div></div>
+      <div class="sp"><div class="sp-ico">🚫</div><div class="sp-b"><h4>Never Batch-Hop</h4><p>The biggest digital-era trap: jumping between five YouTube teachers and completing none of their series. Pick one primary mentor per subject and follow their lecture sequence from start to finish. Fragments don't build foundations.</p></div></div>
+    </div>
+
+    <div class="tt-note rev">
+      <h3>Build Your Own Timetable 🗓️</h3>
+      <p>Every student's life is different — different school timings, energy peaks, family situations. Don't blindly copy someone else's rigid schedule. Use these time blocks as building materials and construct your own day around them. What matters is <strong>consistency, not the exact hour.</strong></p>
+      <div class="slots">
+        <div class="slot">Early Morning — Peak Brain Time</div>
+        <div class="slot">School Hours — Use Free Periods</div>
+        <div class="slot">Post-Lunch — Rest & Recharge</div>
+        <div class="slot">Late Afternoon — Theory & Learning</div>
+        <div class="slot">Evening — Intensive Problem Solving</div>
+        <div class="slot">Night — Maths Daily + Plan Tomorrow</div>
+        <div class="slot">Sunday — Full Mock + Deep Analysis</div>
+      </div>
+    </div>
+
+    <div class="callout rev">
+      <h4>⚡ The One Non-Negotiable Rule</h4>
+      <p>After every mock test, spend <em>at least as long analyzing it</em> as you did taking it. Classify every wrong answer: <strong>Conceptual Deficit</strong> (didn't know the theory) → <strong>Application Failure</strong> (knew theory, couldn't apply) → <strong>Execution Error</strong> (right concept, wrong calculation). Log it. Fix it. Never repeat the same mistake twice.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 4: SUBJECTS -->
+<section id="subjects" class="sl">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-l">04 / Subject Strategy</span><div class="sline sline-l"></div></div>
+    <h2 class="st st-l rev">Three Subjects.<br><em>Three Different Animals.</em></h2>
+    <p class="sl rev">Most students fail not because they're not smart enough — but because they approach Physics, Chemistry, and Mathematics with the same strategy. Each demands a fundamentally different cognitive approach.</p>
+
+    <div class="sh sh-p rev">
+      <span class="shb">Subject 01</span>
+      <h3>⚡ Physics — The Logic Core</h3>
+      <p>Physics in JEE is not about memorizing formulas. It's about building physical intuition — seeing a real-world scenario and immediately translating it into mathematics. The sequence is always: understand the phenomenon visually → translate to equations → calculate. Skip the first step and Physics becomes guesswork.</p>
+    </div>
+    <ul class="stips rev">
+      <li><span class="ti">1️⃣</span><div><strong>NCERT first, always.</strong> It defines the conceptual language. Don't skip the theoretical explanations — they're the foundation every problem is built on.</div></li>
+      <li><span class="ti">2️⃣</span><div><strong>H.C. Verma for concept correction.</strong> Focus on his short-answer objective questions — these expose and fix your flawed intuitions faster than anything else.</div></li>
+      <li><span class="ti">3️⃣</span><div><strong>D.C. Pandey for problem volume.</strong> Transition from single-concept to multi-concept questions gradually. Don't rush to hard problems before basics are rock solid.</div></li>
+      <li><span class="ti">4️⃣</span><div><strong>Draw everything.</strong> For every Physics problem, sketch a quick diagram before writing a single equation. Visual anchoring prevents 60% of all silly mistakes.</div></li>
+      <li><span class="ti">5️⃣</span><div><strong>Mechanics is the prerequisite for all of Physics.</strong> Even if fewer direct questions come from it, all electrodynamics, waves, and thermodynamics logic builds on mechanics. Master it completely first.</div></li>
+    </ul>
+
+    <div class="sh sh-c rev" style="margin-top:3rem">
+      <span class="shb">Subject 02</span>
+      <h3>🧪 Chemistry — Three Subjects in One</h3>
+      <p>Chemistry is the most scoring JEE subject — but only if you understand its three personalities. Physical is like Mathematics. Organic is a sequential language. Inorganic is a data system. Each demands a different approach.</p>
+    </div>
+    <ul class="stips rev">
+      <li><span class="ti">🔢</span><div><strong>Physical Chemistry = Logic & Numericals.</strong> Mole Concept, Thermodynamics, Kinetics — formula-based and calculation-heavy. Practice volume from N. Awasthi. Understanding > memorizing.</div></li>
+      <li><span class="ti">🧬</span><div><strong>Organic Chemistry = Master GOC First, Everything Follows.</strong> Skip General Organic Chemistry and Aldehydes, Amines, Esters all become incomprehensible. GOC is not a chapter — it's the grammar of the entire language.</div></li>
+      <li><span class="ti">🗂️</span><div><strong>Inorganic = NCERT is the ONLY book.</strong> JEE Inorganic questions are pulled verbatim from NCERT's exceptions, tables, and footnotes. Read every footnote. It's a potential question.</div></li>
+      <li><span class="ti">🃏</span><div><strong>Flashcards for Inorganic.</strong> Active retrieval of reactions, exceptions, and properties. Quiz yourself daily — re-reading does almost nothing for memory retention.</div></li>
+    </ul>
+
+    <div class="sh sh-m rev" style="margin-top:3rem">
+      <span class="shb">Subject 03</span>
+      <h3>📐 Mathematics — The Engine of Selection</h3>
+      <p>JEE Maths is where AIR gets decided. It's the most time-consuming and analytically demanding section. NCERT gives you definitions and nothing else. You need a comprehensive series, daily practice, and the ability to synthesize multiple concepts under severe time pressure.</p>
+    </div>
+    <ul class="stips rev">
+      <li><span class="ti">1️⃣</span><div><strong>Choose ONE series and complete it.</strong> Cengage or Arihant. Attempting to balance two massive series leads to burnout. All the way through, one book, no exceptions.</div></li>
+      <li><span class="ti">2️⃣</span><div><strong>Daily Maths, no exceptions.</strong> Mathematical speed degrades rapidly without daily practice. Even on heavy-study days for other subjects — 45 minutes of Maths problem-solving minimum.</div></li>
+      <li><span class="ti">3️⃣</span><div><strong>Transition from Type A → B → C questions.</strong> Type A = direct formula. Type B = two concepts. Type C = synthesis of unrelated concepts. JEE lives in Type C territory. Push yourself there deliberately.</div></li>
+      <li><span class="ti">4️⃣</span><div><strong>Exam tactic: use boundary conditions.</strong> Setting an angle to 0° or 90°, checking units of options, option elimination — these are legitimate tactics that yield correct answers in seconds.</div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- SECTION 5: TODO LIST -->
+<section id="todo" class="sn">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-d">05 / Master TODO List</span><div class="sline sline-d"></div></div>
+    <h2 class="st st-d rev">Do This First.<br>Then This. Then <em>This.</em></h2>
+    <p class="sl sl-d rev">This is the most important section in this entire guide. Not vague tips — a precise, sequential action plan. Every step has a reason. Every step has the exact resources to complete it. Follow this order and you will not miss anything critical.</p>
+
+    <div class="todo-c rev" style="margin-top:3.5rem">
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">01</div><div class="tline" style="height:100%"></div></div>
+        <div class="tcon">
+          <span class="tst st1">🚀 Start Today</span>
+          <h3>Audit Your Syllabus — Delete What's Gone</h3>
+          <p class="twhy">Before studying a single chapter, know exactly what the 2026 JEE tests. The NTA deleted entire chapters in 2024. Studying them now is wasting weeks. Print or save the current syllabus today and cross off everything in the deleted topics table above in Section 01. This one step alone saves you months of wasted effort.</p>
+          <div class="tres"><h5>Resources for this step</h5><div class="chips"><div class="chip"><span class="chip-i">🌐</span>nta.ac.in — JEE Syllabus 2026</div><div class="chip"><span class="chip-i">📄</span>JEE Advanced 2026 Syllabus PDF</div><div class="chip"><span class="chip-i">⬆️</span>Deleted Topics Table — Section 01</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">02</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st1">🚀 Start Today</span>
+          <h3>Create Your Free SATHEE Account</h3>
+          <p class="twhy">SATHEE by IIT Kanpur is a government-funded platform with IIT professors teaching for free. It has structured video lectures, live doubt clearing from 10AM–6PM daily, crash courses, and AI-powered All India Mock Tests. This is your free digital coaching institute. Create your account today before you do anything else.</p>
+          <div class="tres"><h5>Resources</h5><div class="chips"><div class="chip"><span class="chip-i">🏛️</span>sathee.iitk.ac.in</div><div class="chip"><span class="chip-i">📱</span>NTA Abhyas App (Play Store)</div><div class="chip"><span class="chip-i">📊</span>embibe.com</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">03</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st1">🚀 This Week</span>
+          <h3>Buy Your Books — Maximum 2 Per Subject</h3>
+          <p class="twhy">This week: choose your books and commit. Physics: NCERT + H.C. Verma + D.C. Pandey. Chemistry: NCERT + N. Awasthi + M.S. Chouhan. Maths: NCERT + either Cengage or Arihant. Do not add more books later. The temptation to buy "just one more" is the enemy of finishing any of them.</p>
+          <div class="tres"><h5>Where to Buy</h5><div class="chips"><div class="chip"><span class="chip-i">🛒</span>Amazon.in — Book Section Above</div><div class="chip"><span class="chip-i">🛒</span>Flipkart.com</div><div class="chip"><span class="chip-i">📖</span>Local Educational Bookstore</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">04</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st1">🚀 This Week</span>
+          <h3>Pick One YouTube Teacher Per Subject & Subscribe</h3>
+          <p class="twhy">Batch-hopping — watching three different teachers explain the same topic — makes you feel productive while going nowhere. Pick one per subject. Follow their entire lecture sequence. Physics: JEE Wallah. Maths: Mohit Tyagi. Organic Chemistry: NS Sir (Competishun). One mentor. One series. All the way through.</p>
+          <div class="tres"><h5>Best Channels</h5><div class="chips"><div class="chip"><span class="chip-i">▶️</span>JEE Wallah (Physics + Chemistry)</div><div class="chip"><span class="chip-i">▶️</span>Mohit Tyagi (Mathematics)</div><div class="chip"><span class="chip-i">▶️</span>Eduniti (Revision + Tricks)</div><div class="chip"><span class="chip-i">▶️</span>Competishun — NS Sir (Organic)</div><div class="chip"><span class="chip-i">▶️</span>NV Sir — Unacademy</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">05</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st2">📖 Phase 1 — Class 11</span>
+          <h3>Start NCERT — Chapter by Chapter, All Three Subjects</h3>
+          <p class="twhy">This is where your actual preparation begins. Open NCERT Chapter 1 of Physics today. Read every line. Solve every in-text example. Do every back-exercise. Repeat for Chemistry and Mathematics. NCERT alone covers 70–80% of JEE Main questions if truly mastered. Deep understanding here makes everything that follows easier by 10x.</p>
+          <div class="tres"><h5>Resources</h5><div class="chips"><div class="chip"><span class="chip-i">📗</span>NCERT Physics 11 & 12</div><div class="chip"><span class="chip-i">📗</span>NCERT Chemistry 11 & 12</div><div class="chip"><span class="chip-i">📗</span>NCERT Maths 11 & 12</div><div class="chip"><span class="chip-i">🌐</span>ncert.nic.in (Free PDFs)</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">06</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st2">📖 Phase 1 — Class 11</span>
+          <h3>H.C. Verma Parallel to NCERT for Physics</h3>
+          <p class="twhy">After completing each NCERT Physics chapter, immediately open the same chapter in H.C. Verma. Read his theoretical explanation (different angle, deeper insight), then solve his short-answer objectives. These questions are famous for exposing flawed intuitions that NCERT alone never reveals. Don't skip the theory sections in H.C. Verma — that's where the actual value lives.</p>
+          <div class="tres"><h5>Resources</h5><div class="chips"><div class="chip"><span class="chip-i">📘</span>H.C. Verma Vol 1 — Class 11</div><div class="chip"><span class="chip-i">📘</span>H.C. Verma Vol 2 — Class 12</div><div class="chip"><span class="chip-i">▶️</span>ABJ Sir on YouTube (Eduniti)</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">07</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st3">🔄 Daily Habit</span>
+          <h3>Solve PYQs (Previous Year Questions) — Weekly</h3>
+          <p class="twhy">PYQs are the single most important practice material in JEE preparation — more valuable than any textbook exercise. The NTA reuses similar logical structures year after year. Approximately 11% of core concepts repeat every year. Start solving chapter-wise PYQs from your first month. They teach you how the examiner thinks, not just what the answer is.</p>
+          <div class="tres"><h5>Where to Find PYQs</h5><div class="chips"><div class="chip"><span class="chip-i">🏛️</span>SATHEE PYQ Bank (Free)</div><div class="chip"><span class="chip-i">📱</span>NTA Abhyas App</div><div class="chip"><span class="chip-i">📊</span>Embibe PYQ Practice</div><div class="chip"><span class="chip-i">📄</span>Disha Publication — 45-Year PYQ Book</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">08</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st3">🔄 Daily Habit</span>
+          <h3>Maintain Cornell Notes + Error Log Notebook</h3>
+          <p class="twhy">Two physical notebooks will define your preparation quality. Notebook 1: Cornell notes for every chapter — cue column left, notes right, summary below. Self-test during revision by covering the right column. Notebook 2: Error log — every wrong mock answer goes here, classified by type. These two notebooks become your most personalized, powerful study material by exam day.</p>
+          <div class="tres"><h5>Tools</h5><div class="chips"><div class="chip"><span class="chip-i">📓</span>Cornell Note System (search it)</div><div class="chip"><span class="chip-i">🎴</span>Anki App — Spaced Flashcards (Free)</div><div class="chip"><span class="chip-i">📱</span>Google Keep or Notion (backup)</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">09</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st3">🔄 From Class 12</span>
+          <h3>One Full Mock Every Sunday + Deep Analysis</h3>
+          <p class="twhy">A mock you don't analyze is just a wasted Sunday. From the start of Class 12, every Sunday is mock day. Take it under exact JEE conditions — same timing, no phone, no breaks. Then spend the rest of the day analyzing every wrong or skipped answer. Log them by type. Find the pattern in your mistakes. Fix the pattern. This feedback loop is worth more than weeks of passive studying.</p>
+          <div class="tres"><h5>Best Mock Platforms</h5><div class="chips"><div class="chip"><span class="chip-i">🏛️</span>SATHEE All India Mock (Free)</div><div class="chip"><span class="chip-i">📊</span>Embibe Full Mocks</div><div class="chip"><span class="chip-i">📱</span>NTA Abhyas App</div><div class="chip"><span class="chip-i">🌐</span>ScienceLesson.in</div><div class="chip"><span class="chip-i">🌐</span>MathonGo</div></div></div>
+        </div>
+      </div>
+
+      <div class="todo-item">
+        <div class="tdw"><div class="tdot">10</div><div class="tline"></div></div>
+        <div class="tcon">
+          <span class="tst st4">🎯 Final Phase</span>
+          <h3>Freeze Syllabus by October. Only Revision & Mocks After.</h3>
+          <p class="twhy">This is the hardest and most important rule. By October of Class 12, your entire JEE syllabus must be covered. After that — not a single new topic. The final 3 months are exclusively for mock tests, error analysis, and targeted revision. Students who start new topics in November are panicking. Students who froze by October are preparing. Be the second kind. Always.</p>
+          <div class="tres"><h5>Final Phase Resources</h5><div class="chips"><div class="chip"><span class="chip-i">🏛️</span>SATHEE 40-Day Crash Course (Jan)</div><div class="chip"><span class="chip-i">📝</span>Your Own Short Notes</div><div class="chip"><span class="chip-i">🎴</span>Your Flashcard Stack</div><div class="chip"><span class="chip-i">📊</span>Embibe AI Analytics</div><div class="chip"><span class="chip-i">📓</span>Your Error Log Notebook</div></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SECTION 6: EDUHOME -->
+<section id="eduhome" class="eduhome-sec">
+  <div class="wrap">
+    <div class="slabel rev"><span class="stag stag-d">06 / Your Academic Backbone</span><div class="sline sline-d"></div></div>
+    <h2 class="st st-d rev">Self-Study Is Powerful.<br>But Every Great Student<br>Needs a <em>Strong Foundation.</em></h2>
+    <p class="sl sl-d rev">The strategies in this guide work — but they work best when your conceptual fundamentals are crystal clear from the start. That's exactly where Eduhome comes in. Not as a replacement for your own discipline, but as the academic backbone that makes your self-study infinitely more effective.</p>
+
+    <div class="ecard rev">
+      <div class="elogo">Edu<span>home</span></div>
+      <div class="etag">Concept-Oriented Coaching · Classes 6 to 12</div>
+
+      <div class="epromise">
+        "Eduhome ensures concept-oriented coaching for students from Classes 6 to 12 in Mathematics, Physics, Chemistry, Biology, and Computer Science. With small batches and personalized attention, we make sure every student clearly understands each topic and builds strong academic confidence."
+      </div>
+
+      <div class="efeatures">
+        <div class="ef"><div class="ef-i">👥</div><h5>Small Batches</h5><p>You're not a face in a crowd. Every student gets seen, heard, and properly understood by the teacher.</p></div>
+        <div class="ef"><div class="ef-i">🎯</div><h5>Concept-Oriented Teaching</h5><p>The exact same philosophy this guide is built on — understand deeply first, then apply. Not rote. Not rush.</p></div>
+        <div class="ef"><div class="ef-i">🙋</div><h5>Personalized Attention</h5><p>No doubt gets left behind. No student gets left behind. That's not a marketing line — it's the operating model.</p></div>
+        <div class="ef"><div class="ef-i">📈</div><h5>Guaranteed Improvement</h5><p>Strong academic confidence isn't a byproduct — it's the explicit, promised goal for every single student.</p></div>
+        <div class="ef"><div class="ef-i">🏫</div><h5>Classes 6 to 12</h5><p>Build from the roots. The earlier the foundation is right, the higher the ceiling becomes by Class 12.</p></div>
+        <div class="ef"><div class="ef-i">💻</div><h5>5 Core Subjects</h5><p>Maths, Physics, Chemistry, Biology, and Computer Science — every subject a serious student needs covered.</p></div>
+      </div>
+
+      <div>
+        <p style="font-size:.73rem;font-weight:700;color:var(--light);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem">Subjects Covered</p>
+        <div class="esubjs">
+          <span class="esub">📐 Mathematics</span>
+          <span class="esub">⚡ Physics</span>
+          <span class="esub">🧪 Chemistry</span>
+          <span class="esub">🧬 Biology</span>
+          <span class="esub">💻 Computer Science</span>
+        </div>
+      </div>
+
+      <div class="epbadge">
+        <span>✅</span>
+        <p>100% Promise — Every student will gain improvement, stronger understanding, and the confidence needed to succeed in their academic life.</p>
+      </div>
+
+      <p style="font-size:.88rem;color:rgba(255,255,255,.48);margin-top:2rem;font-style:italic;line-height:1.85">
+        Think of Eduhome as the place where your concepts become crystal clear — so when you sit down to self-study with H.C. Verma, SATHEE mocks, and your error-log notebook, you're not fighting confusion. You're building speed, depth, and exam confidence on a foundation that's already solid. That combination — guided conceptual clarity at Eduhome paired with disciplined self-study using this roadmap — is exactly what gets students to IIT.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="closing">
+  <div class="wrap">
+    <div class="ci rev">
+      <h2>Your IIT Story<br>Starts <em>Tonight.</em></h2>
+      <p>Don't wait for the perfect moment. Don't wait until Monday. Open NCERT right now and solve one example. That's all you need to do today.</p>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="https://myeduhome.netlify.app/#contact" class="bp">Start at EduHome - CONTACT US NOW</a>
+        <a href="#todo" class="bs">Back to TODO List ↑</a>
+      </div>
+      <div class="lbox">
+        <p>I want you to know something real. There will be mornings when you open H.C. Verma and understand absolutely nothing. Your mock score will crash and you'll sit there wondering if you're fooling yourself. Everyone who made it felt exactly this.</p>
+        <p>The difference between those who cracked JEE and those who didn't was never raw intelligence. It was the decision to sit back down at the desk the next day anyway. To open the notebook again. To do the next problem.</p>
+        <p>IIT doesn't need a genius. It needs someone who refused to quit when it got hard. And that — more than any coaching, more than any book, more than any guide — is entirely in your hands.</p>
+        <div class="lsign">— Someone who genuinely wants you to make it 🎓</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<a href="#top" id="bk" title="Back to top">↑</a>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const s=window.scrollY,d=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('prog').style.width=(s/d*100)+'%';
+  document.getElementById('bk').classList.toggle('show',s>400);
+});
+const ro=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('vis')})},{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.rev').forEach(el=>ro.observe(el));
+function animCount(el){
+  const t=parseFloat(el.dataset.target)||0;
+  if(!t)return;
+  const dur=1400,st=performance.now();
+  const step=n=>{const p=Math.min((n-st)/dur,1),e=1-Math.pow(1-p,3);el.textContent=Math.round(t*e);if(p<1)requestAnimationFrame(step);else el.textContent=t};
+  requestAnimationFrame(step);
+}
+const so=new IntersectionObserver(e=>{e.forEach(x=>{if(x.isIntersecting){x.target.querySelectorAll('.sn2[data-target]').forEach(animCount);so.unobserve(x.target)}})},{threshold:.5});
+document.querySelectorAll('.sbar').forEach(el=>so.observe(el));
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})}});
+});
+</script>
+</body>
+</html>
