@@ -241,6 +241,12 @@
          line-height: 1.4 !important;
          color: #444 !important;
     }
+    .scarcity-badge {
+        font-size: 13px !important;
+        padding: 5px 12px !important;
+        margin-top: 10px !important;
+        border-radius: 30px !important;
+    }
      .slide_text p {
          display: none;
     }

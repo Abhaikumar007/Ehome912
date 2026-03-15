@@ -1439,6 +1439,36 @@ LOADER
  #demo {
      margin-bottom: 20px;
 }
+ .scarcity-badge {
+     background: #ff0000;
+     color: #fff;
+     padding: 8px 18px;
+     display: inline-block;
+     border-radius: 50px;
+     font-weight: 700;
+     margin-top: 15px;
+     font-size: 16px;
+     animation: pulseScarcity 2s infinite;
+     box-shadow: 0 4px 15px rgba(255,0,0,0.3);
+     border: 2px solid #fff;
+}
+ .scarcity-badge span {
+     color: #ffeb3b;
+}
+ @keyframes pulseScarcity {
+     0% {
+         transform: scale(1);
+    }
+     50% {
+         transform: scale(1.05);
+    }
+     100% {
+         transform: scale(1);
+    }
+}
+ .subjects-list span {
+     margin: 0 5px;
+}
  ul.social_icon li a {
      width: 35px;
      height: 35px;
