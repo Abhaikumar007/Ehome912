@@ -206,7 +206,11 @@
          position: relative;
     }
      .pogoSlider {
-         padding-bottom: 90% !important; /* Increase height on mobile */
+         padding-bottom: 110% !important; /* Increased height to accommodate all elements */
+    }
+    .pogoSlider-slide {
+        background-position: right center !important; /* Focus on the character on the right */
+        background-size: cover !important;
     }
      .pogoSlider-slide::after {
          content: "";
@@ -219,21 +223,21 @@
          z-index: 1;
     }
      .slide_text {
-         margin-top: 20%;
+         margin-top: 15%; /* Reduced top margin to pull content up */
          text-align: center !important;
-         padding: 0 20px;
+         padding: 0 15px;
          position: relative;
          z-index: 2; /* Ensure text is above overlay */
     }
      .slide_text h1, .slide_text h3 {
-         font-size: 28px !important;
-         margin-bottom: 15px !important;
+         font-size: 26px !important; /* Slightly smaller to fit better */
+         margin-bottom: 10px !important;
          line-height: 1.2 !important;
          font-weight: 800 !important;
     }
      .slide_text h4 {
-         font-size: 15px !important;
-         margin: 10px 0 !important;
+         font-size: 14px !important;
+         margin: 5px 0 !important;
          line-height: 1.4 !important;
          color: #444 !important;
     }
