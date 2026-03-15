@@ -287,7 +287,21 @@ LOADER
  .top-header .navbar .navbar-collapse ul li a:hover, .top-header .navbar .navbar-collapse ul li a:focus {
      background: transparent;
      color: #fff;
-     border-radius: ;
+}
+ .top-header .navbar .navbar-collapse ul li a.nav-register-btn {
+     background: #e91327;
+     color: #fff !important;
+     border-radius: 30px;
+     padding: 8px 25px !important;
+     margin-left: 10px;
+     font-weight: 600;
+     transition: all 0.3s ease;
+     box-shadow: 0 4px 10px rgba(233,19,39,0.3);
+}
+ .top-header .navbar .navbar-collapse ul li a.nav-register-btn:hover {
+     background: #222 !important;
+     box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+     transform: translateY(-2px);
 }
  .search_icon.nav-link img {
      width: 25px;
