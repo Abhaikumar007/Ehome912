@@ -206,29 +206,33 @@
          position: relative;
     }
      .slide_text {
-         margin-top: 10%;
+         margin-top: 15%;
+		 text-align: center;
     }
-     .slide_text h3 {
-         font-size: 20px;
+     .slide_text h1, .slide_text h3 {
+         font-size: 28px !important;
+		 margin-bottom: 5px !important;
     }
      .slide_text h4 {
-         font-size: 16px;
-         margin: -20px 0;
+         font-size: 16px !important;
+         margin: 5px 0 !important;
     }
      .slide_text p {
          display: none;
     }
      .contact_bt {
-         width: 90px;
-         height: 35px;
-         background: #07528d;
+         width: 120px;
+         height: 40px;
+         background: #0892fd;
          color: #fff;
-         float: left;
-         line-height: 36px;
+         display: inline-block;
+         line-height: 40px;
          text-align: center;
          font-size: 14px;
-         font-weight: 300;
-         margin-top: 5px;
+         font-weight: 400;
+         margin-top: 15px;
+		 border-radius: 5px;
+		 float: none;
     }
      .top-header #navbar-wd {
          padding-right: 0;
