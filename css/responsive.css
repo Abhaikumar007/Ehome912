@@ -353,5 +353,35 @@
      .heading_main h2 {
          font-size: 25px;
     }
+    .text_align_center_mobile {
+        text-align: center !important;
+    }
+    .slider_img_card {
+        background: #fff;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        margin: 10px 0;
+        transition: transform 0.3s;
+    }
+    .slider_img_card img {
+        border-radius: 8px;
+        object-fit: cover;
+        height: 120px;
+        width: 100%;
+    }
+    #demo .carousel-control-prev, #demo .carousel-control-next {
+        width: 35px;
+        height: 35px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(8, 146, 253, 0.8);
+    }
+    #demo .carousel-control-prev {
+        left: -15px;
+    }
+    #demo .carousel-control-next {
+        right: -15px;
+    }
 }
  
