@@ -207,32 +207,99 @@
     }
      .slide_text {
          margin-top: 15%;
-		 text-align: center;
+         text-align: center !important;
+         padding: 0 15px;
     }
      .slide_text h1, .slide_text h3 {
-         font-size: 28px !important;
-		 margin-bottom: 5px !important;
+         font-size: 32px !important;
+         margin-bottom: 10px !important;
+         line-height: 1.2 !important;
     }
      .slide_text h4 {
          font-size: 16px !important;
-         margin: 5px 0 !important;
+         margin: 10px 0 !important;
+         line-height: 1.4 !important;
     }
      .slide_text p {
          display: none;
     }
+    .signature-badge {
+        font-size: 12px !important;
+        padding: 4px 12px !important;
+        margin-bottom: 10px !important;
+    }
+    .subjects-list {
+        font-size: 13px !important;
+        margin-top: 10px !important;
+        background: rgba(8, 146, 253, 0.1);
+        padding: 5px 10px;
+        border-radius: 20px;
+        display: inline-block;
+    }
      .contact_bt {
-         width: 120px;
-         height: 40px;
+         width: 140px;
+         height: 45px;
          background: #0892fd;
          color: #fff;
          display: inline-block;
-         line-height: 40px;
+         line-height: 45px;
          text-align: center;
          font-size: 14px;
-         font-weight: 400;
-         margin-top: 15px;
-		 border-radius: 5px;
-		 float: none;
+         font-weight: 500;
+         margin: 10px 5px !important;
+         border-radius: 30px;
+         float: none;
+    }
+    .secondary_bt {
+        margin-left: 0 !important;
+    }
+
+    /* Achievers Section Mobile Fix */
+    .col-lg-4 h2 {
+        font-size: 36px !important;
+        margin-bottom: 5px !important;
+    }
+
+    /* Study Materials Section Mobile Fix */
+    #mock .row {
+        margin: 0 10px !important;
+        border-radius: 15px !important;
+    }
+    #mock .p-5 {
+        padding: 30px 20px !important;
+        text-align: center;
+    }
+    #mock h3 {
+        font-size: 26px !important;
+    }
+    #mock .img-responsive {
+        min-height: 250px !important;
+    }
+
+    /* Contact Section Mobile Fix */
+    #contact .mb-5 h2 {
+        font-size: 28px !important;
+    }
+    #contact .mb-4 > div {
+        padding: 30px 20px !important;
+    }
+    #contact h4 {
+        font-size: 18px !important;
+    }
+    #contact a[href^="tel"] {
+        font-size: 20px !important;
+    }
+
+    /* Navigation Register Button Mobile Fix */
+    .nav-register-btn {
+        margin: 10px 0 !important;
+        display: inline-block !important;
+        width: auto;
+    }
+    
+    .navbar-nav {
+        text-align: center;
+        padding: 20px 0;
     }
      .top-header #navbar-wd {
          padding-right: 0;
