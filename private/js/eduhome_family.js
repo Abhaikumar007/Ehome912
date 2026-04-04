@@ -152,7 +152,12 @@ function toggleSubject(element, subject) {
 
 function updateRewardDisplay() {
     let count = selectedSubjects.length;
-    let reward = count * 1000; 
+    let reward = 0;
+    if (count === 1) {
+        reward = 1500;
+    } else if (count > 1) {
+        reward = count * 1000;
+    }
     
     const rewardSpan = document.getElementById('currentRewardVal');
     rewardSpan.innerText = `₹${reward}`;
@@ -210,7 +215,12 @@ function addStudent(event) {
     if (selectedSubjects.length === 0) { alert("Please select at least one subject."); return; }
     
     const studentClass = document.getElementById('studentClass').value;
-    const reward = selectedSubjects.length * 1000; 
+    let reward = 0;
+    if (selectedSubjects.length === 1) {
+        reward = 1500;
+    } else if (selectedSubjects.length > 1) {
+        reward = selectedSubjects.length * 1000;
+    }
     
     playSound('add');
     
