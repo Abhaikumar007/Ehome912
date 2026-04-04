@@ -78,7 +78,7 @@ let totalRewards = gameState.total || 0;
 let currentXP = gameState.xp || 0;
 let currentLevel = gameState.level || 1;
 let selectedSubjects = [];
-const ranks = ["Associate", "Promoter", "Recruiter", "Expert", "Master", "Guru", "Visionary"];
+const ranks = ["Family Member", "Tribe Supporter", "Tribe Builder", "EduHome Ambassador", "Core Family Mentor", "Tribe Leader", "Family Legacy"];
 
 function getXPForNextLevel(level) {
     return level * 500;
