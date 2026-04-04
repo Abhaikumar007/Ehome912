@@ -313,8 +313,17 @@ function saveCollectorName() {
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
     let name = document.getElementById('promptNameInput').value.trim();
     let pin = document.getElementById('promptPinInput').value.trim();
-    if (!name) name = "AdminLeader";
-    if (!pin) pin = "0000";
+    
+    if (!name || name.length < 2) {
+        alert("Please enter a valid Collector Name!");
+        return;
+    }
+    
+    if (!pin || pin.length < 4) {
+        alert("Please create a 4-Digit Secret PIN to protect your identity!");
+        return;
+    }
+    
     localStorage.setItem('eduHome_CollectorName', name);
     localStorage.setItem('eduHome_CollectorPIN', pin);
     document.getElementById('primaryName').value = name;
