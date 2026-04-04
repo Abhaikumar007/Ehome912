@@ -78,7 +78,7 @@ let totalRewards = gameState.total || 0;
 let currentXP = gameState.xp || 0;
 let currentLevel = gameState.level || 1;
 let selectedSubjects = [];
-const ranks = ["Newbie", "Starter", "Recruiter", "Champion", "Legend", "God-Tier"];
+const ranks = ["Associate", "Promoter", "Recruiter", "Expert", "Master", "Guru", "Visionary"];
 
 function getXPForNextLevel(level) {
     return level * 500;
