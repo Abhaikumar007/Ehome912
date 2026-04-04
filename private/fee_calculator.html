@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified Fee Calculator</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="css/fee_calculator.css">
+</head>
+<body>
+    <script src="js/security.js"></script>
+    <canvas id="canvas"></canvas> <!-- For confetti -->
+
+    <div class="app-container">
+        <header class="app-header">
+            <a href="index.html" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <h1><i class="fas fa-calculator glow-icon"></i> Fee <span class="accent-text">Calculator</span></h1>
+            <p class="subtitle">Select a class and subjects to compute the total fee</p>
+        </header>
+
+        <main class="calculator-grid">
+            <!-- Left Side: Inputs -->
+            <div class="input-panel glass-panel">
+                <div class="section-title">
+                    <span class="step-num">1</span>
+                    <h2>Select Class Level</h2>
+                </div>
+                
+                <div class="class-selector">
+                    <button class="class-btn" data-class="12">Class 12</button>
+                    <button class="class-btn" data-class="11">Class 11</button>
+                    <button class="class-btn" data-class="10">Class 10</button>
+                    <button class="class-btn" data-class="9">Class 9</button>
+                    <button class="class-btn" data-class="8">Class 8</button>
+                    <button class="class-btn" data-class="7">Class 7</button>
+                    <button class="class-btn" data-class="6">Class 6</button>
+                </div>
+
+                <div id="subjectSection" class="subject-section hidden">
+                    <div class="section-title mt-4">
+                        <span class="step-num">2</span>
+                        <h2>Choose Subjects</h2>
+                    </div>
+                    <div class="subject-info-banner" id="subjectBanner">
+                        <!-- Dynamic text goes here -->
+                    </div>
+                    <div id="subjectGrid" class="subject-grid">
+                        <!-- Subject buttons injected via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Display -->
+            <div class="display-panel glass-panel">
+                <div class="total-display-wrapper">
+                    <h3 class="display-label">Total Fee</h3>
+                    <div class="price-odometer">
+                        <span class="currency">₹</span>
+                        <span id="priceDisplay" class="price">0</span>
+                    </div>
+                    <div class="price-period">per academic year/term (As per policy)</div>
+                    <div class="selected-summary" id="selectedSummary">
+                        No class selected yet.
+                    </div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="btn-glow" id="resetBtn"><i class="fas fa-redo"></i> Reset</button>
+                    <button class="btn-glow primary" id="calculateFinalBtn"><i class="fas fa-check-circle"></i> Confirm Selection</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="js/fee_calculator.js"></script>
+</body>
+</html>

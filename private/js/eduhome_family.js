@@ -160,14 +160,123 @@ function toggleSubject(element, subject) {
     updateRewardDisplay();
 }
 
-function updateRewardDisplay() {
-    let count = selectedSubjects.length;
-    let reward = 0;
-    if (count === 1) {
-        reward = 1500;
-    } else if (count > 1) {
-        reward = count * 1000;
+function calculateReward(studentClass, selectedSubjects) {
+    const count = selectedSubjects.length;
+    if (count === 0) return 0;
+    
+    // Extract numerical class from string (e.g. "Class 10" -> "10")
+    if (studentClass === 'Degree') return count * 1500; // default for degree
+    
+    const clsMatch = studentClass.match(/\d+/);
+    if (!clsMatch) return 0;
+    const cls = clsMatch[0];
+
+    // Mirroring fee_calculator.js logic:
+    if (cls === '12' || cls === '11') {
+        if (count === 1) return 1500;
+        if (count === 2) return 2500;
+        if (count === 3) return 3500;
+        return 4500;
+    } 
+    else if (cls === '10') {
+        // Did they select all required for the package? (Physics, Chemistry, Maths, Biology)
+        const hasPackage = selectedSubjects.includes('Maths') && 
+                           selectedSubjects.includes('Physics') && 
+                           selectedSubjects.includes('Chemistry') && 
+                           selectedSubjects.includes('Biology');
+        if (hasPackage) return 3000;
+        
+        if (count === 1) return 1000;
+        if (count === 2) return 2000;
+        return 3000; 
     }
+    else if (cls === '9') {
+        const hasMath = selectedSubjects.includes('Maths');
+        const hasSci = selectedSubjects.includes('Science');
+        
+        if (hasMath && hasSci) return 2000;
+        if (count === 1) return 1000;
+        if (count === 2) return 1500;
+        return 2000;
+    }
+    else if (cls === '8') {
+        const hasSci = selectedSubjects.includes('Science');
+        if (selectedSubjects.includes('Maths') && hasSci) return 1500;
+        if (selectedSubjects.includes('Maths')) return 750;
+        return count * 750; // fallback
+    }
+    else if (cls === '7') {
+        const hasSci = selectedSubjects.includes('Science');
+        if (selectedSubjects.includes('Maths') && hasSci) return 1200;
+        if (selectedSubjects.includes('Maths')) return 600;
+        return count * 600; // fallback
+    }
+    else if (cls === '6') {
+        const hasSci = selectedSubjects.includes('Science');
+        if (selectedSubjects.includes('Maths') && hasSci) return 1000;
+        if (selectedSubjects.includes('Maths')) return 500;
+        return count * 500; // fallback
+    }
+    
+    return count * 1000; // Base fallback
+}
+
+function updateRewardDisplay() {
+    const studentClass = document.getElementById('studentClass').value;
+    const isLowerGrade = studentClass.includes('6') || studentClass.includes('7') || studentClass.includes('8') || studentClass.includes('9');
+    const isClass10Lower = isLowerGrade || studentClass.includes('10'); // 6 to 10
+    
+    // Toggle Computer Science validation (no CS for 6-10)
+    const csPill = Array.from(document.querySelectorAll('.subject-pill')).find(p => p.innerText.includes('Computer Science'));
+    if (csPill) {
+        if (isClass10Lower) {
+            csPill.style.display = 'none';
+            if (selectedSubjects.includes('Computer Science')) {
+                selectedSubjects = selectedSubjects.filter(s => s !== 'Computer Science');
+                csPill.classList.remove('active');
+            }
+        } else {
+            csPill.style.display = 'inline-block';
+        }
+    }
+
+    // Toggle Science vs Physics/Chem/Bio
+    const sciPill = document.getElementById('pill-science');
+    const phyPill = document.getElementById('pill-physics');
+    const chemPill = document.getElementById('pill-chemistry');
+    const bioPill = document.getElementById('pill-biology');
+
+    if (sciPill && phyPill && chemPill && bioPill) {
+        if (isLowerGrade) {
+            // For 6-9: Show Science, hide Physics/Chem/Bio
+            sciPill.style.display = 'inline-block';
+            phyPill.style.display = 'none';
+            chemPill.style.display = 'none';
+            bioPill.style.display = 'none';
+
+            // Deselect specific sciences if selected
+            ['Physics', 'Chemistry', 'Biology'].forEach(subj => {
+                if (selectedSubjects.includes(subj)) {
+                    selectedSubjects = selectedSubjects.filter(s => s !== subj);
+                }
+            });
+            [phyPill, chemPill, bioPill].forEach(p => p.classList.remove('active'));
+        } else {
+            // For 10+: Hide Science, show Physics/Chem/Bio
+            sciPill.style.display = 'none';
+            phyPill.style.display = 'inline-block';
+            chemPill.style.display = 'inline-block';
+            bioPill.style.display = 'inline-block';
+
+            // Deselect Science if selected
+            if (selectedSubjects.includes('Science')) {
+                selectedSubjects = selectedSubjects.filter(s => s !== 'Science');
+                sciPill.classList.remove('active');
+            }
+        }
+    }
+
+    const reward = calculateReward(studentClass, selectedSubjects);
     
     const rewardSpan = document.getElementById('currentRewardVal');
     rewardSpan.innerText = `₹${reward}`;
@@ -225,12 +334,7 @@ function addStudent(event) {
     if (selectedSubjects.length === 0) { alert("Please select at least one subject."); return; }
     
     const studentClass = document.getElementById('studentClass').value;
-    let reward = 0;
-    if (selectedSubjects.length === 1) {
-        reward = 1500;
-    } else if (selectedSubjects.length > 1) {
-        reward = selectedSubjects.length * 1000;
-    }
+    let reward = calculateReward(studentClass, selectedSubjects);
     
     playSound('add');
     
@@ -395,5 +499,26 @@ function resetProfile() {
 }
 
 window.onload = function() {
+    // ---- AUTO CACHE WIPE TRIGGER ----
+    // This clears locally saved data on user devices due to the major price rule changes.
+    const CURRENT_VERSION = "2.0";
+    if (localStorage.getItem('eduHome_Version') !== CURRENT_VERSION) {
+        localStorage.removeItem('eduHome_RewardState');
+        localStorage.removeItem('eduHome_Referrals');
+        // We wipe their old referrals and xp, but optionally keep name/pin.
+        // Actually, let's keep name/pin active so they don't have to re-register.
+        localStorage.setItem('eduHome_Version', CURRENT_VERSION);
+        alert("The Fee Rules have been updated! Your previous local scores and referrals have been reset to align with the new system.");
+        window.location.reload();
+        return;
+    }
+    
     bootLoadState();
+    
+    // Listen for class changes to dynamically update reward
+    const classSelect = document.getElementById('studentClass');
+    if (classSelect) {
+        classSelect.addEventListener('change', updateRewardDisplay);
+        updateRewardDisplay(); // Run once initially
+    }
 }
