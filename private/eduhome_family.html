@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDUHOME FAMILY JOINING PROGRAM</title>
+    <!-- Use FontAwesome for UI icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Supabase Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/eduhome_family.css">
+</head>
+<body>
+
+    <div class="gamified-container">
+        
+        <h1 class="title-glow"><i class="fas fa-users"></i> EDUHOME FAMILY JOINING PROGRAM</h1>
+
+        <!-- Top View: Collector & Leveling -->
+        <div class="panel split-view-top">
+            
+            <div class="level-container" style="text-align: center; margin-bottom: 25px; background: rgba(0,102,255,0.05); padding: 15px; border-radius: 12px; border: 2px dashed #99c2ff;">
+                <div style="font-size: 1.5rem; color: #0066ff; font-weight: 900; text-transform: uppercase;">
+                    <i class="fas fa-crown" style="color: #e3b341; text-shadow: 0 0 10px rgba(227, 179, 65, 0.6);"></i> 
+                    Level <span id="userLevel">1</span>: <span id="userRank">Newbie</span>
+                </div>
+                <div class="xp-bar-outline" style="background:#ffffff; border-radius: 20px; height: 22px; width: 100%; margin: 10px auto; border: 2px solid #0055cc; overflow: hidden; position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);">
+                    <div id="xpFill" style="background: linear-gradient(90deg, #0088ff, #00eeff); width: 0%; height: 100%; transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 10px #00eeff;"></div>
+                </div>
+                <div style="font-size:1rem; color:#0055cc; font-weight: bold;">
+                    XP: <span id="currentXP">0</span> / <span id="nextLevelXP">500</span> 
+                    <span style="font-size:0.8rem; color:#66aaee;">(Keep submitting to level up!)</span>
+                </div>
+            </div>
+
+            <h2 style="color:#0055cc; margin-top:0"><i class="fas fa-user-circle"></i> Collector Profile</h2>
+            <div class="input-group">
+                <label>Your Name</label>
+                <input type="text" id="primaryName" class="gamified-input" placeholder="Enter your name...">
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+                    <button onclick="changeProfileName()" class="btn-neon" style="flex:1; padding: 5px; font-size: 0.8rem; background: rgba(0, 102, 255, 0.1);"><i class="fas fa-edit"></i> Change Name</button>
+                    <button onclick="resetProfile()" class="btn-neon" style="flex:1; padding: 5px; font-size: 0.8rem; border-color:#ff4444; color:#ff4444; background: rgba(255, 68, 68, 0.1);"><i class="fas fa-trash-alt"></i> Delete Profile</button>
+                </div>
+            </div>
+
+            <h3 style="margin-top: 25px; color:#0044aa; border-bottom: 2px solid #e6f2ff; padding-bottom: 10px;">
+                <i class="fas fa-handshake"></i> Collaborators
+            </h3>
+            <div id="collabContainer">
+                <div class="input-group">
+                    <input type="text" class="gamified-input collab-input" placeholder="Add friend's name...">
+                </div>
+            </div>
+            <button onclick="addCollaborator()" class="btn-neon" style="font-size:0.8rem; padding: 5px 10px; margin-top:0;">
+                <i class="fas fa-plus"></i> Add Collaborator
+            </button>
+        </div>
+
+        <!-- Bottom View: Referred Students -->
+        <div class="panel split-view-bottom">
+            <h2 style="color:#0088ff; margin-top:0; font-size:2rem; font-weight:900;"><i class="fas fa-rocket"></i> Launch a Referral</h2>
+            
+            <div class="referral-form" style="background: rgba(230,242,255,0.5); padding: 25px; border-radius: 16px; margin-bottom: 20px; border: 2px solid #cce0ff; box-shadow: 0 10px 20px rgba(0,0,0,0.05);">
+                <div class="input-group">
+                    <label>Student Name</label>
+                    <input type="text" id="studentName" class="gamified-input" placeholder="Enter student name...">
+                </div>
+                
+                <div class="input-group">
+                    <label>Class</label>
+                    <select id="studentClass" class="gamified-input">
+                        <option value="Class 6">Class 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8">Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                        <option value="Class 11">Class 11</option>
+                        <option value="Class 12">Class 12</option>
+                        <option value="Degree">Degree</option>
+                    </select>
+                </div>
+
+                <div class="input-group">
+                    <label>Select Subjects <span style="font-size:0.8rem;color:#6688aa;">(Tack on power!)</span></label>
+                    <div class="subject-pills" id="subjectPillsContainer">
+                        <div class="subject-pill" onclick="toggleSubject(this, 'Chemistry')">Chemistry</div>
+                        <div class="subject-pill" onclick="toggleSubject(this, 'Maths')">Maths</div>
+                        <div class="subject-pill" onclick="toggleSubject(this, 'Physics')">Physics</div>
+                        <div class="subject-pill" onclick="toggleSubject(this, 'Biology')">Biology</div>
+                        <div class="subject-pill" onclick="toggleSubject(this, 'Computer Science')">Computer Science</div>
+                    </div>
+                </div>
+
+                <div style="font-size: 1.4rem; margin-top: 25px; color: #0055cc; text-align: center; font-weight:800;">
+                    Reward Power: <strong id="currentRewardVal" style="font-size:2rem;">₹0</strong>
+                </div>
+
+                <button onclick="addStudent(event)" class="btn-arcade" style="margin-top: 25px;">
+                    <i class="fas fa-bolt"></i> Submit Referral
+                </button>
+            </div>
+
+            <!-- List -->
+            <h3 style="border-bottom: 2px solid #e6f2ff; padding-bottom: 10px; color:#0044aa; font-weight:900;">Referral Log</h3>
+            <div id="studentList">
+                <p id="emptyLogText" style="color: #6688aa; text-align: center; font-style: italic; font-weight:600;">The list is empty. Start your earning streak!</p>
+            </div>
+
+            <!-- Total -->
+            <div class="total-reward-bar">
+                <h3>Total Collaborative Rewards</h3>
+                <div class="total-reward-value" id="totalRewardDisplay">₹0</div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="index.html" class="btn-neon" style="color: #0055cc; border-color: #0055cc; font-size: 0.9rem;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gamified Custom Modal Alert -->
+    <div id="successModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="color:#0088ff; margin-top:0; font-size:2.5rem; text-transform:uppercase;"><i class="fas fa-gem" style="color:#00e5ff; text-shadow:0 0 15px #00e5ff;"></i> Incredible!</h2>
+            <p id="modalMessage" style="font-size:1.4rem; color:#003366; font-weight:800; line-height: 1.4;"></p>
+            <button onclick="closeModal()" class="btn-arcade" style="margin-top:25px; padding: 10px 20px; font-size:1.2rem;">Claim & Add More!</button>
+        </div>
+    </div>
+
+    <!-- Name Prompt Modal -->
+    <div id="namePromptModal" class="modal-overlay">
+        <div class="modal-box">
+            <h2 style="color:#0088ff; margin-top:0; font-size:2.5rem;"><i class="fas fa-user-astronaut"></i> Welcome!</h2>
+            <p style="font-size:1.2rem; color:#003366; font-weight:700;">State your Collector Name, hero.</p>
+            <input type="text" id="promptNameInput" class="gamified-input" placeholder="Your legendary name..." style="margin-top: 15px; font-size:1.4rem; text-align:center;">
+            <button onclick="saveCollectorName()" class="btn-arcade" style="margin-top:25px; padding: 15px 20px; font-size:1.2rem;">Start Collecting!</button>
+        </div>
+    </div>
+
+    <!-- Audio API logic and interactive scripts -->
+    <script src="js/eduhome_family.js"></script>
+</body>
+</html>
