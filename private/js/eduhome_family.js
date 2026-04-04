@@ -499,20 +499,6 @@ function resetProfile() {
 }
 
 window.onload = function() {
-    // ---- AUTO CACHE WIPE TRIGGER ----
-    // This clears locally saved data on user devices due to the major price rule changes.
-    const CURRENT_VERSION = "2.0";
-    if (localStorage.getItem('eduHome_Version') !== CURRENT_VERSION) {
-        localStorage.removeItem('eduHome_RewardState');
-        localStorage.removeItem('eduHome_Referrals');
-        // We wipe their old referrals and xp, but optionally keep name/pin.
-        // Actually, let's keep name/pin active so they don't have to re-register.
-        localStorage.setItem('eduHome_Version', CURRENT_VERSION);
-        alert("The Fee Rules have been updated! Your previous local scores and referrals have been reset to align with the new system.");
-        window.location.reload();
-        return;
-    }
-    
     bootLoadState();
     
     // Listen for class changes to dynamically update reward
