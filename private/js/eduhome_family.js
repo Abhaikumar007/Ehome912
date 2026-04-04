@@ -78,7 +78,15 @@ let totalRewards = gameState.total || 0;
 let currentXP = gameState.xp || 0;
 let currentLevel = gameState.level || 1;
 let selectedSubjects = [];
-const ranks = ["Family Member", "Tribe Supporter", "Tribe Builder", "EduHome Ambassador", "Core Family Mentor", "Tribe Leader", "Family Legacy"];
+const ranks = [
+    { title: "Explorer", quote: "“Just checking what’s going on 👀”" },
+    { title: "Finder", quote: "“Bro wait… I know one guy”" },
+    { title: "Connector", quote: "“Adding people like a WhatsApp group admin 😎”" },
+    { title: "Builder", quote: "“Now it’s becoming a squad 💯”" },
+    { title: "Influencer", quote: "“People actually listening to me now 👀”" },
+    { title: "Leader", quote: "“Running the game at this point 🔥”" },
+    { title: "Legend", quote: "“Everyone knows this guy 😌”" }
+];
 
 function getXPForNextLevel(level) {
     return level * 500;
@@ -96,7 +104,9 @@ function updateLevelUI() {
     document.getElementById('userLevel').innerText = currentLevel;
     let rankIndex = currentLevel - 1;
     if(rankIndex >= ranks.length) rankIndex = ranks.length - 1;
-    document.getElementById('userRank').innerText = ranks[rankIndex];
+    document.getElementById('userRank').innerText = ranks[rankIndex].title;
+    let rankQuoteEl = document.getElementById('rankQuote');
+    if (rankQuoteEl) rankQuoteEl.innerText = ranks[rankIndex].quote;
 }
 
 function saveGameState() {
