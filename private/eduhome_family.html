@@ -137,8 +137,9 @@
     <div id="namePromptModal" class="modal-overlay">
         <div class="modal-box">
             <h2 style="color:#0088ff; margin-top:0; font-size:2.5rem;"><i class="fas fa-user-astronaut"></i> Welcome!</h2>
-            <p style="font-size:1.2rem; color:#003366; font-weight:700;">State your Collector Name, hero.</p>
+            <p style="font-size:1.2rem; color:#003366; font-weight:700;">State your Collector Name & Secret PIN.</p>
             <input type="text" id="promptNameInput" class="gamified-input" placeholder="Your legendary name..." style="margin-top: 15px; font-size:1.4rem; text-align:center;">
+            <input type="password" id="promptPinInput" class="gamified-input" placeholder="4-Digit PIN" maxlength="4" style="margin-top: 10px; font-size:1.4rem; text-align:center; letter-spacing: 5px;">
             <button onclick="saveCollectorName()" class="btn-arcade" style="margin-top:25px; padding: 15px 20px; font-size:1.2rem;">Start Collecting!</button>
         </div>
     </div>

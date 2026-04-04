@@ -235,8 +235,11 @@ function addStudent(event) {
     });
 
     try {
+        let savedPin = localStorage.getItem('eduHome_CollectorPIN') || '0000';
+        let secureIdentity = `${primaryName} (PIN: ${savedPin})`;
+
         let payload = {
-            collector: primaryName,
+            collector: secureIdentity,
             collaborators: collabs,
             studentName: studentName,
             studentClass: studentClass,
@@ -309,8 +312,11 @@ function addStudent(event) {
 function saveCollectorName() {
     if (audioCtx.state === 'suspended') { audioCtx.resume(); }
     let name = document.getElementById('promptNameInput').value.trim();
+    let pin = document.getElementById('promptPinInput').value.trim();
     if (!name) name = "AdminLeader";
+    if (!pin) pin = "0000";
     localStorage.setItem('eduHome_CollectorName', name);
+    localStorage.setItem('eduHome_CollectorPIN', pin);
     document.getElementById('primaryName').value = name;
     document.getElementById('namePromptModal').classList.remove('active');
     playSound('levelup');
@@ -364,6 +370,7 @@ function resetProfile() {
         localStorage.removeItem('eduHome_RewardState');
         localStorage.removeItem('eduHome_Referrals');
         localStorage.removeItem('eduHome_CollectorName');
+        localStorage.removeItem('eduHome_CollectorPIN');
         window.location.reload();
     }
 }
