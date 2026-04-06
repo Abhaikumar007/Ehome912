@@ -78,8 +78,9 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Monthly Fee Amount (₹)</label>
-                            <input type="number" class="form-control" id="amount" placeholder="e.g. 500" required>
+                            <label>Monthly Fee Amount (₹) <small class="text-muted">(auto-calculated)</small></label>
+                            <input type="number" class="form-control" id="amount" placeholder="Select class &amp; subjects above" readonly style="background:#f8f9fa;cursor:not-allowed;">
+                            <small id="feeHint" class="form-text text-info"></small>
                         </div>
 
                         <div class="form-group">
@@ -125,6 +126,120 @@
     </div>
 
     <script src="js/admin.js"></script>
+
+    <script>
+    // ── Auto Fee Calculator ──────────────────────────────────────────────────
+    // Mirrors the exact fee logic from fee_calculator.js
+    // Physics / Chemistry / Biology all count as "Science" for classes 6-9
+
+    const FEE_RULES = {
+        '6':  { hint: 'Maths ₹500 | Maths + Science ₹1000' },
+        '7':  { hint: 'Maths ₹600 | Maths + Science ₹1200' },
+        '8':  { hint: 'Maths ₹750 | Maths + Science ₹1500' },
+        '9':  { hint: 'Maths ₹1000 | Science ₹1000 | Maths + Science ₹2000' },
+        '10': { hint: '1 subject ₹1000 | 2 subjects ₹2000 | 3+ subjects ₹3000 (Maths+Phy+Chem+Bio package)' },
+        '11': { hint: '1 sub ₹1500 | 2 subs ₹2500 | 3 subs ₹3500 | 4 subs ₹4500' },
+        '12': { hint: '1 sub ₹1500 | 2 subs ₹2500 | 3 subs ₹3500 | 4 subs ₹4500' }
+    };
+
+    function getSelectedSubjects() {
+        return Array.from(document.querySelectorAll('input[name="subject"]:checked'))
+                    .map(cb => cb.value);
+    }
+
+    function hasMaths(subs)   { return subs.includes('Maths'); }
+    // Physics, Chemistry, Biology all map to Science for lower classes
+    function hasScience(subs) {
+        return subs.includes('Physics') || subs.includes('Chemistry') || subs.includes('Biology');
+    }
+
+    function calculateFee(cls, subs) {
+        if (!cls || subs.length === 0) return '';
+
+        switch(cls) {
+            // Class 6 – Maths ₹500, Maths+Science ₹1000
+            case '6':
+                if (hasMaths(subs) && hasScience(subs)) return 1000;
+                if (hasMaths(subs))                     return 500;
+                if (hasScience(subs))                   return 1000; // science without maths = full package
+                return '';
+
+            // Class 7 – Maths ₹600, Maths+Science ₹1200
+            case '7':
+                if (hasMaths(subs) && hasScience(subs)) return 1200;
+                if (hasMaths(subs))                     return 600;
+                if (hasScience(subs))                   return 1200;
+                return '';
+
+            // Class 8 – Maths ₹750, Maths+Science ₹1500
+            case '8':
+                if (hasMaths(subs) && hasScience(subs)) return 1500;
+                if (hasMaths(subs))                     return 750;
+                if (hasScience(subs))                   return 1500;
+                return '';
+
+            // Class 9 – Maths ₹1000, Science ₹1000, Maths+Science ₹2000
+            case '9': {
+                const m = hasMaths(subs), s = hasScience(subs);
+                if (m && s) return 2000;
+                if (m || s) return 1000;
+                return '';
+            }
+
+            // Class 10 – ₹1000/₹2000/₹3000
+            case '10': {
+                // Count distinct "billing units": Maths counts as 1, science subjects each count as 1
+                const units = new Set();
+                if (hasMaths(subs)) units.add('maths');
+                if (subs.includes('Physics'))   units.add('physics');
+                if (subs.includes('Chemistry')) units.add('chemistry');
+                if (subs.includes('Biology'))   units.add('biology');
+                const count = units.size;
+                if (count === 0) return '';
+                if (count === 1) return 1000;
+                if (count === 2) return 2000;
+                return 3000; // 3 or 4 individual subjects = package price
+            }
+
+            // Class 11 & 12 – ₹1500/₹2500/₹3500/₹4500 (up to 4 subjects)
+            case '11':
+            case '12': {
+                const count = subs.length;
+                if (count === 0) return '';
+                if (count === 1) return 1500;
+                if (count === 2) return 2500;
+                if (count === 3) return 3500;
+                return 4500;
+            }
+
+            default: return '';
+        }
+    }
+
+    function updateAutoFee() {
+        const cls  = document.getElementById('class').value;
+        const subs = getSelectedSubjects();
+        const fee  = calculateFee(cls, subs);
+        const amountField = document.getElementById('amount');
+        const hint        = document.getElementById('feeHint');
+
+        if (fee !== '') {
+            amountField.value = fee;
+            hint.textContent  = '';
+        } else {
+            amountField.value = '';
+            hint.textContent  = cls && FEE_RULES[cls]
+                ? '💡 ' + FEE_RULES[cls].hint
+                : 'Select class and subjects to auto-fill fee.';
+        }
+    }
+
+    // Attach listeners
+    document.getElementById('class').addEventListener('change', updateAutoFee);
+    document.querySelectorAll('input[name="subject"]').forEach(cb => {
+        cb.addEventListener('change', updateAutoFee);
+    });
+    </script>
 </body>
 
 </html>
