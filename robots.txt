@@ -1,3 +1,20 @@
 User-agent: *
 Allow: /
+Disallow: /private/
+Disallow: /admin/
+Disallow: /temp/
+Disallow: /*.pdf$
+Disallow: /*.doc$
+
+# Allow search engines to crawl all public pages including articles
+Allow: /personalized-attention-kollam-tuition.html
+Allow: /*.html$
+
+# Crawl-delay for bots
+Crawl-delay: 1
+
+# Sitemap location
 Sitemap: https://myeduhome.netlify.app/sitemap.xml
+
+# Additional sitemaps
+Sitemap: https://myeduhome.netlify.app/sitemap-articles.xml
