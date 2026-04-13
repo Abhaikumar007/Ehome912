@@ -1,2 +1,6 @@
 node_modules/
 .DS_Store
+
+# KEAM question papers - do not push
+keam previous year question papers/
+keam_previous_year_question_papers/

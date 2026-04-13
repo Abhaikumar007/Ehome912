@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KEAM CBT Mock Test 2026 | EduHome</title>
+    <meta name="description" content="Take a free, interactive KEAM 2026 Computer-Based Mock Test. Experience actual previous year questions with precise +4/-1 scoring.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- MathJax for rendering equations -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Import our custom defined questions -->
+    <script src="js/keam_mock_questions.js"></script>
+
+    <style>
+        :root {
+            --primary: #0892fd;
+            --secondary: #333;
+            --bg-body: #f4f6f9;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; padding: 0; background-color: var(--bg-body); color: var(--secondary); display: flex; flex-direction: column; min-height: 100vh; }
+        
+        header { background: #fff; padding: 15px 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--primary); }
+        .logo { font-size: 24px; font-weight: 800; color: var(--primary); }
+        .header-controls { display: flex; align-items: center; gap: 20px; }
+        .timer-box { background: #ffebee; color: #d32f2f; padding: 8px 15px; border-radius: 5px; font-weight: 700; font-size: 20px; display: flex; align-items: center; gap: 10px; }
+        
+        .main-container { display: flex; flex: 1; padding: 20px; gap: 20px; max-width: 1400px; margin: 0 auto; width: 100%; }
+        
+        .cbt-panel { background: #fff; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .left-panel { flex: 7; padding: 0; display: flex; flex-direction: column; }
+        .right-panel { flex: 3; padding: 20px; }
+
+        .subject-tabs { display: flex; border-bottom: 2px solid #eee; background: #fafafa; border-radius: 10px 10px 0 0; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: transparent; font-weight: 600; cursor: pointer; transition: 0.3s; color: #777; font-size: 16px; border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: #fff; }
+
+        .question-area { padding: 30px; flex: 1; overflow-y: auto; }
+        .question-header { display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .q-number { font-size: 22px; font-weight: 700; color: var(--primary); }
+        .q-topic { font-size: 14px; background: #e9ecef; padding: 4px 10px; border-radius: 20px; color: #555; }
+        
+        .q-text { font-size: 18px; line-height: 1.6; margin-bottom: 30px; }
+        
+        .options-list { display: flex; flex-direction: column; gap: 15px; }
+        .option-lbl { display: flex; align-items: flex-start; gap: 15px; padding: 15px 20px; border: 2px solid #eee; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 16px; }
+        .option-lbl:hover { border-color: rgba(8,146,253,0.3); background: rgba(8,146,253,0.02); }
+        .option-lbl.selected { border-color: var(--primary); background: rgba(8,146,253,0.05); }
+        .option-lbl input { margin-top: 5px; transform: scale(1.2); }
+
+        .controls-footer { padding: 20px 30px; background: #f8f9fa; border-top: 1px solid #eee; border-radius: 0 0 10px 10px; display: flex; justify-content: space-between; }
+        .btn { padding: 12px 25px; border: none; border-radius: 5px; font-weight: 600; font-size: 15px; cursor: pointer; transition: 0.2s; }
+        .btn-clear { background: #fff; border: 1px solid #ccc; color: #555; }
+        .btn-clear:hover { background: #f4f4f4; }
+        .btn-prev { background: #6c757d; color: white; }
+        .btn-next { background: var(--success); color: white; }
+        .btn-next:hover { background: #218838; }
+
+        /* Palette styling */
+        .palette-header { font-size: 18px; font-weight: 700; margin-bottom: 15px; text-align: center; color: var(--secondary); border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .palette-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+        .palette-btn { height: 40px; border-radius: 5px; border: 1px solid #ddd; background: #fff; font-weight: 600; font-size: 14px; cursor: pointer; transition: 0.2s; position: relative; }
+        .palette-btn:hover { background: #eee; }
+        .palette-btn.current { border: 2px solid var(--primary); box-shadow: 0 0 0 2px rgba(8,146,253,0.3); }
+
+        /* Status Colors */
+        .pal-not-visited { background: #fff; color: #333; border: 1px solid #ddd; }
+        .pal-not-answered { background: var(--danger); color: #fff; border-color: var(--danger); }
+        .pal-answered { background: var(--success); color: #fff; border-color: var(--success); }
+        .pal-marked { background: #6f42c1; color: #fff; border-color: #6f42c1; }
+        .pal-marked-answered { background: #6f42c1; color: #fff; border-color: #6f42c1; }
+        .pal-marked-answered::after { content: ''; position: absolute; bottom: 3px; right: 3px; width: 8px; height: 8px; background: var(--success); border-radius: 50%; border: 1px solid #fff; }
+
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; font-size: 12px; color: #555; background: #fdfdfd; border: 1px solid #eee; padding: 10px; border-radius: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; }
+        .badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 3px; font-size: 11px; font-weight: bold; color: white; }
+        .badge.white { background: #fff; color: #333; border: 1px solid #ccc; }
+        .badge.red { background: var(--danger); }
+        .badge.green { background: var(--success); }
+        .badge.purple { background: #6f42c1; }
+        .badge.purple-green { background: #6f42c1; position: relative; }
+        .badge.purple-green::after { content: ''; position: absolute; bottom: -2px; right: -2px; width: 6px; height: 6px; background: var(--success); border-radius: 50%; border: 1px solid #fff; }
+
+        .submit-test-btn { width: 100%; margin-top: 30px; padding: 15px; background: var(--danger); color: white; font-size: 16px; font-weight: 700; border-radius: 5px; border: none; cursor: pointer; }
+        .submit-test-btn:hover { background: #c82333; }
+
+        /* Report Styles */
+        .report-view { display: none; padding: 40px; max-width: 1000px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; }
+        .report-header { text-align: center; margin-bottom: 40px; }
+        .score-card { display: flex; justify-content: center; gap: 30px; margin-bottom: 40px; }
+        .score-box { background: #fafafa; padding: 25px; border-radius: 10px; border: 1px solid #eee; text-align: center; flex: 1; }
+        .score-val { font-size: 40px; font-weight: 800; color: var(--primary); }
+        .score-lbl { font-size: 14px; color: #777; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        
+        .mistake-list { margin-top: 30px; }
+        .mistake-card { background: #fffafb; border-left: 4px solid var(--danger); padding: 20px; border-radius: 5px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .mistake-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: 600; color: #333; }
+        .explanation-box { background: #e8f4fd; padding: 15px; border-radius: 5px; margin-top: 15px; font-size: 15px; color: #0056b3; border: 1px solid #b8daff; }
+        .report-topic-analysis { background: rgba(8,146,253,0.05); padding: 25px; border-radius: 10px; margin-top: 30px; }
+        .report-topic-analysis h3 { color: var(--primary); margin-top: 0; }
+        .weak-topic { background: #fff; padding: 12px 20px; border-radius: 5px; margin-bottom: 10px; display: flex; justify-content: space-between; font-weight: 600; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- Instructions Screen -->
+    <div id="instructionsScreen" style="padding: 40px; max-width: 800px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <h1 style="color: var(--primary); text-align: center;">KEAM CBT Simulator 2026</h1>
+        <p style="text-align: center; color: #555; font-size: 18px;">Actual Previous Year Questions | High-Fidelity Equations</p>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 30px;">
+            <h3>Exam Pattern:</h3>
+            <ul style="line-height: 1.8; font-size: 16px;">
+                <li><b>Total Duration:</b> 180 Minutes (Simulated)</li>
+                <li><b>Total Questions:</b> 150 (Sample size: 10 included for this demonstration)</li>
+                <li><b>Subjects:</b> Mathematics, Physics, Chemistry</li>
+                <li><b>Marking Scheme:</b> +4 for Correct • -1 for Incorrect • 0 for Unattempted</li>
+            </ul>
+        </div>
+        
+        <p style="margin-top: 20px; font-size: 15px; color: #777;">*Note: This platform correctly renders complex mathematical integrations and chemical equations mimicking the real CBT interface entirely natively.</p>
+
+        <button onclick="startTest()" style="width: 100%; padding: 15px; margin-top: 30px; background: var(--primary); color: white; font-size: 18px; font-weight: 700; border: none; border-radius: 5px; cursor: pointer;">Start Mock Test</button>
+    </div>
+
+    <!-- CBT Main Interface -->
+    <div id="testInterface" class="hidden" style="display: flex; flex-direction: column; flex: 1;">
+        <header>
+            <div class="logo">EduHome KEAM</div>
+            <div class="header-controls">
+                <div class="timer-box">
+                    <i class="fa-regular fa-clock"></i>
+                    <span id="timerDisplay">180:00</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <!-- Question Panel -->
+            <div class="cbt-panel left-panel">
+                <div class="subject-tabs" id="subjectTabs">
+                    <button class="tab-btn active" onclick="filterBySubject('Mathematics')">Mathematics</button>
+                    <button class="tab-btn" onclick="filterBySubject('Physics')">Physics</button>
+                    <button class="tab-btn" onclick="filterBySubject('Chemistry')">Chemistry</button>
+                </div>
+
+                <div class="question-area">
+                    <div class="question-header">
+                        <span class="q-number" id="qNumHeader">Question 1</span>
+                        <span class="q-topic" id="qTopic">Topic: Mathematics</span>
+                    </div>
+                    <div class="q-text" id="qText">
+                        Loading...
+                    </div>
+                    <div class="options-list" id="qOptions">
+                        <!-- Options generated here -->
+                    </div>
+                </div>
+
+                <div class="controls-footer">
+                    <div style="display: flex; gap: 10px;">
+                         <button class="btn btn-clear" style="background:#f8f9fa; border:1px solid #ccc;" onclick="markForReviewAndNext()">Mark for Review & Next</button>
+                         <button class="btn btn-clear" onclick="clearResponse()">Clear Response</button>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-prev" onclick="prevQuestion()"><i class="fa-solid fa-arrow-left"></i> Previous</button>
+                        <button class="btn btn-next" onclick="saveAndNext()">Save & Next <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Side Panel (Palette) -->
+            <div class="cbt-panel right-panel">
+                <div class="palette-header">Question Palette</div>
+                <div class="legend-grid">
+                    <div class="legend-item"><span class="badge white" id="cntNotVisited">0</span> Not Visited</div>
+                    <div class="legend-item"><span class="badge red" id="cntNotAnswered">0</span> Not Answered</div>
+                    <div class="legend-item"><span class="badge green" id="cntAnswered">0</span> Answered</div>
+                    <div class="legend-item"><span class="badge purple" id="cntMarked">0</span> Marked for Review</div>
+                    <div class="legend-item" style="grid-column: span 2;"><span class="badge purple-green" id="cntMarkedAns">0</span> Answered & Marked for Review</div>
+                </div>
+                
+                <div class="palette-grid" id="paletteGrid">
+                    <!-- Buttons generated dynamically -->
+                </div>
+
+                <button class="submit-test-btn" onclick="submitTest()">SUBMIT TEST</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Report View -->
+    <div id="reportInterface" class="report-view hidden">
+        <div class="report-header">
+            <h1 style="color: var(--primary);">Performance Report</h1>
+            <p>Mock Test Submitted Successfully!</p>
+        </div>
+
+        <div class="score-card">
+            <div class="score-box">
+                <div class="score-val" id="resTotalScore">0</div>
+                <div class="score-lbl">Total Score</div>
+            </div>
+            <div class="score-box" style="border-bottom: 4px solid var(--success);">
+                <div class="score-val" id="resCorrect" style="color: var(--success)">0</div>
+                <div class="score-lbl">Correct (+4)</div>
+            </div>
+            <div class="score-box" style="border-bottom: 4px solid var(--danger);">
+                <div class="score-val" id="resIncorrect" style="color: var(--danger)">0</div>
+                <div class="score-lbl">Incorrect (-1)</div>
+            </div>
+            <div class="score-box">
+                <div class="score-val" id="resUnattempted" style="color: #777;">0</div>
+                <div class="score-lbl">Unattempted</div>
+            </div>
+        </div>
+
+        <div class="report-topic-analysis">
+            <h3><i class="fa-solid fa-chart-pie"></i> Critical Weakness Analysis</h3>
+            <p style="margin-bottom: 20px; font-size: 15px; color: #555;">Based on your incorrect answers, these are the topics costing you the most marks. Prioritize reviewing these areas before your real exam.</p>
+            <div id="weakTopicsList">
+                <!-- Weak topics listed here -->
+            </div>
+        </div>
+
+        <div class="mistake-list">
+            <h3 style="border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px;">Mistake Breakdown & Solutions</h3>
+            <div id="mistakesContainer">
+                <!-- Mistakes generated here -->
+            </div>
+            <div id="noMistakesMsg" class="hidden" style="text-align: center; padding: 40px; color: var(--success); font-weight: 700; font-size: 18px;">
+                Perfect! No mistakes found. You are thoroughly prepared!
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 40px;">
+             <a href="../index.html" class="btn btn-next" style="text-decoration: none; display: inline-block;">Back to EduHome</a>
+        </div>
+    </div>
+
+    <script>
+        // Global State
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let currentSubject = 'Mathematics';
+        let userResponses = {}; // question_id -> option_id
+        let visitedStatus = {}; // question_id -> boolean
+        let reviewStatus = {};  // question_id -> boolean
+        let timerSeconds = 180 * 60; // 180 mins
+        let timerInterval = null;
+
+        // Ensure questions are loaded
+        window.onload = function() {
+            if(typeof keamQuestions !== 'undefined') {
+                questions = keamQuestions;
+            } else {
+                alert("Error loading question bank!");
+            }
+        };
+
+        function startTest() {
+            document.getElementById('instructionsScreen').classList.add('hidden');
+            document.getElementById('testInterface').classList.remove('hidden');
+            
+            // Format Data
+            buildPalette();
+            
+            // Load first question
+            loadQuestion(0);
+            
+            // Start Timer
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function updateTimer() {
+            if (timerSeconds <= 0) {
+                clearInterval(timerInterval);
+                submitTest();
+                return;
+            }
+            timerSeconds--;
+            let m = Math.floor(timerSeconds / 60);
+            let s = timerSeconds % 60;
+            document.getElementById('timerDisplay').innerText = 
+                (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        }
+
+        function updatePaletteCounters() {
+            let notVisited = 0, notAnswered = 0, answered = 0, marked = 0, markedAns = 0;
+            
+            questions.forEach((q, index) => {
+                let ans = userResponses[index] !== undefined;
+                let rev = reviewStatus[index];
+                let vis = visitedStatus[index];
+
+                if (!vis) {
+                    notVisited++;
+                } else if (rev && ans) {
+                    markedAns++;
+                } else if (rev && !ans) {
+                    marked++;
+                } else if (ans) {
+                    answered++;
+                } else {
+                    notAnswered++;
+                }
+            });
+
+            document.getElementById('cntNotVisited').innerText = notVisited;
+            document.getElementById('cntNotAnswered').innerText = notAnswered;
+            document.getElementById('cntAnswered').innerText = answered;
+            document.getElementById('cntMarked').innerText = marked;
+            document.getElementById('cntMarkedAns').innerText = markedAns;
+        }
+
+        function buildPalette() {
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+            
+            const filtered = questions.filter(q => q.subject === currentSubject);
+            
+            filtered.forEach((q, index) => {
+                let btn = document.createElement('button');
+                let actualQIndex = questions.findIndex(x => x.id === q.id);
+                
+                btn.className = 'palette-btn';
+                btn.id = 'pal-btn-' + actualQIndex;
+                btn.innerText = (index + 1);
+                
+                // Determine accurate CSS class
+                let ans = userResponses[actualQIndex] !== undefined;
+                let rev = reviewStatus[actualQIndex];
+                let vis = visitedStatus[actualQIndex];
+
+                if (!vis) {
+                    btn.classList.add('pal-not-visited');
+                } else if (rev && ans) {
+                    btn.classList.add('pal-marked-answered');
+                } else if (rev && !ans) {
+                    btn.classList.add('pal-marked');
+                } else if (ans) {
+                    btn.classList.add('pal-answered');
+                } else {
+                    btn.classList.add('pal-not-answered');
+                }
+                
+                btn.onclick = () => loadQuestion(actualQIndex);
+                grid.appendChild(btn);
+            });
+
+            updatePaletteCounters();
+        }
+
+        function filterBySubject(subj) {
+            currentSubject = subj;
+            
+            // update tabs UI
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText === subj) btn.classList.add('active');
+            });
+            
+            buildPalette();
+            // load first question of this subject
+            let firstIdx = questions.findIndex(q => q.subject === subj);
+            if(firstIdx !== -1) loadQuestion(firstIdx);
+        }
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const q = questions[index];
+            
+            // Re-sync Subject if skipped via external means
+            if (q.subject !== currentSubject) {
+                filterBySubject(q.subject);
+            }
+            
+            document.getElementById('qNumHeader').innerText = `Question ${questions.filter(x=>x.subject === q.subject).findIndex(x=>x.id===q.id) + 1}`;
+            document.getElementById('qTopic').innerHTML = `<i class="fa-solid fa-tag"></i> ${q.topic}`;
+            document.getElementById('qText').innerHTML = q.question;
+            
+            const opsContainer = document.getElementById('qOptions');
+            opsContainer.innerHTML = '';
+            
+            let selectedOpt = userResponses[index];
+            
+            q.options.forEach((opt) => {
+                let lbl = document.createElement('label');
+                lbl.className = 'option-lbl ' + (selectedOpt === opt.id ? 'selected' : '');
+                
+                let inp = document.createElement('input');
+                inp.type = 'radio';
+                inp.name = 'q_option';
+                inp.value = opt.id;
+                inp.checked = (selectedOpt === opt.id);
+                
+                inp.onchange = function() {
+                    userResponses[index] = opt.id;
+                    // update UI
+                    document.querySelectorAll('.option-lbl').forEach(e => e.classList.remove('selected'));
+                    lbl.classList.add('selected');
+                };
+                
+                let span = document.createElement('span');
+                span.innerHTML = opt.text;
+                
+                lbl.appendChild(inp);
+                lbl.appendChild(span);
+                opsContainer.appendChild(lbl);
+            });
+            
+            // Mark as visited when loaded
+            visitedStatus[index] = true;
+            buildPalette();
+
+            // Update Palette UI for current active outline
+            document.querySelectorAll('.palette-btn').forEach(b => b.classList.remove('current'));
+            let activePalBtn = document.getElementById('pal-btn-' + index);
+            if(activePalBtn) activePalBtn.classList.add('current');
+
+            // trigger MathJax rendering for new content
+            if (window.MathJax) {
+                MathJax.typesetPromise();
+            }
+        }
+
+        function clearResponse() {
+            delete userResponses[currentQuestionIndex];
+            reviewStatus[currentQuestionIndex] = false;
+            
+            // We just rebuild palette logic instead of reloading the whole question
+            buildPalette();
+            // Re-apply current outline
+            let activePalBtn = document.getElementById('pal-btn-' + currentQuestionIndex);
+            if(activePalBtn) activePalBtn.classList.add('current');
+
+            // also uncheck radio buttons in DOM
+            document.querySelectorAll('.option-lbl').forEach(e => {
+                e.classList.remove('selected');
+                let inp = e.querySelector('input');
+                if(inp) inp.checked = false;
+            });
+        }
+
+        function saveAndNext() {
+            reviewStatus[currentQuestionIndex] = false;
+            buildPalette(); // Make sure palette is fresh before switching outline
+            
+            // find next index within current subject
+            let subjectQuestions = questions.filter(q => q.subject === currentSubject);
+            let subIndex = subjectQuestions.findIndex(q => q.id === questions[currentQuestionIndex].id);
+            
+            if (subIndex < subjectQuestions.length - 1) {
+                let nextGlobalIndex = questions.findIndex(q => q.id === subjectQuestions[subIndex + 1].id);
+                loadQuestion(nextGlobalIndex);
+            } else {
+                alert("You've reached the end of the " + currentSubject + " section.");
+            }
+        }
+
+        function markForReviewAndNext() {
+            reviewStatus[currentQuestionIndex] = true;
+            buildPalette(); 
+            
+            let subjectQuestions = questions.filter(q => q.subject === currentSubject);
+            let subIndex = subjectQuestions.findIndex(q => q.id === questions[currentQuestionIndex].id);
+            
+            if (subIndex < subjectQuestions.length - 1) {
+                let nextGlobalIndex = questions.findIndex(q => q.id === subjectQuestions[subIndex + 1].id);
+                loadQuestion(nextGlobalIndex);
+            } else {
+                alert("You've reached the end of the " + currentSubject + " section.");
+            }
+        }
+
+        function prevQuestion() {
+            let subjectQuestions = questions.filter(q => q.subject === currentSubject);
+            let subIndex = subjectQuestions.findIndex(q => q.id === questions[currentQuestionIndex].id);
+            
+            if (subIndex > 0) {
+                let prevGlobalIndex = questions.findIndex(q => q.id === subjectQuestions[subIndex - 1].id);
+                loadQuestion(prevGlobalIndex);
+            }
+        }
+
+        function submitTest() {
+            if(confirm("Are you sure you want to submit the test? You cannot return to the test after submission.")) {
+                clearInterval(timerInterval);
+                generateReport();
+            }
+        }
+
+        function generateReport() {
+            document.getElementById('testInterface').classList.add('hidden');
+            document.getElementById('reportInterface').classList.remove('hidden');
+            
+            let correct = 0;
+            let incorrect = 0;
+            let unattempted = 0;
+            let weakTopics = {};
+            let mistakeHTML = '';
+            
+            questions.forEach((q, index) => {
+                let answer = userResponses[index];
+                if (answer === undefined) {
+                    unattempted++;
+                } else if (answer === q.correctOption) {
+                    correct++;
+                } else {
+                    incorrect++;
+                    
+                    // Track weak topics
+                    if(!weakTopics[q.topic]) weakTopics[q.topic] = 0;
+                    weakTopics[q.topic]++;
+                    
+                    // Generate Mistake Review HTML
+                    let userText = q.options.find(o => o.id === answer).text;
+                    let correctText = q.options.find(o => o.id === q.correctOption).text;
+                    
+                    mistakeHTML += `
+                        <div class="mistake-card">
+                            <div class="mistake-header">
+                                <span>Subject: ${q.subject} | Topic: ${q.topic}</span>
+                                <span style="color:var(--danger)"><i class="fa-solid fa-xmark"></i> Incorrect</span>
+                            </div>
+                            <div style="font-size: 16px; margin-bottom: 20px;">${q.question}</div>
+                            
+                            <div style="display:flex; gap: 20px; font-size: 15px;">
+                                <div style="flex:1; background: #fff2f3; padding: 10px; border: 1px solid #ffccd5; border-radius: 5px;">
+                                    <b>Your Answer:</b><br>${userText}
+                                </div>
+                                <div style="flex:1; background: #f0fdf4; padding: 10px; border: 1px solid #bbf7d0; border-radius: 5px;">
+                                    <b style="color: var(--success)">Correct Answer:</b><br>${correctText}
+                                </div>
+                            </div>
+                            
+                            <div class="explanation-box">
+                                <b><i class="fa-solid fa-lightbulb"></i> Step-by-Step Explanation:</b><br>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+            
+            let score = (correct * 4) - (incorrect * 1);
+            
+            document.getElementById('resTotalScore').innerText = score;
+            document.getElementById('resCorrect').innerText = correct;
+            document.getElementById('resIncorrect').innerText = incorrect;
+            document.getElementById('resUnattempted').innerText = unattempted;
+            
+            if (incorrect > 0) {
+                document.getElementById('mistakesContainer').innerHTML = mistakeHTML;
+                
+                // Identify top weak topics
+                let weakArr = Object.keys(weakTopics).sort((a,b) => weakTopics[b] - weakTopics[a]);
+                let weakHtml = '';
+                weakArr.forEach(topic => {
+                    weakHtml += `
+                    <div class="weak-topic">
+                        <span>${topic}</span>
+                        <span style="color:var(--danger)">-${weakTopics[topic]} marks lost</span>
+                    </div>`;
+                });
+                document.getElementById('weakTopicsList').innerHTML = weakHtml;
+                
+            } else {
+                document.getElementById('mistakesContainer').innerHTML = '';
+                document.getElementById('noMistakesMsg').classList.remove('hidden');
+                document.getElementById('weakTopicsList').innerHTML = '<div style="color:var(--success); font-weight:600;">No critical weaknesses detected!</div>';
+            }
+
+            // re-trigger MathJax to format equations in the report view
+            if(window.MathJax) {
+                setTimeout(() => { MathJax.typesetPromise(); }, 200);
+            }
+        }
+
+    </script>
+</body>
+</html>
