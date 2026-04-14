@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Score Dashboard</title>
+    <!-- Load Tailwind CSS for styling -->
+    <script src="tailwind.js"></script>
+    <!-- Load SheetJS (xlsx) for Excel import/export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Load PDF.js for PDF presentation support -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Load canvas-confetti for game rewards -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Custom styles for appearance and transitions */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .tab-content {
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+        .page-enter {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        .page-enter-active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .page-exit {
+            opacity: 1;
+        }
+        .page-exit-active {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        /* Basic modal backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+            transition: opacity 0.3s;
+        }
+        .modal-content {
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* --- Styles from slideshow file --- */
+        .slide-container {
+            aspect-ratio: 16 / 9; /* Standard presentation aspect ratio */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            background-color: #1e293b; /* Dark background */
+        }
+        #slideImage {
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        /* --- NEW: Styles for Maximized Slideshow --- */
+        .slideshow-fullscreen-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(10, 20, 40, 0.9);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .slideshow-fullscreen-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .slideshow-fullscreen-img {
+            max-width: 90vw;
+            max-height: 85vh;
+            object-fit: contain;
+            border-radius: 0.75rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+            transition: opacity 0.3s ease-in-out;
+        }
+        .slideshow-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 9999px;
+            width: 3.5rem; /* 56px */
+            height: 3.5rem; /* 56px */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+        .slideshow-nav-btn:hover:not(:disabled) {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .slideshow-nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+        .slideshow-close-btn {
+             position: absolute;
+             top: 1.5rem;
+             right: 2rem;
+             background-color: rgba(255, 255, 255, 0.1);
+             color: white;
+             border: 1px solid rgba(255, 255, 255, 0.2);
+             border-radius: 9999px;
+             width: 2.5rem; /* 40px */
+             height: 2.5rem; /* 40px */
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-white to-blue-50 p-4 sm:p-6">
+    <div id="app" class="max-w-6xl mx-auto">
+        <!-- Application content will be rendered here -->
+    </div>
+
+    <script>
+        // --- Application State ---
+        const state = {
+            students: [],
+            page: "add", // 'add', 'update', 'leaderboard', 'slideshow'
+            form: { name: "", class: "", subject: "", gender: "" },
+            filterClass: "",
+            filterSubject: "",
+            filterChapter: "",
+            statusMessage: "",
+            confirmationData: null, // { type: 'student' | 'clearAll', id?: number, name?: string }
+            slideImages: [],
+            currentSlideIndex: 0,
+            slideshowMaximized: false, // Controls the fullscreen view
+            isSidebarOpen: true,       // Controls presenter sidebar in fullscreen
+            spinnerActive: false,      // Controls the spinning wheel modal
+            spinnerSelectedStudent: null, // Result of the spin
+            milestoneTargets: {},      // Per-chapter milestone arrays e.g. { '1': [10, 30, 60] }
+            milestonePopup: null,      // { studentName, avatar, milestoneIndex, total, isFinal }
+            personalSpinnerActive: false,
+            personalSpinnerStudent: null,
+            personalSpinnerResult: null
+        };
+
+        // --- Constants and Helpers ---
+        const classOptions = ["", "6", "7", "8", "9", "10", "11", "12"];
+        const subjectOptions = ["", "Maths", "Physics", "Chemistry", "Biology", "Computer Science"];
+        const chapterOptions = ["", ...Array.from({ length: 20 }, (_, i) => String(i + 1))];
+        const sampleStudents = [
+            { id: 1, name: "Aisha", gender: "girl", class: "10", subject: "Maths", scores: { '5': 12, '3': 10 }, avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=Aisha" },
+            { id: 2, name: "Rohit", gender: "boy", class: "10", subject: "Maths", scores: { '3': 8 }, avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Rohit" },
+            { id: 3, name: "Sana", gender: "girl", class: "11", subject: "Physics", scores: { '12': 15, '1': 18 }, avatar: "https://api.dicebear.com/7.x/adventurer/svg?seed=Sana" },
+            { id: 4, name: "Vikram", gender: "boy", class: "9", subject: "Chemistry", scores: { '1': 5 }, avatar: "https://api.dicebear.com/7.x/pixel-art/svg?seed=Vikram" },
+        ];
+
+        let fileInputRef;
+
+        /**
+         * Generic WebAudio tone generator.
+         */
+        function playTone(freq = 440, duration = 150, type = 'sine', vol = 0.06) {
+            try {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                const ctx = new AC();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = type;
+                o.frequency.value = freq;
+                g.gain.setValueAtTime(vol, ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0, ctx.currentTime + duration / 1000); // fade out
+                o.connect(g);
+                g.connect(ctx.destination);
+                o.start();
+                setTimeout(() => {
+                    try { o.stop(); ctx.close(); } catch (e) {}
+                }, duration);
+            } catch (err) {
+                // ignore audio errors
+            }
+        }
+
+        /**
+         * Plays a "reward achieving" sound effect.
+         * @param {number} val The score value to determine the sound complexity.
+         */
+        function playPositiveSound(val) {
+            const baseFreq = 523.25; // C5
+            playTone(baseFreq, 80, 'triangle');
+            setTimeout(() => playTone(baseFreq * 1.25, 80, 'triangle'), 80); // E5
+            if (val > 1) {
+                setTimeout(() => playTone(baseFreq * 1.5, val > 2 ? 120 : 80, 'triangle'), 160); // G5
+            }
+        }
+
+        /**
+         * Plays a "reward reducing" sound effect.
+         */
+        function playNegativeSound() {
+            playTone(349.23, 120, 'sawtooth', 0.04); // F4
+            setTimeout(() => playTone(329.63, 150, 'sawtooth', 0.04), 100); // E4
+        }
+
+        /**
+         * Sound effects for the spinner ticks and win.
+         */
+        function playTickSound() {
+            playTone(800, 30, 'sine', 0.03);
+        }
+
+        function playWinSound() {
+            const baseFreq = 523.25; // C5
+            playTone(baseFreq, 100, 'sine', 0.1);
+            setTimeout(() => playTone(baseFreq * 1.5, 100, 'sine', 0.1), 100);
+            setTimeout(() => playTone(baseFreq * 2, 400, 'sine', 0.15), 200);
+        }
+
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#ec4899', '#eab308', '#6366f1', '#10b981', '#3b82f6']
+                });
+            }
+        }
+
+        let spinnerInterval;
+
+        function startSpinner() {
+            const filtered = getFilteredStudents();
+            if (filtered.length === 0) {
+                setState({ statusMessage: "No students in filter to spin for."});
+                setTimeout(() => setState({ statusMessage: "" }), 2000);
+                return;
+            }
+            if (!state.filterChapter) {
+                setState({ statusMessage: "Warning: No chapter selected."});
+                setTimeout(() => setState({ statusMessage: "" }), 2000);
+            }
+            
+            setState({ spinnerActive: true, spinnerSelectedStudent: null });
+
+            let speed = 40;
+            let ticks = 0;
+            const maxTicks = 40 + Math.floor(Math.random() * 20);
+
+            const spin = () => {
+                // While spinning, randomly show a student's avatar in the target div
+                if (!state.spinnerActive) return; // cancelled
+
+                const targetEl = document.getElementById('spinner-target');
+                if (targetEl && !state.spinnerSelectedStudent) {
+                     const randomStudent = filtered[Math.floor(Math.random() * filtered.length)];
+                     targetEl.innerHTML = `
+                         <img src="${randomStudent.avatar}" class="w-24 h-24 rounded-full border-4 border-indigo-500 mx-auto mb-4 bg-white/90 shadow-lg" />
+                         <div class="text-2xl font-bold text-white drop-shadow">${randomStudent.name}</div>
+                         <div class="text-sm text-indigo-300 mt-1">${randomStudent.class} • ${randomStudent.subject}</div>
+                     `;
+                     playTickSound();
+                }
+
+                ticks++;
+                if (ticks < maxTicks) {
+                    if (ticks > maxTicks - 20) speed += 15;
+                    if (ticks > maxTicks - 8) speed += 40;
+                    spinnerInterval = setTimeout(spin, speed);
+                } else {
+                    const finalStudent = filtered[Math.floor(Math.random() * filtered.length)];
+                    playWinSound();
+                    setState({ spinnerSelectedStudent: finalStudent });
+                }
+            };
+            spin();
+        }
+
+        function closeSpinner() {
+            clearTimeout(spinnerInterval);
+            setState({ spinnerActive: false, spinnerSelectedStudent: null });
+        }
+
+        let personalSpinnerInterval;
+
+        function startPersonalSpinner(studentId) {
+            if (!state.filterChapter) {
+                setState({ statusMessage: "Warning: No chapter selected for recording points."});
+                setTimeout(() => setState({ statusMessage: "" }), 2000);
+                return;
+            }
+            
+            const student = state.students.find(s => s.id === studentId);
+            if (!student) return;
+
+            setState({ personalSpinnerActive: true, personalSpinnerStudent: student, personalSpinnerResult: null });
+
+            let speed = 40;
+            let ticks = 0;
+            const maxTicks = 30 + Math.floor(Math.random() * 20);
+            
+            const possiblePoints = [3, 2, 1, 0]; // No negatives
+
+            const spin = () => {
+                if (!state.personalSpinnerActive) return;
+
+                const targetEl = document.getElementById('personal-spinner-target');
+                if (targetEl && state.personalSpinnerResult === null) {
+                     const randomPoint = possiblePoints[Math.floor(Math.random() * possiblePoints.length)];
+                     let color = randomPoint > 0 ? 'text-green-400' : 'text-yellow-400';
+                     targetEl.innerHTML = `
+                         <div class="text-6xl font-black ${color} drop-shadow-[0_0_15px_currentColor] animate-pulse">${randomPoint > 0 ? '+' : ''}${randomPoint}</div>
+                     `;
+                     playTickSound();
+                }
+
+                ticks++;
+                if (ticks < maxTicks) {
+                    if (ticks > maxTicks - 15) speed += 20;
+                    personalSpinnerInterval = setTimeout(spin, speed);
+                } else {
+                    const finalPoint = possiblePoints[Math.floor(Math.random() * possiblePoints.length)];
+                    if (finalPoint > 0) playWinSound();
+                    setState({ personalSpinnerResult: finalPoint });
+                }
+            };
+            spin();
+        }
+
+        function closePersonalSpinner() {
+            clearTimeout(personalSpinnerInterval);
+            setState({ personalSpinnerActive: false, personalSpinnerStudent: null, personalSpinnerResult: null });
+        }
+
+
+
+        /**
+         * Checks if the XLSX library is loaded globally.
+         * @returns {boolean}
+         */
+        function isXLSXReady() {
+            return typeof window.XLSX !== 'undefined';
+        }
+
+        /**
+         * Gets unique class, subject, and chapter options for filtering from all student data.
+         * @returns {{classes: string[], subjects: string[], chapters: string[]}}
+         */
+        function getFilterOptions() {
+            const classesSet = new Set(state.students.map(p => String(p.class)).filter(Boolean));
+            const subjectsSet = new Set(state.students.map(p => p.subject).filter(Boolean));
+            const chaptersSet = new Set();
+            state.students.forEach(student => {
+                if (student.scores) {
+                    Object.keys(student.scores).forEach(chapter => chaptersSet.add(chapter));
+                }
+            });
+            return {
+                classes: ["", ...Array.from(classesSet).sort()],
+                subjects: ["", ...Array.from(subjectsSet).sort()],
+                chapters: ["", ...Array.from(chaptersSet).sort((a,b) => Number(a) - Number(b))],
+            };
+        }
+
+        /**
+         * Filters the students based on class and subject. Chapter is used for score display, not filtering the list.
+         * @returns {Array<Object>}
+         */
+        function getFilteredStudents() {
+            return state.students.filter((p) => {
+                return (
+                    (state.filterClass ? String(p.class) === String(state.filterClass) : true) &&
+                    (state.filterSubject ? p.subject === state.filterSubject : true)
+                );
+            });
+        }
+
+        // --- Persistence Functions ---
+
+        /**
+         * Saves current students to localStorage.
+         */
+        function persistStudents() {
+            try {
+                localStorage.setItem("students_v1_html", JSON.stringify(state.students));
+            } catch (e) {
+                console.error("Failed to save to localStorage:", e);
+            }
+        }
+
+        /**
+         * Loads students from localStorage or sample data.
+         */
+        function loadStudents() {
+            const saved = localStorage.getItem("students_v1_html");
+            if (saved) {
+                try {
+                    state.students = JSON.parse(saved);
+                    // Ensure scores object exists for backward compatibility
+                    state.students.forEach(s => { if (!s.scores) s.scores = {}; });
+                    state.statusMessage = "Loaded students from localStorage";
+                    return;
+                } catch (e) {
+                    console.error("Error parsing localStorage, falling back to sample:", e);
+                }
+            }
+
+            // Fallback to sample data
+            state.students = sampleStudents;
+            state.statusMessage = "Could not load previous data — using sample data.";
+        }
+
+
+        // --- Actions / Mutators ---
+
+        /**
+         * Sets a new state and triggers a re-render.
+         * @param {Object} newState
+         */
+        function setState(newState) {
+            Object.assign(state, newState);
+            renderApp();
+            // Debounced persistence: save after a short delay to avoid saving every score click immediately
+            clearTimeout(window._persistTimer);
+            window._persistTimer = setTimeout(persistStudents, 500);
+        }
+
+        function handleFormChange(key, value) {
+            setState({ form: { ...state.form, [key]: value } });
+        }
+
+        function addStudent(e) {
+            e.preventDefault();
+            if (!state.form.name || !state.form.class || !state.form.subject || !state.form.gender) {
+                setState({ statusMessage: "Please fill all fields." });
+                return;
+            }
+
+            const avatarStyle = state.form.gender === 'boy' ? 'initials' : 'initials';
+            const avatarUrl = `https://api.dicebear.com/9.x/${avatarStyle}/svg?seed=${encodeURIComponent(state.form.name.trim())}`;
+
+            const nextStudent = {
+                id: Date.now(),
+                name: state.form.name.trim(),
+                gender: state.form.gender,
+                class: state.form.class,
+                subject: state.form.subject,
+                scores: {}, // Scores are now an object, initialized empty
+                avatar: avatarUrl,
+            };
+
+            const newStudents = [nextStudent, ...state.students];
+            setState({
+                students: newStudents,
+                form: { name: "", class: "", subject: "", gender: "" },
+                page: "update",
+                statusMessage: "Student added. Now select a chapter on the 'Update' tab to add scores."
+            });
+        }
+
+        /**
+         * Returns the sorted milestone array for a given chapter.
+         * Falls back to [50] if none set.
+         */
+        function getChapterMilestones(chapter) {
+            const raw = state.milestoneTargets[chapter];
+            if (Array.isArray(raw) && raw.length > 0) return raw;
+            return [50];
+        }
+
+        function incScore(id, val) {
+            if (!state.filterChapter) {
+                setState({ statusMessage: "Please select a chapter to update scores." });
+                setTimeout(() => setState({ statusMessage: "" }), 2000);
+                return;
+            }
+
+            const milestones = getChapterMilestones(state.filterChapter);
+            let hitMilestone = null; // { index, isFinal }
+            let updatedStudent = null;
+
+            const newStudents = state.students.map((p) => {
+                if (p.id === id) {
+                    const newP = { ...p };
+                    if (!newP.scores) newP.scores = {};
+                    const currentScore = Number(newP.scores[state.filterChapter] || 0);
+                    const newScore = currentScore + val;
+                    newP.scores[state.filterChapter] = newScore;
+
+                    // Check each milestone in order — find the first one just crossed
+                    milestones.forEach((threshold, idx) => {
+                        if (currentScore < threshold && newScore >= threshold) {
+                            // Only store the highest milestone crossed in this single increment
+                            if (!hitMilestone || idx > hitMilestone.index) {
+                                hitMilestone = { index: idx, isFinal: idx === milestones.length - 1 };
+                                updatedStudent = newP;
+                            }
+                        }
+                    });
+                    return newP;
+                }
+                return p;
+            });
+
+            if (hitMilestone && updatedStudent) {
+                // Don't call setState yet - set the popup data AFTER students
+                state.students = newStudents;
+                const popupData = {
+                    studentName: updatedStudent.name,
+                    avatar: updatedStudent.avatar,
+                    milestoneIndex: hitMilestone.index,
+                    total: milestones.length,
+                    threshold: milestones[hitMilestone.index],
+                    isFinal: hitMilestone.isFinal,
+                };
+                playWinSound();
+                triggerConfetti();
+                setTimeout(triggerConfetti, 350);
+                setTimeout(triggerConfetti, 700);
+                setState({ milestonePopup: popupData });
+            } else {
+                setState({ students: newStudents });
+                if (val > 0) {
+                    playPositiveSound(val);
+                    if (val >= 3) triggerConfetti();
+                } else if (val < 0) {
+                    playNegativeSound();
+                }
+            }
+        }
+
+        function dismissMilestonePopup() {
+            setState({ milestonePopup: null });
+        }
+
+        function startDelete(studentId, studentName) {
+            setState({ confirmationData: { type: 'student', id: studentId, name: studentName } });
+        }
+
+        function startClearAll() {
+            setState({ confirmationData: { type: 'clearAll' } });
+        }
+
+        function handleConfirm() {
+            const data = state.confirmationData;
+            if (!data) return;
+
+            if (data.type === 'student') {
+                const newStudents = state.students.filter((p) => p.id !== data.id);
+                setState({ students: newStudents, confirmationData: null, statusMessage: `Student ${data.name} deleted` });
+            } else if (data.type === 'clearAll') {
+                state.students = [];
+                localStorage.removeItem('students_v1_html');
+                setState({ students: [], confirmationData: null, statusMessage: 'Cleared students and localStorage' });
+            }
+        }
+
+        function handleCancel() {
+            setState({ confirmationData: null });
+        }
+
+        function importExcelFile(file) {
+            if (!isXLSXReady()) {
+                setState({ statusMessage: "XLSX library not ready. Please wait a moment." });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = e.target.result;
+                    const workbook = window.XLSX.read(data, { type: "array" });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = window.XLSX.utils.sheet_to_json(sheet);
+                    
+                    const studentsMap = {};
+                    json.forEach((row, i) => {
+                        const name = row.name ? String(row.name) : "";
+                        if (!name) return; // Skip rows without a name
+
+                        // Use a composite key of name+class+subject to identify a student
+                        const studentKey = `${name}-${row.class}-${row.subject}`;
+
+                        if (!studentsMap[studentKey]) {
+                            const genderRaw = String(row.gender || 'boy').toLowerCase();
+                            const gender = (genderRaw === 'girl' || genderRaw === 'female') ? 'girl' : 'boy';
+                            const avatarStyle = gender === 'boy' ? 'pixel-art' : 'adventurer';
+                            const avatar = String(row.avatar || `https://api.dicebear.com/7.x/${avatarStyle}/svg?seed=${encodeURIComponent(name || i)}`);
+
+                            studentsMap[studentKey] = {
+                                id: row.id || Date.now() + i,
+                                name: name,
+                                gender: gender,
+                                class: String(row.class || ""),
+                                subject: String(row.subject || ""),
+                                avatar: avatar,
+                                scores: {}
+                            };
+                        }
+
+                        const chapter = String(row.chapter || "");
+                        const score = Number(row.score || 0);
+                        if(chapter) {
+                           studentsMap[studentKey].scores[chapter] = score;
+                        }
+                    });
+
+                    const parsed = Object.values(studentsMap);
+                    setState({ students: parsed, statusMessage: "Imported Excel file successfully" });
+
+                } catch (err) {
+                    console.error(err);
+                    setState({ statusMessage: "Failed to parse Excel file. It must contain columns: name, class, subject, gender, chapter, score." });
+                }
+            };
+            reader.onerror = () => setState({ statusMessage: "Failed to read file" });
+            reader.readAsArrayBuffer(file);
+        }
+
+        function exportToExcel() {
+            if (!isXLSXReady()) {
+                setState({ statusMessage: "XLSX library not ready. Cannot export." });
+                return;
+            }
+            if (!state.students || state.students.length === 0) {
+                setState({ statusMessage: "No students to export" });
+                return;
+            }
+
+            // Flatten the data: one row per student per chapter score
+            const dataToExport = [];
+            state.students.forEach(s => {
+                if (Object.keys(s.scores).length > 0) {
+                    for (const chapter in s.scores) {
+                        dataToExport.push({
+                            id: s.id,
+                            name: s.name,
+                            gender: s.gender,
+                            class: s.class,
+                            subject: s.subject,
+                            avatar: s.avatar,
+                            chapter: chapter,
+                            score: s.scores[chapter],
+                        });
+                    }
+                } else {
+                    // Include students even if they have no scores yet
+                     dataToExport.push({
+                        id: s.id, name: s.name, gender: s.gender, class: s.class, 
+                        subject: s.subject, avatar: s.avatar, chapter: '', score: 0
+                    });
+                }
+            });
+
+            const ws = window.XLSX.utils.json_to_sheet(dataToExport);
+            const wb = window.XLSX.utils.book_new();
+            window.XLSX.utils.book_append_sheet(wb, ws, "Students");
+            window.XLSX.writeFile(wb, "student_scores_by_chapter.xlsx");
+            setState({ statusMessage: "Exported student_scores_by_chapter.xlsx" });
+        }
+
+        // --- Slideshow Functions (Adapted for Dashboard State) ---
+
+        async function handlePdfUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+            const file = files[0];
+            if (file.type !== 'application/pdf') {
+                setState({ statusMessage: "Please select a valid PDF file." });
+                return;
+            }
+
+            setState({ statusMessage: "Reading PDF... (this may take a moment for large files)", slideImages: [], currentSlideIndex: 0 });
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const typedarray = new Uint8Array(e.target.result);
+                    const pdfjsLib = window['pdfjs-dist/build/pdf'];
+                    
+                    if (!pdfjsLib) {
+                        throw new Error("PDF.js library failed to load from CDN. Check your internet connection.");
+                    }
+
+                    // Set worker
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                    // Parse Document
+                    const loadingTask = pdfjsLib.getDocument({ data: typedarray });
+                    const pdf = await loadingTask.promise;
+                    const totalPages = pdf.numPages;
+                    const newSlideImages = [];
+
+                    setState({ statusMessage: `Rendering PDF slides (0/${totalPages})...` });
+
+                    for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+                        const page = await pdf.getPage(pageNum);
+                        const viewport = page.getViewport({ scale: 2.0 }); // Adjusting scale for memory safety
+                        
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.height = viewport.height;
+                        canvas.width = viewport.width;
+
+                        const renderContext = {
+                            canvasContext: context,
+                            viewport: viewport
+                        };
+
+                        await page.render(renderContext).promise;
+                        
+                        // Convert canvas to image URL. Using jpeg to save memory.
+                        newSlideImages.push(canvas.toDataURL('image/jpeg', 0.8));
+                        
+                        // Update progress occasionally
+                        if (pageNum % 2 === 0 || pageNum === totalPages) {
+                            setState({ statusMessage: `Rendering PDF slides (${pageNum}/${totalPages})...` });
+                        }
+                    }
+
+                    setState({ 
+                        slideImages: newSlideImages, 
+                        statusMessage: `Successfully loaded ${totalPages} slides from PDF.`
+                    });
+
+                } catch (err) {
+                    console.error("PDF Parsing Error:", err);
+                    setState({ statusMessage: "Error reading PDF: " + (err.message || "Unknown error. Check console.") });
+                }
+            };
+            
+            reader.onerror = () => {
+                setState({ statusMessage: "Failed to read the file from your computer." });
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            // Reset state and show loading message
+            setState({ statusMessage: `Loading ${files.length} slide(s)...`, slideImages: [], currentSlideIndex: 0 });
+            
+            const fileReadingPromises = Array.from(files).map(file => {
+                return new Promise((resolve) => {
+                    if (!file.type.startsWith('image/')) {
+                        resolve(null); // Resolve with null for non-image files
+                        return;
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve({ url: e.target.result, name: file.name });
+                    reader.onerror = () => resolve(null);
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            Promise.all(fileReadingPromises).then(results => {
+                const validSlides = results
+                    .filter(Boolean) // Filter out nulls from failed reads or non-images
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+                const slideUrls = validSlides.map(slide => slide.url);
+                
+                if (slideUrls.length > 0) {
+                     setState({ 
+                        slideImages: slideUrls, 
+                        statusMessage: `${slideUrls.length} slides loaded successfully.`
+                    });
+                } else {
+                     setState({ 
+                        slideImages: [], 
+                        statusMessage: "No valid image files were found." 
+                    });
+                }
+            });
+        }
+
+        function changeSlide(delta) {
+            if (state.slideImages.length === 0) return;
+            const newIndex = state.currentSlideIndex + delta;
+            if (newIndex >= 0 && newIndex < state.slideImages.length) {
+                // Update the state to trigger a re-render
+                setState({ currentSlideIndex: newIndex });
+            }
+        }
+
+
+        // --- Rendering Functions (DOM Manipulation) ---
+
+        /**
+         * Renders the Tab component.
+         * @param {string} name 
+         * @param {boolean} active 
+         * @returns {string} HTML string
+         */
+        function renderTab(name, active) {
+            const pageName = name.toLowerCase();
+            const activeClasses = "bg-blue-600 text-white shadow-lg";
+            const inactiveClasses = "text-blue-700 hover:bg-blue-50";
+            return `
+                <button 
+                    onclick="setState({ page: '${pageName}' })"
+                    class="px-4 py-2 rounded-lg font-medium transition ${active ? activeClasses : inactiveClasses}"
+                >
+                    ${name}
+                </button>
+            `;
+        }
+
+        /**
+         * Renders the Add Student form.
+         * @returns {string} HTML string
+         */
+        function renderAddPage() {
+            return `
+                <div id="add-page" class="tab-content page-enter page-enter-active">
+                    <h2 class="text-xl font-semibold mb-4 text-blue-800">Add New Student Profile</h2>
+                    <form onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input 
+                            id="add-name"
+                            class="col-span-1 p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-300 transition" 
+                            placeholder="Name" 
+                            value="${state.form.name}" 
+                            oninput="handleFormChange('name', this.value)"
+                            required
+                        />
+
+                        <select 
+                            id="add-gender"
+                            class="p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-300 transition"
+                            onchange="handleFormChange('gender', this.value)"
+                            required
+                        >
+                            <option value="" ${!state.form.gender ? 'selected' : ''}>Select Gender</option>
+                            <option value="boy" ${state.form.gender === 'boy' ? 'selected' : ''}>Boy</option>
+                            <option value="girl" ${state.form.gender === 'girl' ? 'selected' : ''}>Girl</option>
+                        </select>
+
+                        <select 
+                            id="add-class"
+                            class="p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-300 transition"
+                            onchange="handleFormChange('class', this.value)"
+                            required
+                        >
+                            ${classOptions.map(c => `<option value="${c}" ${state.form.class === c ? 'selected' : ''}>${c || "Select class"}</option>`).join('')}
+                        </select>
+
+                        <select 
+                            id="add-subject"
+                            class="p-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-300 transition" 
+                            onchange="handleFormChange('subject', this.value)"
+                            required
+                        >
+                            ${subjectOptions.map(s => `<option value="${s}" ${state.form.subject === s ? 'selected' : ''}>${s || "Select subject"}</option>`).join('')}
+                        </select>
+                        
+                        <button type="submit" class="md:col-span-4 mt-2 px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:shadow-xl active:scale-98 transition">Add Student Profile</button>
+                    </form>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Update/Score Management page.
+         * @returns {string} HTML string
+         */
+        function renderUpdatePage() {
+            const { classes, subjects } = getFilterOptions(); // All available chapters come from the global chapterOptions constant
+            const filteredStudents = getFilteredStudents();
+            const isChapterSelected = !!state.filterChapter;
+
+            return `
+                <div id="update-page" class="tab-content page-enter page-enter-active">
+                    <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                        <h2 class="text-xl font-semibold text-blue-800">Update Scores ${isChapterSelected ? `for Chapter ${state.filterChapter}` : ''}</h2>
+                        <div class="flex gap-2 items-center">
+                            <label class="flex flex-col gap-1 bg-blue-50 text-blue-800 px-3 py-2 rounded-lg border border-blue-200 shadow-sm min-w-[200px]">
+                                <span class="text-[11px] font-bold uppercase tracking-wider">🎯 ${isChapterSelected ? `Ch.${state.filterChapter}` : 'Chapter'} Milestones</span>
+                                <input 
+                                    type="text"
+                                    ${!isChapterSelected ? 'disabled' : ''}
+                                    onchange="(function(el){ var vals = el.value.split(',').map(v=>parseInt(v.trim())).filter(v=>!isNaN(v)&&v>0).sort((a,b)=>a-b); setState({ milestoneTargets: { ...state.milestoneTargets, '${state.filterChapter}': vals.length ? vals : [50] } }); })(this)"
+                                    class="w-full p-1 rounded border border-blue-300 outline-none focus:ring-2 focus:ring-blue-400 font-mono text-sm disabled:opacity-50"
+                                    value="${isChapterSelected ? (Array.isArray(state.milestoneTargets[state.filterChapter]) ? state.milestoneTargets[state.filterChapter].join(', ') : '50') : ''}"
+                                    placeholder="e.g. 10, 30, 40, 60"
+                                />
+                                <span class="text-[9px] text-blue-400">Comma-separated targets, ascending</span>
+                            </label>
+                            <select onchange="setState({ filterClass: this.value, page: 'update' })" class="p-2 rounded-lg border">
+                                ${classes.map((c) => `<option value="${c}" ${state.filterClass === c ? 'selected' : ''}>${c || "All classes"}</option>`).join('')}
+                            </select>
+                            <select onchange="setState({ filterSubject: this.value, page: 'update' })" class="p-2 rounded-lg border">
+                                ${subjects.map((s) => `<option value="${s}" ${state.filterSubject === s ? 'selected' : ''}>${s || "All subjects"}</option>`).join('')}
+                            </select>
+                            <select onchange="setState({ filterChapter: this.value, page: 'update' })" class="p-2 rounded-lg border ${!isChapterSelected ? 'ring-2 ring-red-400' : ''}">
+                                ${chapterOptions.map((ch) => `<option value="${ch}" ${state.filterChapter === ch ? 'selected' : ''}>${ch || "SELECT CHAPTER"}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        ${filteredStudents.length === 0 
+                            ? `<div class="p-6 text-center text-slate-500 col-span-full">No students found for this filter. Add one from the 'Add' tab.</div>`
+                            : filteredStudents.map(p => `
+                                <div class="p-4 rounded-2xl border bg-gradient-to-br from-blue-50 to-white shadow-md hover:shadow-lg transition">
+                                    <div class="flex items-center gap-3">
+                                        <img src="${p.avatar}" alt="avatar" class="w-12 h-12 rounded-full border bg-white p-1" onerror="this.onerror=null; this.src='https://placehold.co/48x48/1d4ed8/ffffff?text=AVATAR'" />
+                                        <div class="flex-1">
+                                            <div class="font-semibold text-lg text-blue-800">${p.name}</div>
+                                            <div class="text-xs text-slate-500">${p.class} • ${p.subject} • <span class="capitalize">${p.gender || 'N/A'}</span></div>
+                                        </div>
+                                        <div class="text-3xl font-extrabold text-blue-700">${p.scores && p.scores[state.filterChapter] || 0}</div>
+                                        <button 
+                                            onclick="startDelete(${p.id}, '${p.name.replace(/'/g, "\\'")}')" 
+                                            class="ml-2 px-3 py-1 text-xs rounded-full bg-red-500 text-white font-semibold shadow-md hover:bg-red-600 active:scale-95 transition"
+                                        >
+                                            Delete
+                                        </button>
+                                    </div>
+
+                                    <div class="mt-3 flex items-center gap-2 flex-wrap">
+                                        <button onclick="incScore(${p.id}, 3)" ${!isChapterSelected ? 'disabled' : ''} class="w-10 h-10 rounded-full bg-blue-500 text-white text-sm shadow-md hover:bg-blue-600 transition active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">+3</button>
+                                        <button onclick="incScore(${p.id}, 2)" ${!isChapterSelected ? 'disabled' : ''} class="w-10 h-10 rounded-full bg-blue-400 text-white text-sm shadow-md hover:bg-blue-500 transition active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">+2</button>
+                                        <button onclick="incScore(${p.id}, 1)" ${!isChapterSelected ? 'disabled' : ''} class="w-10 h-10 rounded-full bg-blue-300 text-white text-sm shadow-md hover:bg-blue-400 transition active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">+1</button>
+                                        <div class="w-px h-6 bg-slate-200 mx-2"></div> <!-- separator -->
+                                        <button onclick="incScore(${p.id}, -1)" ${!isChapterSelected ? 'disabled' : ''} class="w-10 h-10 rounded-full bg-red-300 text-white text-sm shadow-md hover:bg-red-400 transition active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">-1</button>
+                                        <button onclick="incScore(${p.id}, -2)" ${!isChapterSelected ? 'disabled' : ''} class="w-10 h-10 rounded-full bg-red-400 text-white text-sm shadow-md hover:bg-red-500 transition active:scale-95 font-semibold disabled:opacity-50 disabled:cursor-not-allowed">-2</button>
+                                        
+                                        <div class="w-px h-6 bg-slate-200 mx-1"></div> <!-- separator -->
+                                        <button onclick="startPersonalSpinner(${p.id})" ${!isChapterSelected ? 'disabled' : ''} title="Spin for points!" class="w-10 h-10 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500 text-white shadow-lg hover:shadow-[0_0_15px_rgba(236,72,153,0.6)] hover:scale-110 active:scale-95 transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-none">
+                                            <svg class="w-6 h-6 animate-[spin_6s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                        </button>
+                                    </div>
+                                    <div class="mt-4">
+                                        <div class="flex justify-between items-center text-[10px] uppercase font-bold text-slate-400 mb-1">
+                                            <span>🎯 Ch.${state.filterChapter} Milestone</span>
+                                            <span class="${(p.scores && p.scores[state.filterChapter] || 0) >= (state.milestoneTargets[state.filterChapter] ?? 50) ? 'text-green-500 font-extrabold' : ''}">
+                                                ${(p.scores && p.scores[state.filterChapter] || 0) >= (state.milestoneTargets[state.filterChapter] ?? 50) ? '🏆 ' : ''}${p.scores && p.scores[state.filterChapter] || 0} / ${state.milestoneTargets[state.filterChapter] ?? 50}
+                                            </span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden shadow-inner">
+                                            <div class="bg-gradient-to-r from-pink-500 to-yellow-400 h-full transition-all duration-500 rounded-full ${(p.scores && p.scores[state.filterChapter] || 0) >= (state.milestoneTargets[state.filterChapter] ?? 50) ? 'shadow-[0_0_10px_rgba(236,72,153,0.8)]' : ''}" style="width: ${Math.min(100, Math.max(0, ((p.scores && p.scores[state.filterChapter] || 0) / (state.milestoneTargets[state.filterChapter] ?? 50)) * 100))}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+
+
+
+
+                            `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Leaderboard page.
+         * @returns {string} HTML string
+         */
+        function renderLeaderboardPage() {
+            const { classes, subjects } = getFilterOptions();
+            const filteredStudents = getFilteredStudents();
+            const isChapterSelected = !!state.filterChapter;
+            
+            const leaderboard = !isChapterSelected ? [] : [...filteredStudents]
+                .map(p => ({ ...p, currentScore: p.scores ? (p.scores[state.filterChapter] || 0) : 0 }))
+                .sort((a, b) => b.currentScore - a.currentScore);
+
+            return `
+                <div id="leaderboard-page" class="tab-content page-enter page-enter-active">
+                    <div class="flex gap-2 mb-4">
+                        <select onchange="setState({ filterClass: this.value, page: 'leaderboard' })" class="p-2 rounded-lg border">
+                            ${classes.map((c) => `<option value="${c}" ${state.filterClass === c ? 'selected' : ''}>${c || "All classes"}</option>`).join('')}
+                        </select>
+                        <select onchange="setState({ filterSubject: this.value, page: 'leaderboard' })" class="p-2 rounded-lg border">
+                            ${subjects.map((s) => `<option value="${s}" ${state.filterSubject === s ? 'selected' : ''}>${s || "All subjects"}</option>`).join('')}
+                        </select>
+                         <select onchange="setState({ filterChapter: this.value, page: 'leaderboard' })" class="p-2 rounded-lg border ${!isChapterSelected ? 'ring-2 ring-red-400' : ''}">
+                                ${chapterOptions.map((ch) => `<option value="${ch}" ${state.filterChapter === ch ? 'selected' : ''}>${ch || "SELECT CHAPTER"}</option>`).join('')}
+                        </select>
+                    </div>
+
+                    <h2 class="text-xl font-semibold mb-4 text-blue-800">Leaderboard ${isChapterSelected ? `for Chapter ${state.filterChapter}` : ''}</h2>
+                    
+                    ${!isChapterSelected ? `<div class="p-6 text-center text-slate-500 col-span-full">Please select a chapter to view the leaderboard.</div>` : `
+                    <ol class="space-y-3">
+                        ${leaderboard.slice(0, 10).map((p, idx) => `
+                            <li class="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r ${idx === 0 ? 'from-yellow-100 to-white' : 'from-blue-100/50 to-white'} border shadow-md">
+                                <div class="text-xl font-extrabold w-8 text-center ${idx === 0 ? 'text-yellow-600' : idx === 1 ? 'text-slate-500' : idx === 2 ? 'text-amber-700' : 'text-blue-600'}">#${idx + 1}</div>
+                                <img src="${p.avatar}" alt="avatar" class="w-10 h-10 rounded-full border bg-white p-0.5" onerror="this.onerror=null; this.src='https://placehold.co/40x40/1d4ed8/ffffff?text=AV'" />
+                                <div class="flex-1">
+                                    <div class="font-semibold text-blue-800">${p.name}</div>
+                                    <div class="text-xs text-slate-500">${p.class} • ${p.subject}</div>
+                                </div>
+                                <div class="text-2xl font-bold text-blue-700">${p.currentScore}</div>
+                            </li>
+                        `).join('')}
+                    </ol>
+                    ${leaderboard.length === 0 ? `<div class="p-6 text-center text-slate-500">No scores recorded for this chapter yet.</div>` : ''}
+                    `}
+                </div>
+            `;
+        }
+        
+        /**
+         * Renders the Slideshow Viewer page.
+         * @returns {string} HTML string
+         */
+        function renderSlideshowPage() {
+            const totalSlides = state.slideImages.length;
+            const currentIndex = state.currentSlideIndex;
+            const showViewer = totalSlides > 0;
+
+            const prevBtnDisabled = currentIndex === 0;
+            const nextBtnDisabled = currentIndex >= totalSlides - 1;
+
+            return `
+                <div id="slideshow-page" class="tab-content page-enter page-enter-active">
+                    <!-- File Upload Section -->
+                    <div class="bg-white p-6 rounded-xl shadow-lg mb-6 border border-indigo-200">
+                        <label class="block text-lg font-semibold mb-3 text-indigo-700">
+                            Select Presentation File (PDF) or Multiple Images
+                        </label>
+                        <p class="text-sm text-indigo-600 mb-3 p-2 bg-indigo-50 rounded-lg border border-indigo-200">
+                            💡 **Pro Tip**: Use "Save As -> PDF" in PowerPoint and upload the single PDF file here!
+                        </p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 border-2 border-dashed border-indigo-300 rounded-xl hover:bg-indigo-50 transition">
+                                <label class="block text-md font-medium text-indigo-700 mb-2 cursor-pointer">
+                                    📄 Option 1: Upload PDF File
+                                    <input 
+                                        type="file" 
+                                        accept="application/pdf" 
+                                        class="mt-2 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer"
+                                        onchange="handlePdfUpload(event)"
+                                    >
+                                </label>
+                            </div>
+                            
+                            <div class="p-4 border-2 border-dashed border-gray-300 rounded-xl hover:bg-gray-50 transition">
+                                <label class="block text-md font-medium text-gray-700 mb-2 cursor-pointer">
+                                    🖼️ Option 2: Upload Slide Images
+                                    <input 
+                                        type="file" 
+                                        multiple 
+                                        webkitdirectory 
+                                        directory
+                                        accept="image/jpeg, image/png, image/webp" 
+                                        class="mt-2 block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-600 file:text-white hover:file:bg-gray-700 cursor-pointer"
+                                        onchange="handleFileUpload(event)"
+                                    >
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Slide Viewer and Controls -->
+                    <main id="viewerContainer" class="${!showViewer ? 'hidden' : ''}">
+                        <div class="slide-container w-full rounded-xl overflow-hidden mb-4 flex items-center justify-center">
+                            <img id="slideImage" src="${showViewer ? state.slideImages[currentIndex] : ''}" alt="Presentation Slide" class="object-contain w-full h-full">
+                        </div>
+
+                        <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-lg border border-gray-200">
+                            <button id="prevBtn" onclick="changeSlide(-1)" class="p-3 bg-indigo-500 text-white rounded-full transition shadow-md hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center" ${prevBtnDisabled ? 'disabled' : ''}>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                                <span class="ml-2 hidden sm:inline">Previous</span>
+                            </button>
+                            
+                            <div class="flex-grow flex justify-center">
+                                <button onclick="setState({ slideshowMaximized: true })" class="px-4 py-2 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 transition flex items-center gap-2 font-semibold">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1v4m0 0h-4m4 0l-5-5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5"></path></svg>
+                                    <span>Fullscreen</span>
+                                </button>
+                            </div>
+
+                            <div id="slideCounter" class="text-xl font-semibold text-gray-700 mx-4">
+                                ${showViewer ? currentIndex + 1 : 0} / ${totalSlides}
+                            </div>
+                            
+                            <button id="nextBtn" onclick="changeSlide(1)" class="p-3 bg-indigo-500 text-white rounded-full transition shadow-md hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center" ${nextBtnDisabled ? 'disabled' : ''}>
+                                <span class="mr-2 hidden sm:inline">Next</span>
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                        </div>
+                    </main>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Maximized Slideshow view.
+         * @returns {string} HTML string or empty
+         */
+        function renderMaximizedSlideshow() {
+            if (!state.slideshowMaximized) return '';
+
+            const totalSlides = state.slideImages.length;
+            const currentIndex = state.currentSlideIndex;
+            const prevBtnDisabled = currentIndex === 0;
+            const nextBtnDisabled = currentIndex >= totalSlides - 1;
+            
+            // This logic is for fade effect on the fullscreen image
+            const fsImg = document.getElementById('fs-slide-image');
+            if (fsImg && fsImg.src !== state.slideImages[currentIndex]) {
+                fsImg.style.opacity = '0';
+                setTimeout(() => {
+                    fsImg.src = state.slideImages[currentIndex];
+                    fsImg.style.opacity = '1';
+                }, 150);
+            }
+
+
+
+        return `
+                <div class="slideshow-fullscreen-backdrop">
+                    <div class="slideshow-fullscreen-content flex flex-row w-full h-full" style="flex-direction: row; justify-content: space-between; align-items: stretch;">
+                        
+                        <!-- Main Slide Area -->
+                        <div class="flex-1 relative flex items-center justify-center transition-all duration-300 ${state.isSidebarOpen ? 'mr-0' : ''}">
+                            <img id="fs-slide-image" src="${state.slideImages[currentIndex]}" alt="Maximized Slide" class="slideshow-fullscreen-img" />
+
+                            <button onclick="changeSlide(-1)" class="slideshow-nav-btn" style="left: 2rem;" ${prevBtnDisabled ? 'disabled' : ''}>
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                            </button>
+
+                            <button onclick="changeSlide(1)" class="slideshow-nav-btn" style="right: 2rem;" ${nextBtnDisabled ? 'disabled' : ''}>
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </button>
+                            
+                            <!-- Toggle Sidebar Button -->
+                            <button onclick="setState({ isSidebarOpen: !state.isSidebarOpen })" class="absolute top-6 right-6 bg-indigo-600/70 backdrop-blur hover:bg-indigo-700 text-white p-3 rounded-full shadow-xl transition-transform active:scale-95 z-50">
+                                <svg class="w-6 h-6 ${state.isSidebarOpen ? 'rotate-180' : ''} transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                            </button>
+                            
+                            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-white text-lg bg-black/50 px-4 py-1 rounded-full backdrop-blur-sm">
+                                ${currentIndex + 1} / ${totalSlides}
+                            </div>
+                            
+                            <!-- Spinner FAB -->
+                            <button onclick="startSpinner()" title="Lucky Spin!" class="absolute bottom-6 left-6 bg-gradient-to-r from-pink-500 to-purple-600 text-white p-4 rounded-full shadow-2xl hover:shadow-[0_0_20px_rgba(236,72,153,0.8)] hover:scale-110 active:scale-95 transition-all outline-none border-4 border-white/20 z-50">
+                                <svg class="w-8 h-8 animate-[spin_6s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            </button>
+                        </div>
+
+                        <!-- Presenter Sidebar -->
+                        ${state.isSidebarOpen ? `
+                        <div class="w-96 bg-white/10 backdrop-blur-xl border-l border-white/20 h-full overflow-y-auto shadow-2xl p-4 flex flex-col text-white transition-all duration-300 z-40 relative">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold bg-gradient-to-r from-blue-200 to-indigo-300 bg-clip-text text-transparent">Scores</h3>
+                                <button onclick="setState({ slideshowMaximized: false })" class="bg-red-500/20 hover:bg-red-500/40 text-red-100 p-2 rounded-full transition" title="Close Slideshow">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                </button>
+                            </div>
+                            
+                            ${!state.filterChapter ? '<div class="mb-4 bg-red-500/20 text-red-100 text-sm p-3 rounded-xl border border-red-500/30">⚠️ Please select a chapter to award points</div>' : ''}
+                            
+                            <!-- Filters -->
+                            <div class="flex flex-col gap-2 mb-4 bg-black/20 p-3 rounded-xl border border-white/10">
+                                <select onchange="setState({ filterChapter: this.value })" class="w-full bg-black/40 text-white rounded-lg p-2 border border-white/20 outline-none focus:border-indigo-400 text-sm">
+                                    <option class="bg-gray-800" value="">SELECT CHAPTER...</option>
+                                    ${getFilterOptions().chapters.filter(Boolean).map((ch) => `<option class="bg-gray-800" value="${ch}" ${state.filterChapter === ch ? 'selected' : ''}>Chapter ${ch}</option>`).join('')}
+                                </select>
+                                <div class="flex gap-2">
+                                    <select onchange="setState({ filterClass: this.value })" class="w-1/2 bg-black/40 text-white rounded-lg p-2 border border-white/20 outline-none text-xs">
+                                        ${getFilterOptions().classes.map((c) => `<option class="bg-gray-800" value="${c}" ${state.filterClass === c ? 'selected' : ''}>${c || "All Classes"}</option>`).join('')}
+                                    </select>
+                                    <select onchange="setState({ filterSubject: this.value })" class="w-1/2 bg-black/40 text-white rounded-lg p-2 border border-white/20 outline-none text-xs">
+                                        ${getFilterOptions().subjects.map((s) => `<option class="bg-gray-800" value="${s}" ${state.filterSubject === s ? 'selected' : ''}>${s || "All Subjects"}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Student List -->
+                            <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                                ${getFilteredStudents().length === 0 ? '<div class="text-center text-white/50 p-4">No students found.</div>' : ''}
+                                ${getFilteredStudents().map(p => `
+                                    <div class="bg-black/30 border border-white/10 rounded-xl p-3 flex flex-col gap-2 hover:bg-black/40 transition">
+                                        <div class="flex items-center gap-3">
+                                            <img src="${p.avatar}" class="w-10 h-10 rounded-full border-2 border-indigo-400/50 bg-white/90" />
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="font-bold text-base truncate" title="${p.name}">${p.name}</div>
+                                                <div class="text-xs text-indigo-200 opacity-80">${p.class} • ${p.subject}</div>
+                                            </div>
+                                            <div class="text-2xl font-black text-white/90 font-mono tracking-tighter">
+                                                ${p.scores && p.scores[state.filterChapter] || 0}
+                                            </div>
+                                        </div>
+                                        <div class="flex justify-between gap-1">
+                                            <button onclick="incScore(${p.id}, 3)" ${!state.filterChapter ? 'disabled' : ''} class="flex-1 bg-gradient-to-t from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-1 rounded-md shadow disabled:opacity-30 disabled:grayscale transition active:scale-95 text-sm">+3</button>
+                                            <button onclick="incScore(${p.id}, 2)" ${!state.filterChapter ? 'disabled' : ''} class="flex-1 bg-gradient-to-t from-green-600/80 to-green-500/80 hover:from-green-500 hover:to-green-400 text-white font-bold py-1 rounded-md shadow disabled:opacity-30 disabled:grayscale transition active:scale-95 text-sm">+2</button>
+                                            <button onclick="incScore(${p.id}, 1)" ${!state.filterChapter ? 'disabled' : ''} class="flex-1 bg-gradient-to-t from-green-600/60 to-green-500/60 hover:from-green-500 hover:to-green-400 text-white font-bold py-1 rounded-md shadow disabled:opacity-30 disabled:grayscale transition active:scale-95 text-sm">+1</button>
+                                            <button onclick="incScore(${p.id}, -1)" ${!state.filterChapter ? 'disabled' : ''} class="flex-1 bg-gradient-to-t from-red-600/80 to-red-500/80 hover:from-red-500 hover:to-red-400 text-white font-bold py-1 rounded-md shadow disabled:opacity-30 disabled:grayscale transition active:scale-95 text-sm">-1</button>
+                                            <button onclick="incScore(${p.id}, -2)" ${!state.filterChapter ? 'disabled' : ''} class="flex-1 bg-gradient-to-t from-red-600/80 to-red-500/80 hover:from-red-500 hover:to-red-400 text-white font-bold py-1 rounded-md shadow disabled:opacity-30 disabled:grayscale transition active:scale-95 text-sm">-2</button>
+                                            <button onclick="startPersonalSpinner(${p.id})" ${!state.filterChapter ? 'disabled' : ''} title="Lucky Spin!" class="bg-gradient-to-r from-pink-600 to-yellow-500 text-white px-2 rounded-md shadow disabled:opacity-30 disabled:grayscale hover:scale-105 active:scale-95 transition flex items-center">
+                                                <svg class="w-4 h-4 animate-[spin_6s_linear_infinite]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                            </button>
+                                        </div>
+                                        ${state.filterChapter ? `
+                                        <div class="mt-1.5">
+                                            <div class="flex justify-between text-[9px] text-white/40 mb-0.5">
+                                                <span>🎯 Milestone</span>
+                                                <span class="${(p.scores && p.scores[state.filterChapter] || 0) >= (state.milestoneTargets[state.filterChapter] ?? 50) ? 'text-yellow-400 font-bold' : ''}">${(p.scores && p.scores[state.filterChapter] || 0) >= (state.milestoneTargets[state.filterChapter] ?? 50) ? '🏆 ' : ''}${p.scores && p.scores[state.filterChapter] || 0}/${state.milestoneTargets[state.filterChapter] ?? 50}</span>
+                                            </div>
+                                            <div class="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+                                                <div class="bg-gradient-to-r from-pink-400 to-yellow-400 h-full rounded-full transition-all duration-500" style="width: ${Math.min(100, Math.max(0, ((p.scores && p.scores[state.filterChapter] || 0) / (state.milestoneTargets[state.filterChapter] ?? 50)) * 100))}%"></div>
+                                            </div>
+                                        </div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        /**
+         * Renders the Spinner Modal overlay.
+         * @returns {string} HTML string or empty
+         */
+        function renderSpinnerModal() {
+            if (!state.spinnerActive) return '';
+            
+            const p = state.spinnerSelectedStudent;
+            const isFinished = !!p;
+
+            return `
+                <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md">
+                    <div class="bg-gradient-to-b from-indigo-900 to-purple-900 rounded-3xl p-8 max-w-sm w-full mx-4 shadow-[0_0_50px_rgba(79,70,229,0.5)] border border-indigo-400/30 transform transition-all text-center relative overflow-hidden">
+                        
+                        ${isFinished ? '<div class="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center"><svg class="w-full h-full animate-[spin_10s_linear_infinite]" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="purple" stroke-width="5" stroke-dasharray="20 10" /></svg></div>' : ''}
+
+                        <h3 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-yellow-400 mb-6 tracking-wide drop-shadow-sm uppercase relative z-10">
+                            ${isFinished ? "Selected!" : "Spinning..."}
+                        </h3>
+                        
+                        <div id="spinner-target" class="min-h-[180px] flex flex-col items-center justify-center bg-black/30 rounded-2xl p-6 border border-white/10 mb-6 shadow-inner relative z-10">
+                            ${isFinished ? `
+                                <img src="${p.avatar}" class="w-28 h-28 rounded-full border-4 border-yellow-400 mx-auto mb-4 bg-white/90 shadow-[0_0_30px_rgba(250,204,21,0.6)] animate-bounce" />
+                                <div class="text-3xl font-extrabold text-white drop-shadow-md">${p.name}</div>
+                                <div class="text-sm text-indigo-200 mt-1">${p.class} • ${p.subject}</div>
+                            ` : `
+                                <div class="animate-pulse flex flex-col items-center">
+                                    <div class="w-24 h-24 rounded-full border-t-4 border-b-4 border-pink-500 animate-spin mb-4"></div>
+                                    <div class="text-xl text-indigo-200 font-mono tracking-widest">>>></div>
+                                </div>
+                            `}
+                        </div>
+
+                        ${isFinished ? `
+                            <div class="grid grid-cols-3 gap-2 mb-4 relative z-10">
+                                <button onclick="incScore(${p.id}, 3); setTimeout(closeSpinner, 1500);" class="bg-gradient-to-t from-green-600 to-green-500 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition text-lg">+3</button>
+                                <button onclick="incScore(${p.id}, 2); setTimeout(closeSpinner, 1500);" class="bg-gradient-to-t from-green-600/80 to-green-500/80 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition text-lg">+2</button>
+                                <button onclick="incScore(${p.id}, 1); setTimeout(closeSpinner, 1500);" class="bg-gradient-to-t from-green-600/60 to-green-500/60 hover:from-green-500 hover:to-green-400 text-white font-bold py-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition text-lg">+1</button>
+                            </div>
+                            <button onclick="closeSpinner()" class="w-full py-2 text-indigo-200 hover:text-white underline text-sm tracking-wide relative z-10 transition">Close & Continue</button>
+                        ` : `
+                            <button onclick="closeSpinner()" class="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl relative z-10 transition">Cancel</button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Personal Spinner Modal overlay.
+         * @returns {string} HTML string or empty
+         */
+        function renderPersonalSpinnerModal() {
+            if (!state.personalSpinnerActive) return '';
+            
+            const p = state.personalSpinnerStudent;
+            const res = state.personalSpinnerResult;
+            const isFinished = res !== null;
+
+            return `
+                <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-md">
+                    <div class="bg-gradient-to-br from-gray-900 to-black rounded-3xl p-8 max-w-sm w-full mx-4 shadow-[0_0_50px_rgba(255,255,255,0.1)] border border-white/10 transform transition-all text-center relative overflow-hidden">
+                        
+                        ${isFinished ? '<div class="absolute inset-0 opacity-20 pointer-events-none flex items-center justify-center"><svg class="w-full h-full animate-[spin_10s_linear_infinite]" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="white" stroke-width="5" stroke-dasharray="20 10" /></svg></div>' : ''}
+
+                        <h3 class="text-2xl font-black text-white mb-6 tracking-wide drop-shadow-sm uppercase relative z-10">
+                            ${isFinished ? (res > 0 ? "Winner!" : (res < 0 ? "Oops!" : "0 Points!")) : "Spinning..."}
+                        </h3>
+                        
+                        <div class="flex items-center gap-3 justify-center mb-4 relative z-10">
+                            <img src="${p.avatar}" class="w-12 h-12 rounded-full border-2 border-indigo-400 bg-white/90" />
+                            <div class="text-lg font-bold text-white drop-shadow">${p.name}</div>
+                        </div>
+
+                        <div id="personal-spinner-target" class="min-h-[160px] flex flex-col items-center justify-center bg-white/5 rounded-2xl p-6 border border-white/10 mb-6 shadow-inner relative z-10 transition-all">
+                            ${isFinished ? `
+                                <div class="text-6xl font-black ${res > 0 ? 'text-green-400' : (res < 0 ? 'text-red-400' : 'text-yellow-400')} drop-shadow-[0_0_15px_currentColor] animate-bounce">${res > 0 ? '+' : ''}${res}</div>
+                            ` : `
+                                <div class="animate-pulse flex flex-col items-center">
+                                    <div class="w-20 h-20 rounded-full border-t-4 border-b-4 border-white/50 animate-spin mb-4"></div>
+                                </div>
+                            `}
+                        </div>
+
+                        ${isFinished ? `
+                            <button onclick="incScore(${p.id}, ${res}); closePersonalSpinner();" class="w-full bg-gradient-to-t from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition text-lg relative z-10">Apply Score</button>
+                            <button onclick="closePersonalSpinner()" class="w-full py-2 mt-4 text-gray-400 hover:text-white underline text-sm tracking-wide relative z-10 transition">Discard</button>
+                        ` : `
+                            <button onclick="closePersonalSpinner()" class="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-medium rounded-xl relative z-10 transition">Cancel</button>
+                        `}
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Confirmation Modal (replaces alert/confirm).
+         * @returns {string} HTML string or empty
+         */
+        function renderConfirmationModal() {
+            if (!state.confirmationData) return '';
+            
+            const data = state.confirmationData;
+            const isClearAll = data.type === 'clearAll';
+            const title = isClearAll ? 'Confirm Clear All' : 'Confirm Deletion';
+            const message = isClearAll 
+                ? 'Are you sure you want to clear ALL student data? This action is permanent and clears localStorage.' 
+                : `Are you sure you want to delete student: ${data.name}? This will remove the student and all their scores across all chapters.`;
+
+            return `
+                <div id="confirmation-modal" class="fixed inset-0 z-50 modal-backdrop flex items-center justify-center p-4 opacity-100 transition-opacity">
+                    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-sm w-full border border-red-200 modal-content transform scale-100">
+                        <h3 class="text-xl font-bold mb-3 text-red-600 flex items-center">
+                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.503-1.688 1.544-3.047l-6.928-11.967a2.5 2.5 0 00-4.484 0L3.5 19.953c-.959 1.359 0 3.047 1.544 3.047z"></path></svg>
+                            ${title}
+                        </h3>
+                        <p class="text-slate-600 mb-6">${message}</p>
+                        
+                        <div class="flex justify-end space-x-3">
+                            <button 
+                                onclick="handleCancel()" 
+                                class="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onclick="handleConfirm()" 
+                                class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold shadow-md hover:bg-red-700 transition active:scale-98"
+                            >
+                                ${isClearAll ? 'Yes, Clear All' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Renders the Milestone Achievement Popup overlay.
+         */
+        function renderMilestonePopup() {
+            if (!state.milestonePopup) return '';
+            const m = state.milestonePopup;
+            const milestoneNum = m.milestoneIndex + 1;
+            const label = m.isFinal
+                ? '🏆 FINAL MILESTONE ACHIEVED!'
+                : `🎯 Milestone ${milestoneNum} Achieved!`;
+            const sublabel = m.isFinal
+                ? `${m.studentName} has conquered all milestones!`
+                : `${m.studentName} reached ${m.threshold} points — keep going!`;
+            const bgGrad = m.isFinal
+                ? 'from-yellow-900 via-yellow-700 to-orange-600'
+                : 'from-indigo-900 via-purple-900 to-pink-900';
+            const ringColor = m.isFinal ? 'border-yellow-400' : 'border-pink-400';
+            const glowColor = m.isFinal ? 'rgba(234,179,8,0.6)' : 'rgba(236,72,153,0.5)';
+
+            return `
+                <div class="fixed inset-0 z-[300] flex items-center justify-center bg-black/75 backdrop-blur-lg">
+                    <div class="bg-gradient-to-b ${bgGrad} rounded-3xl p-10 max-w-md w-full mx-4 shadow-[0_0_80px_${glowColor}] border-2 ${ringColor} text-center relative overflow-hidden">
+                        
+                        <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                            <div class="w-64 h-64 rounded-full border-4 border-white/10 animate-ping opacity-30"></div>
+                        </div>
+
+                        <div class="relative z-10">
+                            <img src="${m.avatar}" class="w-28 h-28 rounded-full border-4 ${ringColor} mx-auto mb-5 bg-white/90 ${m.isFinal ? 'animate-spin' : 'animate-bounce'}" style="animation-duration:${m.isFinal ? '3s' : '0.9s'}" />
+                            <div class="text-3xl font-black text-white tracking-tight drop-shadow-md leading-tight mb-2">${label}</div>
+                            <div class="text-lg text-white/80 mb-6">${sublabel}</div>
+                            ${!m.isFinal ? `
+                            <div class="flex justify-center gap-2 mb-6">
+                                ${Array.from({length: m.total}, (_, i) => `<div class="w-3 h-3 rounded-full ${i < milestoneNum ? 'bg-pink-400' : 'bg-white/20'}"></div>`).join('')}
+                            </div>
+                            ` : '<div class="text-5xl mb-6 animate-bounce">🎉🏆🎉</div>'}
+                            <button onclick="dismissMilestonePopup()" class="w-full py-3 bg-white/20 hover:bg-white/30 text-white font-bold rounded-2xl border border-white/30 transition active:scale-95 text-lg">
+                                ${m.isFinal ? '🎊 Amazing! Continue' : '▶ Resume Presenting'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Main render function that updates the entire application UI.
+         */
+        function renderApp() {
+            const { classes } = getFilterOptions();
+            
+            // Calculate total and average score for the selected chapter only
+            let totalScoreForChapter = 0;
+            if (state.filterChapter) {
+                totalScoreForChapter = state.students.reduce((acc, s) => acc + Number(s.scores ? s.scores[state.filterChapter] || 0 : 0), 0);
+            }
+            const avgScoreForChapter = (totalScoreForChapter / Math.max(1, state.students.length)).toFixed(1);
+
+            const appHtml = `
+                <!-- Header -->
+                <header class="mb-6 opacity-100 transform translate-y-0 transition-all duration-300">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                        <div class="mb-4 sm:mb-0">
+                            <h1 class="text-3xl font-extrabold tracking-tight text-blue-700">Edu Home Student Scoreboard</h1>
+                            <p class="text-sm text-slate-500 mt-1">Track chapter-wise scores for students</p>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            <!-- Tabs -->
+                            <div class="flex space-x-2 bg-white/70 backdrop-blur rounded-xl p-1 shadow">
+                                ${renderTab("Add", state.page === "add")}
+                                ${renderTab("Update", state.page === "update")}
+                                ${renderTab("Leaderboard", state.page === "leaderboard")}
+                                ${renderTab("Slideshow", state.page === "slideshow")}
+                            </div>
+
+                            <!-- Import/Export -->
+                            <div class="flex items-center gap-2">
+                                <button onclick="fileInputRef.click()" class="px-3 py-2 rounded-lg border bg-white text-sm hover:bg-slate-50 transition">Import Excel</button>
+                                <button onclick="exportToExcel()" class="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm hover:bg-blue-700 transition">Export Excel</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${state.statusMessage ? `<div class="mt-3 text-sm text-blue-600 font-medium">${state.statusMessage}</div>` : ''}
+                </header>
+
+                <!-- Main Content Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Main Panel -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl p-6 shadow-lg min-h-96">
+                            ${state.page === 'add' ? renderAddPage() : ''}
+                            ${state.page === 'update' ? renderUpdatePage() : ''}
+                            ${state.page === 'leaderboard' ? renderLeaderboardPage() : ''}
+                            ${state.page === 'slideshow' ? renderSlideshowPage() : ''}
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Panel -->
+                    <aside class="col-span-1">
+                        <div class="bg-white rounded-2xl p-4 shadow-lg sticky top-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <div class="text-xs text-slate-500">Total students</div>
+                                    <div class="text-2xl font-bold text-blue-700">${state.students.length}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-xs text-slate-500">Avg Score ${state.filterChapter ? `(Ch ${state.filterChapter})` : ''}</div>
+                                    <div class="text-2xl font-semibold text-blue-700">${avgScoreForChapter}</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-blue-800">Classes</h4>
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    ${classes.filter(Boolean).map(c => `
+                                        <button onclick="setState({ filterClass: '${c}', page: 'update' })" class="px-3 py-1 rounded-full border text-sm bg-blue-50 hover:bg-blue-100 transition">${c}</button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h4 class="text-sm font-medium text-blue-800">Recent additions</h4>
+                                <ul class="mt-2 space-y-2 max-h-40 overflow-y-auto p-1">
+                                    ${state.students.slice(0, 6).map(p => `<li class="text-sm text-slate-600">${p.name} • ${p.class} • ${p.subject}</li>`).join('')}
+                                </ul>
+                            </div>
+
+                            <div class="mt-4 text-center">
+                                <button onclick="startClearAll()" class="text-sm text-red-500 underline hover:text-red-700 transition">Clear all student data</button>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- Footer -->
+                <footer class="mt-8 text-center text-xs text-slate-400">Edu Home Tuition Center</footer>
+            `;
+
+            // Render main app content
+            document.getElementById('app').innerHTML = appHtml;
+
+            // Render modal separately to ensure it is always on top (or after main content)
+            const modalContainer = document.getElementById('modal-container');
+            if (!modalContainer) {
+                const newModalContainer = document.createElement('div');
+                newModalContainer.id = 'modal-container';
+                document.body.appendChild(newModalContainer);
+            }
+            document.getElementById('modal-container').innerHTML = renderConfirmationModal();
+
+            // Render maximized slideshow separately
+            const slideshowModalContainer = document.getElementById('slideshow-modal-container');
+            if (!slideshowModalContainer) {
+                const newSlideshowContainer = document.createElement('div');
+                newSlideshowContainer.id = 'slideshow-modal-container';
+                document.body.appendChild(newSlideshowContainer);
+            }
+            document.getElementById('slideshow-modal-container').innerHTML = renderMaximizedSlideshow();
+
+            // Render spinner modal separately
+            const spinnerModalContainer = document.getElementById('spinner-modal-container');
+            if (!spinnerModalContainer) {
+                const newSpinnerContainer = document.createElement('div');
+                newSpinnerContainer.id = 'spinner-modal-container';
+                document.body.appendChild(newSpinnerContainer);
+            }
+            document.getElementById('spinner-modal-container').innerHTML = renderSpinnerModal() || "";
+
+            // Render personal spinner modal separately
+            const personalSpinnerModalContainer = document.getElementById('personal-spinner-modal-container');
+            if (!personalSpinnerModalContainer) {
+                const newSpinnerContainer = document.createElement('div');
+                newSpinnerContainer.id = 'personal-spinner-modal-container';
+                document.body.appendChild(newSpinnerContainer);
+            }
+            document.getElementById('personal-spinner-modal-container').innerHTML = renderPersonalSpinnerModal() || "";
+
+            // Render milestone popup separately
+            const msPopupContainer = document.getElementById('milestone-popup-container');
+            if (!msPopupContainer) {
+                const el = document.createElement('div');
+                el.id = 'milestone-popup-container';
+                document.body.appendChild(el);
+            }
+            document.getElementById('milestone-popup-container').innerHTML = renderMilestonePopup() || "";
+
+
+            // Set up the hidden file input element and its reference (needed for Excel import)
+            let existingFileInput = document.getElementById('file-input');
+            if (!existingFileInput) {
+                existingFileInput = document.createElement('input');
+                existingFileInput.type = 'file';
+                existingFileInput.id = 'file-input';
+                existingFileInput.accept = '.xlsx,.xls';
+                existingFileInput.style.display = 'none';
+                existingFileInput.onchange = (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        importExcelFile(e.target.files[0]);
+                        // Clear the input value so the same file can be imported again
+                        e.target.value = null; 
+                    }
+                };
+                document.body.appendChild(existingFileInput);
+            }
+            fileInputRef = existingFileInput;
+        }
+
+        // Add keyboard navigation for the slideshow page
+        document.addEventListener('keydown', (e) => {
+            if (state.slideshowMaximized) {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    changeSlide(1);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    changeSlide(-1);
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setState({ slideshowMaximized: false });
+                }
+                return; // Stop further execution if maximized view is handled
+            }
+
+            // Handle normal page view slideshow navigation
+            if (state.page === 'slideshow') {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    changeSlide(1);
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    changeSlide(-1);
+                }
+            }
+        });
+
+        // --- Initialization ---
+        window.onload = function() {
+            loadStudents();
+            renderApp();
+            
+            // Initial check for XLSX load status (for user feedback)
+            if (state.statusMessage.includes("sample data") && isXLSXReady()) {
+                 setState({ statusMessage: "Using sample data. XLSX library is ready for Import/Export." });
+            }
+        };
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rewards Wheel — Game Loot Edition</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+  :root{
+    --size:480px;
+    /* Rarity Colors */
+    --common:#888888;
+    --rare:#007bff;
+    --legendary:#ffbb00;
+    --accent: #1e3a8a; /* Dark Blue for borders */
+    --blue1:#4f46e5; /* Primary Wheel Color */
+    --blue2:#e0e7ff; /* Secondary Wheel Color */
+    --pointer:#dc2626; /* Red */
+  }
+  html,body{height:100%;margin:0; overflow:hidden;}
+  body{
+    font-family: 'Orbitron', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px; background:#121212; color:#e0e7ff;
+  }
+
+  h1{ margin:0; font-size:1.6rem; text-shadow: 0 0 8px rgba(255, 255, 255, 0.4); }
+
+  #settings{ display:flex; gap:8px; align-items:center; color:#9ca3af;}
+  input[type="number"]{
+    width:96px; padding:8px; font-size:15px; border-radius:8px; border:2px solid var(--accent);
+    background:#1f2937; color:#f3f4f6; text-align:center;
+  }
+  button {
+    padding:12px 24px; font-size:16px; border-radius:12px; border:3px solid var(--accent);
+    color:#fff; font-weight:700; text-transform:uppercase;
+    background:linear-gradient(145deg, #1d4ed8, #3b82f6);
+    cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.2);
+    transition: transform 0.1s, opacity 0.3s;
+  }
+  button:hover:not(:disabled) { background:linear-gradient(145deg, #2563eb, #60a5fa); }
+  button:active:not(:disabled) { transform:translateY(2px); box-shadow:0 3px 10px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1); }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  /* wheel container */
+  #wheel-container{
+    width:var(--size); height:var(--size); border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:16px solid var(--accent);
+    background: radial-gradient(circle at center, #2d3748, #1a202c);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.7), inset 0 0 30px rgba(255,255,255,0.1);
+    position:relative;
+  }
+
+  /* pointer at top center */
+  #pointer{
+    position:absolute; top:-35px; left:50%; transform:translateX(-50%);
+    width:0; height:0;
+    border-left:32px solid transparent; border-right:32px solid transparent;
+    border-bottom:70px solid var(--pointer);
+    filter: drop-shadow(0 6px 12px rgba(255,0,0,0.8));
+    z-index:20;
+  }
+
+  #result { font-weight:700; font-size:1rem; margin-top:6px; text-align:center; color:#9ca3af; }
+  canvas{ display:block; border-radius:50%; }
+  @media (max-width:520px){
+    :root{ --size:360px; }
+    button{ font-size:14px; padding:10px 18px; }
+  }
+
+  /* --- LOOT REVEAL MODAL --- */
+  #reveal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    display: none; /* Controlled by JS */
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(5px);
+    z-index: 100;
+  }
+  #loot-box {
+    background: #1f2937;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.8);
+    transform: scale(0.5);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s;
+    border: 4px solid var(--accent);
+  }
+  #loot-box.show {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  #loot-rarity-tag {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding: 5px 15px;
+    border-radius: 8px;
+    display: inline-block;
+    color: #fff;
+    text-shadow: 0 0 5px rgba(0,0,0,0.5);
+    animation: pulse 1s infinite alternate;
+  }
+
+  #loot-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    text-shadow: 0 0 15px currentColor;
+  }
+
+  #loot-icon {
+    font-size: 5rem;
+    line-height: 1;
+    margin: 20px 0;
+    animation: float 2s infinite alternate;
+  }
+
+  /* Specific rarity styling */
+  .rarity-Common { background-color: var(--common); color: #fff; }
+  .rarity-Rare { background-color: var(--rare); color: #fff; }
+  .rarity-Legendary { background: linear-gradient(45deg, var(--legendary), #ffd700); color: #121212; }
+
+  /* Animations */
+  @keyframes pulse {
+    from { box-shadow: 0 0 8px currentColor; }
+    to { box-shadow: 0 0 20px currentColor; }
+  }
+  @keyframes float {
+    from { transform: translateY(0); }
+    to { transform: translateY(-10px); }
+  }
+
+  #loot-actions button {
+    margin-top: 20px;
+  }
+</style>
+</head>
+<body>
+
+  <h1>🌌 Galactic Loot Drop 🎲</h1>
+
+  <div id="settings">
+    <label for="maxScore">Number of Wheel Slots:</label>
+    <input id="maxScore" type="number" min="2" max="24" value="12" />
+    <button id="setBtn">Set</button>
+  </div>
+
+  <div id="wheel-container">
+    <div id="pointer" aria-hidden="true"></div>
+    <canvas id="wheel"></canvas>
+  </div>
+
+  <div style="display:flex;gap:12px;align-items:center;">
+    <button id="spinBtn">Open Loot Crate 🔑</button>
+    <div id="result" aria-live="polite">Spin to find your reward...</div>
+  </div>
+
+  <!-- Sound Effects -->
+  <audio id="tickSound" preload="auto">
+    <!-- Original tick sound for movement -->
+    <source src="https://www.soundjay.com/buttons/sounds/button-16.mp3" type="audio/mpeg">
+  </audio>
+  <audio id="revealSound" preload="auto">
+    <!-- Dramatic sound for the reveal, simulating a success/epic drop sound -->
+    <source src="https://www.soundjay.com/misc/sounds/magic-chime-01.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- LOOT REVEAL MODAL -->
+  <div id="reveal-overlay">
+    <div id="loot-box">
+      <div id="loot-rarity-tag"></div>
+      <div id="loot-icon"></div>
+      <div id="loot-name"></div>
+      <div id="loot-actions">
+        <button id="closeRevealBtn">Claim & Continue</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  // --- CONFIG & LOOT DEFINITION ---
+  const LOOT_POOL = [
+    { name: 'Common Dust', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '✨' },
+    { name: 'Rare Scroll', rarity: 'Rare', color: getComputedStyle(document.documentElement).getPropertyValue('--rare'), icon: '📜' },
+    { name: 'Gold Stack', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '💰' },
+    { name: 'Legendary Shard', rarity: 'Legendary', color: getComputedStyle(document.documentElement).getPropertyValue('--legendary'), icon: '💎' },
+    { name: 'Iron Key', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '🔑' },
+    { name: 'Epic Rune', rarity: 'Rare', color: getComputedStyle(document.documentElement).getPropertyValue('--rare'), icon: '🛡️' },
+    { name: 'Health Vial', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '🧪' },
+    { name: 'Common Dust', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '✨' },
+    { name: 'Power Orb', rarity: 'Rare', color: getComputedStyle(document.documentElement).getPropertyValue('--rare'), icon: '🔮' },
+    { name: 'Gold Stack', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '💰' },
+    { name: 'Legendary Gear', rarity: 'Legendary', color: getComputedStyle(document.documentElement).getPropertyValue('--legendary'), icon: '👑' },
+    { name: 'Small Key', rarity: 'Common', color: getComputedStyle(document.documentElement).getPropertyValue('--common'), icon: '🗝️' },
+  ];
+  const DEFAULT_LOOT_SIZE = LOOT_POOL.length;
+
+  // --- DOM ELEMENTS & SETUP ---
+  const size = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--size')) || 480;
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const center = size / 2;
+  const rimColor = getComputedStyle(document.documentElement).getPropertyValue('--accent') || '#1e3a8a';
+
+  // Modal elements
+  const revealOverlay = document.getElementById('reveal-overlay');
+  const lootBox = document.getElementById('loot-box');
+  const lootRarityTag = document.getElementById('loot-rarity-tag');
+  const lootName = document.getElementById('loot-name');
+  const lootIcon = document.getElementById('loot-icon');
+  const closeRevealBtn = document.getElementById('closeRevealBtn');
+
+  // Sound elements
+  const tickSound = document.getElementById('tickSound');
+  const revealSound = document.getElementById('revealSound');
+
+  // State
+  let radius = Math.floor(size * 0.45);
+  let centerBadgeRadius = Math.floor(size * 0.115);
+  let maxScore = parseInt(document.getElementById('maxScore').value) || 12;
+  let arc = (2 * Math.PI) / maxScore;
+  let currentAngle = 0;
+  let spinning = false;
+  let lastSector = null;
+
+  // Set canvas pixel-size and scale drawing commands
+  canvas.style.width = size + 'px';
+  canvas.style.height = size + 'px';
+  canvas.width = Math.round(size * dpr);
+  canvas.height = Math.round(size * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  // --- UTILITIES ---
+
+  // Utility easing: cubic ease-out for smooth slow-down
+  function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+  // Gets the loot item for a given index (repeats the pool if maxScore > DEFAULT_LOOT_SIZE)
+  function getLootItem(index) {
+    const lootIndex = index % DEFAULT_LOOT_SIZE;
+    return LOOT_POOL[lootIndex];
+  }
+
+  // --- DRAWING ---
+
+  // Draw segments (unrotated) — called inside rotated context
+  function drawWheelSegments() {
+    ctx.clearRect(0, 0, size, size);
+
+    for (let i = 0; i < maxScore; i++) {
+      const item = getLootItem(i);
+      const start = i * arc;
+      ctx.beginPath();
+      ctx.moveTo(center, center);
+      ctx.arc(center, center, radius, start, start + arc, false);
+      ctx.closePath();
+      // Alternating fill for stripes, but rarity color for text/rim
+      ctx.fillStyle = (i % 2 === 0) ? getComputedStyle(document.documentElement).getPropertyValue('--blue1') : getComputedStyle(document.documentElement).getPropertyValue('--blue2');
+      ctx.fill();
+
+      // Text label (Item name)
+      ctx.save();
+      ctx.translate(center, center);
+      ctx.rotate(start + arc / 2);
+
+      // Icon
+      ctx.fillStyle = rimColor;
+      ctx.font = `normal ${Math.round(size * 0.08)}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const iconY = -radius * 0.25; // Closer to center
+      ctx.fillText(item.icon, radius * 0.6, iconY);
+
+      // Name
+      ctx.fillStyle = item.color; // Use rarity color for name
+      ctx.font = `bold ${Math.round(size * 0.05)}px Orbitron, Arial`;
+      const textX = radius * 0.6;
+      ctx.fillText(item.name, textX, radius * 0.05);
+
+      ctx.restore();
+    }
+
+    // Outer rim (decorative)
+    ctx.beginPath();
+    ctx.arc(center, center, radius + 10, 0, Math.PI * 2);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = rimColor;
+    ctx.stroke();
+
+    // center badge
+    ctx.beginPath();
+    ctx.arc(center, center, centerBadgeRadius, 0, Math.PI * 2);
+    ctx.fillStyle = '#2d3748';
+    ctx.fill();
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = rimColor;
+    ctx.stroke();
+
+    // center text
+    ctx.fillStyle = '#fff';
+    ctx.font = `700 ${Math.round(size * 0.07)}px Orbitron, Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('LOOT', center, center - 10);
+    ctx.fillText('SPIN', center, center + 25);
+  }
+
+  // draw rotated wheel using currentAngle (radians)
+  function drawRotatedWheel() {
+    ctx.clearRect(0, 0, size, size);
+    ctx.save();
+    // rotate around center
+    ctx.translate(center, center);
+    ctx.rotate(currentAngle);
+    ctx.translate(-center, -center);
+    drawWheelSegments();
+    ctx.restore();
+  }
+
+  // set up / resize boundaries if needed
+  function refreshGeometry() {
+    radius = Math.floor((size / 2) - 30);
+    arc = (2 * Math.PI) / maxScore;
+    lastSector = Math.floor(currentAngle / arc);
+    drawRotatedWheel();
+  }
+
+  // --- GAME LOGIC ---
+
+  // spin with time-based easing for suspense
+  function spinWheel() {
+    if (spinning) return;
+    spinning = true;
+    document.getElementById('spinBtn').disabled = true;
+
+    // unlock/play a tiny sound on first user gesture
+    tickSound.play().catch(()=>{});
+
+    const startAngle = currentAngle;
+    // CRITICAL FIX: Increased minimum rotations for clear visual spin feedback
+    const extraRotations = Math.random() * 10 + 15; // Now 15 to 25 full rotations
+    const totalRotation = extraRotations * Math.PI * 2;
+    const duration = Math.random() * 2600 + 4800; // 4.8s to 7.4s
+
+    const startTime = performance.now();
+    lastSector = Math.floor(startAngle / arc);
+
+    function frame(now) {
+      try { // Added try/catch to prevent silent animation failure
+        const t = Math.min(1, (now - startTime) / duration);
+        const eased = easeOutCubic(t);
+        currentAngle = startAngle + totalRotation * eased;
+
+        // tick logic: plays a sound every time the pointer crosses a sector line
+        const sector = Math.floor(currentAngle / arc);
+        if (sector !== lastSector) {
+          try {
+            tickSound.currentTime = 0;
+            tickSound.play();
+          } catch(e){}
+          lastSector = sector;
+        }
+
+        drawRotatedWheel();
+
+        if (t < 1) {
+          requestAnimationFrame(frame);
+        } else {
+          spinning = false;
+          // Pause briefly before reveal for maximum impact
+          setTimeout(finishSpin, 500);
+        }
+      } catch (error) {
+          console.error("Wheel animation failed:", error);
+          spinning = false; // Reset state if animation breaks
+          document.getElementById('spinBtn').disabled = false;
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  // compute which number landed at the pointer, then show the loot modal
+  function finishSpin() {
+    // Convert to degrees. Pointer is at 12 o'clock (90 degrees offset from 0 radians which is at 3 o'clock)
+    // The wheel is drawn counter-clockwise relative to the index position.
+    // The wheel spins clockwise (currentAngle increases).
+    const degrees = (currentAngle * 180 / Math.PI);
+    const arcd = arc * 180 / Math.PI;
+
+    // Calculate index relative to the pointer position (top/12 o'clock)
+    // 90 degrees offset makes 0 degrees the top.
+    const normalizedDegrees = 360 - (degrees % 360); // Invert rotation for index calculation
+    let index = Math.floor(((normalizedDegrees + 90) % 360) / arcd);
+    index = (maxScore - 1) - index; // Flip index for correct mapping to LOOT_POOL
+
+    // Ensure index is within 0 to maxScore-1
+    const finalIndex = ((index % maxScore) + maxScore) % maxScore;
+
+    const winningLoot = getLootItem(finalIndex);
+    document.getElementById('result').textContent = `The pointer stopped at slot ${finalIndex + 1}...`;
+
+    showLootReveal(winningLoot);
+  }
+
+  // --- REVEAL MODAL FUNCTIONS ---
+
+  function showLootReveal(item) {
+    revealOverlay.style.display = 'flex';
+    // Clear old classes and set new rarity class
+    lootBox.className = 'rarity-' + item.rarity;
+
+    lootRarityTag.textContent = item.rarity;
+    lootRarityTag.style.color = item.color; // Set tag text color
+    lootName.textContent = item.name;
+    lootName.style.color = item.color; // Set name text color
+    lootIcon.textContent = item.icon;
+
+    // Delay for CSS transition effect
+    setTimeout(() => {
+        lootBox.classList.add('show');
+        revealSound.currentTime = 0;
+        revealSound.play().catch(e => console.error("Reveal sound failed to play:", e));
+    }, 50);
+  }
+
+  function hideLootReveal() {
+    lootBox.classList.remove('show');
+    // Delay hiding the overlay until transition finishes
+    setTimeout(() => {
+      revealOverlay.style.display = 'none';
+      document.getElementById('spinBtn').disabled = false;
+      document.getElementById('result').textContent = `You claimed: ${lootName.textContent} (${lootRarityTag.textContent})! Spin again.`;
+    }, 400);
+  }
+
+  // --- INITIALIZATION & EVENTS ---
+
+  function setupWheel() {
+    maxScore = Math.max(2, Math.min(24, parseInt(document.getElementById('maxScore').value) || 12));
+    document.getElementById('maxScore').value = maxScore; // clamp value
+    arc = (2 * Math.PI) / maxScore;
+    lastSector = Math.floor(currentAngle / arc);
+    refreshGeometry();
+    document.getElementById('result').textContent = `Wheel setup with ${maxScore} slots.`;
+  }
+
+  document.getElementById('spinBtn').addEventListener('click', () => {
+    document.getElementById('result').textContent = 'Rolling for loot...';
+    spinWheel();
+  });
+
+  document.getElementById('setBtn').addEventListener('click', () => {
+    setupWheel();
+  });
+
+  closeRevealBtn.addEventListener('click', hideLootReveal);
+
+  // initial call
+  setupWheel();
+
+})();
+</script>
+</body>
+</html>
