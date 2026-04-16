@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Do I Study? — Student Self-Check</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--surface:#ffffff;--border:#e4e2db;--border-s:#c8c5bc;
+  --text:#1a1916;--text2:#5a5750;--text3:#9a9790;
+  --accent:#2d5be3;--accent-l:#eef2fd;--accent-t:#1a3a9a;
+  --green:#1a7a4a;--green-l:#edf7f2;
+  --amber:#a05c00;--amber-l:#fdf4e7;
+  --red:#c0321a;--red-l:#fdf0ed;
+  --purple:#5b35b0;--purple-l:#f3f0fd;
+  --teal:#0f6e6e;--teal-l:#ebf7f7;
+  --orange:#c84b00;--orange-l:#fff1e8;
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:600;letter-spacing:-0.02em}
+.logo span{color:var(--accent)}
+.prog-wrap{display:flex;align-items:center;gap:10px}
+.prog-outer{width:160px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-inner{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.prog-lbl{font-size:12px;font-weight:500;color:var(--text2);font-family:var(--mono)}
+.main{display:grid;grid-template-columns:1fr 390px;min-height:calc(100vh - 56px)}
+.left{padding:2rem;border-right:1px solid var(--border);overflow-y:auto}
+.right{background:var(--surface);padding:2rem 1.5rem;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.pg-head{margin-bottom:1.5rem}
+.pg-head h1{font-size:22px;font-weight:600;letter-spacing:-0.03em;margin-bottom:6px}
+.pg-head p{font-size:13px;color:var(--text2);line-height:1.6;max-width:520px}
+.sname{margin-bottom:1.5rem}
+.sname label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+.sname input{width:100%;max-width:320px;padding:8px 12px;border:1px solid var(--border-s);border-radius:8px;font-family:var(--font);font-size:14px;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s}
+.sname input:focus{border-color:var(--accent)}
+
+/* ── PASSIVE DETECTOR BANNER ── */
+.passive-box{background:var(--orange-l);border:1.5px solid #f8c090;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;display:none}
+.passive-box.visible{display:block}
+.passive-box-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.passive-icon{font-size:18px}
+.passive-title{font-size:13px;font-weight:600;color:var(--orange)}
+.passive-desc{font-size:12px;color:#7a3a00;line-height:1.6;margin-bottom:10px}
+.passive-topics{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.passive-topic{font-size:11px;font-weight:600;background:#f8c090;color:#7a3a00;padding:3px 9px;border-radius:20px}
+.passive-tip{font-size:11.5px;color:#7a3a00;background:#ffe8d0;border-radius:7px;padding:8px 12px;line-height:1.6}
+.passive-tip strong{display:block;margin-bottom:2px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--orange)}
+
+.sec{margin-bottom:1.5rem}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono);flex-shrink:0}
+.ia{background:var(--accent-l);color:var(--accent-t)}
+.ib{background:var(--green-l);color:var(--green)}
+.ic{background:var(--amber-l);color:var(--amber)}
+.id{background:var(--red-l);color:var(--red)}
+.ie{background:var(--teal-l);color:var(--teal)}
+.sec-title{font-size:13px;font-weight:600}
+.sec-sub{font-size:11px;color:var(--text3);margin-top:1px}
+.b-list{display:flex;flex-direction:column;gap:4px}
+.b-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;user-select:none;transition:background .1s}
+.b-item:hover{background:var(--bg)}
+.b-item.on{background:var(--accent-l);border-color:#c8d8f8}
+.b-item input{display:none}
+.chk{width:18px;height:18px;border:1.5px solid var(--border-s);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--surface)}
+.b-item.on .chk{background:var(--accent);border-color:var(--accent)}
+.chk::after{content:'';width:10px;height:6px;border-left:2px solid white;border-bottom:2px solid white;transform:rotate(-45deg) translate(1px,-1px);display:none}
+.b-item.on .chk::after{display:block}
+.b-txt{font-size:13px;line-height:1.5}
+.b-item.on .b-txt{color:var(--accent-t)}
+
+/* ── SUBJECT TAG on behavior items ── */
+.b-subj{font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#e8e6e0;color:var(--text3);white-space:nowrap;flex-shrink:0;margin-top:3px;align-self:flex-start}
+
+.r-hd{margin-bottom:1.5rem}
+.r-hd h2{font-size:16px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.r-hd p{font-size:12px;color:var(--text3)}
+.empty{text-align:center;padding:3rem 1rem}
+.empty-ico{width:48px;height:48px;border-radius:12px;background:var(--bg);border:1px solid var(--border);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:22px}
+.empty p{font-size:13px;color:var(--text3);line-height:1.6}
+.rcard{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.rcard.p1{border-color:var(--accent)}
+.rcard.p2{border-color:var(--border-s)}
+.rc-hd{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.rank{width:24px;height:24px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p1 .rank{background:var(--accent);color:white}
+.p2 .rank{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.p3 .rank,.p4 .rank{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.rname{font-size:13px;font-weight:600;flex:1}
+.rpct{font-size:13px;font-weight:600;font-family:var(--mono)}
+.p1 .rpct{color:var(--accent)}
+.p2 .rpct{color:var(--text2)}
+.p3 .rpct,.p4 .rpct{color:var(--text3)}
+.rbar-w{padding:0 14px 10px}
+.rbar-o{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.rbar-i{height:100%;border-radius:3px;transition:width .5s}
+.p1 .rbar-i{background:var(--accent)}
+.p2 .rbar-i{background:var(--border-s)}
+.p3 .rbar-i,.p4 .rbar-i{background:var(--border)}
+.rc-body{padding:0 14px 12px}
+.ttag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.ta{background:#fde8e8;color:#8b1a1a}
+.tm{background:var(--amber-l);color:var(--amber)}
+.ts{background:var(--accent-l);color:var(--accent-t)}
+.te{background:var(--green-l);color:var(--green)}
+.tx{background:var(--teal-l);color:var(--teal)}
+.to{background:var(--orange-l);color:var(--orange)}
+.rdesc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.mlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.msigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.msig{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--accent-l);color:var(--accent-t)}
+.ivlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.ivlist{display:flex;flex-direction:column;gap:4px}
+.ivitem{font-size:11px;color:var(--text2);display:flex;gap:6px;line-height:1.5}
+.ivdot{color:var(--green);font-weight:600;flex-shrink:0}
+.xbtn{background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:11px;color:var(--text2);padding:5px 10px;cursor:pointer;width:100%;transition:background .1s;margin-top:4px}
+.xbtn:hover{background:var(--bg)}
+.dual{background:var(--amber-l);border:1px solid #e8c97a;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--amber);line-height:1.5}
+.dual strong{font-weight:600;display:block;margin-bottom:2px}
+.rbtn{width:100%;padding:9px;border:1px solid var(--border-s);border-radius:8px;background:none;font-family:var(--font);font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;margin-top:1rem}
+.rbtn:hover{background:var(--red-l);border-color:#e8a090;color:var(--red)}
+
+/* ── NO-REVISION ALERT inside right panel ── */
+.no-revision{background:var(--orange-l);border:1.5px solid #f8b070;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.no-revision-title{font-size:12px;font-weight:600;color:var(--orange);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.no-revision-desc{font-size:11.5px;color:#7a3a00;line-height:1.6}
+
+@media(max-width:800px){
+  .main{grid-template-columns:1fr}
+  .right{position:static;height:auto;border-top:1px solid var(--border)}
+  .prog-outer{width:100px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Study<span>Check</span></div>
+  <div class="prog-wrap">
+    <div class="prog-outer"><div class="prog-inner" id="pb" style="width:0%"></div></div>
+    <span class="prog-lbl" id="pl">0 / 55</span>
+  </div>
+</div>
+
+<div class="main">
+<div class="left">
+  <div class="pg-head">
+    <h1>How do I actually study? 🎯</h1>
+    <p>Read each sentence below. If it sounds like YOU — tick it ✅. Look at the right side to see what kind of studier you are and what you can do about it.</p>
+  </div>
+
+  <div class="sname">
+    <label>Your name (optional)</label>
+    <input type="text" id="sname" placeholder="e.g. Arjun K." oninput="calc()">
+  </div>
+
+  <!-- PASSIVE DETECTOR: shown if student checks almost nothing or only "nothing applies" items -->
+  <div class="passive-box" id="passiveBox">
+    <div class="passive-box-head">
+      <span class="passive-icon">⚠️</span>
+      <span class="passive-title">Looks like you haven't revised this material yet</span>
+    </div>
+    <div class="passive-desc" id="passiveDesc">
+      You've answered very few questions — or nothing is matching your experience. This usually means you haven't gone through the topic yet. That's okay, but the earlier you start, the better.
+    </div>
+    <div class="passive-topics" id="passiveTopics"></div>
+    <div class="passive-tip">
+      <strong>What to do now</strong>
+      Read through your notes or textbook for this chapter once — even 15 minutes helps. Then come back and tick what feels familiar. The tool will show you the best way to study from there.
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ia">A</div><div><div class="sec-title">During tests &amp; exams</div><div class="sec-sub">What happens to you in the exam hall?</div></div></div><div class="b-list" id="s-a"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ib">B</div><div><div class="sec-title">In class &amp; homework</div><div class="sec-sub">What do you normally do in class and at home?</div></div></div><div class="b-list" id="s-b"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ic">C</div><div><div class="sec-title">Managing your work</div><div class="sec-sub">How do you handle deadlines and effort?</div></div></div><div class="b-list" id="s-c"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon id">D</div><div><div class="sec-title">How you feel about studying</div><div class="sec-sub">Feelings, stress, and what goes on in your head</div></div></div><div class="b-list" id="s-d"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ie">E</div><div><div class="sec-title">Other things about you</div><div class="sec-sub">Anything else that might be affecting your studies</div></div></div><div class="b-list" id="s-e"></div></div>
+</div>
+
+<div class="right">
+  <div class="r-hd"><h2>Your study pattern</h2><p id="rsub">Tick statements on the left to see your results</p></div>
+  <div id="rbody"><div class="empty"><div class="empty-ico">&#9998;</div><p>Tick at least 3 statements that match you to see your study pattern and tips appear here in real time.</p></div></div>
+</div>
+</div>
+
+<script>
+/* ────────────────────────────────────────────────
+   PATTERN TYPES  (student-facing language)
+──────────────────────────────────────────────── */
+const T={
+  pp:{name:"Panic studier 😰",tag:"ta",tl:"Anxiety",
+    desc:"You keep saying 'I'll study later' — not because you're lazy, but because starting feels too scary or too much. This is super common and totally fixable.",
+    iv:["Open the book to just ONE page. That's all. Start there.",
+        "Set a 10-minute timer — tell yourself you'll stop after 10 mins (you probably won't)",
+        "Divide the chapter into small parts: Day 1 = page 1-5, Day 2 = page 6-10, etc.",
+        "Getting something wrong now is FREE practice. It doesn't count.",
+        "Start with the topic you find easiest — confidence first, hard stuff later"]},
+
+  ap:{name:"Last-minute hero ⚡",tag:"ts",tl:"Last-minute learner",
+    desc:"You study only the night before — and surprisingly, you still pass! But here's the problem: you forget everything after the exam. Next chapter will be harder if you don't remember this one.",
+    iv:["Do ONE 10-minute revision 3 days before the test — just check your notes",
+        "Even reading for 10 minutes every evening that week is enough",
+        "Ask yourself: will I remember this topic next month? If no, that's a problem.",
+        "Your trick works now — but harder exams (board exams etc.) need actual memory"]},
+
+  pf:{name:"Never-good-enough student 😟",tag:"ta",tl:"Perfectionist",
+    desc:"You want everything to be perfect. You rewrite your notes 3 times, you erase and redo, and you still think it's not good enough. This eats up your time and makes you stressed.",
+    iv:["'Okay' notes that are DONE beat 'perfect' notes you never finish",
+        "Set a 20-minute limit per topic — answer and move on, even if it feels incomplete",
+        "A first draft is supposed to be messy — that's what editing is for",
+        "Ask a friend to check your work — their standard is more realistic than yours",
+        "Done > Perfect. Always."]},
+
+  gu:{name:"Bored genius 🥱",tag:"tm",tl:"Too easy for you?",
+    desc:"You're actually smart — but school feels too slow or too easy for you. So you stop trying. The problem? You've never learned HOW to study because you never needed to before.",
+    iv:["Ask your teacher: 'Is there a harder version of this problem?'",
+        "Try teaching this topic to a friend — if you can explain it simply, you really know it",
+        "Look for the tricky corner cases and unusual questions — that's the fun part",
+        "Being good at studies doesn't make you uncool. Own it.",
+        "The syllabus WILL get harder. Learn study habits now while it's still easy."]},
+
+  ta:{name:"Mind-goes-blank in exam 😶",tag:"ta",tl:"Exam freeze",
+    desc:"You know the answer perfectly at home. But the moment you sit in the exam hall — blank. This is NOT a knowledge problem. It's a nervousness problem. And it can be fixed.",
+    iv:["Practice at home like it's a real exam: timer on, no phone, no help",
+        "Do mini surprise tests — close your book and write answers from memory",
+        "Before writing: breathe in for 4 seconds, out for 4 seconds. It actually works.",
+        "The more mock tests you do, the less scary the real one feels",
+        "Talk to your teacher — they may allow you to answer verbally"]},
+
+  sl:{name:"Copy-paste studier 📋",tag:"ts",tl:"Only memorising",
+    desc:"Your study method is: read → copy notes → re-read. You can write back the exact words from the book. But if the question is slightly different, you're stuck. You need to actually UNDERSTAND, not just memorise.",
+    iv:["Close your notebook. Now write everything you remember. Then open and check.",
+        "Explain the topic OUT LOUD as if you're the teacher. If you can't, you don't know it.",
+        "Make a mind map: topic in the middle, sub-topics around it, arrows showing connections",
+        "'Why does this happen?' — practise answering THAT, not just 'What is this?'",
+        "Re-reading your notes = false confidence. Testing yourself = real confidence."]},
+
+  dl:{name:"Overthinker 🤔",tag:"ts",tl:"Too much depth",
+    desc:"You understand everything deeply — maybe even better than your classmates. But you overthink every question and run out of time. Not every answer needs a 3-page explanation.",
+    iv:["For simple questions: write the main point, one example, done. Move on.",
+        "Give yourself a time limit per question and STICK to it (use a timer)",
+        "Sometimes a short correct answer gets full marks. Length ≠ marks.",
+        "Pair up with a faster classmate and practise their speed",
+        "Being quick is a skill you can learn — it just needs practice"]},
+
+  de:{name:"Given up 😶‍🌫️",tag:"te",tl:"Not trying anymore",
+    desc:"You've stopped trying — in most or all subjects. It's not that you CAN'T do it. Something made studying feel useless or too hard. That something needs to be figured out first.",
+    iv:["Pick ONE subject you like even a little. Start only there.",
+        "Talk to someone you trust — a teacher, a parent, a friend. Tell them what's going on.",
+        "Small win today: finish just ONE homework or attend ONE full class",
+        "You're not 'dumb'. Something is blocking you. That block can be removed.",
+        "If something at home or in life is hurting you — that matters more right now than textbooks"]},
+
+  so:{name:"Group-study lover 👥",tag:"te",tl:"Learns with friends",
+    desc:"You study well with friends but struggle completely alone. Group study is actually great — but in exams, you're on your own. So you need both.",
+    iv:["Keep doing group study — it works! But add ONE solo study session each week",
+        "After group study: sit alone for 10 minutes and write what you just learned",
+        "Explaining to your friends is brilliant — that's actually the best way to learn",
+        "In exam hall it's just you — make sure you can do it alone too"]},
+
+  hs:{name:"Class daydreamer 💭",tag:"ts",tl:"Learned it already",
+    desc:"You study everything at home and already know what the teacher is explaining. So class feels boring and your mind drifts. You're not lazy — you're just ahead.",
+    iv:["Use class time to test yourself instead of listening again",
+        "Write one question for every point the teacher explains — quiz yourself later",
+        "Read the chapter the night before class so you're already prepared",
+        "Ask the teacher a deeper question during class — they notice and respect it",
+        "Your homework is great but your class energy is being wasted — use it!"]},
+
+  sd:{name:"Something happened 💔",tag:"tx",tl:"Life got hard",
+    desc:"Your marks were okay before — then something changed and everything dropped. This almost never happens because of studying. Something in your life changed. That's what needs attention.",
+    iv:["Tell someone you trust what happened. You don't have to carry this alone.",
+        "Tell your teacher or school counsellor — they can give you extra time or support",
+        "Don't try to catch up everything at once — focus only on today's lesson",
+        "If your attendance is dropping too, that needs to be fixed first",
+        "Your marks CAN come back. But first take care of what's hurting you."]},
+
+  ha:{name:"Always on top 🌟",tag:"tm",tl:"Hard worker",
+    desc:"You study regularly, you hit your goals, and your marks show it. You're doing great — just don't burn out. High achievers often push too hard for too long.",
+    iv:["Plan rest days. Rest is not wasted time — it's part of performing well.",
+        "Teach your classmates — it helps you learn even deeper",
+        "Watch for these signs of burnout: always tired, can't focus, dreading school",
+        "You don't need to be #1 in everything. Pick your priorities.",
+        "Your method works. Don't keep changing it just because you're anxious."]},
+
+  te:{name:"Smart in some, stuck in others 🔀",tag:"tx",tl:"Uneven pattern",
+    desc:"You're excellent in one or two subjects but really struggle in others — for no obvious reason. This often happens when your brain works differently (like in dyslexia or ADHD). It's not your fault and it has a solution.",
+    iv:["Get tested — knowing what's happening is not embarrassing, it's smart",
+        "Use your strong subjects to stay confident",
+        "Ask your teacher for extra time, oral exams, or project-based options",
+        "Your brain is not broken — it just works differently in some areas",
+        "You need BOTH: support for the hard parts AND challenge in the strong parts"]},
+
+  nr:{name:"Haven't opened the book yet 📕",tag:"to",tl:"Not started yet",
+    desc:"Based on your answers, it looks like you haven't studied this topic at all yet. That's okay — but you need to start. Even one read-through will help a lot.",
+    iv:["Open the chapter right now. Just read the headings first.",
+        "Read for just 15 minutes. Stop after that if you want. But START.",
+        "Write 3 things you learned after reading — even rough notes help",
+        "Tell a friend or parent: 'I'll study this topic today' — makes you accountable",
+        "The best time to start was last week. The second best time is RIGHT NOW."]}
+};
+
+/* ────────────────────────────────────────────────
+   BEHAVIORS  (student self-reflection language)
+──────────────────────────────────────────────── */
+const B=[
+  /* ── Section A: During tests & exams ── */
+  {s:"s-a",t:"I studied at home and knew the answers — but when I sat in the exam, I forgot everything 😶",w:{ta:4,pp:1}},
+  {s:"s-a",t:"Even if I studied the night before, I get really nervous when I see the question paper",w:{ta:3,pp:2}},
+  {s:"s-a",t:"My hands shake or my stomach hurts before a test — even when I feel prepared",w:{ta:4}},
+  {s:"s-a",t:"I do much better when working with friends (group project, group test) than when alone",w:{so:4,ta:1}},
+  {s:"s-a",t:"I study only the night before the test — but I still pass or do okay 😅",w:{ap:4,pp:1}},
+  {s:"s-a",t:"My homework marks are high but my actual test marks are much lower",w:{ta:3,hs:2,pp:1}},
+  {s:"s-a",t:"I can say the facts from memory, but if the question asks 'why' or 'explain', I'm stuck",w:{sl:4,pp:1}},
+  {s:"s-a",t:"I write a lot in the exam but often go off-topic or repeat myself",w:{dl:3,pf:2}},
+  {s:"s-a",t:"I finish the exam paper early and feel bored — it's too easy for me",w:{gu:4,ha:1}},
+  {s:"s-a",t:"My results are all over the place — I did great last time but failed this time",w:{te:3,gu:2,de:1}},
+
+  /* ── Section B: In class & homework ── */
+  {s:"s-b",t:"I know the answer but I never raise my hand in class (e.g. teacher asks a question — I stay quiet)",w:{hs:3,de:2,ta:1}},
+  {s:"s-b",t:"I ask a lot of extra questions — like 'but why does this happen?' or 'what if we change this?'",w:{dl:4,gu:2,ha:1}},
+  {s:"s-b",t:"My mind keeps wandering in class even when I try to focus (e.g. teacher is explaining, I'm thinking about something else)",w:{hs:3,de:3}},
+  {s:"s-b",t:"I keep talking to my friends during class and find it hard to sit quietly and work",w:{so:4,de:1}},
+  {s:"s-b",t:"I participate well in class but I almost never do the homework",w:{ap:2,de:2,so:1}},
+  {s:"s-b",t:"I know the topic well but I still get lower marks than I expected",w:{ta:4,te:2}},
+  {s:"s-b",t:"Class feels boring and slow — I already knew this topic before the teacher taught it",w:{gu:4,ha:2,hs:3}},
+  {s:"s-b",t:"I sit quietly, look down, and try not to be seen or called on in class",w:{de:4,sd:2,ta:1}},
+  {s:"s-b",t:"I talk a lot and contribute in group discussions but go quiet in individual tasks",w:{so:4,ta:1}},
+  {s:"s-b",t:"I always finish my homework properly, but I don't really pay attention during class",w:{hs:4,pp:1}},
+
+  /* ── Section C: How you manage your work ── */
+  {s:"s-c",t:"I often miss the deadline and feel really bad about it afterwards (e.g. submission date passed and I still haven't done it)",w:{pp:4,pf:2}},
+  {s:"s-c",t:"I only open my books the night before the test — and it actually works out fine for me",w:{ap:4,pp:1}},
+  {s:"s-c",t:"I rewrite my notes again and again because they never feel neat or good enough",w:{pf:4,dl:1}},
+  {s:"s-c",t:"My homework is always completed, but I sit silently during class and don't join in",w:{hs:4,pp:1}},
+  {s:"s-c",t:"I look for extra, harder questions or read more about topics I enjoy",w:{ha:4,dl:2}},
+  {s:"s-c",t:"I spend way too long on one question while everyone else has finished (e.g. still on Q1 when class is on Q5)",w:{pf:4,dl:2}},
+  {s:"s-c",t:"I've been absent more than usual lately and it's starting to affect my studies",w:{sd:4,de:2}},
+  {s:"s-c",t:"Sometimes I study a lot and sometimes not at all — it depends on my mood",w:{gu:3,te:2,de:2}},
+  {s:"s-c",t:"I put full effort into subjects I like and basically skip the ones I don't like",w:{gu:3,de:2,ap:1}},
+  {s:"s-c",t:"I want to study but I keep getting distracted or I don't know where to begin",w:{pp:3,sl:2,de:1}},
+
+  /* ── Section D: How you feel about studying ── */
+  {s:"s-d",t:"The day before a test I feel sick, scared, or very nervous — even for subjects I know",w:{ta:4,pp:1}},
+  {s:"s-d",t:"When I get a bad mark, I think: 'I'm just not smart enough for this'",w:{pp:3,de:3,ta:2}},
+  {s:"s-d",t:"When I miss a deadline or do badly, I feel really guilty for a long time",w:{pp:3,pf:3}},
+  {s:"s-d",t:"I pretend to my friends that I didn't study — even when I did — because I don't want to look like a 'nerd'",w:{gu:4,te:1}},
+  {s:"s-d",t:"I actually like deadlines — pressure helps me focus better and I never really stress",w:{ap:4,ha:1}},
+  {s:"s-d",t:"Even a small mistake upsets me a lot — like if I spell one word wrong or get one mark less",w:{pf:4,ta:2}},
+  {s:"s-d",t:"I love explaining things to my friends or teaching them (e.g. 'let me show you how to do this')",w:{so:3,ha:2,gu:1}},
+  {s:"s-d",t:"I often think: 'What's the point of studying this? I'll never use it in real life.'",w:{gu:3,dl:2,de:1}},
+  {s:"s-d",t:"Something happened in my life recently and since then I've lost all interest in studies",w:{sd:4,de:2}},
+  {s:"s-d",t:"I feel like no matter how much I try, my marks never improve — so why bother?",w:{pp:3,de:3}},
+
+  /* ── Section E: Other things about you ── */
+  {s:"s-e",t:"A doctor or teacher told me I have dyslexia, ADHD, or a reading/learning difficulty",w:{te:5,pp:1}},
+  {s:"s-e",t:"I'm really good in some subjects but genuinely can't understand others — for no clear reason",w:{te:5}},
+  {s:"s-e",t:"Something big happened in my family or personal life around the time my marks dropped (e.g. parent's illness, moving house, family problem)",w:{sd:5}},
+  {s:"s-e",t:"Everyone calls me 'the smart one' — and now I'm scared to try hard in case I fail and disappoint them",w:{gu:3,pf:2}},
+  {s:"s-e",t:"I study for a long time at home, but the moment I'm in school I switch off completely",w:{hs:4,gu:2}},
+  {s:"s-e",t:"My teacher has told me: 'You definitely know this — you just can't show it in the test'",w:{ta:5,te:2}},
+  {s:"s-e",t:"I do well when someone tells me exactly what to do, but I'm lost when the task is open-ended (e.g. 'write anything about this topic')",w:{pp:3,sl:2,de:1}},
+  {s:"s-e",t:"I've struggled with the same things since I was in lower classes — this isn't new",w:{sl:2,de:2,gu:2,te:2}},
+  {s:"s-e",t:"I do much better in projects or assignments than in actual sit-down exams",w:{ta:4,te:2,dl:1}},
+  {s:"s-e",t:"Outside school I'm very active — I play sports, have hobbies, or work on personal projects",w:{ha:3,ap:1,gu:1}},
+  {s:"s-e",t:"I do fine when the test format is normal, but I panic when the format changes (e.g. MCQ suddenly becomes long answer)",w:{sl:3,ta:2}},
+  {s:"s-e",t:"I did much better when my teacher let me choose HOW to answer — not just one fixed format",w:{dl:3,gu:2,te:2}},
+
+  /* ── PASSIVE / HAVEN'T STUDIED items (shown with orange border) ── */
+  {s:"s-e",t:"Honestly? I haven't even looked at this topic yet. None of these feel familiar at all. 📕",w:{nr:5},passive:true},
+  {s:"s-e",t:"I haven't opened my notes or textbook for this chapter even once",w:{nr:5},passive:true},
+  {s:"s-e",t:"I don't even know where to start because I've never read through this chapter",w:{nr:4,pp:2},passive:true}
+];
+
+let on=new Set();
+const TOTAL=B.length;
+
+function build(){
+  B.forEach((b,i)=>{
+    const c=document.getElementById(b.s);
+    const el=document.createElement('label');
+    el.className='b-item';
+    el.dataset.i=i;
+    const passiveClass=b.passive?'style="border-left:3px solid #f8b070"':'';
+    el.innerHTML=`<input type="checkbox"><div class="chk"></div><span class="b-txt">${b.t}</span>`;
+    if(b.passive) el.style.borderLeft='3px solid #f8c090';
+    el.addEventListener('click',(e)=>{e.preventDefault();tog(i,el);});
+    c.appendChild(el);
+  });
+  document.getElementById('pl').textContent='0 / '+TOTAL;
+}
+
+function tog(i,el){
+  if(on.has(i)){on.delete(i);el.classList.remove('on');}
+  else{on.add(i);el.classList.add('on');}
+  upProg();calc();
+}
+
+function upProg(){
+  const p=Math.round(on.size/TOTAL*100);
+  document.getElementById('pb').style.width=p+'%';
+  document.getElementById('pl').textContent=on.size+' / '+TOTAL;
+}
+
+/* ── PASSIVE / NO-REVISION DETECTOR ──
+   Triggered when:
+   (a) student has checked any "passive" item, OR
+   (b) student has checked ≥3 items but nr score is highest, OR
+   (c) student has checked very few items (≤2) but has been interacting (at least clicked once area)
+*/
+function checkPassive(scores){
+  const passiveChecked=on.size>0 && [...on].some(i=>B[i].passive);
+  const nrScore=scores['nr']||0;
+  const totalScore=Object.values(scores).reduce((a,b)=>a+b,0);
+  // nr dominates OR at least one passive item ticked
+  return passiveChecked || (nrScore>0 && nrScore===Math.max(...Object.values(scores)));
+}
+
+function showPassive(show,nm){
+  const box=document.getElementById('passiveBox');
+  if(show){
+    box.classList.add('visible');
+    const desc=document.getElementById('passiveDesc');
+    desc.textContent=(nm?nm:'You')+' haven\'t gone through this material yet based on these answers. '
+      +'That\'s okay — but you need to start soon. Even a single read-through before the next class builds a foundation everything else will sit on.';
+  } else {
+    box.classList.remove('visible');
+  }
+}
+
+function calc(){
+  const nm=document.getElementById('sname').value.trim();
+
+  if(on.size<1){
+    showPassive(false,nm);
+    document.getElementById('rbody').innerHTML='<div class="empty"><div class="empty-ico">&#9998;</div><p>Tick at least 3 statements that match you to see your study pattern and tips appear in real time.</p></div>';
+    document.getElementById('rsub').textContent='Tick statements on the left to see your results';
+    return;
+  }
+
+  const scores={},matched={};
+  Object.keys(T).forEach(k=>{scores[k]=0;matched[k]=[];});
+  on.forEach(i=>{
+    Object.entries(B[i].w).forEach(([k,v])=>{
+      scores[k]=(scores[k]||0)+v;
+      matched[k].push(B[i].t);
+    });
+  });
+
+  // Show/hide passive banner
+  const isPassive=checkPassive(scores);
+  showPassive(isPassive,nm);
+
+  const top=Math.max(...Object.values(scores));
+  if(top===0)return;
+
+  // Filter and sort — but if passive is the #1 type show it prominently
+  const sorted=Object.entries(scores).filter(([,s])=>s>0).sort((a,b)=>b[1]-a[1]);
+  const res=sorted.slice(0,4).map(([k,s])=>({k,s,pct:Math.round(s/top*100),d:T[k],m:matched[k]}));
+  const isDual=res.length>=2&&res[1].pct>=55;
+
+  let html='';
+
+  // No-revision alert inline in results if nr is top
+  if(res[0]&&res[0].k==='nr'){
+    html+=`<div class="no-revision"><div class="no-revision-title">⚠️ Haven't revised this material yet</div><div class="no-revision-desc">${nm?nm:'You'} haven't gone through this topic yet. Start with a single read-through — even 15 minutes now will help. Come back and re-check once you've looked at the chapter.</div></div>`;
+  }
+
+  if(isDual){
+    html+=`<div class="dual"><strong>Two patterns detected</strong>${nm?'<strong>'+nm+'</strong>':'You'} match two study patterns strongly. Read both profiles and try both sets of tips — they work together.</div>`;
+    document.getElementById('rsub').textContent=on.size+' answers — two patterns found';
+  } else {
+    document.getElementById('rsub').textContent=on.size+' answers — primary pattern found';
+  }
+
+  res.forEach((r,i)=>{
+    const cls=i===0?'p1':i===1&&isDual?'p2':i===2?'p3':'p4';
+    const showBody=(i===0)||(i===1&&isDual);
+    const eid='e'+r.k+i;
+    html+=`<div class="rcard ${cls}"><div class="rc-hd"><div class="rank">${i+1}</div><div class="rname">${r.d.name}</div><div class="rpct">${r.pct}%</div></div><div class="rbar-w"><div class="rbar-o"><div class="rbar-i" style="width:${r.pct}%"></div></div></div>`;
+    if(showBody){
+      const sigs=r.m.slice(0,3);
+      html+=`<div class="rc-body"><span class="ttag ${r.d.tag}">${r.d.tl}</span><div class="rdesc">${r.d.desc}</div><div class="mlbl">What you said</div><div class="msigs">${sigs.map(s=>`<span class="msig">${s.length>52?s.slice(0,49)+'...':s}</span>`).join('')}</div><div id="${eid}" style="display:none"><div class="ivlbl">What to do about it</div><div class="ivlist">${r.d.iv.map(v=>`<div class="ivitem"><span class="ivdot">+</span><span>${v}</span></div>`).join('')}</div></div><button class="xbtn" onclick="xp('${eid}',this)">Show what to do</button></div>`;
+    }
+    html+='</div>';
+  });
+
+  html+=`<button class="rbtn" onclick="rst()">Clear and start over</button>`;
+  document.getElementById('rbody').innerHTML=html;
+}
+
+function xp(id,btn){
+  const el=document.getElementById(id);
+  const open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  btn.textContent=open?'Show what to do':'Hide tips';
+}
+
+function rst(){
+  on.clear();
+  document.querySelectorAll('.b-item').forEach(el=>el.classList.remove('on'));
+  document.getElementById('sname').value='';
+  showPassive(false,'');
+  upProg();
+  document.getElementById('rbody').innerHTML='<div class="empty"><div class="empty-ico">&#9998;</div><p>Tick at least 3 statements that match you to see your study pattern and tips appear in real time.</p></div>';
+  document.getElementById('rsub').textContent='Tick statements on the left to see your results';
+}
+
+build();
+</script>
+</body>
+</html>
