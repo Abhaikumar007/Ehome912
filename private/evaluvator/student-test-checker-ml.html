@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ഞാൻ എങ്ങനെയാണ് പഠിക്കുന്നത്? — വിദ്യാർത്ഥികളുടെ സ്വയം വിലയിരുത്തൽ</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f7f6f2;--surface:#ffffff;--border:#e4e2db;--border-s:#c8c5bc;
+  --text:#1a1916;--text2:#5a5750;--text3:#9a9790;
+  --accent:#2d5be3;--accent-l:#eef2fd;--accent-t:#1a3a9a;
+  --green:#1a7a4a;--green-l:#edf7f2;
+  --amber:#a05c00;--amber-l:#fdf4e7;
+  --red:#c0321a;--red-l:#fdf0ed;
+  --purple:#5b35b0;--purple-l:#f3f0fd;
+  --teal:#0f6e6e;--teal-l:#ebf7f7;
+  --orange:#c84b00;--orange-l:#fff1e8;
+  --font:'AnjaliOldLipi', 'Meera', 'Manjari', 'DM Sans', sans-serif;--mono:'DM Mono',monospace
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh; line-height: 1.5}
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{font-size:15px;font-weight:600;letter-spacing:-0.02em; font-family:'DM Sans', sans-serif}
+.logo span{color:var(--accent)}
+.prog-wrap{display:flex;align-items:center;gap:10px}
+.prog-outer{width:160px;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-inner{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+.prog-lbl{font-size:12px;font-weight:500;color:var(--text2);font-family:var(--mono)}
+.main{display:grid;grid-template-columns:1fr 390px;min-height:calc(100vh - 56px)}
+.left{padding:2rem;border-right:1px solid var(--border);overflow-y:auto}
+.right{background:var(--surface);padding:2rem 1.5rem;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.pg-head{margin-bottom:1.5rem}
+.pg-head h1{font-size:22px;font-weight:600;letter-spacing:-0.03em;margin-bottom:6px}
+.pg-head p{font-size:13px;color:var(--text2);line-height:1.6;max-width:520px}
+.sname{margin-bottom:1.5rem}
+.sname label{font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+.sname input{width:100%;max-width:320px;padding:8px 12px;border:1px solid var(--border-s);border-radius:8px;font-family:var(--font);font-size:14px;background:var(--surface);color:var(--text);outline:none;transition:border-color .15s}
+.sname input:focus{border-color:var(--accent)}
+
+.passive-box{background:var(--orange-l);border:1.5px solid #f8c090;border-radius:10px;padding:14px 16px;margin-bottom:1.5rem;display:none}
+.passive-box.visible{display:block}
+.passive-box-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.passive-icon{font-size:18px}
+.passive-title{font-size:13px;font-weight:600;color:var(--orange)}
+.passive-desc{font-size:12px;color:#7a3a00;line-height:1.6;margin-bottom:10px}
+.passive-topics{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.passive-topic{font-size:11px;font-weight:600;background:#f8c090;color:#7a3a00;padding:3px 9px;border-radius:20px}
+.passive-tip{font-size:11.5px;color:#7a3a00;background:#ffe8d0;border-radius:7px;padding:8px 12px;line-height:1.6}
+.passive-tip strong{display:block;margin-bottom:2px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--orange)}
+
+.sec{margin-bottom:1.5rem}
+.sec-hd{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.sec-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;font-family:var(--mono);flex-shrink:0}
+.ia{background:var(--accent-l);color:var(--accent-t)}
+.ib{background:var(--green-l);color:var(--green)}
+.ic{background:var(--amber-l);color:var(--amber)}
+.id{background:var(--red-l);color:var(--red)}
+.ie{background:var(--teal-l);color:var(--teal)}
+.sec-title{font-size:14px;font-weight:600}
+.sec-sub{font-size:12px;color:var(--text3);margin-top:1px}
+.b-list{display:flex;flex-direction:column;gap:4px}
+.b-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;border:1px solid transparent;user-select:none;transition:background .1s}
+.b-item:hover{background:var(--bg)}
+.b-item.on{background:var(--accent-l);border-color:#c8d8f8}
+.b-item input{display:none}
+.chk{width:18px;height:18px;border:1.5px solid var(--border-s);border-radius:4px;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:all .15s;background:var(--surface)}
+.b-item.on .chk{background:var(--accent);border-color:var(--accent)}
+.chk::after{content:'';width:10px;height:6px;border-left:2px solid white;border-bottom:2px solid white;transform:rotate(-45deg) translate(1px,-1px);display:none}
+.b-item.on .chk::after{display:block}
+.b-txt{font-size:13px;line-height:1.5}
+.b-item.on .b-txt{color:var(--accent-t)}
+
+.b-subj{font-size:10px;font-weight:600;padding:1px 7px;border-radius:10px;background:#e8e6e0;color:var(--text3);white-space:nowrap;flex-shrink:0;margin-top:3px;align-self:flex-start}
+
+.r-hd{margin-bottom:1.5rem}
+.r-hd h2{font-size:16px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+.r-hd p{font-size:12px;color:var(--text3)}
+.empty{text-align:center;padding:3rem 1rem}
+.empty-ico{width:48px;height:48px;border-radius:12px;background:var(--bg);border:1px solid var(--border);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:22px}
+.empty p{font-size:13px;color:var(--text3);line-height:1.6}
+.rcard{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.rcard.p1{border-color:var(--accent)}
+.rcard.p2{border-color:var(--border-s)}
+.rc-hd{padding:12px 14px;display:flex;align-items:center;gap:10px}
+.rank{width:24px;height:24px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.p1 .rank{background:var(--accent);color:white}
+.p2 .rank{background:var(--bg);color:var(--text2);border:1px solid var(--border)}
+.p3 .rank,.p4 .rank{background:var(--bg);color:var(--text3);border:1px solid var(--border)}
+.rname{font-size:13px;font-weight:600;flex:1}
+.rpct{font-size:13px;font-weight:600;font-family:var(--mono)}
+.p1 .rpct{color:var(--accent)}
+.p2 .rpct{color:var(--text2)}
+.p3 .rpct,.p4 .rpct{color:var(--text3)}
+.rbar-w{padding:0 14px 10px}
+.rbar-o{height:5px;background:var(--bg);border-radius:3px;overflow:hidden}
+.rbar-i{height:100%;border-radius:3px;transition:width .5s}
+.p1 .rbar-i{background:var(--accent)}
+.p2 .rbar-i{background:var(--border-s)}
+.p3 .rbar-i,.p4 .rbar-i{background:var(--border)}
+.rc-body{padding:0 14px 12px}
+.ttag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.ta{background:#fde8e8;color:#8b1a1a}
+.tm{background:var(--amber-l);color:var(--amber)}
+.ts{background:var(--accent-l);color:var(--accent-t)}
+.te{background:var(--green-l);color:var(--green)}
+.tx{background:var(--teal-l);color:var(--teal)}
+.to{background:var(--orange-l);color:var(--orange)}
+.rdesc{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px}
+.mlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.msigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px}
+.msig{font-size:11px;padding:2px 7px;border-radius:4px;background:var(--accent-l);color:var(--accent-t)}
+.ivlbl{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.ivlist{display:flex;flex-direction:column;gap:4px}
+.ivitem{font-size:11px;color:var(--text2);display:flex;gap:6px;line-height:1.5}
+.ivdot{color:var(--green);font-weight:600;flex-shrink:0}
+.xbtn{background:none;border:1px solid var(--border);border-radius:6px;font-family:var(--font);font-size:11px;color:var(--text2);padding:5px 10px;cursor:pointer;width:100%;transition:background .1s;margin-top:4px}
+.xbtn:hover{background:var(--bg)}
+.dual{background:var(--amber-l);border:1px solid #e8c97a;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:12px;color:var(--amber);line-height:1.5}
+.dual strong{font-weight:600;display:block;margin-bottom:2px}
+.rbtn{width:100%;padding:9px;border:1px solid var(--border-s);border-radius:8px;background:none;font-family:var(--font);font-size:13px;color:var(--text2);cursor:pointer;transition:all .15s;margin-top:1rem}
+.rbtn:hover{background:var(--red-l);border-color:#e8a090;color:var(--red)}
+
+.no-revision{background:var(--orange-l);border:1.5px solid #f8b070;border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.no-revision-title{font-size:12px;font-weight:600;color:var(--orange);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.no-revision-desc{font-size:11.5px;color:#7a3a00;line-height:1.6}
+
+@media(max-width:800px){
+  .main{grid-template-columns:1fr}
+  .right{position:static;height:auto;border-top:1px solid var(--border)}
+  .prog-outer{width:100px}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Study<span>Check</span></div>
+  <div class="prog-wrap">
+    <div class="prog-outer"><div class="prog-inner" id="pb" style="width:0%"></div></div>
+    <span class="prog-lbl" id="pl">0 / 55</span>
+  </div>
+</div>
+
+<div class="main">
+<div class="left">
+  <div class="pg-head">
+    <h1>സത്യത്തിൽ ഞാൻ എങ്ങനെയാണ് പഠിക്കുന്നത്? 🎯</h1>
+    <p>താഴെയുള്ള ഓരോ വാക്യവും വായിക്കുക. നിങ്ങൾക്ക് സമാനമായി തോന്നുന്നവ ടിക്ക് ചെയ്യുക ✅. വലതുവശത്ത് നിങ്ങളുടെ പഠനരീതിയും മെച്ചപ്പെടുത്താനുള്ള മാർഗ്ഗങ്ങളും നിങ്ങൾക്ക് കാണാം.</p>
+  </div>
+
+  <div class="sname">
+    <label>നിങ്ങളുടെ പേര് (നിർബന്ധമില്ല)</label>
+    <input type="text" id="sname" placeholder="ഉദാ: അർജുൻ കെ." oninput="calc()">
+  </div>
+
+  <div class="passive-box" id="passiveBox">
+    <div class="passive-box-head">
+      <span class="passive-icon">⚠️</span>
+      <span class="passive-title">നിങ്ങൾ ഇതുവരെ ഈ ഭാഗം പഠിച്ചിട്ടില്ലെന്ന് തോന്നുന്നു</span>
+    </div>
+    <div class="passive-desc" id="passiveDesc">
+      നിങ്ങൾ വളരെ കുറച്ച് കാര്യങ്ങൾ മാത്രമാണ് ടിക്ക് ചെയ്തത് — അല്ലെങ്കിൽ ഒന്നും നിങ്ങൾക്ക് സമാനമായി തോന്നുന്നില്ല. നിങ്ങൾ ഈ ഭാഗം വായിച്ചിട്ടുണ്ടാകില്ല എന്നാണ് ഇത് കാണിക്കുന്നത്. കുഴപ്പമില്ല, എത്രയും വേഗം മുൻകൂട്ടി പഠിക്കുന്നത് കൂടുതൽ ഗുണം ചെയ്യും.
+    </div>
+    <div class="passive-topics" id="passiveTopics"></div>
+    <div class="passive-tip">
+      <strong>ഇനി എന്ത് ചെയ്യണം</strong>
+      ഈ അധ്യായത്തിന്റെ നോട്ടുകളോ പുസ്തകമോ ഒരിക്കൽ വായിക്കുക — 15 മിനിറ്റെങ്കിലും വായിക്കുന്നത് ഗുണം ചെയ്യും. അതിനുശേഷം ഇവിടെ വന്ന് വീണ്ടും പരിശോധിക്കുക. മികച്ച രീതിയിൽ പഠിക്കാനുള്ള നിർദ്ദേശങ്ങൾ ഇവിടെ കാണിക്കും.
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ia">A</div><div><div class="sec-title">പരീക്ഷാ സമയത്ത് </div><div class="sec-sub">പരീക്ഷാ ഹാളിൽ നിങ്ങൾക്ക് എന്തു സംഭവിക്കുന്നു?</div></div></div><div class="b-list" id="s-a"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ib">B</div><div><div class="sec-title">ക്ലാസ്സിലും ഹോംവർക്കിലും</div><div class="sec-sub">സാധാരണയായി ക്ലാസ്സിലും വീട്ടിലും നിങ്ങൾ എന്ത് ചെയ്യുന്നു?</div></div></div><div class="b-list" id="s-b"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ic">C</div><div><div class="sec-title">പഠന സമയം ക്രമീകരിക്കുന്നത്</div><div class="sec-sub">നിങ്ങളുടെ ഉത്തരവാദിത്തങ്ങൾ എങ്ങനെ കൈകാര്യം ചെയ്യുന്നു?</div></div></div><div class="b-list" id="s-c"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon id">D</div><div><div class="sec-title">പഠനത്തെക്കുറിച്ച് നിങ്ങൾക്ക് എന്ത് തോന്നുന്നു</div><div class="sec-sub">വികാരങ്ങൾ, മാനസിക സമ്മർദ്ദം, മനസ്സിലൂടെ കടന്നുപോകുന്നത്</div></div></div><div class="b-list" id="s-d"></div></div>
+  <div class="sec"><div class="sec-hd"><div class="sec-icon ie">E</div><div><div class="sec-title">നിങ്ങളെക്കുറിച്ചുള്ള മറ്റ് കാര്യങ്ങൾ</div><div class="sec-sub">നിങ്ങളുടെ പഠനത്തെ ബാധിച്ചേക്കാവുന്ന മറ്റ് കാര്യങ്ങൾ</div></div></div><div class="b-list" id="s-e"></div></div>
+</div>
+
+<div class="right">
+  <div class="r-hd"><h2>നിങ്ങളുടെ പഠന രീതി</h2><p id="rsub">നിങ്ങളുടെ ഫലം കാണാൻ ഇടത് വശത്തുള്ളവ ടിക്ക് ചെയ്യുക</p></div>
+  <div id="rbody"><div class="empty"><div class="empty-ico">&#9998;</div><p>നിങ്ങളുടെ പഠന രീതിയും നിർദ്ദേശങ്ങളും കാണുന്നതിനായി നിങ്ങളുമായി പൊരുത്തപ്പെടുന്ന 3 വാക്യങ്ങളെങ്കിലും ടിക്ക് ചെയ്യുക.</p></div></div>
+</div>
+</div>
+
+<script>
+const T={
+  pp:{name:"ആശങ്ക ഉത്കണ്ഠയുള്ള വിദ്യാർത്ഥി 😰",tag:"ta",tl:"ഉത്കണ്ഠ",
+    desc:"'ഞാൻ പിന്നീട് പഠിക്കാം' എന്ന് നിങ്ങൾ എപ്പോഴും പറയാറുണ്ട് - അത് മടികൊണ്ടല്ല, മറിച്ച് തുടങ്ങാൻ ഭയമോ അല്ലെങ്കിൽ കൂടുതലാണെന്ന തോന്നലോ ഉള്ളതുകൊണ്ടാണ്. ഇത് സാധാരണമാണ്, എളുപ്പത്തിൽ മാറ്റാനും സാധിക്കും.",
+    iv:["ഒരു പേജ് മാത്രം എടുത്ത് വായിക്കുക. അവിടെ നിന്ന് തുടങ്ങുക.",
+        "10 മിനിറ്റ് ടൈമർ വെക്കുക - 10 മിനിറ്റ് കഴിഞ്ഞ് നിർത്തുമെന്ന് വിചാരിക്കുക",
+        "പാഠഭാഗങ്ങൾ ചെറിയ ഭാഗങ്ങളായി മാറ്റുക: പുസ്തകത്തിലെ 1-5 പേജ് ഒന്നാമത്തെ ദിവസം, അടുത്ത 5 പേജ് പിറ്റേദിവസം എന്ന രീതിയിൽ തുടങ്ങുക",
+        "ഇപ്പോൾ തെറ്റിയാലും കുഴപ്പമില്ല, ഇത് വെറും പ്രാക്ടീസ് മാത്രമാണ്.",
+        "നിങ്ങൾക്ക് എളുപ്പമുള്ള ഭാഗത്ത് നിന്ന് തുടങ്ങുക - ആത്മവിശ്വാസം ആദ്യം, ബുദ്ധിമുട്ടുള്ളത് പിന്നീട്"]},
+
+  ap:{name:"അവസാന നിമിഷം പഠിക്കുന്നയാൾ ⚡",tag:"ts",tl:"അവസാന നിമിഷ പഠനം",
+    desc:"പരീക്ഷയ്ക്ക് തലേദിവസം രാത്രി മാത്രമാണ് നിങ്ങൾ പഠിക്കുന്നത് — എന്നിട്ടും അത്ഭുതമെന്നു പറയട്ടെ നിങ്ങൾ പാസ്സാകും. പക്ഷെ പ്രശ്നം ഇതാണ്: പരീക്ഷ കഴിഞ്ഞാൽ നിങ്ങൾ എല്ലാം മറക്കുന്നു. അടുത്ത അധ്യായങ്ങളിൽ ഇത് വലിയ ബുദ്ധിമുട്ടുണ്ടാക്കും.",
+    iv:["പരീക്ഷയ്ക്ക് 3 ദിവസം മുമ്പ് ഒരു 10 മിനിറ്റ് റിവിഷൻ ചെയ്യുക - നോട്ടുകൾ മാത്രം ഒരുവട്ടം ഓർത്തുനോക്കുക",
+        "എല്ലാ ദിവസവും വൈകുന്നേരം 10 മിനിറ്റെങ്കിലും വായിച്ചാലും മതി",
+        "നിങ്ങളോട് തന്നെ ചോദിക്കുക: അടുത്ത മാസം എനിക്ക് ഇത് ഓർമ്മയുണ്ടാകുമോ? ഇല്ലെങ്കിൽ ഇതൊരു ഗുരുതരമായ പ്രശ്നമാണ്.",
+        "ഇപ്പോഴത്തെ ഈ രീതി പരീക്ഷയ്ക്ക് മുൻപ് ഗുണം ചെയ്തേക്കാം - പക്ഷെ ഭാവിയിലെ പരീക്ഷകൾക്ക് (ബോർഡ് പരീക്ഷകൾ) ഓർമ്മശക്തി അത്യാവശ്യമാണ്"]},
+
+  pf:{name:"പെർഫെക്റ്റാവാൻ ശ്രമിക്കുന്നയാൾ 😟",tag:"ta",tl:"പെർഫെക്ഷനിസ്റ്റ്",
+    desc:"എല്ലാം നല്ല പെർഫെക്റ്റ് ആകണമെന്ന് നിങ്ങൾ ആഗ്രഹിക്കുന്നു. 3 തവണ നോട്ടുകൾ മാറ്റി എഴുതുന്നു, മായിക്കുന്നു വീണ്ടും എഴുതുന്നു. ഇത് നിങ്ങളുടെ സമയം മുഴുവൻ നഷ്ടപ്പെടുത്തുകയും ടെൻഷൻ കൂട്ടുകയും ചെയ്യുന്നു.",
+    iv:["ഒരിക്കലും തീർക്കാത്ത 'പെർഫെക്റ്റ്' നോട്ടുകളേക്കാൾ നല്ലത് പൂർത്തിയാക്കിയ ഒരു സാധാരണ നോട്ട് ആണ്",
+        "ഓരോ ചോദ്യത്തിനും പരമാവധി 20 മിനിറ്റ് സമയം നിശ്ചയിക്കുക - അപൂർണ്ണമായി തോന്നിയാലും അടുത്തതിലേക്ക് പോവുക",
+        "ആദ്യമായെഴുതുന്ന നോട്ടുകൾ എപ്പോഴും അബദ്ധങ്ങൾ നിറഞ്ഞതായിരിക്കും - അവ മാറ്റിയെഴുതിയാണ് നമ്മൾ എഡിറ്റ് ചെയ്യുന്നത്",
+        "നിങ്ങളുടെ നോട്ടുകൾ പരിശോധിച്ച് അഭിപ്രായം പറയാൻ ഒരു സുഹൃത്തിനോട് ആവശ്യപ്പെടുക",
+        "പൂർത്തിയാക്കുക എന്നതാണ് പ്രധാനം. മികച്ചതാക്കാൻ പിന്നീട് സമയം കണ്ടെത്താം."]},
+
+  gu:{name:"ബോറടിക്കുന്ന മിടുക്കൻ 🥱",tag:"tm",tl:"വളരെ എളുപ്പമാണോ?",
+    desc:"നിങ്ങൾ ശരിക്കും പഠിക്കാൻ മിടുക്കനാണ് - പക്ഷെ സ്കൂളിലെ പഠനം വളരെ പതിയെയാണെന്നോ എളുപ്പമാണെന്നോ നിങ്ങൾക്ക് തോന്നുന്നു. അതുകൊണ്ട് നിങ്ങൾ ശ്രമിക്കുന്നത് തന്നെ നിർത്തുന്നു.",
+    iv:["അധ്യാപകനോട് ചോദിക്കുക: 'ഇതിനേക്കാൾ പാടുള്ള പുതിയ ചോദ്യങ്ങൾ ഉണ്ടോ?'",
+        "ഈ വിഷയം ഒരു സുഹൃത്തിനെ പഠിപ്പിക്കാൻ ശ്രമിക്കുക - ബുദ്ധിമുട്ടില്ലാതെ അവരെ പഠിപ്പിക്കാൻ കഴിഞ്ഞാൽ നിങ്ങൾക്ക് ആ വിഷയം ശരിക്കും അറിയാമെന്ന് ഉറപ്പാണ്",
+        "കുഴപ്പിക്കുന്ന ചോദ്യങ്ങൾ കണ്ടെത്തി ഉത്തരം ചെയ്യാൻ ശ്രമിക്കുക",
+        "പഠിക്കാൻ മിടുക്കനാവുന്നതും മാർക്ക് വാങ്ങുന്നതും മോശം കാര്യമല്ല. അത് സ്വന്തമായി അംഗീകരിക്കുക.",
+        "പാഠഭാഗങ്ങൾ നിങ്ങൾക്ക് ഇനിയും ബുദ്ധിമുട്ടാകും. എല്ലാം എളുപ്പമായിരിക്കുമ്പോൾ തന്നെ പഠിക്കാൻ തുടങ്ങുക."]},
+
+  ta:{name:"പരീക്ഷാ സമയത്ത് എല്ലാം മറക്കുന്നു 😶",tag:"ta",tl:"എക്സാം ഫ്രീസ്",
+    desc:"വീട്ടിലിരിക്കുമ്പോൾ ചോദ്യങ്ങൾക്ക് കൃത്യമായി ഉത്തരമറിയാം. പക്ഷെ പരീക്ഷാ ഹാളിലെത്തുമ്പോൾ എല്ലാം മറക്കുന്നു. ഇത് പഠിക്കാത്തതിന്റെ പ്രശ്നമല്ല. പരിഭ്രമം കൊണ്ടാണ്. ഇത് പരിശീലനം കൊണ്ട് മാറ്റാൻ സാധിക്കും.",
+    iv:["യഥാർത്ഥ പരീക്ഷ പോലെ വീട്ടിൽ പ്രാക്ടീസ് ചെയ്യുക: ടൈമർ വെക്കുക, ഫോൺ മാറ്റി വെക്കുക",
+        "പെട്ടെന്ന് പരീക്ഷകൾ എഴുതുക - പുസ്തകം അടച്ചുവെച്ച് ഓർമ്മയിൽ നിന്ന് ഉത്തരം എഴുതുക",
+        "എഴുതുന്നതിന് മുമ്പ്: 4 സെക്കൻഡ് ശ്വാസം ഉള്ളിലേക്ക് എടുക്കുക, 4 സെക്കൻഡ് പുറത്തേക്ക് വിടുക. ശരിക്കും ഇതൊരു മാജിക്കാണ്.",
+        "കൂടുതൽ മോക്ക് ടെസ്റ്റുകൾ ചെയ്താൽ യഥാർത്ഥ പരീക്ഷയുടെ പേടി മാറ്റാം",
+        "അധ്യാപകനോട് സംസാരിക്കുക - നിങ്ങളെ കൂടുതൽ സഹായിക്കാൻ അവർക്ക് സാധിക്കും"]},
+
+  sl:{name:"കാണാതെ പഠിക്കുന്ന വിദ്യാർത്ഥി 📋",tag:"ts",tl:"കാണാതെ പഠിക്കുക മാത്രം",
+    desc:"നിങ്ങളുടെ പഠന രീതി ഇതാണ്: വായിക്കുക → നോട്ടുകൾ എഴുതിയെടുക്കുക → വീണ്ടും വായിക്കുക. ചോദ്യം അല്പം മാറ്റി ചോദിച്ചാൽ നിങ്ങൾക്ക് ഉത്തരം എഴുതാൻ കഴിയില്ല. നിങ്ങൾ കാര്യങ്ങൾ ശരിക്കും മനസ്സിലാക്കിയാണ് പഠിക്കേണ്ടത്, വെറുതെ കാണാതെ പഠിക്കുകയല്ല വേണ്ടത്.",
+    iv:["പുസ്തകം അടച്ചുവെക്കുക. ഓർമ്മയുള്ളതെല്ലാം നോട്ടുബുക്കിൽ എഴുതുക. അതിനുശേഷം ടെക്സ്റ്റ് തുറന്ന് ശരിയാണോ എന്ന് പരിശോധിക്കുക.",
+        "നിങ്ങൾ ഒരു അധ്യാപകനാണെന്ന് സങ്കൽപ്പിച്ച് ഉറക്കെ പറഞ്ഞ് പഠിപ്പിക്കുക. അതിന് കഴിയുന്നില്ലെങ്കിൽ നിങ്ങൾ പാഠം പഠിച്ചിട്ടില്ല എന്നാണ് അർത്ഥം.",
+        "ഒരു മൈൻഡ് മാപ്പ് (Mind map) ഉണ്ടാക്കുക: പ്രധാന വിഷയം നടുവിലും സബ്-വിഷയങ്ങൾ ചുറ്റുമായി എഴുതുക",
+        "'ഇത് എന്തുകൊണ്ട് സംഭവിക്കുന്നു?' എന്നതിന് ഉത്തരം കണ്ടെത്താൻ ശ്രമിക്കുക, അല്ലാതെ 'ഇതെന്താണ്?' എന്ന് മാത്രം പഠിക്കരുത്",
+        "നോട്ടുകൾ വീണ്ടും വായിക്കുന്നത് വെറുമൊരു ആത്മവിശ്വാസം തരും, എന്നാൽ സ്വയം പരീക്ഷിക്കുകയാണ് യഥാർത്ഥ പഠനം."]},
+
+  dl:{name:"അമിതമായി ചിന്തിക്കുന്നയാൾ 🤔",tag:"ts",tl:"ഓവർ തിങ്കിങ്",
+    desc:"നിങ്ങൾക്ക് എല്ലാം മറ്റുള്ളവരേക്കാളും നന്നായി മനസ്സിലാകുന്നുണ്ട്. പക്ഷെ നിങ്ങൾ വളരെ വിശദമായി എല്ലാ ചോദ്യങ്ങൾക്കും ഉത്തരം എഴുതാൻ ശ്രമിക്കുന്നതുകൊണ്ട് പരീക്ഷ തീർക്കാൻ സമയമുണ്ടാകില്ല.",
+    iv:["ലളിതമായ ചോദ്യങ്ങൾക്ക് ചെറിയ ഉത്തരം മാത്രം എഴുതുക: പ്രധാന പോയിന്റ്, ഒരു ഉദാഹരണം, മതി.",
+        "ഓരോ ചോദ്യത്തിനും ഒരു നിശ്ചിത സമയം തീരുമാനിക്കുക (ടൈമർ ഉപയോഗിക്കുക)",
+        "ചുരുങ്ങിയ ഉത്തരങ്ങൾക്ക് മുഴുവൻ മാർക്കും ലഭിക്കുന്ന അവസരങ്ങളുമുണ്ട്. വെറുതെ വലിച്ചുവാരി എഴുതിയാൽ മാർക്ക് കൂടുതൽ കിട്ടില്ല.",
+        "വേഗത്തിൽ എഴുതുന്ന ഒരു സുഹൃത്തിനൊപ്പം ഇരുന്ന് വേഗത പ്രാക്ടീസ് ചെയ്യുക",
+        "വേഗത്തിൽ എഴുതുന്നത് നിങ്ങൾ പഠിച്ചെടുക്കേണ്ട ഒരു കഴിവാണ്"]},
+
+  de:{name:"ശ്രമം ഉപേക്ഷിച്ചയാൾ 😶‍🌫️",tag:"te",tl:"ഇനി ശ്രമിക്കുന്നില്ല",
+    desc:"ഏകദേശം എല്ലാ വിഷയങ്ങളിലും നിങ്ങൾ ശ്രമം ഉപേക്ഷിച്ചിരിക്കുന്നു. നിങ്ങൾക്ക് പഠിക്കാൻ കഴിയില്ല എന്നല്ല. പഠിക്കുന്നത് വളരെ ബുദ്ധിമുട്ടാണെന്ന് നിങ്ങൾ വിചാരിക്കുന്നു.",
+    iv:["നിങ്ങൾക്ക് ഇഷ്ടമുള്ള ഒരു വിഷയം തിരഞ്ഞെടുക്കുക. അവിടെ നിന്ന് മാത്രം തുടങ്ങുക.",
+        "നിങ്ങൾക്ക് കാര്യങ്ങൾ പറയാൻ വിശ്വാസമുള്ള ആരോടെങ്കിലും സംസാരിക്കുക - അധ്യാപകനോടോ, മാതാപിതാക്കളോടോ, കൂട്ടുകാരോടോ സംസാരിക്കുക.",
+        "ഇന്നത്തെ ഒരു ചെറിയ വിജയം: കുറഞ്ഞത് ഒരു വിഷയത്തിന്റെ ഹോംവർക്ക് തീർക്കുക അല്ലെങ്കിൽ ഒരു ക്ലാസ്സ് മുഴുവൻ ശ്രദ്ധിച്ചിരിക്കുക",
+        "നിങ്ങൾ 'മണ്ടനല്ല'. മറ്റെന്തോ കാര്യം നിങ്ങളെ തടഞ്ഞു നിർത്തുന്നുണ്ട്. നമ്മൾ വിചാരിച്ചാൽ അതിനെ അതിജീവിക്കാം.",
+        "വീട്ടിലോ ജീവിതത്തിലോ ഉള്ള ഏതെങ്കിലും പ്രശ്നങ്ങൾ നിങ്ങളെ വിഷമിപ്പിക്കുന്നുണ്ടെങ്കിൽ - ടെക്സ്റ്റ് ബുക്കുകളേക്കാൾ ഇപ്പോൾ പ്രാധാന്യം നൽകേണ്ടത് അതിനാണ്"]},
+
+  so:{name:"കൂട്ടുകാരോടൊപ്പം പഠിക്കാൻ ഇഷ്ടപ്പെടുന്നയാൾ 👥",tag:"te",tl:"കൂട്ടുകാരോടൊപ്പം പഠിക്കുക",
+    desc:"നിങ്ങൾ കൂട്ടുകാരോടൊപ്പം നന്നായി പടിക്കുമെങ്കിലും ഒറ്റയ്ക്കിരുന്ന് പഠിക്കാൻ ശരിക്കും ബുദ്ധിമുട്ടുന്നു. ഗ്രൂപ്പായി പഠിക്കുന്നത് നല്ലതാണ് - എന്നാൽ നിങ്ങളുടെ പരീക്ഷാ ഹാളിൽ നിങ്ങൾ ഒറ്റയ്ക്കാണ്.",
+    iv:["കൂട്ടുകാരോടൊപ്പം പഠിക്കുന്നത് തുടരുക - അത് നല്ലതാണ്! പക്ഷെ ഓരോ ആഴ്ചയിലും ഒരു തവണയെങ്കിലും ഒറ്റയ്ക്കിരുന്ന് പഠിക്കാൻ ശ്രമിക്കുക",
+        "ഗ്രൂപ്പ് പഠനത്തിന് ശേഷം 10 മിനിറ്റ് തനിയെയിരുന്ന് മുൻപ് പഠിച്ച കാര്യങ്ങൾ എഴുതുക",
+        "കൂട്ടുകാർക്ക് പുതിയ കാര്യങ്ങൾ പറഞ്ഞു കൊടുക്കുന്നതാണ് പഠിക്കാനുള്ള ഏറ്റവും നല്ല മാർഗ്ഗം",
+        "പരീക്ഷാ ഹാളിൽ നിങ്ങൾ തനിയെരുന്ന് എഴുതേണ്ടതുകൊണ്ടുതന്നെ വീട്ടിലും അതുപോലെ ചെയ്യാൻ ശ്രമിക്കുക"]},
+
+  hs:{name:"ക്ലാസ്സിൽ സ്വപ്നം കാണുന്നയാൾ 💭",tag:"ts",tl:"മുൻപ് പഠിച്ചു കഴിഞ്ഞു",
+    desc:"വീട്ടിലിരുന്ന് പഠിച്ച് കഴിഞ്ഞതുകൊണ്ട് സാർ ക്ലാസ്സിൽ പഠിപ്പിക്കുമ്പോൾ നിങ്ങൾക്കത് ബോറടിക്കുന്നു. നിങ്ങൾ മടിയനായതുകൊണ്ടല്ല, മറിച്ച് നിങ്ങൾ മറ്റുള്ളവരേക്കാൾ ഒരു പടി മുന്നിലാണ്.",
+    iv:["വീണ്ടും ശ്രദ്ധിക്കുന്നതിന് പകരം സ്വന്തമായി ചോദ്യങ്ങൾ ഉണ്ടാക്കുക",
+        "ടീച്ചർ പറയുന്ന ആശയത്തിൽ നിന്നും നിങ്ങൾക്ക് കിട്ടുന്ന ഓരോ പുതിയ പോയിന്റുകൾക്കും ഒരു ചോദ്യം എഴുതുക",
+        "മുൻകൂട്ടി വായിച്ച് ക്ലാസ്സിൽ മുന്നേ തയ്യാറാവുക",
+        "ടീച്ചറോട് കുറച്ചു കൂടി വിശദമായി സംശയങ്ങൾ ചോദിക്കുക",
+        "നിങ്ങളുടെ കഴിവുകൾ മറ്റുള്ള രീതിയിലും പ്രയോജനപ്പെടുത്തുക"]},
+
+  sd:{name:"ചില മാറ്റങ്ങൾ സംഭവിച്ചു 💔",tag:"tx",tl:"ജീവിതം ബുദ്ധിമുട്ടായി",
+    desc:"നിങ്ങളുടെ മാർക്ക് വളരെ നല്ലതായിരുന്നു - പിന്നെ എന്തോ സംഭവിച്ചു, മാർക്ക് മോശമായി. ഇത് പഠിക്കുന്നതുമായി ബന്ധപ്പെട്ടതല്ല, നിങ്ങളുടെ ജീവിതത്തിലുണ്ടായ ചില മാറ്റങ്ങൾ കൊണ്ടാകാം.",
+    iv:["മറ്റുള്ളവരോട് തുറന്നു പറയുക. നിങ്ങൾ എല്ലാം ഒറ്റയ്ക്ക് അനുഭവിക്കേണ്ടതില്ല.",
+        "അധ്യാപകനോടോ കൗൺസിലറോടോ പറയുക",
+        "എല്ലാം ഒറ്റദിവസം കൊണ്ട് പഠിക്കാൻ ശ്രമിക്കരുത് - ഇന്നത്തെ ഭാഗം മാത്രം നന്നായി മനസ്സിലാക്കുക",
+        "സ്ഥിരമായി ക്ലാസ്സിൽ പോവാതിരുന്നാൽ അത് നിങ്ങളുടെ പഠനത്തെ ബാധിക്കും",
+        "നിങ്ങളുടെ പഴയ മാർക്ക് ഉറപ്പായും തിരികെ ലഭിക്കും. പക്ഷെ ആദ്യം നിങ്ങളെ ബാധിക്കുന്ന പ്രശ്നങ്ങൾക്ക് പരിഹാരം കാണുക."]},
+
+  ha:{name:"എല്ലായ്പ്പോഴും മുൻപന്തിയിൽ 🌟",tag:"tm",tl:"ഹാർഡ് വർക്കർ",
+    desc:"നിങ്ങൾ സ്ഥിരമായി പഠിക്കുന്നു, പുതിയ കാര്യങ്ങൾ നേടിയെടുക്കുന്നു, നിങ്ങൾക്ക് നന്നായി മാർക്കും ലഭിക്കുന്നു. എന്നാൽ കൂടുതൽ മാർക്കിനായി അമിതമായി ബുദ്ധിമുട്ടരുത്.",
+    iv:["നിങ്ങളുടെ പഠനത്തിനുശേഷം കുറച്ചു സമയം വിശ്രമിക്കാൻ കണ്ടെത്തുക. ആ പൂർണ്ണ വിശ്രമം നിങ്ങളുടെ മാനസികമായ ആരോഗ്യത്തെ സഹായിക്കും.",
+        "കൂട്ടുകാരെ പഠിപ്പിക്കാൻ ശ്രമിക്കുക",
+        "ഇവ ശ്രദ്ധിക്കുക: എപ്പോഴും ക്ഷീണം, ശ്രദ്ധക്കുറവ്, സ്കൂളിൽ പോകാൻ മടി - ഇത് അമിതമായി പഠിക്കുന്നത് കൊണ്ടാണ്",
+        "എല്ലാത്തിലും നിങ്ങൾ ഒന്നാമനാവേണ്ടതില്ല. പ്രധാനപ്പെട്ട കാര്യങ്ങൾക്ക് മുൻഗണന നൽകുക.",
+        "നിങ്ങളുടെ ഇപ്പോഴത്തെ പഠന രീതി മികച്ചതാണ്. ടെൻഷനടിച്ച് അതിൽ പുതിയ പരീക്ഷണങ്ങൾ നടത്തരുത്."]},
+
+  te:{name:"ചിലതിൽ മിടുക്കൻ, ചിലതിൽ പരാജയം 🔀",tag:"tx",tl:"അസ്ഥിരമായ രീതി",
+    desc:"ഒന്നോ രണ്ടോ വിഷയങ്ങളിൽ വളരെ പെട്ടെന്ന് മനസ്സിലാകുമെങ്കിലും ബാക്കി വിഷയങ്ങൾക്ക് നിങ്ങൾ വളരെ ബുദ്ധിമുട്ടുന്നു. ഇതിൽ പേടിക്കാൻ ഒന്നുമില്ല ഇതൊരു സാധാരണ വൈകല്യമാണ്.",
+    iv:["കഴിവുകൾ പരിശോധിക്കാൻ ഡോക്ടറെയോ കൗൺസിലർമാരെയോ കാണുക - ബുദ്ധിമുട്ടുകളെക്കുറിച്ച് തുറന്നു പറയുന്നത് നാണക്കേടല്ല",
+        "എളുപ്പമുള്ള വിഷയത്തിൽ ശ്രദ്ധ കേന്ദ്രീകരിച്ച് ആത്മവിശ്വാസം നിലനിർത്തുക",
+        "കുറച്ചുകൂടി സമയം കിട്ടാനായി അധ്യാപകരോട് കാര്യങ്ങൾ തുറന്നുപറയുക",
+        "ഇത് ഒരു വലിയ അസുഖമൊന്നുമല്ല - നമ്മൾ ചിന്തിക്കുന്നത് പലപ്പോഴും പല രീതിയിലുമാകും എന്ന് മാത്രം",
+        "ബുദ്ധിമുട്ടുള്ള വിഷയങ്ങൾക്ക് കൂടുതൽ ശ്രദ്ധ കൊടുക്കുകയോ അല്ലാത്തവ ഏറ്റവും മികച്ചതാക്കുകയോ ചെയ്യുക"]},
+
+  nr:{name:"പുസ്തകം ഇതുവരെ തുറന്നിട്ടില്ല 📕",tag:"to",tl:"തുടങ്ങിയിട്ടില്ല",
+    desc:"നിങ്ങൾ ഇതുവരെ ഈ വിഷയം എടുത്തുപോലും നോക്കിയിട്ടില്ല എന്ന് നിങ്ങളുടെ ഉത്തരങ്ങൾ വ്യക്തമാക്കുന്നു. സാരമില്ല — എന്നാൽ നിങ്ങൾ ഇപ്പോൾ തന്നെ തുടങ്ങുക. ഒരിക്കലെങ്കിലും വായിച്ചു തുടങ്ങാം.",
+    iv:["ഇപ്പോൾ തന്നെ പുസ്തകം തുറക്കുക. ആദ്യം തലക്കെട്ടുകൾ മാത്രം വായിക്കുക.",
+        "വെറുമൊരു 15 മിനിറ്റ് നിങ്ങൾ ഒറ്റക്കിരുന്ന് വായിക്കുക. വേണമെങ്കിൽ അതിനുശേഷം നിർത്താം. എങ്കിലും അത് വായിച്ചു തുടങ്ങുക.",
+        "വായിച്ചതിന് ശേഷം മനസ്സിലായ കാര്യങ്ങൾ കുറിച്ചുവെക്കുക",
+        "ഒരു സുഹൃത്തിനോടോ മാതാപിതാക്കളോടോ പറയുക: 'ഞാൻ ഇന്ന് ഇത് പഠിക്കും' - അവർ നിങ്ങളെ ഓർമ്മിപ്പിക്കാൻ സഹായിക്കും",
+        "ഇന്നലെ തുടങ്ങുന്നതായിരുന്നു ഇതിന് ഏറ്റവും അനുയോജ്യമായ സമയം. ഇനി തുടങ്ങാൻ പോകുന്നത് ഇപ്പോഴുമാണ്."]}
+};
+
+const B=[
+  {s:"s-a",t:"ഞാൻ വീട്ടിലിരുന്ന് പഠിച്ച് ഉത്തരങ്ങളെല്ലാം മനസ്സിലാക്കി — എന്നാൽ പരീക്ഷയ്ക്ക് ഇരുന്നപ്പോൾ ഞാൻ എല്ലാം മറന്നു പോയി 😶",w:{ta:4,pp:1}},
+  {s:"s-a",t:"മുൻദിവസം രാത്രി നന്നായി പഠിച്ചാലും, ചോദ്യപേപ്പർ കാണുമ്പോൾ എനിക്ക് വളരെയധികം പരിഭ്രമം ഉണ്ടാകുന്നു",w:{ta:3,pp:2}},
+  {s:"s-a",t:"എനിക്ക് പരീക്ഷയ്ക്ക് മുമ്പ് കൈവിറക്കുകയോ അല്ലെങ്കിൽ വയറുവേദന ഉണ്ടാവുകയോ ചെയ്യുന്നു — നന്നായി പഠിച്ചിട്ടുണ്ടെങ്കിലും",w:{ta:4}},
+  {s:"s-a",t:"ഒറ്റയ്ക്കിരുന്ന് ചെയ്യുന്നതിനേക്കാൾ സുഹൃത്തുക്കളോടൊപ്പം ചേർന്ന് ചെയ്യുമ്പോൾ (ഗ്രൂപ്പ് പ്രൊജക്റ്റ്) ഞാൻ മികച്ച പ്രകടനം കാഴ്ചവെക്കുന്നു",w:{so:4,ta:1}},
+  {s:"s-a",t:"പരീക്ഷയുടെ തലേദിവസം രാത്രി മാത്രമാണ് ഞാൻ പഠിക്കുന്നത് — എങ്കിലും ഞാൻ പാസ്സാകുകയോ ഭേദപ്പെട്ട മാർക്ക് വാങ്ങുകയോ ചെയ്യുന്നു 😅",w:{ap:4,pp:1}},
+  {s:"s-a",t:"എന്റെ ഹോംവർക്കുകൾക്ക് നല്ല മാർക്കുണ്ട്, പക്ഷേ പരീക്ഷയിലെ മാർക്ക് വളരെ കുറവാണ്",w:{ta:3,hs:2,pp:1}},
+  {s:"s-a",t:"യാന്ത്രികമായി എനിക്ക് ഉത്തരങ്ങൾ പറയാൻ കഴിയും, എന്നാൽ 'എന്തുകൊണ്ട്', 'വിശദീകരിക്കുക' എന്നീ ചോദ്യങ്ങൾ വന്നാൽ എനിക്ക് പറയാൻ കഴിയില്ല",w:{sl:4,pp:1}},
+  {s:"s-a",t:"ഞാൻ പരീക്ഷയിൽ ഒരുപാട് എഴുതാറുണ്ട്, എന്നാൽ അതെല്ലാം മിക്കപ്പോഴും ചോദ്യവുമായി ഒരു ബന്ധവുമില്ലാത്ത കാര്യങ്ങളോ അല്ലെങ്കിൽ പറഞ്ഞ കാര്യങ്ങൾ തന്നെ ആവർത്തിക്കുകയോ ആയിരിക്കും",w:{dl:3,pf:2}},
+  {s:"s-a",t:"എന്റെ പരീക്ഷാ പേപ്പർ വളരെ വേഗം തീർത്ത് എനിക്ക് ബോറടിക്കാറുണ്ട് — അതെനിക്ക് വളരെ എളുപ്പമാണ്",w:{gu:4,ha:1}},
+  {s:"s-a",t:"എന്റെ മാർക്കുകൾ എപ്പോഴും ഒരേപോലെയല്ല — കഴിഞ്ഞ തവണ നല്ല മാർക്കുണ്ടായിരുന്നു എന്നാൽ ഇത്തവണ തോറ്റു പോയി",w:{te:3,gu:2,de:1}},
+
+  {s:"s-b",t:"എനിക്ക് ഉത്തരം അറിയാമെങ്കിലും ക്ലാസ്സിൽ ഞാൻ ഒരിക്കലും പറയാൻ ശ്രമിക്കാറില്ല (ഉദാ: അധ്യാപകൻ ചോദ്യം ചോദിക്കുമ്പോൾ — ഞാൻ നിശബ്ദനായി ഇരിക്കും)",w:{hs:3,de:2,ta:1}},
+  {s:"s-b",t:"ഞാൻ കുറെ ചോദ്യങ്ങൾ ചോദിക്കാൻ താല്പര്യപ്പെടുന്നു — 'പക്ഷെ എന്തുകൊണ്ടാണ് ഇത് സംഭവിക്കുന്നത്?', 'ഇത് മാറ്റിയാൽ എന്തു സംഭവിക്കും?' എന്നിങ്ങനെ",w:{dl:4,gu:2,ha:1}},
+  {s:"s-b",t:"ശ്രദ്ധിക്കാൻ ശ്രമിച്ചാലും ക്ലാസ്സിലിരിക്കുമ്പോൾ എന്റെ മനസ്സ് വേറെ എവിടെയൊക്കെയോ ആയിരിക്കും",w:{hs:3,de:3}},
+  {s:"s-b",t:"ഞാൻ ക്ലാസ്സിലിരുന്ന് കൂട്ടുകാരുമായി എപ്പോഴും സംസാരിക്കും, കൂടാതെ ശാന്തമായിരുന്ന് പഠിക്കാൻ ബുദ്ധിമുട്ടാണ്",w:{so:4,de:1}},
+  {s:"s-b",t:"ക്ലാസ്സിലെ പ്രവർത്തനങ്ങളിൽ ഞാൻ നന്നായി പങ്കെടുക്കാറുണ്ട്, എന്നാൽ ഒരിക്കലും ഞാൻ ഹോംവർക്ക് ചെയ്യാറില്ല",w:{ap:2,de:2,so:1}},
+  {s:"s-b",t:"വിഷയം എനിക്ക് നന്നായി അറിയാം, എങ്കിലും എന്റെ പ്രതീക്ഷക്കൊത്ത് എനിക്ക് മാർക്ക് ലഭിക്കാറില്ല",w:{ta:4,te:2}},
+  {s:"s-b",t:"ക്ലാസ്സ് വളരെ മടുപ്പുള്ളതും പതുക്കെയുമാണ് പോകുന്നതെന്ന് തോന്നുന്നു — കാരണം അധ്യാപകൻ പഠിപ്പിക്കുന്നതിന് മുമ്പ് തന്നെ എനിക്കിത് അറിയാമായിരുന്നു",w:{gu:4,ha:2,hs:3}},
+  {s:"s-b",t:"ഞാൻ മിണ്ടാതിരിക്കും, അധികം നോക്കാറില്ല, കൂടാതെ എന്നോട് ചോദ്യങ്ങൾ ചോദിക്കാതിരിക്കാൻ ശ്രമിക്കും",w:{de:4,sd:2,ta:1}},
+  {s:"s-b",t:"ഗ്രൂപ്പായുള്ള ചർച്ചകളിൽ ഞാൻ നന്നായി സംസാരിക്കും, എന്നാൽ വ്യക്തിപരമായ ജോലികൾ ചെയ്യുമ്പോൾ ഞാൻ നിശബ്ദനാവും",w:{so:4,ta:1}},
+  {s:"s-b",t:"ഞാൻ എപ്പോഴും ഹോംവർക്ക് എല്ലാം കൃത്യമായി ചെയ്യാറുണ്ട്, എന്നാൽ ക്ലാസ്സിലിരിക്കുമ്പോൾ ഞാൻ വേണ്ടത്ര ശ്രദ്ധിക്കാറില്ല",w:{hs:4,pp:1}},
+
+  {s:"s-c",t:"എനിക്ക് പലപ്പോഴും കൃത്യസമയത്ത് പ്രൊജക്ടുകൾ സമർപ്പിക്കാൻ സാധിക്കാറില്ല, പിന്നീട് ഓർത്ത് സങ്കടപ്പെടും",w:{pp:4,pf:2}},
+  {s:"s-c",t:"പരീക്ഷയുടെ തലേദിവസം രാത്രി മാത്രമാണ് ഞാൻ പുസ്തകം തുറക്കുന്നത് — അതെനിക്ക് ഗുണം ചെയ്യാറുമുണ്ട്",w:{ap:4,pp:1}},
+  {s:"s-c",t:"ഞാൻ വീണ്ടും വീണ്ടും നോട്ടുകൾ മാറ്റി എഴുതാറുണ്ട്, കാരണം അത്രയ്ക്ക് വൃത്തി പോരാത്തത് കൊണ്ടാണ് അങ്ങനെ ചെയ്യുന്നത്",w:{pf:4,dl:1}},
+  {s:"s-c",t:"എന്റെ ഹോംവർക്കുകൾ പൂർണ്ണമാണ്, എന്നാൽ ഞാൻ ക്ലാസ്സിൽ നിശബ്ദനായി ഇരിക്കുകയും ഒരു പ്രവർത്തനത്തിലും പങ്കെടുക്കാതിരിക്കുകയും ചെയ്യും",w:{hs:4,pp:1}},
+  {s:"s-c",t:"എനിക്ക് ഇഷ്ടമുള്ള വിഷയങ്ങളെക്കുറിച്ച് കൂടുതൽ അറിയാനും, പാടുള്ള ചോദ്യങ്ങൾ കണ്ടെത്താനും ഞാൻ ശ്രമിക്കും",w:{ha:4,dl:2}},
+  {s:"s-c",t:"മറ്റെല്ലാവരും പെട്ടെന്ന് ചെയ്തു തീർക്കുമ്പോഴും, ഞാൻ ഒരു ചോദ്യത്തിന് തന്നെ ഒരുപാട് സമയം ചിലവഴിക്കും",w:{pf:4,dl:2}},
+  {s:"s-c",t:"ഞാൻ അടുത്തകാലത്തായി ക്ലാസ്സിൽ കൂടുതൽ അവധി എടുക്കാറുണ്ട്, ഇതിപ്പോൾ എന്റെ പഠനത്തെ ബാധിക്കുന്നു",w:{sd:4,de:2}},
+  {s:"s-c",t:"ചിലപ്പോൾ ഞാൻ ഒരുപാട് പഠിക്കും, ചിലപ്പോൾ ഞാൻ ഒട്ടും പഠിക്കില്ല — എന്റെ മൂഡിനനുസരിച്ചാണത്",w:{gu:3,te:2,de:2}},
+  {s:"s-c",t:"എനിക്കിഷ്ടമുള്ള വിഷയങ്ങൾക്കായി ഞാൻ എന്റെ പൂർണ്ണശ്രമം കൊടുക്കും, അല്ലാത്തവയെ ഞാൻ മാറ്റി നിർത്തും",w:{gu:3,de:2,ap:1}},
+  {s:"s-c",t:"എനിക്ക് പഠിക്കാനാഗ്രഹമുണ്ട്, എന്നാൽ എന്റെ ശ്രദ്ധ വേറെ എങ്ങോട്ടെങ്കിലുമൊക്കെ മാറും, അല്ലെങ്കിൽ എങ്ങനെ തുടങ്ങണമെന്ന് എനിക്കറിയില്ല",w:{pp:3,sl:2,de:1}},
+
+  {s:"s-d",t:"പരീക്ഷയുടെ തലേദിവസം, എനിക്ക് നന്നായി അറിയാവുന്ന വിഷയങ്ങൾക്ക് പോലും എനിക്ക് അസുഖം, ഭയം, അല്ലെങ്കിൽ ഉത്കണ്ഠ ഉണ്ടാകുന്നു",w:{ta:4,pp:1}},
+  {s:"s-d",t:"എനിക്ക് മോശം മാർക്ക് ലഭിക്കുമ്പോൾ, 'ഞാൻ ഇത് പഠിക്കുന്നതിൽ ഒട്ടും മിടുക്കനല്ല' എന്ന് സ്വയം കരുതും",w:{pp:3,de:3,ta:2}},
+  {s:"s-d",t:"കൃത്യസമയത്ത് തീർക്കാൻ പറ്റിയില്ലെങ്കിൽ അല്ലെങ്കിൽ ചെയ്തതൊന്നും ശരിയായില്ലെങ്കിൽ, എനിക്ക് കുറെ നേരത്തേക്ക് വിഷമമായിരിക്കും",w:{pp:3,pf:3}},
+  {s:"s-d",t:"പഠിച്ചാലും കൂട്ടുകാരുടെ നിർബന്ധം കാരണം ഞാൻ പഠിച്ചിട്ടില്ലെന്ന് നടിക്കാറുണ്ട്",w:{gu:4,te:1}},
+  {s:"s-d",t:"സമയപരിധിയുള്ള ജോലികൾ ഞാൻ ഇഷ്ടപ്പെടുന്നു — ചെറിയൊരു സമ്മർദ്ദമുണ്ടെങ്കിൽ അത് എന്നെ നന്നായി ഫോക്കസ് ചെയ്യാൻ സഹായിക്കുന്നു",w:{ap:4,ha:1}},
+  {s:"s-d",t:"വളരെ ചെറിയ ഒരു തെറ്റ് പോലും എന്നെ വല്ലാതെ വിഷമിപ്പിക്കും — ഉദാഹരണത്തിന് അക്ഷരത്തെറ്റോ അല്ലെങ്കിൽ ഒരു മാർക്ക് കുറവായാലോ",w:{pf:4,ta:2}},
+  {s:"s-d",t:"കൂട്ടുകാർക്ക് കാര്യങ്ങൾ പറഞ്ഞുകൊടുക്കാനോ അവരെ പഠിപ്പിക്കാനോ ഞാൻ ഇഷ്ടപ്പെടുന്നു",w:{so:3,ha:2,gu:1}},
+  {s:"s-d",t:"ഞാൻ പലപ്പോഴും ഇങ്ങനെ ചിന്തിക്കും: 'ഇത് പഠിച്ചിട്ട് എന്ത് കാര്യമാണ്? ഞാനിത് ജീവിതത്തിൽ ഒരിക്കലും ഉപയോഗിക്കാൻ പോകുന്നില്ല.'",w:{gu:3,dl:2,de:1}},
+  {s:"s-d",t:"എന്റെ ജീവതത്തിൽ ചില കാര്യങ്ങൾ അടുത്തിടെ സംഭവിച്ചു, അതിനുശേഷം എനിക്ക് പഠനത്തിൽ താല്പര്യമില്ല",w:{sd:4,de:2}},
+  {s:"s-d",t:"എത്രയൊക്കെ ശ്രമിച്ചാലും എന്റെ മാർക്ക് ഒരിക്കലും കൂടാറില്ല — പിന്നെ ഞാൻ എന്തിനാണ് വെറുതെ കഷ്ടപ്പെടുന്നത്?",w:{pp:3,de:3}},
+
+  {s:"s-e",t:"എനിക്ക് പഠിക്കാൻ കുറച്ചു ബുദ്ധിമുട്ടുകളുണ്ടെന്ന് ഡോക്ടറോ, ടീച്ചറോ പറഞ്ഞിട്ടുണ്ട്",w:{te:5,pp:1}},
+  {s:"s-e",t:"ഞാൻ ചില വിഷയങ്ങളിൽ വളരെ മിടുക്കനാണ്, എന്നാൽ മറ്റ് ചില വിഷയങ്ങൾ എനിക്ക് അല്പം പോലും മനസ്സിലാവാറില്ല",w:{te:5}},
+  {s:"s-e",t:"എന്റെ മാർക്ക് കുറഞ്ഞ സമയത്താണ് എന്റെ കുടുംബത്തിലോ, വ്യക്തിജീവിതത്തിലോ ചില വലിയ പ്രശ്നങ്ങൾ സംഭവിച്ചത്",w:{sd:5}},
+  {s:"s-e",t:"എല്ലാവരും എന്നെ 'മിടുക്കൻ/മിടുക്കി' എന്നാണ് വിളിക്കുന്നത് — ഇനി ഞാൻ ശ്രമിച്ചിട്ട് തോറ്റാൽ അവർക്കത് വിഷമമാകുമെന്ന് കരുതി എനിക്ക് പേടിയാണ്",w:{gu:3,pf:2}},
+  {s:"s-e",t:"ഞാൻ വീട്ടിലിരുന്ന് കുറെ സമയം പഠിക്കും, എന്നാൽ സ്കൂളിലെത്തിയാൽ എനിക്ക് പഠിക്കാനോ വായിക്കാനോ കഴിയില്ല",w:{hs:4,gu:2}},
+  {s:"s-e",t:"എന്റെ ടീച്ചർ എന്നോട് പറഞ്ഞിട്ടുണ്ട്: 'നിനക്കത് അറിയില്ലെന്നല്ല — പക്ഷേ നിനക്കത് പരീക്ഷയിൽ എങ്ങനെയെഴുതണം എന്നറിയില്ല'",w:{ta:5,te:2}},
+  {s:"s-e",t:"എന്ത് ചെയ്യണമെന്ന് ആരെങ്കിലും കൃത്യമായി പറഞ്ഞാൽ ഞാൻ അത് നന്നായി ചെയ്യും, എന്നാൽ സ്വന്തമായി ചെയ്യാൻ പറഞ്ഞാൽ എനിക്ക് മനസ്സിലാവില്ല",w:{pp:3,sl:2,de:1}},
+  {s:"s-e",t:"ചെറിയ ക്ലാസ്സു മുതൽ ഇതൊക്കെ എനിക്ക് ബുദ്ധിമുട്ടാണ് — ഇതിപ്പോളൊരു പുതിയ കാര്യമൊന്നുമല്ല",w:{sl:2,de:2,gu:2,te:2}},
+  {s:"s-e",t:"സാധാരണ പരീക്ഷകളെക്കാൾ ഞാൻ നന്നായി ചെയ്യുന്നത് പ്രൊജക്റ്റുകളും, അസൈൻമെന്റുകളുമാണ്",w:{ta:4,te:2,dl:1}},
+  {s:"s-e",t:"സ്കൂളിന് പുറത്ത് ഞാൻ സ്പോർട്സിലും മറ്റ് കാര്യങ്ങളിലും കൂടുതൽ ആക്ടീവാണ്",w:{ha:3,ap:1,gu:1}},
+  {s:"s-e",t:"സാധാരണ ടൈപ്പ് പരീക്ഷകളാണെങ്കിൽ എനിക്ക് ബുദ്ധിമുട്ടൊന്നുമില്ല, എന്നാൽ ചോദ്യങ്ങൾ മാറ്റി ചോദിച്ചാൽ ഞാൻ പേടിക്കും",w:{sl:3,ta:2}},
+  {s:"s-e",t:"ഉത്തരങ്ങളെഴുതാൻ പറയാതെ, സ്വന്തമായി ഉത്തരം തയ്യാറാക്കാൻ ടീച്ചർ പറയുമ്പോഴാണ് ഞാൻ നന്നായി എഴുതാറുള്ളത്",w:{dl:3,gu:2,te:2}},
+
+  {s:"s-e",t:"സത്യം പറഞ്ഞാൽ ഞാൻ ഈ വിഷയം ഇതുവരെ എടുത്തു നോക്കിയിട്ടില്ല. ഇതിലൊന്നും എനിക്ക് പരിചയമുള്ളതായി തോന്നുന്നില്ല. 📕",w:{nr:5},passive:true},
+  {s:"s-e",t:"ഈ അധ്യായത്തിന്റെ നോട്ടുകളോ പുസ്തകമോ ഞാൻ ഒരിക്കൽ പോലും തുറന്നു നോക്കിയിട്ടില്ല",w:{nr:5},passive:true},
+  {s:"s-e",t:"ഈ അധ്യായം ഇതുവരെ ഞാൻ വായിച്ചിട്ടില്ലാത്തതുകൊണ്ട് എവിടെ തുടങ്ങണമെന്ന് പോലും എനിക്കറിയില്ല",w:{nr:4,pp:2},passive:true}
+];
+
+let on=new Set();
+const TOTAL=B.length;
+
+function build(){
+  B.forEach((b,i)=>{
+    const c=document.getElementById(b.s);
+    const el=document.createElement('label');
+    el.className='b-item';
+    el.dataset.i=i;
+    const passiveClass=b.passive?'style="border-left:3px solid #f8b070"':'';
+    el.innerHTML=`<input type="checkbox"><div class="chk"></div><span class="b-txt">${b.t}</span>`;
+    if(b.passive) el.style.borderLeft='3px solid #f8c090';
+    el.addEventListener('click',(e)=>{e.preventDefault();tog(i,el);});
+    c.appendChild(el);
+  });
+  document.getElementById('pl').textContent='0 / '+TOTAL;
+}
+
+function tog(i,el){
+  if(on.has(i)){on.delete(i);el.classList.remove('on');}
+  else{on.add(i);el.classList.add('on');}
+  upProg();calc();
+}
+
+function upProg(){
+  const p=Math.round(on.size/TOTAL*100);
+  document.getElementById('pb').style.width=p+'%';
+  document.getElementById('pl').textContent=on.size+' / '+TOTAL;
+}
+
+function checkPassive(scores){
+  const passiveChecked=on.size>0 && [...on].some(i=>B[i].passive);
+  const nrScore=scores['nr']||0;
+  return passiveChecked || (nrScore>0 && nrScore===Math.max(...Object.values(scores)));
+}
+
+function showPassive(show,nm){
+  const box=document.getElementById('passiveBox');
+  if(show){
+    box.classList.add('visible');
+    const desc=document.getElementById('passiveDesc');
+    desc.textContent=(nm?nm+' ':'')+'നിങ്ങൾ ഇത് അല്പം പോലും വായിച്ചു നോക്കിയിട്ടില്ല എന്നാണ് ഉത്തരങ്ങൾ കണ്ടിട്ട് തോന്നുന്നത്. സാരമില്ല — എന്നാൽ നിങ്ങൾ വേഗം തുടങ്ങണം. അടുത്ത ക്ലാസ്സിന് മുമ്പ് ഒരിക്കലെങ്കിലും വായിക്കുന്നത് നല്ലൊരു മാറ്റം ഉണ്ടാക്കാൻ സഹായിക്കും.';
+  } else {
+    box.classList.remove('visible');
+  }
+}
+
+function calc(){
+  const nm=document.getElementById('sname').value.trim();
+
+  if(on.size<1){
+    showPassive(false,nm);
+    document.getElementById('rbody').innerHTML='<div class="empty"><div class="empty-ico">&#9998;</div><p>നിങ്ങളുടെ പഠന രീതിയും നിർദ്ദേശങ്ങളും കാണുന്നതിനായി നിങ്ങളുമായി പൊരുത്തപ്പെടുന്ന 3 വാക്യങ്ങളെങ്കിലും ഇവിടെ ടിക്ക് ചെയ്യുക.</p></div>';
+    document.getElementById('rsub').textContent='നിങ്ങളുടെ ഫലം കാണാൻ ഇടത് വശത്തുള്ളവ ടിക്ക് ചെയ്യുക';
+    return;
+  }
+
+  const scores={},matched={};
+  Object.keys(T).forEach(k=>{scores[k]=0;matched[k]=[];});
+  on.forEach(i=>{
+    Object.entries(B[i].w).forEach(([k,v])=>{
+      scores[k]=(scores[k]||0)+v;
+      matched[k].push(B[i].t);
+    });
+  });
+
+  const isPassive=checkPassive(scores);
+  showPassive(isPassive,nm);
+
+  const top=Math.max(...Object.values(scores));
+  if(top===0)return;
+
+  const sorted=Object.entries(scores).filter(([,s])=>s>0).sort((a,b)=>b[1]-a[1]);
+  const res=sorted.slice(0,4).map(([k,s])=>({k,s,pct:Math.round(s/top*100),d:T[k],m:matched[k]}));
+  const isDual=res.length>=2&&res[1].pct>=55;
+
+  let html='';
+
+  if(res[0]&&res[0].k==='nr'){
+    html+=`<div class="no-revision"><div class="no-revision-title">⚠️ ഇതുവരെ പഠിച്ചു തുടങ്ങിയിട്ടില്ല</div><div class="no-revision-desc">${nm?nm+' ':'നിങ്ങൾ '}ഈ വിഷയം ഇതുവരെ എടുത്തുനോക്കിയിട്ടില്ല. വായിച്ച് തുടങ്ങുക — ഒരു 15 മിനിറ്റെങ്കിലും ഇപ്പോൾ തന്നെ വായിക്കാം. വായിച്ചതിന് ശേഷം ഇവിടെ വന്ന് വീണ്ടും പരിശോധിക്കുക.</div></div>`;
+  }
+
+  if(isDual){
+    html+=`<div class="dual"><strong>രണ്ട് രീതികൾ കണ്ടെത്തി</strong>${nm?'<strong>'+nm+'</strong>':''} നിങ്ങൾ രണ്ട് പഠന രീതികളുമായി സാമ്യം കാണിക്കുന്നു. രണ്ട് വിവരങ്ങളും വായിച്ചു നോക്കി നിർദ്ദേശങ്ങൾ പരീക്ഷിക്കുക.</div>`;
+    document.getElementById('rsub').textContent=on.size+' ഉത്തരങ്ങൾ — രണ്ട് രീതികൾ കണ്ടെത്തി';
+  } else {
+    document.getElementById('rsub').textContent=on.size+' ഉത്തരങ്ങൾ — പ്രധാന പഠന രീതി കണ്ടെത്തി';
+  }
+
+  res.forEach((r,i)=>{
+    const cls=i===0?'p1':i===1&&isDual?'p2':i===2?'p3':'p4';
+    const showBody=(i===0)||(i===1&&isDual);
+    const eid='e'+r.k+i;
+    html+=`<div class="rcard ${cls}"><div class="rc-hd"><div class="rank">${i+1}</div><div class="rname">${r.d.name}</div><div class="rpct">${r.pct}%</div></div><div class="rbar-w"><div class="rbar-o"><div class="rbar-i" style="width:${r.pct}%"></div></div></div>`;
+    if(showBody){
+      const sigs=r.m.slice(0,3);
+      html+=`<div class="rc-body"><span class="ttag ${r.d.tag}">${r.d.tl}</span><div class="rdesc">${r.d.desc}</div><div class="mlbl">നിങ്ങൾ തിരഞ്ഞെടുത്തത്</div><div class="msigs">${sigs.map(s=>`<span class="msig">${s.length>52?s.slice(0,49)+'...':s}</span>`).join('')}</div><div id="${eid}" style="display:none"><div class="ivlbl">ഇതിന് എന്ത് ചെയ്യണം</div><div class="ivlist">${r.d.iv.map(v=>`<div class="ivitem"><span class="ivdot">+</span><span>${v}</span></div>`).join('')}</div></div><button class="xbtn" onclick="xp('${eid}',this)">എന്ത് ചെയ്യണമെന്ന് കാണുക</button></div>`;
+    }
+    html+='</div>';
+  });
+
+  html+=`<button class="rbtn" onclick="rst()">ആദ്യം മുതൽ തുടങ്ങുക (Clear)</button>`;
+  document.getElementById('rbody').innerHTML=html;
+}
+
+function xp(id,btn){
+  const el=document.getElementById(id);
+  const open=el.style.display!=='none';
+  el.style.display=open?'none':'block';
+  btn.textContent=open?'എന്ത് ചെയ്യണമെന്ന് കാണുക':'നിർദ്ദേശങ്ങൾ മറയ്ക്കുക';
+}
+
+function rst(){
+  on.clear();
+  document.querySelectorAll('.b-item').forEach(el=>el.classList.remove('on'));
+  document.getElementById('sname').value='';
+  showPassive(false,'');
+  upProg();
+  document.getElementById('rbody').innerHTML='<div class="empty"><div class="empty-ico">&#9998;</div><p>നിങ്ങളുടെ പഠന രീതിയും നിർദ്ദേശങ്ങളും കാണുന്നതിനായി നിങ്ങളുമായി പൊരുത്തപ്പെടുന്ന 3 വാക്യങ്ങളെങ്കിലും ഇവിടെ ടിക്ക് ചെയ്യുക.</p></div>';
+  document.getElementById('rsub').textContent='നിങ്ങളുടെ ഫലം കാണാൻ ഇടത് വശത്തുള്ളവ ടിക്ക് ചെയ്യുക';
+}
+
+build();
+</script>
+</body>
+</html>
