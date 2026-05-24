@@ -503,27 +503,62 @@ if (document.getElementById('timetableTableBody')) {
         }
 
         let message = `*Class Schedule*\n\n`;
-        let currentDate = null;
 
+        // Group by Date, then by Class
+        const grouped = {};
         timetableEntries.forEach(entry => {
             const dateDisplay = formatDateFriendly(entry.date);
-            if (currentDate !== dateDisplay) {
-                message += `*${dateDisplay}*\n`;
-                currentDate = dateDisplay;
+            if (!grouped[dateDisplay]) {
+                grouped[dateDisplay] = {};
             }
-
-            let timeStr = '';
-            if (entry.startTime && entry.endTime) {
-                timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
-            } else if (entry.startTime) {
-                timeStr = formatTime12Hour(entry.startTime);
-            } else {
-                timeStr = '-';
+            if (!grouped[dateDisplay][entry.class]) {
+                grouped[dateDisplay][entry.class] = [];
             }
+            grouped[dateDisplay][entry.class].push(entry);
+        });
 
-            let locStr = entry.location === 'At Home' ? ' (At Home)' : '';
+        const dates = Object.keys(grouped);
+        dates.forEach((dateDisplay, dateIndex) => {
+            message += `*${dateDisplay}*\n\n`;
 
-            message += `🏫 Class ${entry.class}: 🕒 ${timeStr} | 📖 ${entry.subject}${locStr}\n`;
+            // Sort classes descending (12, 11, etc.)
+            const classes = Object.keys(grouped[dateDisplay]).sort((a, b) => {
+                return (parseInt(b) || 0) - (parseInt(a) || 0);
+            });
+
+            classes.forEach((cls, classIndex) => {
+                message += `🏫 *Class ${cls}*\n`;
+
+                // Sort entries for this class by time
+                const entries = grouped[dateDisplay][cls].sort((a, b) => {
+                    const timeA = a.startTime || '00:00';
+                    const timeB = b.startTime || '00:00';
+                    return timeA.localeCompare(timeB);
+                });
+
+                entries.forEach(entry => {
+                    let timeStr = '';
+                    if (entry.startTime && entry.endTime) {
+                        timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
+                    } else if (entry.startTime) {
+                        timeStr = formatTime12Hour(entry.startTime);
+                    } else {
+                        timeStr = '-';
+                    }
+
+                    let locStr = entry.location === 'At Home' ? ' (At Home)' : '';
+
+                    message += `🕒 ${timeStr} | 📖 ${entry.subject}${locStr}\n`;
+                });
+
+                if (classIndex < classes.length - 1) {
+                    message += `-------------------\n`;
+                }
+            });
+
+            if (dateIndex < dates.length - 1) {
+                message += `\n\n`;
+            }
         });
 
         // Open WhatsApp with text to specific number using wa.me
