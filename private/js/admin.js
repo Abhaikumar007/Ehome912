@@ -388,13 +388,15 @@ if (document.getElementById('timetableTableBody')) {
         const endTime = document.getElementById('timetableEndTime').value;
         const studentClass = document.getElementById('timetableClass').value;
         const subject = document.getElementById('timetableSubject').value;
+        const locationElement = document.getElementById('timetableLocation');
+        const location = locationElement ? locationElement.value : 'In Center';
 
         if (!date || !studentClass || !subject) {
             alert("Please fill in Date, Class and Subject. Times are optional.");
             return;
         }
 
-        const entry = { date, startTime, endTime, class: studentClass, subject };
+        const entry = { date, startTime, endTime, class: studentClass, subject, location };
         timetableEntries.push(entry);
         renderTimetable();
 
@@ -402,6 +404,7 @@ if (document.getElementById('timetableTableBody')) {
         document.getElementById('timetableStartTime').value = '';
         document.getElementById('timetableEndTime').value = '';
         document.getElementById('timetableSubject').value = '';
+        if(locationElement) locationElement.value = 'In Center';
     });
 
     function formatDateFriendly(dateString) {
@@ -416,12 +419,14 @@ if (document.getElementById('timetableTableBody')) {
         today.setHours(0, 0, 0, 0);
         tomorrow.setHours(0, 0, 0, 0);
 
+        const dateFormatted = new Date(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+
         if (inputDate.getTime() === today.getTime()) {
-            return "Today";
+            return `Today (${dateFormatted})`;
         } else if (inputDate.getTime() === tomorrow.getTime()) {
-            return "Tomorrow";
+            return `Tomorrow (${dateFormatted})`;
         } else {
-            return new Date(dateString).toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+            return dateFormatted;
         }
     }
 
@@ -438,16 +443,24 @@ if (document.getElementById('timetableTableBody')) {
     function renderTimetable() {
         tableBody.innerHTML = '';
         if (timetableEntries.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No entries added.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No entries added.</td></tr>';
             document.getElementById('shareSection').style.display = 'none';
             return;
         }
 
-        // Sort by Date then Start Time
+        // Sort by Date then Class (descending) then Start Time
         timetableEntries.sort((a, b) => {
+            if (a.date !== b.date) {
+                return new Date(a.date) - new Date(b.date);
+            }
+            const classA = parseInt(a.class) || 0;
+            const classB = parseInt(b.class) || 0;
+            if (classA !== classB) {
+                return classB - classA;
+            }
             const timeA = a.startTime || '00:00';
             const timeB = b.startTime || '00:00';
-            return new Date(a.date + ' ' + timeA) - new Date(b.date + ' ' + timeB);
+            return timeA.localeCompare(timeB);
         });
 
         timetableEntries.forEach((entry, index) => {
@@ -462,12 +475,14 @@ if (document.getElementById('timetableTableBody')) {
                 timeRange = '-';
             }
 
+            let locStr = entry.location === 'At Home' ? '<br><small class="text-danger">(At Home)</small>' : '';
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${dateDisplay}</td>
                 <td>${timeRange}</td>
                 <td>${entry.class}</td>
-                <td>${entry.subject}</td>
+                <td>${entry.subject}${locStr}</td>
                 <td class="no-capture"><button class="btn btn-sm btn-danger" onclick="removeTimetableEntry(${index})">&times;</button></td>
             `;
             tableBody.appendChild(tr);
@@ -488,17 +503,27 @@ if (document.getElementById('timetableTableBody')) {
         }
 
         let message = `*Class Schedule*\n\n`;
+        let currentDate = null;
 
         timetableEntries.forEach(entry => {
             const dateDisplay = formatDateFriendly(entry.date);
-            const startTimeDisplay = formatTime12Hour(entry.startTime);
-            const endTimeDisplay = formatTime12Hour(entry.endTime);
-            const timeStr = `🕒 ${startTimeDisplay} - ${endTimeDisplay}`;
+            if (currentDate !== dateDisplay) {
+                message += `*${dateDisplay}*\n`;
+                currentDate = dateDisplay;
+            }
 
-            message += `*${dateDisplay}* ${timeStr}\n`;
-            message += `🏫 Class: ${entry.class}\n`;
-            message += `📖 Subject: ${entry.subject}\n`;
-            message += `-------------------\n`;
+            let timeStr = '';
+            if (entry.startTime && entry.endTime) {
+                timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
+            } else if (entry.startTime) {
+                timeStr = formatTime12Hour(entry.startTime);
+            } else {
+                timeStr = '-';
+            }
+
+            let locStr = entry.location === 'At Home' ? ' (At Home)' : '';
+
+            message += `🏫 Class ${entry.class}: 🕒 ${timeStr} | 📖 ${entry.subject}${locStr}\n`;
         });
 
         // Open WhatsApp with text to specific number using wa.me
