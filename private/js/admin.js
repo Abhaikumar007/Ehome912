@@ -435,9 +435,15 @@ if (document.getElementById('timetableTableBody')) {
         const [hours, minutes] = timeString.split(':');
         const h = parseInt(hours, 10);
         const m = parseInt(minutes, 10);
-        const ampm = h >= 12 ? 'PM' : 'AM';
+        
+        let timeOfDay = '';
+        if (h >= 5 && h < 12) timeOfDay = 'Morning';
+        else if (h >= 12 && h < 16) timeOfDay = 'Afternoon';
+        else if (h >= 16 && h < 20) timeOfDay = 'Evening';
+        else timeOfDay = 'Night';
+
         const h12 = h % 12 || 12;
-        return `${h12}:${m < 10 ? '0' + m : m} ${ampm}`;
+        return `${h12}:${m < 10 ? '0' + m : m} (${timeOfDay})`;
     }
 
     function renderTimetable() {
@@ -475,7 +481,7 @@ if (document.getElementById('timetableTableBody')) {
                 timeRange = '-';
             }
 
-            let locStr = entry.location === 'At Home' ? '<br><small class="text-danger">(At Home)</small>' : '';
+            let locStr = entry.location === 'At Home' ? '<br><small class="text-danger">(At Home)</small>' : '<br><small class="text-success">(In Center)</small>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
@@ -546,7 +552,7 @@ if (document.getElementById('timetableTableBody')) {
                         timeStr = '-';
                     }
 
-                    let locStr = entry.location === 'At Home' ? ' (At Home)' : '';
+                    let locStr = entry.location === 'At Home' ? ' (At Home)' : ' (In Center)';
 
                     message += `🕒 ${timeStr} | 📖 ${entry.subject}${locStr}\n`;
                 });
