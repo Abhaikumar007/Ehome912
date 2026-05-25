@@ -446,6 +446,18 @@ if (document.getElementById('timetableTableBody')) {
         return `${h12}:${m < 10 ? '0' + m : m} (${timeOfDay})`;
     }
 
+    function getSubjectWithEmoji(subject) {
+        if (!subject) return '';
+        switch (subject.toLowerCase()) {
+            case 'physics': return '💡 Physics';
+            case 'biology': return '🧬 Biology';
+            case 'chemistry': return '🧪 Chemistry';
+            case 'computer science': return '💻 Computer Science';
+            case 'maths': return '📐 Maths';
+            default: return `📖 ${subject}`;
+        }
+    }
+
     function renderTimetable() {
         tableBody.innerHTML = '';
         if (timetableEntries.length === 0) {
@@ -488,7 +500,7 @@ if (document.getElementById('timetableTableBody')) {
                 <td>${dateDisplay}</td>
                 <td>${timeRange}</td>
                 <td>${entry.class}</td>
-                <td>${entry.subject}${locStr}</td>
+                <td>${getSubjectWithEmoji(entry.subject)}${locStr}</td>
                 <td class="no-capture"><button class="btn btn-sm btn-danger" onclick="removeTimetableEntry(${index})">&times;</button></td>
             `;
             tableBody.appendChild(tr);
@@ -554,7 +566,7 @@ if (document.getElementById('timetableTableBody')) {
 
                     let locStr = entry.location === 'At Home' ? ' (At Home)' : ' (In Center)';
 
-                    message += `🕒 ${timeStr} | 📖 ${entry.subject}${locStr}\n`;
+                    message += `🕒 ${timeStr} | ${getSubjectWithEmoji(entry.subject)}${locStr}\n`;
                 });
 
                 if (classIndex < classes.length - 1) {
