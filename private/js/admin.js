@@ -564,9 +564,9 @@ if (document.getElementById('timetableTableBody')) {
                         timeStr = '-';
                     }
 
-                    let locStr = entry.location === 'At Home' ? ' (At Home)' : ' (In Center)';
+                    let locStr = entry.location === 'At Home' ? '(At Home)' : '(In Center)';
 
-                    message += `🕒 ${timeStr} | ${getSubjectWithEmoji(entry.subject)}${locStr}\n`;
+                    message += `🕒 ${timeStr}\n${getSubjectWithEmoji(entry.subject)}\n${locStr}\n\n`;
                 });
 
                 if (classIndex < classes.length - 1) {
