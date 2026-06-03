@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Study Methodology & Roadmap | EduHome Tuition Center</title>
     <meta name="description" content="Master Active Recall and Spaced Repetition with EduHome's proven study methodology for Science and Mathematics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -13,36 +15,80 @@
             --notion-blue: #0075de;
             --warm-white: #f6f5f4;
             --warm-gray: #615d59;
+            --warm-gray-muted: #a39e98;
             --border: 1px solid rgba(0,0,0,0.1);
+            --shadow-card: rgba(0,0,0,0.04) 0px 4px 18px, rgba(0,0,0,0.027) 0px 2.025px 7.85px, rgba(0,0,0,0.02) 0px 0.8px 2.93px, rgba(0,0,0,0.01) 0px 0.175px 1.04px;
         }
+
         body { 
-            font-family: 'Inter', system-ui, sans-serif; 
+            font-family: 'Inter', -apple-system, system-ui, sans-serif; 
             color: var(--notion-black); 
             background: #ffffff; 
-            line-height: 1.6; 
+            line-height: 1.5; 
             margin: 0; 
             -webkit-font-smoothing: antialiased;
         }
-        .nav { padding: 20px 40px; border-bottom: var(--border); display: flex; justify-content: space-between; align-items: center; }
+
+        .nav { 
+            padding: 16px 40px; 
+            border-bottom: var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
         .nav a { text-decoration: none; color: var(--notion-black); font-weight: 600; font-size: 15px; }
+        .nav .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: -0.5px; }
         
-        .hero { padding: 80px 20px; text-align: center; max-width: 900px; margin: 0 auto; }
-        .hero h1 { font-size: 54px; font-weight: 700; letter-spacing: -1.875px; line-height: 1.1; margin-bottom: 24px; }
-        .hero p { font-size: 20px; color: var(--warm-gray); font-weight: 500; max-width: 700px; margin: 0 auto; }
+        .hero { padding: 120px 20px 80px; text-align: center; max-width: 900px; margin: 0 auto; }
+        .hero h1 { 
+            font-size: 64px; 
+            font-weight: 700; 
+            letter-spacing: -2.125px; 
+            line-height: 1.0; 
+            margin-bottom: 24px; 
+            color: var(--notion-black);
+        }
+        .hero p { font-size: 20px; color: var(--warm-gray); font-weight: 500; max-width: 700px; margin: 0 auto; line-height: 1.4; }
         
         .content { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .content img { width: 100%; border-radius: 12px; margin: 30px 0; border: var(--border); }
-        .section-alt { background: var(--warm-white); padding: 60px 20px; border-top: var(--border); border-bottom: var(--border); }
+        .content h2 { font-size: 32px; font-weight: 700; letter-spacing: -0.75px; margin-top: 60px; margin-bottom: 20px; }
+        .content p { font-size: 17px; margin-bottom: 24px; color: var(--notion-black); }
+        
+        .image-container {
+            margin: 40px 0;
+            background: #fff;
+            border: var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--shadow-card);
+            transition: transform 0.2s ease;
+        }
+        .image-container:hover { transform: translateY(-2px); }
+        .image-container img { width: 100%; border-radius: 8px; display: block; }
+        .image-caption { 
+            font-size: 14px; 
+            color: var(--warm-gray); 
+            text-align: center; 
+            margin-top: 12px; 
+            font-weight: 500; 
+        }
+
+        .section-alt { background: var(--warm-white); padding: 80px 20px; border-top: var(--border); border-bottom: var(--border); }
         
         .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 40px; }
         .card { 
             background: #fff; 
             border: var(--border); 
             border-radius: 12px; 
-            padding: 24px; 
-            box-shadow: rgba(0,0,0,0.04) 0px 4px 18px; 
+            padding: 32px; 
+            box-shadow: var(--shadow-card); 
         }
-        .card h3 { font-size: 22px; margin-top: 0; letter-spacing: -0.25px; }
+        .card h3 { font-size: 22px; font-weight: 700; margin-top: 0; letter-spacing: -0.25px; margin-bottom: 12px; }
+        .card p { font-size: 16px; color: var(--warm-gray); margin-bottom: 0; }
         
         .badge { 
             background: #f2f9ff; 
@@ -53,9 +99,28 @@
             font-weight: 600; 
             text-transform: uppercase;
             letter-spacing: 0.125px;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .method-list { list-style: none; padding: 0; margin: 0; }
+        .method-list li { 
+            position: relative; 
+            padding-left: 28px; 
+            margin-bottom: 16px; 
+            font-size: 17px;
+        }
+        .method-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--notion-blue);
+            font-weight: 700;
+            font-size: 20px;
+            line-height: 1;
         }
         
-        .footer { padding: 60px 20px; text-align: center; border-top: var(--border); color: var(--warm-gray); font-size: 14px; }
+        .footer { padding: 80px 20px; text-align: center; border-top: var(--border); color: var(--warm-gray); font-size: 14px; }
         .cta-btn { 
             display: inline-block; 
             background: var(--notion-blue); 
@@ -64,69 +129,104 @@
             border-radius: 6px; 
             text-decoration: none; 
             font-weight: 600; 
-            margin-top: 30px; 
+            font-size: 16px;
+            margin-top: 40px; 
+            transition: background 0.2s;
         }
+        .cta-btn:hover { background: #005bab; }
         
-        @media (max-width: 600px) {
-            .hero h1 { font-size: 36px; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 40px; letter-spacing: -1px; }
             .card-grid { grid-template-columns: 1fr; }
+            .hero { padding: 80px 20px 40px; }
         }
     </style>
 </head>
 <body>
     <nav class="nav">
-        <a href="https://myeduhome.netlify.app">EduHome Kottathala</a>
-        <a href="tel:+919072545116" style="color: var(--notion-blue);">Contact Us</a>
+        <div class="brand">
+            <a href="https://myeduhome.netlify.app">EduHome Kottathala</a>
+        </div>
+        <a href="https://wa.me/919072545116" style="color: var(--notion-blue);">Contact Support</a>
     </nav>
 
     <header class="hero">
-        <span class="badge">Study Roadmap</span>
-        <h1>Study Methodology: Active Recall and Spaced Repetition</h1>
+        <span class="badge">Study Roadmap 2026</span>
+        <h1>Study Methodology: Active Recall & Spaced Repetition</h1>
         <p>Mastering complex subjects through scientifically proven learning techniques at <strong>EduHome Tuition Center</strong>.</p>
     </header>
 
     <div class="content">
-        <p>Effective studying isn't about how long you sit with a book, but how you engage with the information. At <strong>EduHome Tuition Center</strong>, we prioritize two scientifically proven methods: <strong>Active Recall</strong> and <strong>Spaced Repetition</strong>.</p>
+        <p>Effective studying isn't about how long you sit with a book, but how you engage with the information. At <strong>EduHome Tuition Center</strong>, we prioritize two scientifically proven methods to move knowledge from short-term to long-term memory.</p>
         
         <h2>1. Active Recall</h2>
-        <p>Instead of re-reading a chapter (passive), try to explain the core concepts from memory (active). For example, after studying the structure of an atom, close the book and draw the Bohr model from scratch.</p>
-        <img src="../images/01-comparison-active-recall.png" alt="Active Recall vs Passive Learning">
+        <p>Instead of re-reading a chapter (passive), try to explain the core concepts from memory (active). Testing your brain forces it to create stronger neural pathways.</p>
+        
+        <div class="image-container">
+            <img src="../images/01-comparison-active-recall.png" alt="Active Recall vs Passive Learning Illustration">
+            <p class="image-caption">Visualizing the energy difference between Passive Reading and Active Retrieval.</p>
+        </div>
+
+        <p>For example, after studying the structure of an atom, close the book and draw the Bohr model from scratch. If you can't, you know exactly which part you haven't mastered yet.</p>
 
         <h2>2. Spaced Repetition</h2>
-        <p>Don't "cram" all night before an exam. Reviewing the same topic over increasing intervals (1 day, 1 week, 1 month) moves information from short-term to long-term memory.</p>
-        <img src="../images/02-timeline-spaced-repetition.png" alt="Spaced Repetition Forgetting Curve">
+        <p>Don't "cram" all night before an exam. Reviewing the same topic over increasing intervals (1 day, 1 week, 1 month) prevents the "Forgetting Curve" from taking over.</p>
+
+        <div class="image-container">
+            <img src="../images/02-timeline-spaced-repetition.png" alt="Spaced Repetition Graph">
+            <p class="image-caption">The Forgetting Curve: Spacing your reviews resets your retention to 100%.</p>
+        </div>
     </div>
 
     <div class="section-alt">
-        <div class="content" style="margin-top: 0;">
+        <div class="content" style="margin-top: 0; margin-bottom: 0;">
+            <span class="badge" style="background: #fff;">Mathematics Strategy</span>
             <h2>Mathematics: The Foundation of Problem Solving</h2>
-            <p>Mathematics is not just about numbers; it's about logic and pattern recognition. Whether you are solving linear equations or calculating the area of a circle, the steps remain consistent:</p>
-            <ol>
-                <li><strong>Analyze</strong>: What is given? What is required?</li>
-                <li><strong>Strategize</strong>: Which formula or theorem applies?</li>
-                <li><strong>Execute</strong>: Step-by-step calculation with precision.</li>
-                <li><strong>Verify</strong>: Does the answer make sense?</li>
-            </ol>
-            <img src="../images/03-flowchart-math-strategy.png" alt="4-Step Math Problem Solving Strategy">
+            <p>Mathematics at EduHome is about logic, not just calculations. We teach a consistent 4-step framework for every problem:</p>
+            
+            <div class="card-grid">
+                <div class="card">
+                    <h3>1. Analyze</h3>
+                    <p>What is given? What is required? Read the question twice to find hidden clues.</p>
+                </div>
+                <div class="card">
+                    <h3>2. Strategize</h3>
+                    <p>Which formula or theorem applies? Map out the path before you pick up the pen.</p>
+                </div>
+                <div class="card">
+                    <h3>3. Execute</h3>
+                    <p>Step-by-step calculation with precision. Accuracy is the result of focused execution.</p>
+                </div>
+                <div class="card">
+                    <h3>4. Verify</h3>
+                    <p>Does the answer make sense? Re-check the logic and the final units.</p>
+                </div>
+            </div>
+
+            <div class="image-container">
+                <img src="../images/03-flowchart-math-strategy.png" alt="4-Step Problem Solving Framework">
+                <p class="image-caption">The EduHome Foundation: A roadmap for mathematical precision.</p>
+            </div>
         </div>
     </div>
 
     <div class="content">
-        <h2>Science: Understanding the World Around Us</h2>
-        <p>From the chemical reactions in a test tube to the laws of motion governing a falling apple, science is everywhere.</p>
-        <ul>
-            <li><strong>Physics</strong>: Focus on understanding the derivation of formulas.</li>
-            <li><strong>Chemistry</strong>: Master the periodic table and valency to predict reactions.</li>
+        <h2>Science: Understanding the World</h2>
+        <p>From the chemical reactions in a test tube to the laws of motion, science requires a multi-faceted approach:</p>
+        <ul class="method-list">
+            <li><strong>Physics</strong>: Focus on understanding the derivation of formulas rather than just memorizing them.</li>
+            <li><strong>Chemistry</strong>: Master the periodic table and valency to predict reactions intuitively.</li>
             <li><strong>Biology</strong>: Use diagrams to visualize complex systems like the human heart or plant cells.</li>
         </ul>
+        
         <div style="text-align: center;">
             <a href="https://wa.me/919072545116" class="cta-btn">WhatsApp Us for a Free Consultation</a>
         </div>
     </div>
 
     <footer class="footer">
-        <p>© 2026 EduHome | Located at Kottathala Junction, near Kottarakkara.</p>
-        <p>Dedicated to providing the highest quality education for our community.</p>
+        <p>© 2026 EduHome Tuition Center | Located at Kottathala Junction, near Kottarakkara.</p>
+        <p>Committed to providing the highest quality education for our community.</p>
     </footer>
 </body>
 </html>
