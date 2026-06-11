@@ -149,17 +149,51 @@
                             title="Opens WhatsApp with a formatted student list summary">
                             <i class="fab fa-whatsapp mr-1"></i> Send to WhatsApp
                         </button>
+                        <button id="syncSupabaseBtn"
+                            class="btn btn-primary"
+                            onclick="runMigration()"
+                            title="Push all localStorage data to Supabase cloud">
+                            <i class="fas fa-cloud-upload-alt mr-1"></i> Sync to Cloud
+                        </button>
                     </div>
-                    <small class="text-muted d-block mt-2">
+                    <div id="syncStatus" class="mt-2" style="font-size:0.92rem;"></div>
+                    <small class="text-muted d-block mt-1">
                         <i class="fas fa-info-circle mr-1"></i>
-                        JSON download includes all fields + fee records. WhatsApp sends a class-wise summary.
+                        JSON download includes all fields + fee records. WhatsApp sends a class-wise summary. <strong>Sync to Cloud</strong> pushes everything to Supabase.
                     </small>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/supabase-client.js"></script>
+
     <script src="js/admin.js"></script>
+
+    <script>
+    // ── Sync helper (called by button) ──────────────────────────
+    async function runMigration() {
+        const btn    = document.getElementById('syncSupabaseBtn');
+        const status = document.getElementById('syncStatus');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Syncing...';
+        status.innerHTML = '';
+
+        const result = await sb_migrateFromLocalStorage();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Sync to Cloud';
+
+        if (result.ok) {
+            status.innerHTML = '<span class="text-success"><i class="fas fa-check-circle mr-1"></i>' + result.msg + '</span>';
+        } else {
+            status.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle mr-1"></i>' + result.msg + '</span>';
+        }
+    }
+    </script>
 
     <script>
     // ── Auto Fee Calculator ──────────────────────────────────────────────────
