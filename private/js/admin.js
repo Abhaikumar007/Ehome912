@@ -20,6 +20,108 @@ function saveFees(fees) {
 }
 
 // --- DATA MANAGEMENT (BACKUP & RESTORE) ---
+
+// --- EXPORT STUDENT DATA ---
+window.exportStudentData = function () {
+    const students = getStudents();
+    const fees = getFees();
+
+    if (students.length === 0) {
+        alert('No students found to export.');
+        return;
+    }
+
+    // Build enriched export (students + per-student fee summary)
+    const exportData = {
+        exportedAt: new Date().toISOString(),
+        totalStudents: students.length,
+        students: students.map(function (s) {
+            // Collect all fee keys for this student
+            const studentFees = {};
+            Object.keys(fees).forEach(function (key) {
+                if (key.startsWith(s.id + '_')) {
+                    // key format: studentId_Subject_Month_Year
+                    const parts = key.split('_');
+                    if (parts.length >= 4) {
+                        const label = parts.slice(1).join('_'); // Subject_Month_Year
+                        studentFees[label] = fees[key];
+                    }
+                }
+            });
+            return {
+                id: s.id,
+                name: s.name,
+                class: s.class,
+                school: s.school || '',
+                phone: s.phone,
+                joiningDate: s.joiningDate || '',
+                monthlyFee: s.amount || '',
+                subjects: s.subjects,
+                feeRecords: studentFees
+            };
+        })
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.download = 'students_export_' + new Date().toISOString().slice(0, 10) + '.json';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert('✅ Student data exported! File downloaded.');
+};
+
+window.sendExportToWhatsApp = function () {
+    const students = getStudents();
+    if (students.length === 0) {
+        alert('No students found to send.');
+        return;
+    }
+
+    // Sort by class then name
+    const sorted = students.slice().sort(function (a, b) {
+        if (a.class !== b.class) return (parseInt(a.class) || 0) - (parseInt(b.class) || 0);
+        return a.name.localeCompare(b.name);
+    });
+
+    // Group by class
+    const byClass = {};
+    sorted.forEach(function (s) {
+        if (!byClass[s.class]) byClass[s.class] = [];
+        byClass[s.class].push(s);
+    });
+
+    let msg = '*📋 Edu Home — Student Export*\n';
+    msg += 'Date: ' + new Date().toLocaleDateString('en-IN') + '\n';
+    msg += 'Total Students: ' + students.length + '\n\n';
+
+    Object.keys(byClass).sort(function (a, b) { return (parseInt(a) || 0) - (parseInt(b) || 0); }).forEach(function (cls) {
+        msg += '━━━━━━━━━━━━━━━━━━\n';
+        msg += '🏫 *Class ' + cls + '* (' + byClass[cls].length + ' students)\n';
+        msg += '━━━━━━━━━━━━━━━━━━\n';
+        byClass[cls].forEach(function (s, i) {
+            msg += (i + 1) + '. *' + s.name + '*\n';
+            msg += '   📱 ' + s.phone + '\n';
+            msg += '   📚 ' + (s.subjects && s.subjects.length ? s.subjects.join(', ') : '-') + '\n';
+            msg += '   💰 ₹' + (s.amount || '-') + '/month\n';
+            if (s.school) msg += '   🏛 ' + s.school + '\n';
+            if (s.joiningDate) msg += '   📅 Joined: ' + new Date(s.joiningDate).toLocaleDateString('en-IN') + '\n';
+            msg += '\n';
+        });
+    });
+
+    // WhatsApp has a URL length limit; warn if too long
+    const encoded = encodeURIComponent(msg);
+    if (encoded.length > 4000) {
+        alert('⚠️ Data is very large for WhatsApp. Consider downloading the JSON file instead.\n\nOpening WhatsApp with the summary anyway...');
+    }
+    window.open('https://wa.me/?text=' + encoded, '_blank');
+};
+
 window.backupData = function () {
     const data = {
         students: getStudents(),
