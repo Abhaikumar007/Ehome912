@@ -106,15 +106,24 @@
             <div class="col-md-10">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h3 class="m-0">Manage Students</h3>
-                    <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm" style="border: 1px solid #dee2e6;">
-                        <span id="labelLocal" class="font-weight-bold" style="color: #003366; margin-right: 8px;">💾 Local Storage</span>
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="sourceToggleSwitch">
-                            <label class="custom-control-label" for="sourceToggleSwitch" style="cursor: pointer;"></label>
+                    <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
+                        <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm" style="border: 1px solid #dee2e6;">
+                            <span id="labelLocal" class="font-weight-bold" style="color: #003366; margin-right: 8px;">💾 Local Storage</span>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="sourceToggleSwitch">
+                                <label class="custom-control-label" for="sourceToggleSwitch" style="cursor: pointer;"></label>
+                            </div>
+                            <span id="labelCloud" class="text-muted" style="margin-left: 8px;">☁️ Cloud Storage</span>
                         </div>
-                        <span id="labelCloud" class="text-muted" style="margin-left: 8px;">☁️ Cloud Storage</span>
+                        <button id="pullCloudBtn" class="btn btn-sm btn-outline-primary shadow-sm" style="padding: 8px 12px; font-weight: 600;" onclick="runPullFromCloud()">
+                            <i class="fas fa-cloud-download-alt mr-1"></i> Pull
+                        </button>
+                        <button id="pushCloudBtn" class="btn btn-sm btn-outline-success shadow-sm" style="padding: 8px 12px; font-weight: 600;" onclick="runPushToCloud()">
+                            <i class="fas fa-cloud-upload-alt mr-1"></i> Push
+                        </button>
                     </div>
                 </div>
+                <div id="manualSyncStatus" class="mb-2 text-right"></div>
                 <div class="table-responsive bg-white p-3 shadow-sm rounded">
                     <table class="table table-bordered table-striped" id="studentManagementTable">
                         <thead class="thead-dark">
@@ -159,12 +168,7 @@
                             title="Opens WhatsApp with a formatted student list summary">
                             <i class="fab fa-whatsapp mr-1"></i> Send to WhatsApp
                         </button>
-                        <button id="syncSupabaseBtn"
-                            class="btn btn-primary"
-                            onclick="runMigration()"
-                            title="Push all localStorage data to Supabase cloud">
-                            <i class="fas fa-cloud-upload-alt mr-1"></i> Sync to Cloud
-                        </button>
+
                         <button id="debugSupabaseBtn"
                             class="btn btn-secondary"
                             onclick="runDebug()"
@@ -190,53 +194,55 @@
     <script src="js/admin.js"></script>
 
     <script>
-    // ── Auto-load from Supabase on page open ─────────────────────
-    // This runs immediately so any device always sees the latest data.
-    document.addEventListener('DOMContentLoaded', async function () {
-        const status = document.getElementById('syncStatus');
-        if (status) {
-            status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Loading latest data from cloud...</span>';
-        }
+    // ── Manual Sync Handlers ──────────────────────────────────────────
+
+    async function runPullFromCloud() {
+        const btn    = document.getElementById('pullCloudBtn');
+        const status = document.getElementById('manualSyncStatus');
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pulling...';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading from cloud...</span>';
 
         const result = await sb_loadFromCloud();
 
-        if (result.ok) {
-            // Re-render student list with fresh cloud data
-            if (typeof renderStudentManagementList === 'function') {
-                renderStudentManagementList();
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-1"></i> Pull';
+
+        if (result && result.ok) {
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pulled ' + result.students.length + ' students from cloud!</span>';
+            // Switch toggle to Local to show the new downloaded data
+            const toggle = document.getElementById('sourceToggleSwitch');
+            if (toggle && toggle.checked) {
+                toggle.click(); // This will trigger change event and re-render
+            } else {
+                if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
             }
-            if (status) {
-                status.innerHTML = '<span class="text-success" style="font-size:0.82rem;"><i class="fas fa-check-circle mr-1"></i>Synced from cloud — ' + result.students.length + ' students loaded.</span>';
-                setTimeout(function () { status.innerHTML = ''; }, 3000);
-            }
+            setTimeout(() => { status.innerHTML = ''; }, 4000);
         } else {
-            // Cloud failed — localStorage data (if any) will be used as fallback
-            if (status) {
-                status.innerHTML = '<span class="text-warning" style="font-size:0.82rem;"><i class="fas fa-wifi mr-1"></i>Offline — showing local data.</span>';
-                setTimeout(function () { status.innerHTML = ''; }, 4000);
-            }
+            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Pull failed: ' + (result ? result.msg : 'Network error') + '</span>';
         }
-    });
-    </script>
+    }
 
-    <script>
-    // ── Sync helper (called by button) ──────────────────────────
-    async function runMigration() {
-        const btn    = document.getElementById('syncSupabaseBtn');
-        const status = document.getElementById('syncStatus');
+    async function runPushToCloud() {
+        const btn    = document.getElementById('pushCloudBtn');
+        const status = document.getElementById('manualSyncStatus');
+        
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Syncing...';
-        status.innerHTML = '';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pushing...';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-upload-alt mr-1"></i>Uploading local data to cloud...</span>';
 
+        // sb_migrateFromLocalStorage does exactly what a manual push should do
         const result = await sb_migrateFromLocalStorage();
 
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Sync to Cloud';
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Push';
 
-        if (result.ok) {
-            status.innerHTML = '<span class="text-success"><i class="fas fa-check-circle mr-1"></i>' + result.msg + '</span>';
+        if (result && result.ok) {
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pushed all local data to cloud!</span>';
+            setTimeout(() => { status.innerHTML = ''; }, 4000);
         } else {
-            status.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle mr-1"></i>' + result.msg + '</span>';
+            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Push failed: ' + (result ? result.msg : 'Network error') + '</span>';
         }
     }
 
