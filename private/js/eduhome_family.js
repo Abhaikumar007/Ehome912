@@ -1,14 +1,19 @@
-// Supabase Initialization (Keys pulled from config.js safely)
+// Supabase Initialization — Referral Program (separate project from student admin)
+// This project (inmdfsnupkennvquwugc) handles ONLY the referrals table.
+const _FAMILY_SB_URL = 'https://inmdfsnupkennvquwugc.supabase.co';
+const _FAMILY_SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlubWRmc251cGtlbm52cXV3dWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNzg2MTYsImV4cCI6MjA5MDg1NDYxNn0.eiLELkK4LkvQ2_PnKF1ps8AqL8qhFYc9meatPRShk7A';
+
 let supabaseClient = null;
 try {
-    if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined') {
-        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    if (typeof window.supabase !== 'undefined') {
+        supabaseClient = window.supabase.createClient(_FAMILY_SB_URL, _FAMILY_SB_KEY);
     } else {
-        console.warn("Supabase CDN or config.js not loaded. Operating in LocalStorage-only mode.");
+        console.warn("Supabase CDN not loaded. Operating in LocalStorage-only mode.");
     }
 } catch(e) {
     console.error("Supabase initialization error:", e);
 }
+
 
 // Audio synthesis logic for hyper-gamification
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
