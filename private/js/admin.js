@@ -234,6 +234,12 @@ if (document.getElementById('addStudentForm')) {
         document.getElementById('studentId').value = '';
         document.getElementById('submitStudentBtn').innerText = 'Add Student';
         document.querySelectorAll('input[name="subject"]').forEach(cb => cb.checked = false);
+        
+        if (typeof window.manualFeeOverride !== 'undefined') {
+            window.manualFeeOverride = false;
+        }
+        const hint = document.getElementById('feeHint');
+        if (hint) hint.textContent = 'Select class and subjects to auto-fill fee.';
     });
 }
 
@@ -1074,6 +1080,13 @@ if (document.getElementById('studentListBody')) {
         document.getElementById('phone').value = student.phone;
         document.getElementById('joiningDate').value = student.joiningDate || '';
         document.getElementById('amount').value = student.amount || '';
+        
+        // Stop auto-calc from overriding during an edit
+        if (typeof window.manualFeeOverride !== 'undefined') {
+            window.manualFeeOverride = true;
+        }
+        const hint = document.getElementById('feeHint');
+        if (hint) hint.textContent = 'Editing mode: Auto-calc disabled. Clear amount to recalculate.';
 
         // Subjects
         document.querySelectorAll('input[name="subject"]').forEach(cb => {

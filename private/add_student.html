@@ -352,7 +352,11 @@
         }
     }
 
+    window.manualFeeOverride = false;
+
     function updateAutoFee() {
+        if (window.manualFeeOverride) return;
+
         const cls  = document.getElementById('class').value;
         const subs = getSelectedSubjects();
         const fee  = calculateFee(cls, subs);
@@ -374,6 +378,15 @@
     document.getElementById('class').addEventListener('change', updateAutoFee);
     document.querySelectorAll('input[name="subject"]').forEach(cb => {
         cb.addEventListener('change', updateAutoFee);
+    });
+
+    document.getElementById('amount').addEventListener('input', function() {
+        if (this.value.trim() === '') {
+            window.manualFeeOverride = false;
+            updateAutoFee(); // Recalculate if they clear it
+        } else {
+            window.manualFeeOverride = true;
+        }
     });
     </script>
 </body>
