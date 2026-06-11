@@ -104,7 +104,17 @@
 
         <div class="row justify-content-center mt-5 mb-5">
             <div class="col-md-10">
-                <h3 class="text-center mb-3">Manage Students</h3>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="m-0">Manage Students</h3>
+                    <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm" style="border: 1px solid #dee2e6;">
+                        <span id="labelLocal" class="font-weight-bold" style="color: #003366; margin-right: 8px;">💾 Local Storage</span>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" id="sourceToggleSwitch">
+                            <label class="custom-control-label" for="sourceToggleSwitch" style="cursor: pointer;"></label>
+                        </div>
+                        <span id="labelCloud" class="text-muted" style="margin-left: 8px;">☁️ Cloud Storage</span>
+                    </div>
+                </div>
                 <div class="table-responsive bg-white p-3 shadow-sm rounded">
                     <table class="table table-bordered table-striped" id="studentManagementTable">
                         <thead class="thead-dark">

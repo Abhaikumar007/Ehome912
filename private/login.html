@@ -157,6 +157,10 @@
             <i class="fas fa-sign-in-alt mr-1"></i> Sign In
         </button>
 
+        <button class="btn-login" style="background: linear-gradient(135deg, #dc3545, #b02a37); margin-top: 10px;" id="urgentBtn" onclick="doUrgentLogin()">
+            <i class="fas fa-exclamation-triangle mr-1"></i> URGENT USE (Offline Bypass)
+        </button>
+
         <div id="error-msg"></div>
         <p class="footer-note"><i class="fas fa-lock"></i> Secured by Supabase Auth</p>
     </div>
@@ -214,6 +218,15 @@
                 // ✅ Logged in — Supabase auto-saves session to localStorage (persists forever)
                 window.location.replace('index.html');
             }
+        }
+
+        function doUrgentLogin() {
+            const PROJECT_REF = 'fliozfydpgygmisocvcx';
+            const AUTH_KEY    = 'sb-' + PROJECT_REF + '-auth-token';
+            // Create a fake session that security.js will accept
+            const fakeSession = { access_token: 'urgent_offline', user: { email: 'urgent_offline@local' } };
+            localStorage.setItem(AUTH_KEY, JSON.stringify(fakeSession));
+            window.location.replace('index.html');
         }
     </script>
 </body>

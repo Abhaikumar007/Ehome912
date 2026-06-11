@@ -919,19 +919,36 @@ if (document.getElementById('attendanceClassSelect')) {
 
 // --- STUDENT MANAGEMENT LIST (ADD STUDENT PAGE) ---
 if (document.getElementById('studentListBody')) {
-    function renderStudentManagementList() {
+    async function renderStudentManagementList() {
         const tbody = document.getElementById('studentListBody');
-        const students = getStudents();
+        const toggle = document.getElementById('sourceToggleSwitch');
+        const isCloud = toggle ? toggle.checked : false;
+        
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
+        
+        let students = [];
+        if (isCloud) {
+            if (typeof sb_getStudents === 'function') {
+                const cloudData = await sb_getStudents();
+                if (cloudData) students = cloudData;
+                else students = getStudents(); // fallback if error
+            } else {
+                students = getStudents();
+            }
+        } else {
+            students = getStudents();
+        }
+
         tbody.innerHTML = '';
 
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center">No students added yet.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found.</td></tr>';
             return;
         }
 
         // Sort by class then name
         students.sort((a, b) => {
-            if (a.class !== b.class) return a.class - b.class;
+            if (a.class !== b.class) return (parseInt(a.class)||0) - (parseInt(b.class)||0);
             return a.name.localeCompare(b.name);
         });
 
@@ -947,11 +964,34 @@ if (document.getElementById('studentListBody')) {
                 <td>${s.phone}</td>
                 <td>${s.subjects.join(', ')}</td>
                 <td>
+                    ${isCloud ? `<span class="badge badge-secondary">Read-only in Cloud View</span>` : `
                     <button class="btn btn-sm btn-info mb-1" onclick="editStudent('${s.id}')">Edit</button>
                     <button class="btn btn-sm btn-danger" onclick="askDeleteStudent('${s.id}', this)">Delete</button>
+                    `}
                 </td>
             `;
             tbody.appendChild(tr);
+        });
+    }
+
+    // Listen to toggle
+    const toggleSwitch = document.getElementById('sourceToggleSwitch');
+    if (toggleSwitch) {
+        toggleSwitch.addEventListener('change', function() {
+            const lblLoc = document.getElementById('labelLocal');
+            const lblCld = document.getElementById('labelCloud');
+            if (this.checked) {
+                lblLoc.classList.replace('font-weight-bold', 'text-muted');
+                lblLoc.style.color = '';
+                lblCld.classList.replace('text-muted', 'font-weight-bold');
+                lblCld.style.color = '#003366';
+            } else {
+                lblCld.classList.replace('font-weight-bold', 'text-muted');
+                lblCld.style.color = '';
+                lblLoc.classList.replace('text-muted', 'font-weight-bold');
+                lblLoc.style.color = '#003366';
+            }
+            renderStudentManagementList();
         });
     }
 
