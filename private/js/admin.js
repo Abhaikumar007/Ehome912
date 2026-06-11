@@ -930,10 +930,15 @@ if (document.getElementById('studentListBody')) {
         if (isCloud) {
             if (typeof sb_getStudents === 'function') {
                 const cloudData = await sb_getStudents();
-                if (cloudData) students = cloudData;
-                else students = getStudents(); // fallback if error
+                if (cloudData) {
+                    students = cloudData;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to fetch from Cloud. Check console for errors.</td></tr>';
+                    return;
+                }
             } else {
-                students = getStudents();
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Cloud sync not available.</td></tr>';
+                return;
             }
         } else {
             students = getStudents();
@@ -942,7 +947,11 @@ if (document.getElementById('studentListBody')) {
         tbody.innerHTML = '';
 
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found.</td></tr>';
+            if (isCloud) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found in Cloud. (Check if RLS is blocking reads!)</td></tr>';
+            } else {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found in Local Storage.</td></tr>';
+            }
             return;
         }
 
