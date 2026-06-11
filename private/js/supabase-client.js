@@ -65,6 +65,63 @@ window.sb_debug = async function () {
     return out;
 };
 
+// ── LOAD FROM CLOUD (run on every page load) ──────────────────────
+
+/**
+ * Fetches all students + fees from Supabase and writes them into localStorage.
+ * This keeps every device in sync automatically on page open.
+ * Returns: { ok, students, fees } or { ok: false, msg }
+ */
+window.sb_loadFromCloud = async function () {
+    try {
+        // 1. Fetch students
+        const { data: stuData, error: stuErr } = await _sb.from('students').select('*');
+        if (stuErr) {
+            console.warn('[Cloud Load] Could not load students:', stuErr.message);
+            return { ok: false, msg: stuErr.message };
+        }
+
+        // 2. Fetch fees
+        const { data: feeData, error: feeErr } = await _sb.from('fees').select('*');
+        if (feeErr) {
+            console.warn('[Cloud Load] Could not load fees:', feeErr.message);
+            return { ok: false, msg: feeErr.message };
+        }
+
+        // 3. Convert to localStorage shapes
+        const students = stuData.map(function (row) {
+            return {
+                id:          row.id,
+                name:        row.name,
+                class:       row.class,
+                school:      row.school      || '',
+                phone:       row.phone,
+                joiningDate: row.joining_date || '',
+                amount:      row.monthly_fee != null ? String(row.monthly_fee) : '',
+                subjects:    row.subjects    || []
+            };
+        });
+
+        const fees = {};
+        feeData.forEach(function (row) {
+            if (row.status === 'Paid') {
+                fees[row.student_id + '_' + row.subject + '_' + row.month + '_' + row.year] = 'Paid';
+            }
+        });
+
+        // 4. Write to localStorage
+        localStorage.setItem('students', JSON.stringify(students));
+        localStorage.setItem('fees', JSON.stringify(fees));
+
+        console.log('[Cloud Load] Loaded ' + students.length + ' students, ' + feeData.length + ' fee records from Supabase.');
+        return { ok: true, students: students, fees: fees };
+
+    } catch (e) {
+        console.warn('[Cloud Load] Error:', e.message);
+        return { ok: false, msg: e.message };
+    }
+};
+
 // ── helpers ──────────────────────────────────────────────────────
 
 /** Convert localStorage student object → Supabase row */

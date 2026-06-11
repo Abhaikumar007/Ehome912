@@ -180,6 +180,36 @@
     <script src="js/admin.js"></script>
 
     <script>
+    // ── Auto-load from Supabase on page open ─────────────────────
+    // This runs immediately so any device always sees the latest data.
+    document.addEventListener('DOMContentLoaded', async function () {
+        const status = document.getElementById('syncStatus');
+        if (status) {
+            status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Loading latest data from cloud...</span>';
+        }
+
+        const result = await sb_loadFromCloud();
+
+        if (result.ok) {
+            // Re-render student list with fresh cloud data
+            if (typeof renderStudentManagementList === 'function') {
+                renderStudentManagementList();
+            }
+            if (status) {
+                status.innerHTML = '<span class="text-success" style="font-size:0.82rem;"><i class="fas fa-check-circle mr-1"></i>Synced from cloud — ' + result.students.length + ' students loaded.</span>';
+                setTimeout(function () { status.innerHTML = ''; }, 3000);
+            }
+        } else {
+            // Cloud failed — localStorage data (if any) will be used as fallback
+            if (status) {
+                status.innerHTML = '<span class="text-warning" style="font-size:0.82rem;"><i class="fas fa-wifi mr-1"></i>Offline — showing local data.</span>';
+                setTimeout(function () { status.innerHTML = ''; }, 4000);
+            }
+        }
+    });
+    </script>
+
+    <script>
     // ── Sync helper (called by button) ──────────────────────────
     async function runMigration() {
         const btn    = document.getElementById('syncSupabaseBtn');
