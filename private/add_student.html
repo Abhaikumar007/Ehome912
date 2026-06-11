@@ -155,6 +155,12 @@
                             title="Push all localStorage data to Supabase cloud">
                             <i class="fas fa-cloud-upload-alt mr-1"></i> Sync to Cloud
                         </button>
+                        <button id="debugSupabaseBtn"
+                            class="btn btn-secondary"
+                            onclick="runDebug()"
+                            title="Run connection diagnostics">
+                            <i class="fas fa-bug mr-1"></i> Debug Connection
+                        </button>
                     </div>
                     <div id="syncStatus" class="mt-2" style="font-size:0.92rem;"></div>
                     <small class="text-muted d-block mt-1">
@@ -192,6 +198,22 @@
         } else {
             status.innerHTML = '<span class="text-danger"><i class="fas fa-times-circle mr-1"></i>' + result.msg + '</span>';
         }
+    }
+
+    async function runDebug() {
+        const btn    = document.getElementById('debugSupabaseBtn');
+        const status = document.getElementById('syncStatus');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Running...';
+        status.innerHTML = '<strong>Running diagnostics...</strong>';
+
+        const lines = await sb_debug();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-bug mr-1"></i> Debug Connection';
+
+        status.innerHTML = '<div style="background:#f8f9fa;border:1px solid #dee2e6;border-radius:4px;padding:10px;font-family:monospace;font-size:0.82rem;white-space:pre-wrap;max-height:300px;overflow-y:auto;">'
+            + lines.join('\n') + '</div>';
     }
     </script>
 

@@ -6,6 +6,65 @@
 // Initialise Supabase client (global `supabase` from CDN)
 const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ── DEBUG ─────────────────────────────────────────────────────────
+
+/**
+ * Full diagnostic: logs every step to console AND returns an object
+ * with all findings so the UI can display them.
+ */
+window.sb_debug = async function () {
+    const out = [];
+
+    // 1. Check config values loaded
+    out.push('📌 SUPABASE_URL = ' + (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '❌ UNDEFINED'));
+    out.push('📌 ANON_KEY starts with = ' + (typeof SUPABASE_ANON_KEY !== 'undefined' ? SUPABASE_ANON_KEY.slice(0, 30) + '...' : '❌ UNDEFINED'));
+
+    // 2. Raw REST ping — does the URL even respond?
+    try {
+        const pingRes = await fetch(SUPABASE_URL + '/rest/v1/', {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
+        });
+        out.push('🌐 REST ping status: ' + pingRes.status + ' ' + pingRes.statusText);
+        const pingText = await pingRes.text();
+        out.push('🌐 REST ping body: ' + pingText.slice(0, 200));
+    } catch (e) {
+        out.push('❌ REST ping failed: ' + e.message);
+    }
+
+    // 3. Try to query students table via raw fetch
+    try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/students?select=id&limit=1', {
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
+            }
+        });
+        out.push('📋 students raw fetch status: ' + res.status);
+        const body = await res.text();
+        out.push('📋 students raw response: ' + body.slice(0, 300));
+    } catch (e) {
+        out.push('❌ students raw fetch failed: ' + e.message);
+    }
+
+    // 4. Try via supabase-js client
+    const { data, error } = await _sb.from('students').select('id').limit(1);
+    if (error) {
+        out.push('❌ supabase-js error: ' + JSON.stringify(error));
+    } else {
+        out.push('✅ supabase-js OK, rows returned: ' + data.length);
+    }
+
+    // 5. localStorage status
+    const lsStudents = JSON.parse(localStorage.getItem('students')) || [];
+    out.push('💾 localStorage students count: ' + lsStudents.length);
+
+    console.log('[Supabase Debug]\n' + out.join('\n'));
+    return out;
+};
+
 // ── helpers ──────────────────────────────────────────────────────
 
 /** Convert localStorage student object → Supabase row */
@@ -38,35 +97,31 @@ function _fromDbStudent(row) {
 
 // ── STUDENTS ─────────────────────────────────────────────────────
 
-/** Fetch all students from Supabase */
 window.sb_getStudents = async function () {
     const { data, error } = await _sb.from('students').select('*');
-    if (error) { console.error('[Supabase] getStudents:', error.message); return null; }
+    if (error) { console.error('[Supabase] getStudents:', error); return null; }
     return data.map(_fromDbStudent);
 };
 
-/** Upsert a single student (insert or update by id) */
 window.sb_saveStudent = async function (student) {
     const { error } = await _sb
         .from('students')
         .upsert(_toDbStudent(student), { onConflict: 'id' });
-    if (error) { console.error('[Supabase] saveStudent:', error.message); return false; }
+    if (error) { console.error('[Supabase] saveStudent:', error); return false; }
     return true;
 };
 
-/** Delete a student by id (fees cascade automatically) */
 window.sb_deleteStudent = async function (id) {
     const { error } = await _sb.from('students').delete().eq('id', id);
-    if (error) { console.error('[Supabase] deleteStudent:', error.message); return false; }
+    if (error) { console.error('[Supabase] deleteStudent:', error); return false; }
     return true;
 };
 
 // ── FEES ─────────────────────────────────────────────────────────
 
-/** Fetch all fee records from Supabase as flat object (same shape as localStorage fees) */
 window.sb_getFees = async function () {
     const { data, error } = await _sb.from('fees').select('*');
-    if (error) { console.error('[Supabase] getFees:', error.message); return null; }
+    if (error) { console.error('[Supabase] getFees:', error); return null; }
     const feesObj = {};
     data.forEach(row => {
         const key = `${row.student_id}_${row.subject}_${row.month}_${row.year}`;
@@ -75,32 +130,23 @@ window.sb_getFees = async function () {
     return feesObj;
 };
 
-/** Toggle a fee status in Supabase */
 window.sb_toggleFee = async function (studentId, subject, month, year, newStatus) {
     if (newStatus === 'Paid') {
         const { error } = await _sb.from('fees').upsert({
-            student_id: studentId,
-            subject,
-            month,
-            year: Number(year),
-            status: 'Paid'
+            student_id: studentId, subject, month,
+            year: Number(year), status: 'Paid'
         }, { onConflict: 'student_id,subject,month,year' });
-        if (error) console.error('[Supabase] toggleFee (paid):', error.message);
+        if (error) console.error('[Supabase] toggleFee (paid):', error);
     } else {
-        // Mark as Pending = delete the row (matches localStorage behaviour)
         const { error } = await _sb.from('fees')
             .delete()
             .match({ student_id: studentId, subject, month, year: Number(year) });
-        if (error) console.error('[Supabase] toggleFee (pending):', error.message);
+        if (error) console.error('[Supabase] toggleFee (pending):', error);
     }
 };
 
 // ── ONE-TIME MIGRATION ────────────────────────────────────────────
 
-/**
- * Push everything from localStorage → Supabase.
- * Safe to run multiple times (upsert won't create duplicates).
- */
 window.sb_migrateFromLocalStorage = async function () {
     const students = JSON.parse(localStorage.getItem('students')) || [];
     const fees     = JSON.parse(localStorage.getItem('fees'))     || {};
@@ -109,20 +155,28 @@ window.sb_migrateFromLocalStorage = async function () {
         return { ok: false, msg: 'No students found in localStorage to migrate.' };
     }
 
-    // 1. Upsert all students
+    // 1. Upsert students
     const studentRows = students.map(_toDbStudent);
-    const { error: stuErr } = await _sb
-        .from('students')
-        .upsert(studentRows, { onConflict: 'id' });
-    if (stuErr) return { ok: false, msg: 'Students error: ' + stuErr.message };
+    console.log('[Migrate] Sending student rows:', JSON.stringify(studentRows[0])); // log first row
 
-    // 2. Upsert all fee records
+    const { data: stuData, error: stuErr } = await _sb
+        .from('students')
+        .upsert(studentRows, { onConflict: 'id' })
+        .select();
+
+    if (stuErr) {
+        console.error('[Migrate] students full error:', stuErr);
+        return {
+            ok: false,
+            msg: `Students error: ${stuErr.message} | code: ${stuErr.code} | hint: ${stuErr.hint || 'none'} | details: ${stuErr.details || 'none'}`
+        };
+    }
+
+    // 2. Upsert fees
     const feeRows = [];
     Object.keys(fees).forEach(key => {
-        // key format: studentId_Subject_Month_Year
         const parts = key.split('_');
         if (parts.length < 4) return;
-        // year is last, month is second-to-last, subject is everything between
         const studentId = parts[0];
         const year      = Number(parts[parts.length - 1]);
         const month     = parts[parts.length - 2];
@@ -136,7 +190,13 @@ window.sb_migrateFromLocalStorage = async function () {
         const { error: feeErr } = await _sb
             .from('fees')
             .upsert(feeRows, { onConflict: 'student_id,subject,month,year' });
-        if (feeErr) return { ok: false, msg: 'Fees error: ' + feeErr.message };
+        if (feeErr) {
+            console.error('[Migrate] fees full error:', feeErr);
+            return {
+                ok: false,
+                msg: `Fees error: ${feeErr.message} | code: ${feeErr.code} | hint: ${feeErr.hint || 'none'}`
+            };
+        }
     }
 
     return {
