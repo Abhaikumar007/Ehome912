@@ -1,10 +1,24 @@
 // ════════════════════════════════════════════════════════════════
 //  supabase-client.js  —  Edu Home Cloud Sync Layer
-//  Requires: config.js loaded first, Supabase CDN loaded
+//  Offline-safe: if Supabase CDN fails to load (no internet),
+//  _sb is null and all functions fall back gracefully.
+//  localStorage data is always used as the source of truth offline.
 // ════════════════════════════════════════════════════════════════
 
-// Initialise Supabase client (global `supabase` from CDN)
-const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Safe init — won't crash if CDN didn't load
+let _sb = null;
+try {
+    if (typeof supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined') {
+        _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+        console.warn('[Supabase] CDN or config not loaded — running in offline/local mode.');
+    }
+} catch (e) {
+    console.warn('[Supabase] Init failed (offline?):', e.message);
+}
+
+/** Returns true if Supabase is available (online + CDN loaded) */
+function _sbReady() { return _sb !== null; }
 
 // ── DEBUG ─────────────────────────────────────────────────────────
 
@@ -50,11 +64,15 @@ window.sb_debug = async function () {
     }
 
     // 4. Try via supabase-js client
-    const { data, error } = await _sb.from('students').select('id').limit(1);
-    if (error) {
-        out.push('❌ supabase-js error: ' + JSON.stringify(error));
+    if (_sbReady()) {
+        const { data, error } = await _sb.from('students').select('id').limit(1);
+        if (error) {
+            out.push('❌ supabase-js error: ' + JSON.stringify(error));
+        } else {
+            out.push('✅ supabase-js OK, rows returned: ' + data.length);
+        }
     } else {
-        out.push('✅ supabase-js OK, rows returned: ' + data.length);
+        out.push('❌ supabase-js client is null (Offline or CDN blocked)');
     }
 
     // 5. localStorage status
@@ -73,6 +91,8 @@ window.sb_debug = async function () {
  * Returns: { ok, students, fees } or { ok: false, msg }
  */
 window.sb_loadFromCloud = async function () {
+    if (!_sbReady()) return { ok: false, msg: 'App is running offline' };
+
     try {
         // 1. Fetch students
         const { data: stuData, error: stuErr } = await _sb.from('students').select('*');
@@ -155,12 +175,14 @@ function _fromDbStudent(row) {
 // ── STUDENTS ─────────────────────────────────────────────────────
 
 window.sb_getStudents = async function () {
+    if (!_sbReady()) return null;
     const { data, error } = await _sb.from('students').select('*');
     if (error) { console.error('[Supabase] getStudents:', error); return null; }
     return data.map(_fromDbStudent);
 };
 
 window.sb_saveStudent = async function (student) {
+    if (!_sbReady()) return false;
     const { error } = await _sb
         .from('students')
         .upsert(_toDbStudent(student), { onConflict: 'id' });
@@ -169,6 +191,7 @@ window.sb_saveStudent = async function (student) {
 };
 
 window.sb_deleteStudent = async function (id) {
+    if (!_sbReady()) return false;
     const { error } = await _sb.from('students').delete().eq('id', id);
     if (error) { console.error('[Supabase] deleteStudent:', error); return false; }
     return true;
@@ -177,6 +200,7 @@ window.sb_deleteStudent = async function (id) {
 // ── FEES ─────────────────────────────────────────────────────────
 
 window.sb_getFees = async function () {
+    if (!_sbReady()) return null;
     const { data, error } = await _sb.from('fees').select('*');
     if (error) { console.error('[Supabase] getFees:', error); return null; }
     const feesObj = {};
@@ -188,6 +212,8 @@ window.sb_getFees = async function () {
 };
 
 window.sb_toggleFee = async function (studentId, subject, month, year, newStatus) {
+    if (!_sbReady()) return;
+    
     if (newStatus === 'Paid') {
         const { error } = await _sb.from('fees').upsert({
             student_id: studentId, subject, month,
@@ -205,6 +231,8 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
 // ── ONE-TIME MIGRATION ────────────────────────────────────────────
 
 window.sb_migrateFromLocalStorage = async function () {
+    if (!_sbReady()) return { ok: false, msg: 'App is offline, cannot sync to cloud.' };
+
     const students = JSON.parse(localStorage.getItem('students')) || [];
     const fees     = JSON.parse(localStorage.getItem('fees'))     || {};
 

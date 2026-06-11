@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login – Edu Home Admin</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #0a1628 0%, #0d2a4a 50%, #003366 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Animated background circles */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.07;
+            background: #0088ff;
+            animation: pulse 6s ease-in-out infinite;
+        }
+        body::before { width: 500px; height: 500px; top: -150px; left: -150px; }
+        body::after  { width: 400px; height: 400px; bottom: -120px; right: -120px;
+                       animation-delay: 3s; background: #00ccff; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50%       { transform: scale(1.15); }
+        }
+
+        .card {
+            background: rgba(255,255,255,0.97);
+            border-radius: 20px;
+            padding: 44px 40px 36px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            width: 64px; height: 64px;
+            background: linear-gradient(135deg, #003366, #0088ff);
+            border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            margin: 0 auto 18px;
+            box-shadow: 0 8px 24px rgba(0,136,255,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.45rem;
+            color: #003366;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.88rem;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .field { margin-bottom: 18px; }
+
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 13px 14px;
+            font-size: 0.97rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            color: #212529;
+        }
+        input:focus {
+            border-color: #0088ff;
+            box-shadow: 0 0 0 4px rgba(0,136,255,0.12);
+        }
+        input.error { border-color: #dc3545; }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #003366, #0066cc);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+            margin-top: 6px;
+            letter-spacing: 0.03em;
+        }
+        .btn-login:hover   { opacity: 0.92; }
+        .btn-login:active  { transform: scale(0.98); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        #error-msg {
+            background: #fff5f5;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin-top: 14px;
+            display: none;
+        }
+        #error-msg.show { display: block; }
+
+        .footer-note {
+            text-align: center;
+            font-size: 0.78rem;
+            color: #adb5bd;
+            margin-top: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <div class="logo">🏫</div>
+        <h1>Edu Home Admin</h1>
+        <p class="subtitle">Sign in to access your dashboard</p>
+
+        <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="admin@eduhome.in" autocomplete="email" />
+        </div>
+        <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+
+        <button class="btn-login" id="loginBtn" onclick="doLogin()">
+            <i class="fas fa-sign-in-alt mr-1"></i> Sign In
+        </button>
+
+        <div id="error-msg"></div>
+        <p class="footer-note"><i class="fas fa-lock"></i> Secured by Supabase Auth</p>
+    </div>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        const _authSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // If already logged in, skip login page
+        _authSb.auth.getSession().then(function ({ data }) {
+            if (data.session) {
+                window.location.replace('index.html');
+            }
+        });
+
+        // Allow Enter key
+        document.getElementById('password').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') doLogin();
+        });
+        document.getElementById('email').addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') document.getElementById('password').focus();
+        });
+
+        async function doLogin() {
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn      = document.getElementById('loginBtn');
+            const errEl    = document.getElementById('error-msg');
+
+            errEl.classList.remove('show');
+
+            if (!email || !password) {
+                errEl.textContent = 'Please enter your email and password.';
+                errEl.classList.add('show');
+                return;
+            }
+
+            btn.disabled   = true;
+            btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+
+            const { data, error } = await _authSb.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                btn.disabled  = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-1"></i> Sign In';
+                errEl.textContent = error.message === 'Invalid login credentials'
+                    ? '❌ Wrong email or password.'
+                    : '❌ ' + error.message;
+                errEl.classList.add('show');
+                document.getElementById('password').value = '';
+                document.getElementById('password').focus();
+            } else {
+                // ✅ Logged in — Supabase auto-saves session to localStorage (persists forever)
+                window.location.replace('index.html');
+            }
+        }
+    </script>
+</body>
+</html>
