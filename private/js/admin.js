@@ -173,6 +173,15 @@ window.restoreData = function (input) {
 
 
 // --- ADD STUDENT PAGE ---
+// Helper: sync a student object to Supabase if the client is available
+function _syncStudentToCloud(student) {
+    if (typeof sb_saveStudent === 'function') {
+        sb_saveStudent(student).then(function (ok) {
+            if (!ok) console.warn('[Sync] Failed to save student to Supabase:', student.id);
+        });
+    }
+}
+
 if (document.getElementById('addStudentForm')) {
     document.getElementById('addStudentForm').addEventListener('submit', function (e) {
         e.preventDefault();
@@ -183,7 +192,7 @@ if (document.getElementById('addStudentForm')) {
         const school = document.getElementById('school').value;
         const phone = document.getElementById('phone').value;
         const joiningDate = document.getElementById('joiningDate').value;
-        const amount = document.getElementById('amount').value; // New Amount Field
+        const amount = document.getElementById('amount').value;
 
         // Get selected subjects
         const subjects = [];
@@ -192,45 +201,38 @@ if (document.getElementById('addStudentForm')) {
         });
 
         const students = getStudents();
+        let studentToSync = null;
 
         if (id) {
             // EDIT MODE
             const index = students.findIndex(s => s.id === id);
             if (index !== -1) {
                 students[index] = {
-                    ...students[index], // Keep existing fees logic if any attached to ID (fees stored separately though)
-                    name,
-                    class: studentClass,
-                    school,
-                    phone,
-                    joiningDate,
-                    amount,
-                    subjects
+                    ...students[index],
+                    name, class: studentClass, school, phone, joiningDate, amount, subjects
                 };
+                studentToSync = students[index];
                 alert('Student Updated Successfully!');
             }
         } else {
             // ADD MODE
             const newStudent = {
                 id: Date.now().toString(),
-                name,
-                class: studentClass,
-                school,
-                phone,
-                joiningDate,
-                amount,
-                subjects
+                name, class: studentClass, school, phone, joiningDate, amount, subjects
             };
             students.push(newStudent);
+            studentToSync = newStudent;
             alert('Student Added Successfully!');
         }
 
         saveStudents(students);
-        e.target.reset();
-        document.getElementById('studentId').value = ''; // Clear ID
-        document.getElementById('submitStudentBtn').innerText = 'Add Student'; // Reset Button
 
-        // Uncheck all checkboxes
+        // ── Sync to Supabase ──────────────────────────────
+        if (studentToSync) _syncStudentToCloud(studentToSync);
+
+        e.target.reset();
+        document.getElementById('studentId').value = '';
+        document.getElementById('submitStudentBtn').innerText = 'Add Student';
         document.querySelectorAll('input[name="subject"]').forEach(cb => cb.checked = false);
     });
 }
@@ -975,6 +977,14 @@ if (document.getElementById('studentListBody')) {
         const students = getStudents();
         const updated = students.filter(s => s.id !== id);
         saveStudents(updated);
+
+        // ── Sync delete to Supabase ───────────────────────
+        if (typeof sb_deleteStudent === 'function') {
+            sb_deleteStudent(id).then(function (ok) {
+                if (!ok) console.warn('[Sync] Failed to delete student from Supabase:', id);
+            });
+        }
+
         renderStudentManagementList();
     };
 
