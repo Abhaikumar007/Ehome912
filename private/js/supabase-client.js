@@ -172,8 +172,11 @@ window.sb_migrateFromLocalStorage = async function () {
         };
     }
 
-    // 2. Upsert fees
+    // 2. Upsert fees — only for students that actually exist (skip orphaned fee records)
+    const validStudentIds = new Set(students.map(s => s.id));
     const feeRows = [];
+    let orphanCount = 0;
+
     Object.keys(fees).forEach(key => {
         const parts = key.split('_');
         if (parts.length < 4) return;
@@ -181,10 +184,20 @@ window.sb_migrateFromLocalStorage = async function () {
         const year      = Number(parts[parts.length - 1]);
         const month     = parts[parts.length - 2];
         const subject   = parts.slice(1, parts.length - 2).join('_');
+
+        if (!validStudentIds.has(studentId)) {
+            orphanCount++;
+            return; // skip orphaned fee (student was deleted)
+        }
+
         if (fees[key] === 'Paid') {
             feeRows.push({ student_id: studentId, subject, month, year, status: 'Paid' });
         }
     });
+
+    if (orphanCount > 0) {
+        console.warn(`[Migrate] Skipped ${orphanCount} orphaned fee records (student was deleted).`);
+    }
 
     if (feeRows.length > 0) {
         const { error: feeErr } = await _sb
@@ -201,6 +214,6 @@ window.sb_migrateFromLocalStorage = async function () {
 
     return {
         ok: true,
-        msg: `✅ Migrated ${students.length} students and ${feeRows.length} paid fee records to Supabase!`
+        msg: `✅ Migrated ${students.length} students and ${feeRows.length} paid fee records to Supabase!${orphanCount > 0 ? ` (${orphanCount} orphaned fee records skipped)` : ''}`
     };
 };
