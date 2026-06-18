@@ -7,6 +7,7 @@
     <title>Timetable - Edu Home Admin</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 
 <body>
@@ -27,11 +28,11 @@
                     </div>
                     <div class="form-group">
                         <label>Start Time</label>
-                        <input type="time" class="form-control" id="timetableStartTime">
+                        <input type="text" class="form-control" id="timetableStartTime" placeholder="Select time">
                     </div>
                     <div class="form-group">
                         <label>End Time</label>
-                        <input type="time" class="form-control" id="timetableEndTime">
+                        <input type="text" class="form-control" id="timetableEndTime" placeholder="Select time">
                     </div>
                     <div class="form-group">
                         <label>Class</label>
@@ -63,14 +64,11 @@
                             <option value="At Home">At Home</option>
                         </select>
                     </div>
-                    <!-- Note/Topic removed as per user request for simpler table columns or can be kept if needed but user described columns: Date, Time, Class, Subject -->
-                    <button class="btn btn-success btn-block" id="addTimetableEntryBtn"><i class="fas fa-plus"></i> Add
-                        Entry</button>
+                    <button class="btn btn-success btn-block" id="addTimetableEntryBtn"><i class="fas fa-plus"></i> Add Entry</button>
                 </div>
             </div>
 
             <div class="col-md-8">
-                <!-- Container to capture -->
                 <div id="timetable-container" style="padding: 20px; background: white;">
                     <div class="text-center mb-3">
                         <h2>📅 Class Schedule</h2>
@@ -107,6 +105,23 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        flatpickr("#timetableStartTime", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: false,
+            disableMobile: "true"
+        });
+        flatpickr("#timetableEndTime", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            time_24hr: false,
+            disableMobile: "true"
+        });
+    </script>
     <script src="js/admin.js"></script>
 </body>
 
