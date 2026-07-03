@@ -45,6 +45,17 @@
                             <option value="12">Class 12</option>
                         </select>
                     </div>
+
+                    <!-- Board Type (auto-hides for 11/12) -->
+                    <div class="form-group board-group" id="boardGroup">
+                        <label>Board <small class="text-muted">(Classes 6–10)</small></label>
+                        <select class="form-control" id="timetableBoard">
+                            <option value="Both">Both (CBSE & State)</option>
+                            <option value="CBSE">CBSE Only</option>
+                            <option value="State">State Only</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label>Subject</label>
                         <select class="form-control" id="timetableSubject">
@@ -56,6 +67,17 @@
                             <option value="No Class">No Class</option>
                         </select>
                     </div>
+
+                    <!-- Session Type -->
+                    <div class="form-group">
+                        <label>Session Type</label>
+                        <select class="form-control" id="timetableSessionType">
+                            <option value="Regular">📖 Regular Class</option>
+                            <option value="TP">🎯 TP Session</option>
+                            <option value="QuestionBank">📝 Question Bank</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label>Location</label>
                         <select class="form-control" id="timetableLocation">
@@ -63,7 +85,7 @@
                             <option value="At Home">At Home</option>
                         </select>
                     </div>
-                    <!-- Note/Topic removed as per user request for simpler table columns or can be kept if needed but user described columns: Date, Time, Class, Subject -->
+
                     <button class="btn btn-success btn-block" id="addTimetableEntryBtn"><i class="fas fa-plus"></i> Add
                         Entry</button>
                 </div>
@@ -83,13 +105,15 @@
                                     <th>Date</th>
                                     <th>Time</th>
                                     <th>Class</th>
+                                    <th>Board</th>
                                     <th>Subject</th>
+                                    <th>Type</th>
                                     <th class="no-capture" style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="timetableTableBody">
                                 <tr>
-                                    <td colspan="5" class="text-center">No entries added yet.</td>
+                                    <td colspan="7" class="text-center">No entries added yet.</td>
                                 </tr>
                             </tbody>
                         </table>

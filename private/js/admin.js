@@ -492,6 +492,27 @@ if (document.getElementById('timetableTableBody')) {
     const tableBody = document.getElementById('timetableTableBody');
     const shareBtn = document.getElementById('shareWhatsappBtn');
 
+    // ── Board dropdown auto-hide for class 11/12 ──────────────────────
+    const classSelect = document.getElementById('timetableClass');
+    const boardGroup = document.getElementById('boardGroup');
+    const boardSelect = document.getElementById('timetableBoard');
+
+    function updateBoardVisibility() {
+        const cls = classSelect.value;
+        const isHigher = (cls === '11' || cls === '12');
+        if (isHigher) {
+            boardGroup.classList.add('hidden-smooth');
+            boardSelect.value = 'Both'; // default for 11/12
+        } else {
+            boardGroup.classList.remove('hidden-smooth');
+        }
+    }
+
+    classSelect.addEventListener('change', updateBoardVisibility);
+    // Run once on load
+    updateBoardVisibility();
+
+    // ── Add Entry ─────────────────────────────────────────────────────
     document.getElementById('addTimetableEntryBtn').addEventListener('click', function () {
         const date = document.getElementById('timetableDate').value;
         const startTime = document.getElementById('timetableStartTime').value;
@@ -500,23 +521,28 @@ if (document.getElementById('timetableTableBody')) {
         const subject = document.getElementById('timetableSubject').value;
         const locationElement = document.getElementById('timetableLocation');
         const location = locationElement ? locationElement.value : 'In Center';
+        const board = boardSelect ? boardSelect.value : 'Both';
+        const sessionTypeEl = document.getElementById('timetableSessionType');
+        const sessionType = sessionTypeEl ? sessionTypeEl.value : 'Regular';
 
         if (!date || !studentClass || !subject) {
             alert("Please fill in Date, Class and Subject. Times are optional.");
             return;
         }
 
-        const entry = { date, startTime, endTime, class: studentClass, subject, location };
+        const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType };
         timetableEntries.push(entry);
         renderTimetable();
 
         // Don't clear date to make adding multiple slots for same day easier
         document.getElementById('timetableStartTime').value = '';
         document.getElementById('timetableEndTime').value = '';
-        document.getElementById('timetableSubject').value = '';
-        if(locationElement) locationElement.value = 'In Center';
+        document.getElementById('timetableSubject').value = 'Physics';
+        if (locationElement) locationElement.value = 'In Center';
+        if (sessionTypeEl) sessionTypeEl.value = 'Regular';
     });
 
+    // ── Helpers ───────────────────────────────────────────────────────
     function formatDateFriendly(dateString) {
         if (!dateString) return '';
         const inputDate = new Date(dateString);
@@ -568,10 +594,47 @@ if (document.getElementById('timetableTableBody')) {
         }
     }
 
+    function getBoardBadge(board) {
+        switch (board) {
+            case 'CBSE':  return '<span class="badge-board badge-cbse">CBSE</span>';
+            case 'State': return '<span class="badge-board badge-state">State</span>';
+            case 'Both':
+            default:      return '<span class="badge-board badge-both">Both</span>';
+        }
+    }
+
+    function getSessionBadge(sessionType) {
+        switch (sessionType) {
+            case 'TP':           return '<span class="badge-session badge-tp">🎯 TP Session</span>';
+            case 'QuestionBank': return '<span class="badge-session badge-qb">📝 Question Bank</span>';
+            case 'Regular':
+            default:             return '<span class="badge-session badge-regular">📖 Regular</span>';
+        }
+    }
+
+    function getSessionEmoji(sessionType) {
+        switch (sessionType) {
+            case 'TP':           return '🎯 TP Session';
+            case 'QuestionBank': return '📝 Question Bank';
+            case 'Regular':
+            default:             return '📖 Regular Class';
+        }
+    }
+
+    function getBoardEmoji(board) {
+        switch (board) {
+            case 'CBSE':  return '🔵 CBSE';
+            case 'State': return '🟢 State';
+            case 'Both':
+            default:      return '🟣 Both';
+        }
+    }
+
+    // ── Render Table ──────────────────────────────────────────────────
     function renderTimetable() {
         tableBody.innerHTML = '';
         if (timetableEntries.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="5" class="text-center">No entries added.</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No entries added.</td></tr>';
             document.getElementById('shareSection').style.display = 'none';
             return;
         }
@@ -603,14 +666,18 @@ if (document.getElementById('timetableTableBody')) {
                 timeRange = '-';
             }
 
-            let locStr = entry.location === 'At Home' ? '<br><small class="text-danger">(At Home)</small>' : '<br><small class="text-success">(In Center)</small>';
+            let locStr = entry.location === 'At Home'
+                ? '<br><small class="text-danger">(At Home)</small>'
+                : '<br><small class="text-success">(In Center)</small>';
 
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${dateDisplay}</td>
                 <td>${timeRange}</td>
                 <td>${entry.class}</td>
+                <td>${getBoardBadge(entry.board)}</td>
                 <td>${getSubjectWithEmoji(entry.subject)}${locStr}</td>
+                <td>${getSessionBadge(entry.sessionType)}</td>
                 <td class="no-capture"><button class="btn btn-sm btn-danger" onclick="removeTimetableEntry(${index})">&times;</button></td>
             `;
             tableBody.appendChild(tr);
@@ -624,6 +691,7 @@ if (document.getElementById('timetableTableBody')) {
         renderTimetable();
     };
 
+    // ── WhatsApp Share ────────────────────────────────────────────────
     shareBtn.addEventListener('click', function () {
         if (timetableEntries.length === 0) {
             alert("No entries to share.");
@@ -674,9 +742,15 @@ if (document.getElementById('timetableTableBody')) {
                         timeStr = '-';
                     }
 
-                    let locStr = entry.location === 'At Home' ? '(At Home)' : '(In Center)';
+                    let locStr = entry.location === 'At Home' ? '🏠 At Home' : '🏢 In Center';
+                    let boardStr = getBoardEmoji(entry.board || 'Both');
+                    let sessionStr = getSessionEmoji(entry.sessionType || 'Regular');
 
-                    message += `🕒 ${timeStr}\n${getSubjectWithEmoji(entry.subject)}\n${locStr}\n\n`;
+                    message += `🕒 ${timeStr}\n`;
+                    message += `${getSubjectWithEmoji(entry.subject)}\n`;
+                    message += `📋 Board: ${boardStr}\n`;
+                    message += `📌 Type: ${sessionStr}\n`;
+                    message += `📍 ${locStr}\n\n`;
                 });
 
                 if (classIndex < classes.length - 1) {

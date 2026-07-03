@@ -87,3 +87,65 @@ body {
     color: #333;
     /* Dark text for contrast */
 }
+
+/* ── Timetable Board Badges ─────────────────────────── */
+.badge-board {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #fff;
+}
+
+.badge-cbse {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+}
+
+.badge-state {
+    background: linear-gradient(135deg, #16a34a, #22c55e);
+}
+
+.badge-both {
+    background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+/* ── Timetable Session Type Badges ──────────────────── */
+.badge-session {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #fff;
+}
+
+.badge-regular {
+    background: #6b7280;
+}
+
+.badge-tp {
+    background: linear-gradient(135deg, #d97706, #f59e0b);
+    color: #fff;
+}
+
+.badge-qb {
+    background: linear-gradient(135deg, #0891b2, #06b6d4);
+    color: #fff;
+}
+
+/* ── Board group visibility helper ──────────────────── */
+.board-group {
+    transition: opacity 0.25s ease, max-height 0.3s ease;
+    overflow: hidden;
+}
+
+.board-group.hidden-smooth {
+    opacity: 0;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    pointer-events: none;
+}
