@@ -149,3 +149,248 @@ body {
     padding: 0 !important;
     pointer-events: none;
 }
+
+/* ── Clock Time Picker ─────────────────────────────── */
+.clock-picker-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.clock-picker-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.clock-picker-modal {
+    background: #fff;
+    border-radius: 28px;
+    width: 320px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.25);
+    transform: scale(0.85);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.clock-picker-overlay.active .clock-picker-modal {
+    transform: scale(1);
+}
+
+/* Header */
+.clock-picker-header {
+    padding: 24px 24px 16px;
+}
+
+.clock-picker-header h3 {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 16px 0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clock-picker-display {
+    display: flex;
+    align-items: center;
+}
+
+.clock-display-segment {
+    font-size: 50px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #1a73e8;
+    line-height: 1.1;
+    user-select: none;
+}
+
+.clock-display-segment.inactive {
+    color: #aaa;
+    background: transparent;
+}
+
+.clock-display-segment.active {
+    background: #d2e3fc;
+    color: #1a73e8;
+}
+
+.clock-display-colon {
+    font-size: 50px;
+    font-weight: 700;
+    color: #1a73e8;
+    line-height: 1;
+    padding: 0 2px;
+}
+
+.clock-ampm-toggle {
+    display: flex;
+    flex-direction: column;
+    margin-left: auto;
+    border: 2px solid #1a73e8;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.clock-ampm-btn {
+    padding: 5px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: transparent;
+    color: #1a73e8;
+    letter-spacing: 0.3px;
+}
+
+.clock-ampm-btn:first-child {
+    border-bottom: 1px solid #1a73e8;
+}
+
+.clock-ampm-btn.active {
+    background: #1a73e8;
+    color: #fff;
+}
+
+/* Clock Face */
+.clock-face-container {
+    display: flex;
+    justify-content: center;
+    padding: 8px 0 20px;
+}
+
+.clock-face {
+    width: 244px;
+    height: 244px;
+    border-radius: 50%;
+    background: #e8edf2;
+    position: relative;
+    user-select: none;
+}
+
+.clock-number {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 500;
+    color: #333;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    z-index: 2;
+}
+
+.clock-number:hover {
+    background: rgba(26, 115, 232, 0.12);
+}
+
+.clock-number.selected {
+    background: #1a73e8;
+    color: #fff;
+    font-weight: 600;
+}
+
+.clock-hand {
+    position: absolute;
+    bottom: 50%;
+    left: calc(50% - 1px);
+    width: 2px;
+    background: #1a73e8;
+    transform-origin: bottom center;
+    z-index: 1;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.clock-center-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #1a73e8;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+}
+
+/* Actions */
+.clock-picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 16px 20px;
+    gap: 8px;
+}
+
+.clock-picker-actions button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.clock-btn-cancel {
+    background: transparent;
+    color: #1a73e8;
+}
+
+.clock-btn-cancel:hover {
+    background: #e8f0fe;
+}
+
+.clock-btn-ok {
+    background: #1a73e8;
+    color: #fff;
+}
+
+.clock-btn-ok:hover {
+    background: #1557b0;
+}
+
+/* Custom time input styling */
+.clock-time-input {
+    cursor: pointer !important;
+    background: #fff !important;
+    caret-color: transparent;
+}
+
+.clock-time-input::placeholder {
+    color: #999;
+}
+
+/* Mobile responsive */
+@media (max-width: 360px) {
+    .clock-picker-modal {
+        width: 290px;
+    }
+    .clock-face {
+        width: 220px;
+        height: 220px;
+    }
+    .clock-display-segment {
+        font-size: 42px;
+    }
+    .clock-display-colon {
+        font-size: 42px;
+    }
+}

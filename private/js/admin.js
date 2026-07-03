@@ -512,6 +512,210 @@ if (document.getElementById('timetableTableBody')) {
     // Run once on load
     updateBoardVisibility();
 
+    // ── Clock Time Picker Component ───────────────────────────────────
+    (function initClockPicker() {
+        // Build DOM
+        const overlay = document.createElement('div');
+        overlay.className = 'clock-picker-overlay';
+        overlay.innerHTML = `
+            <div class="clock-picker-modal">
+                <div class="clock-picker-header">
+                    <h3>Select Time</h3>
+                    <div class="clock-picker-display">
+                        <span class="clock-display-segment active" id="cpHourDisplay">01</span>
+                        <span class="clock-display-colon">:</span>
+                        <span class="clock-display-segment inactive" id="cpMinDisplay">00</span>
+                        <div class="clock-ampm-toggle">
+                            <button class="clock-ampm-btn" id="cpAmBtn">AM</button>
+                            <button class="clock-ampm-btn active" id="cpPmBtn">PM</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="clock-face-container">
+                    <div class="clock-face" id="cpClockFace">
+                        <div class="clock-center-dot"></div>
+                        <div class="clock-hand" id="cpHand"></div>
+                    </div>
+                </div>
+                <div class="clock-picker-actions">
+                    <button class="clock-btn-cancel" id="cpCancel">Cancel</button>
+                    <button class="clock-btn-ok" id="cpOk">OK</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // State
+        let cpMode = 'hour'; // 'hour' or 'minute'
+        let cpHour = 1;
+        let cpMinute = 0;
+        let cpAmPm = 'PM';
+        let cpTargetInput = null;
+
+        const hourDisplay = document.getElementById('cpHourDisplay');
+        const minDisplay = document.getElementById('cpMinDisplay');
+        const amBtn = document.getElementById('cpAmBtn');
+        const pmBtn = document.getElementById('cpPmBtn');
+        const clockFace = document.getElementById('cpClockFace');
+        const hand = document.getElementById('cpHand');
+
+        // Clock geometry
+        const FACE_SIZE = 244;
+        const CENTER = FACE_SIZE / 2;
+        const RADIUS = 96; // distance from center to number centers
+        const NUM_SIZE = 40;
+
+        function positionNumbers(values, count) {
+            // Clear old numbers
+            clockFace.querySelectorAll('.clock-number').forEach(n => n.remove());
+
+            values.forEach((val, i) => {
+                const angle = ((i * (360 / count)) - 90) * Math.PI / 180;
+                const x = CENTER + RADIUS * Math.cos(angle) - (NUM_SIZE / 2);
+                const y = CENTER + RADIUS * Math.sin(angle) - (NUM_SIZE / 2);
+
+                const el = document.createElement('div');
+                el.className = 'clock-number';
+                el.textContent = val.toString().padStart(2, '0');
+                el.style.left = x + 'px';
+                el.style.top = y + 'px';
+                el.dataset.value = val;
+
+                if (cpMode === 'hour' && val === cpHour) el.classList.add('selected');
+                if (cpMode === 'minute' && val === cpMinute) el.classList.add('selected');
+
+                el.addEventListener('click', function () {
+                    if (cpMode === 'hour') {
+                        cpHour = parseInt(this.dataset.value);
+                        updateDisplay();
+                        // Auto-switch to minute mode after selecting hour
+                        setTimeout(() => switchMode('minute'), 250);
+                    } else {
+                        cpMinute = parseInt(this.dataset.value);
+                        updateDisplay();
+                    }
+                });
+
+                clockFace.appendChild(el);
+            });
+
+            updateHand();
+        }
+
+        function updateHand() {
+            let selectedVal, totalSteps;
+            if (cpMode === 'hour') {
+                selectedVal = cpHour;
+                totalSteps = 12;
+                // Hour position: 12 is at top (index 0), 1 at index 1, etc.
+                const index = selectedVal === 12 ? 0 : selectedVal;
+                const angleDeg = index * 30;
+                hand.style.height = RADIUS + 'px';
+                hand.style.transform = `rotate(${angleDeg}deg)`;
+            } else {
+                selectedVal = cpMinute;
+                totalSteps = 60;
+                const angleDeg = selectedVal * 6;
+                hand.style.height = RADIUS + 'px';
+                hand.style.transform = `rotate(${angleDeg}deg)`;
+            }
+        }
+
+        function updateDisplay() {
+            hourDisplay.textContent = cpHour.toString().padStart(2, '0');
+            minDisplay.textContent = cpMinute.toString().padStart(2, '0');
+
+            hourDisplay.className = 'clock-display-segment ' + (cpMode === 'hour' ? 'active' : 'inactive');
+            minDisplay.className = 'clock-display-segment ' + (cpMode === 'minute' ? 'active' : 'inactive');
+
+            amBtn.className = 'clock-ampm-btn' + (cpAmPm === 'AM' ? ' active' : '');
+            pmBtn.className = 'clock-ampm-btn' + (cpAmPm === 'PM' ? ' active' : '');
+
+            // Update selected number highlight
+            clockFace.querySelectorAll('.clock-number').forEach(n => {
+                const v = parseInt(n.dataset.value);
+                if (cpMode === 'hour') {
+                    n.classList.toggle('selected', v === cpHour);
+                } else {
+                    n.classList.toggle('selected', v === cpMinute);
+                }
+            });
+
+            updateHand();
+        }
+
+        function switchMode(mode) {
+            cpMode = mode;
+            if (mode === 'hour') {
+                const hours = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+                positionNumbers(hours, 12);
+            } else {
+                const minutes = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+                positionNumbers(minutes, 12);
+            }
+            updateDisplay();
+        }
+
+        function openPicker(inputEl) {
+            cpTargetInput = inputEl;
+            // Parse existing value if any (format: "HH:MM")
+            const existing = inputEl.value;
+            if (existing && existing.includes(':')) {
+                const [h, m] = existing.split(':').map(Number);
+                cpAmPm = h >= 12 ? 'PM' : 'AM';
+                cpHour = h % 12 || 12;
+                cpMinute = m;
+            } else {
+                cpHour = 1;
+                cpMinute = 0;
+                cpAmPm = 'PM';
+            }
+            cpMode = 'hour';
+            switchMode('hour');
+            overlay.classList.add('active');
+        }
+
+        function closePicker() {
+            overlay.classList.remove('active');
+            cpTargetInput = null;
+        }
+
+        // Convert to 24h and set value
+        function confirmTime() {
+            let h24 = cpHour;
+            if (cpAmPm === 'AM' && h24 === 12) h24 = 0;
+            if (cpAmPm === 'PM' && h24 !== 12) h24 += 12;
+            const timeStr = h24.toString().padStart(2, '0') + ':' + cpMinute.toString().padStart(2, '0');
+
+            if (cpTargetInput) {
+                // Display in 12h format for user
+                const displayStr = cpHour + ':' + cpMinute.toString().padStart(2, '0') + ' ' + cpAmPm;
+                cpTargetInput.value = timeStr;
+                cpTargetInput.dataset.display = displayStr;
+            }
+            closePicker();
+        }
+
+        // Event listeners
+        hourDisplay.addEventListener('click', () => switchMode('hour'));
+        minDisplay.addEventListener('click', () => switchMode('minute'));
+        amBtn.addEventListener('click', () => { cpAmPm = 'AM'; updateDisplay(); });
+        pmBtn.addEventListener('click', () => { cpAmPm = 'PM'; updateDisplay(); });
+        document.getElementById('cpCancel').addEventListener('click', closePicker);
+        document.getElementById('cpOk').addEventListener('click', confirmTime);
+
+        // Close on overlay click (outside modal)
+        overlay.addEventListener('click', function (e) {
+            if (e.target === overlay) closePicker();
+        });
+
+        // Hook into time inputs
+        const startInput = document.getElementById('timetableStartTime');
+        const endInput = document.getElementById('timetableEndTime');
+        if (startInput) startInput.addEventListener('click', () => openPicker(startInput));
+        if (endInput) endInput.addEventListener('click', () => openPicker(endInput));
+    })();
+
     // ── Add Entry ─────────────────────────────────────────────────────
     document.getElementById('addTimetableEntryBtn').addEventListener('click', function () {
         const date = document.getElementById('timetableDate').value;
