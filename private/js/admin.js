@@ -729,8 +729,8 @@ if (document.getElementById('timetableTableBody')) {
         const sessionTypeEl = document.getElementById('timetableSessionType');
         const sessionType = sessionTypeEl ? sessionTypeEl.value : 'Regular';
 
-        if (!date || !studentClass || !subject) {
-            alert("Please fill in Date, Class and Subject. Times are optional.");
+        if (!date || !startTime || !endTime || !studentClass || !subject) {
+            alert("Please fill in all fields: Date, Start Time, End Time, Class and Subject are mandatory.");
             return;
         }
 
