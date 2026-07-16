@@ -1272,22 +1272,7 @@ if (document.getElementById('studentListBody')) {
             return;
         }
 
-        const searchInput = document.getElementById('studentSearchInput');
-        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-        if (query) {
-            students = students.filter(s => 
-                (s.name && s.name.toLowerCase().includes(query)) ||
-                (s.class && String(s.class).toLowerCase().includes(query)) ||
-                (s.school && s.school.toLowerCase().includes(query)) ||
-                (s.phone && String(s.phone).includes(query))
-            );
-        }
-
-        if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No students match your search.</td></tr>';
-            return;
-        }
+        // (Removed data-level search filtering. Search is now handled by DOM filtering in filterStudentTable)
 
         // Sort by class then name
         students.sort((a, b) => {
@@ -1315,7 +1300,51 @@ if (document.getElementById('studentListBody')) {
             `;
             tbody.appendChild(tr);
         });
+
+        // Re-apply any active search filter
+        if (typeof filterStudentTable === 'function') filterStudentTable();
     }
+
+    // --- INSTANT DOM SEARCH FILTER ---
+    window.filterStudentTable = function() {
+        const searchInput = document.getElementById('studentSearchInput');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+        const tbody = document.getElementById('studentListBody');
+        if (!tbody) return;
+
+        const rows = tbody.getElementsByTagName('tr');
+        let visibleCount = 0;
+
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            
+            // Skip special status rows (like "Loading..." or "No students found")
+            if (row.cells.length === 1 && row.cells[0].colSpan === 6 && row.id !== 'noMatchRow') continue;
+            if (row.id === 'noMatchRow') continue;
+
+            const textContent = row.textContent.toLowerCase();
+            if (textContent.includes(query)) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        }
+
+        // Handle "no results" message
+        let noMatchRow = document.getElementById('noMatchRow');
+        if (visibleCount === 0 && query !== '') {
+            if (!noMatchRow) {
+                noMatchRow = document.createElement('tr');
+                noMatchRow.id = 'noMatchRow';
+                noMatchRow.innerHTML = '<td colspan="6" class="text-center text-muted">No students match your search.</td>';
+                tbody.appendChild(noMatchRow);
+            }
+            noMatchRow.style.display = '';
+        } else if (noMatchRow) {
+            noMatchRow.style.display = 'none';
+        }
+    };
 
     // Listen to toggle
     const toggleSwitch = document.getElementById('sourceToggleSwitch');
