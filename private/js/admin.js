@@ -172,14 +172,35 @@ window.restoreData = function (input) {
 };
 
 
-// --- ADD STUDENT PAGE ---
 // Helper: sync a student object to cloud if the client is available
 function _syncStudentToCloud(student) {
     if (typeof sb_saveStudent === 'function') {
         sb_saveStudent(student).then(function (ok) {
-            if (!ok) console.warn('[Sync] Failed to save student to cloud:', student.id);
+            if (ok) {
+                _showSyncToast('✅ Synced to cloud');
+            } else {
+                _showSyncToast('⚠️ Cloud sync failed — saved locally', true);
+            }
         });
     }
+}
+
+// Helper: show a small non-blocking toast for sync status
+function _showSyncToast(msg, isError) {
+    // Remove any existing toast
+    var old = document.getElementById('_syncToast');
+    if (old) old.remove();
+
+    var toast = document.createElement('div');
+    toast.id = '_syncToast';
+    toast.textContent = msg;
+    toast.style.cssText = 'position:fixed;bottom:20px;right:20px;padding:10px 18px;border-radius:8px;font-size:0.85rem;font-weight:600;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s;'
+        + (isError ? 'background:#fff3cd;color:#856404;' : 'background:#d4edda;color:#155724;');
+    document.body.appendChild(toast);
+    setTimeout(function () {
+        toast.style.opacity = '0';
+        setTimeout(function () { toast.remove(); }, 300);
+    }, 2500);
 }
 
 if (document.getElementById('addStudentForm')) {
@@ -472,13 +493,25 @@ if (document.getElementById('feesClassSelect')) {
     window.toggleFee = function (studentId, subject, month, year) {
         const key = `${studentId}_${subject}_${month}_${year}`;
         const fees = getFees();
+        var newStatus;
         if (fees[key] === 'Paid') {
             delete fees[key]; // Toggle back to pending
+            newStatus = 'Pending';
         } else {
             fees[key] = 'Paid';
+            newStatus = 'Paid';
         }
         saveFees(fees);
-        loadFeeTable(); // Refresh
+        loadFeeTable(); // Refresh UI immediately
+
+        // ── Auto-sync fee change to cloud (fire-and-forget) ──
+        if (typeof sb_toggleFee === 'function') {
+            sb_toggleFee(studentId, subject, month, year, newStatus).then(function () {
+                if (typeof _showSyncToast === 'function') _showSyncToast('✅ Fee synced');
+            }).catch(function () {
+                if (typeof _showSyncToast === 'function') _showSyncToast('⚠️ Fee sync failed — saved locally', true);
+            });
+        }
     };
 
     // Initial load
@@ -1239,6 +1272,23 @@ if (document.getElementById('studentListBody')) {
             return;
         }
 
+        const searchInput = document.getElementById('studentSearchInput');
+        const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+        if (query) {
+            students = students.filter(s => 
+                (s.name && s.name.toLowerCase().includes(query)) ||
+                (s.class && String(s.class).toLowerCase().includes(query)) ||
+                (s.school && s.school.toLowerCase().includes(query)) ||
+                (s.phone && String(s.phone).includes(query))
+            );
+        }
+
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No students match your search.</td></tr>';
+            return;
+        }
+
         // Sort by class then name
         students.sort((a, b) => {
             if (a.class !== b.class) return (parseInt(a.class)||0) - (parseInt(b.class)||0);
@@ -1314,7 +1364,11 @@ if (document.getElementById('studentListBody')) {
         // ── Sync delete to Cloud ───────────────────────
         if (typeof sb_deleteStudent === 'function') {
             sb_deleteStudent(id).then(function (ok) {
-                if (!ok) console.warn('[Sync] Failed to delete student from cloud:', id);
+                if (ok) {
+                    if (typeof _showSyncToast === 'function') _showSyncToast('✅ Deleted from cloud');
+                } else {
+                    if (typeof _showSyncToast === 'function') _showSyncToast('⚠️ Cloud delete failed — deleted locally', true);
+                }
             });
         }
 

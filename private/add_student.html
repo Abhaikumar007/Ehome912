@@ -124,6 +124,10 @@
                     </div>
                 </div>
                 <div id="manualSyncStatus" class="mb-2 text-right"></div>
+                <!-- Search Bar -->
+                <div class="mb-3">
+                    <input type="text" id="studentSearchInput" class="form-control" placeholder="Search by name, class, school, phone..." oninput="renderStudentManagementList()">
+                </div>
                 <div class="table-responsive bg-white p-3 shadow-sm rounded">
                     <table class="table table-bordered table-striped" id="studentManagementTable">
                         <thead class="thead-dark">
@@ -194,6 +198,17 @@
 
     <script>
     // ── Manual Sync Handlers ──────────────────────────────────────────
+
+    // Auto-pull on load to keep data fresh without manual clicks
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof sb_loadFromCloud === 'function') {
+            sb_loadFromCloud().then(function(result) {
+                if (result && result.ok) {
+                    if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
+                }
+            });
+        }
+    });
 
     async function runPullFromCloud() {
         const btn    = document.getElementById('pullCloudBtn');
