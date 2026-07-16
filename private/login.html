@@ -82,16 +82,17 @@
 
         .field { margin-bottom: 18px; }
 
-        input[type="email"],
         input[type="password"] {
             width: 100%;
             padding: 13px 14px;
-            font-size: 0.97rem;
+            font-size: 1.4rem;
             border: 2px solid #e9ecef;
             border-radius: 10px;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
             color: #212529;
+            text-align: center;
+            letter-spacing: 0.5em;
         }
         input:focus {
             border-color: #0088ff;
@@ -142,91 +143,72 @@
     <div class="card">
         <div class="logo">🏫</div>
         <h1>Edu Home Admin</h1>
-        <p class="subtitle">Sign in to access your dashboard</p>
+        <p class="subtitle">Enter your admin PIN to continue</p>
 
         <div class="field">
-            <label for="email">Email</label>
-            <input type="email" id="email" placeholder="admin@eduhome.in" autocomplete="email" />
-        </div>
-        <div class="field">
-            <label for="password">Password</label>
-            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+            <label for="pin">Admin PIN</label>
+            <input type="password" id="pin" placeholder="••••" maxlength="10" autocomplete="off" inputmode="numeric" />
         </div>
 
         <button class="btn-login" id="loginBtn" onclick="doLogin()">
             <i class="fas fa-sign-in-alt mr-1"></i> Sign In
         </button>
 
-        <button class="btn-login" style="background: linear-gradient(135deg, #dc3545, #b02a37); margin-top: 10px;" id="urgentBtn" onclick="doUrgentLogin()">
-            <i class="fas fa-exclamation-triangle mr-1"></i> URGENT USE (Offline Bypass)
-        </button>
-
         <div id="error-msg"></div>
-        <p class="footer-note"><i class="fas fa-lock"></i> Secured by Supabase Auth</p>
+        <p class="footer-note"><i class="fas fa-lock"></i> Secured Login</p>
     </div>
 
-    <!-- Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
-        const _authSb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         // If already logged in, skip login page
-        _authSb.auth.getSession().then(function ({ data }) {
-            if (data.session) {
-                window.location.replace('index.html');
-            }
-        });
+        (function() {
+            try {
+                var raw = localStorage.getItem('eduHome_auth');
+                if (raw) {
+                    var session = JSON.parse(raw);
+                    if (session && session.authenticated) {
+                        window.location.replace('index.html');
+                    }
+                }
+            } catch(e) {}
+        })();
 
         // Allow Enter key
-        document.getElementById('password').addEventListener('keydown', function (e) {
+        document.getElementById('pin').addEventListener('keydown', function (e) {
             if (e.key === 'Enter') doLogin();
         });
-        document.getElementById('email').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') document.getElementById('password').focus();
-        });
 
-        async function doLogin() {
-            const email    = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const btn      = document.getElementById('loginBtn');
-            const errEl    = document.getElementById('error-msg');
+        function doLogin() {
+            var pin    = document.getElementById('pin').value.trim();
+            var btn    = document.getElementById('loginBtn');
+            var errEl  = document.getElementById('error-msg');
 
             errEl.classList.remove('show');
 
-            if (!email || !password) {
-                errEl.textContent = 'Please enter your email and password.';
+            if (!pin) {
+                errEl.textContent = 'Please enter your PIN.';
                 errEl.classList.add('show');
                 return;
             }
 
-            btn.disabled   = true;
-            btn.innerHTML  = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+            // Check against the configured admin PIN
+            var correctPin = (typeof ADMIN_PIN !== 'undefined') ? ADMIN_PIN : '2025';
 
-            const { data, error } = await _authSb.auth.signInWithPassword({ email, password });
-
-            if (error) {
-                btn.disabled  = false;
-                btn.innerHTML = '<i class="fas fa-sign-in-alt mr-1"></i> Sign In';
-                errEl.textContent = error.message === 'Invalid login credentials'
-                    ? '❌ Wrong email or password.'
-                    : '❌ ' + error.message;
-                errEl.classList.add('show');
-                document.getElementById('password').value = '';
-                document.getElementById('password').focus();
-            } else {
-                // ✅ Logged in — Supabase auto-saves session to localStorage (persists forever)
+            if (pin === correctPin) {
+                // ✅ Correct PIN — save session and redirect
+                var session = {
+                    authenticated: true,
+                    loginTime: new Date().toISOString()
+                };
+                localStorage.setItem('eduHome_auth', JSON.stringify(session));
                 window.location.replace('index.html');
+            } else {
+                // ❌ Wrong PIN
+                errEl.textContent = '❌ Wrong PIN. Try again.';
+                errEl.classList.add('show');
+                document.getElementById('pin').value = '';
+                document.getElementById('pin').focus();
             }
-        }
-
-        function doUrgentLogin() {
-            const PROJECT_REF = 'fliozfydpgygmisocvcx';
-            const AUTH_KEY    = 'sb-' + PROJECT_REF + '-auth-token';
-            // Create a fake session that security.js will accept
-            const fakeSession = { access_token: 'urgent_offline', user: { email: 'urgent_offline@local' } };
-            localStorage.setItem(AUTH_KEY, JSON.stringify(fakeSession));
-            window.location.replace('index.html');
         }
     </script>
 </body>

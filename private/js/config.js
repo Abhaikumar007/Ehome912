@@ -1,4 +1,9 @@
-// Supabase credentials — this file is in .gitignore, never committed to GitHub
-// ⚠️  Never paste the SERVICE ROLE key here — anon key only!
-const SUPABASE_URL     = 'https://fliozfydpgygmisocvcx.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZsaW96ZnlkcGd5Z21pc29jdmN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTA3MjAsImV4cCI6MjA5Njc2NjcyMH0.3lkB2si4wvxkW1aHRiPTNBKFmLrDOH-KuZehQUD63FI';
+// Google Sheets API credentials — this file is in .gitignore, never committed to GitHub
+// ⚠️  Replace the URL below with your Google Apps Script Web App URL after deploying!
+// ⚠️  The SECRET must match the SECRET_TOKEN in your Apps Script Code.gs
+
+const SHEETS_API_URL = 'https://script.google.com/macros/s/AKfycbyzXSdBg8Dgpj3q20EyQ7Wz_XrFYdDZP3KAfKIXY4fY5VecqRyV_bltPOTbZw2jqKoFsQ/exec';  // ← Paste your Apps Script Web App URL here
+const SHEETS_SECRET = 'eduhome_secret_2025';
+
+// Admin PIN for login (change this to your preferred PIN)
+const ADMIN_PIN = '2025';

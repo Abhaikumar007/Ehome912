@@ -173,11 +173,11 @@ window.restoreData = function (input) {
 
 
 // --- ADD STUDENT PAGE ---
-// Helper: sync a student object to Supabase if the client is available
+// Helper: sync a student object to cloud if the client is available
 function _syncStudentToCloud(student) {
     if (typeof sb_saveStudent === 'function') {
         sb_saveStudent(student).then(function (ok) {
-            if (!ok) console.warn('[Sync] Failed to save student to Supabase:', student.id);
+            if (!ok) console.warn('[Sync] Failed to save student to cloud:', student.id);
         });
     }
 }
@@ -227,7 +227,7 @@ if (document.getElementById('addStudentForm')) {
 
         saveStudents(students);
 
-        // ── Sync to Supabase ──────────────────────────────
+        // ── Sync to Cloud ──────────────────────────────
         if (studentToSync) _syncStudentToCloud(studentToSync);
 
         e.target.reset();
@@ -1232,7 +1232,7 @@ if (document.getElementById('studentListBody')) {
 
         if (students.length === 0) {
             if (isCloud) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found in Cloud. (Check if RLS is blocking reads!)</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found in Cloud. Try pushing your local data first.</td></tr>';
             } else {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center">No students found in Local Storage.</td></tr>';
             }
@@ -1311,10 +1311,10 @@ if (document.getElementById('studentListBody')) {
         const updated = students.filter(s => s.id !== id);
         saveStudents(updated);
 
-        // ── Sync delete to Supabase ───────────────────────
+        // ── Sync delete to Cloud ───────────────────────
         if (typeof sb_deleteStudent === 'function') {
             sb_deleteStudent(id).then(function (ok) {
-                if (!ok) console.warn('[Sync] Failed to delete student from Supabase:', id);
+                if (!ok) console.warn('[Sync] Failed to delete student from cloud:', id);
             });
         }
 
