@@ -514,6 +514,9 @@ if (document.getElementById('feesClassSelect')) {
         }
     };
 
+    // Expose for cloud sync refresh
+    window.loadFeeTable = loadFeeTable;
+
     // Initial load
     loadFeeTable();
 }

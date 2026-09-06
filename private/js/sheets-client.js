@@ -202,7 +202,8 @@ window.sb_loadFromCloud = async function () {
         });
 
         var fees = {};
-        feeResult.data.forEach(function (row) {
+        var feeRows = Array.isArray(feeResult.data) ? feeResult.data : [];
+        feeRows.forEach(function (row) {
             if (row.status === 'Paid') {
                 var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
                 fees[key] = 'Paid';
@@ -288,7 +289,8 @@ window.sb_getFees = async function () {
     var result = await _sheetsGet('getFees');
     if (!result || !result.data) return null;
     var feesObj = {};
-    result.data.forEach(function (row) {
+    var feeRows = Array.isArray(result.data) ? result.data : [];
+    feeRows.forEach(function (row) {
         var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
         feesObj[key] = row.status;
     });

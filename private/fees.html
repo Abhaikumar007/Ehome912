@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fees - Edu Home Admin</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="css/admin.css">
 </head>
 
@@ -13,15 +14,25 @@
     <script src="js/security.js"></script>
 
     <div class="container mt-5">
-        <div class="page-header d-flex justify-content-between align-items-center">
+        <div class="page-header d-flex justify-content-between align-items-center flex-wrap" style="gap: 12px; margin-bottom: 20px;">
             <h2><a href="index.html" class="text-dark"><i class="fas fa-arrow-left"></i></a> Fee Management</h2>
-            <a href="fee_calculator.html" class="btn btn-primary" style="background: linear-gradient(45deg, #ff007f, #7928ca); border: none; font-weight: bold; padding: 10px 20px; border-radius: 30px; box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);"><i class="fas fa-calculator"></i> Gamified Fee Calculator</a>
+            <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                <button id="pullCloudBtn" class="btn btn-sm btn-outline-primary shadow-sm" style="padding: 8px 14px; font-weight: 600; border-radius: 20px;" onclick="runPullFromCloud()">
+                    <i class="fas fa-cloud-download-alt mr-1"></i> Pull
+                </button>
+                <button id="pushCloudBtn" class="btn btn-sm btn-outline-success shadow-sm" style="padding: 8px 14px; font-weight: 600; border-radius: 20px;" onclick="runPushToCloud()">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> Push
+                </button>
+                <a href="fee_calculator.html" class="btn btn-primary" style="background: linear-gradient(45deg, #ff007f, #7928ca); border: none; font-weight: bold; padding: 8px 18px; border-radius: 30px; box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);"><i class="fas fa-calculator"></i> Gamified Fee Calculator</a>
+            </div>
         </div>
+        <div id="manualSyncStatus" class="mb-3 text-right" style="min-height: 22px;"></div>
 
         <div class="row mb-4">
             <div class="col-md-5">
                 <select class="form-control" id="feesClassSelect">
                     <option value="">Select Class to View</option>
+                    <option value="6">Class 6</option>
                     <option value="7">Class 7</option>
                     <option value="8">Class 8</option>
                     <option value="9">Class 9</option>
@@ -73,7 +84,72 @@
         </div>
     </div>
 
+    <!-- Google Sheets Cloud Sync -->
+    <script src="js/config.js"></script>
+    <script src="js/sheets-client.js"></script>
     <script src="js/admin.js"></script>
+
+    <script>
+    // ── Cloud Sync Handlers for Fees Page ─────────────────────────────
+
+    // Auto-pull on load to keep fee records fresh across devices
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof sb_loadFromCloud === 'function') {
+            sb_loadFromCloud().then(function(result) {
+                if (result && result.ok) {
+                    if (typeof window.loadFeeTable === 'function') {
+                        window.loadFeeTable();
+                    }
+                }
+            });
+        }
+    });
+
+    async function runPullFromCloud() {
+        const btn    = document.getElementById('pullCloudBtn');
+        const status = document.getElementById('manualSyncStatus');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pulling...';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading latest fees from cloud...</span>';
+
+        const result = await sb_loadFromCloud();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-1"></i> Pull';
+
+        if (result && result.ok) {
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pulled latest fees and ' + result.students.length + ' students from cloud!</span>';
+            if (typeof window.loadFeeTable === 'function') {
+                window.loadFeeTable();
+            }
+            setTimeout(() => { status.innerHTML = ''; }, 4000);
+        } else {
+            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Pull failed: ' + (result ? result.msg : 'Network error') + '</span>';
+        }
+    }
+
+    async function runPushToCloud() {
+        const btn    = document.getElementById('pushCloudBtn');
+        const status = document.getElementById('manualSyncStatus');
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pushing...';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-upload-alt mr-1"></i>Uploading local fees and students to cloud...</span>';
+
+        const result = await sb_migrateFromLocalStorage();
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Push';
+
+        if (result && result.ok) {
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pushed all local data to cloud!</span>';
+            setTimeout(() => { status.innerHTML = ''; }, 4000);
+        } else {
+            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Push failed: ' + (result ? result.msg : 'Network error') + '</span>';
+        }
+    }
+    </script>
 </body>
 
 </html>
