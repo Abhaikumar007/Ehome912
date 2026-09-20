@@ -165,6 +165,20 @@
                             title="Downloads a JSON file with all student data + fee records">
                             <i class="fas fa-download mr-1"></i> Download JSON
                         </button>
+                        <button id="exportSupabaseSqlBtn"
+                            class="btn btn-primary"
+                            style="background:#1A56DB; border-color:#1A56DB;"
+                            onclick="exportSupabaseSQL()"
+                            title="Exports ready-to-run PostgreSQL INSERT statements for Supabase">
+                            <i class="fas fa-database mr-1"></i> Export Supabase SQL
+                        </button>
+                        <button id="exportSupabaseCsvBtn"
+                            class="btn btn-info"
+                            style="background:#0284C7; border-color:#0284C7; color:#fff;"
+                            onclick="exportSupabaseCSV()"
+                            title="Exports Supabase student data as CSV">
+                            <i class="fas fa-file-csv mr-1"></i> Export CSV
+                        </button>
                         <button id="exportWhatsappBtn"
                             class="btn btn-success"
                             style="background:#25D366; border-color:#1ebe5d;"

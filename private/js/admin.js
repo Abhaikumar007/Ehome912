@@ -75,6 +75,178 @@ window.exportStudentData = function () {
     alert('✅ Student data exported! File downloaded.');
 };
 
+// --- SUPABASE EXPORT HELPERS (SQL & CSV) ---
+function formatStudentForSupabase(s, idx) {
+    var rawName = (s.name || '').trim();
+    var titleName = rawName.toLowerCase().split(' ').filter(Boolean).map(function (w) {
+        return w.charAt(0).toUpperCase() + w.slice(1);
+    }).join(' ') || 'Student';
+
+    // 2-Letter Uppercase Initials
+    var parts = rawName.split(/\s+/).filter(Boolean);
+    var avatar = 'AS';
+    if (parts.length === 1) {
+        avatar = parts[0].slice(0, 2).toUpperCase();
+    } else if (parts.length > 1) {
+        avatar = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    // Clean Phone (10 digits, strip +91)
+    var phoneStr = String(s.phone || '').replace(/[^0-9]/g, '');
+    if (phoneStr.length > 10 && phoneStr.indexOf('91') === 0) {
+        phoneStr = phoneStr.slice(2);
+    }
+    var phone = phoneStr.slice(-10) || '9876543210';
+
+    // Grade and Batch
+    var classGrade = s.class_name || (s.class ? (String(s.class).toLowerCase().indexOf('class') >= 0 ? s.class : 'Class ' + s.class) : 'Class 12');
+    var batch = s.batch;
+    if (!batch) {
+        var numClass = parseInt(s.class || '12', 10);
+        if (numClass === 12) batch = 'JEE Target (Batch A)';
+        else if (numClass === 11) batch = 'Class 11 (CBSE)';
+        else batch = 'Class ' + (s.class || '10') + '-A (CBSE)';
+    }
+
+    // Roll Number
+    var rollNo = s.roll_no || s.rollNo;
+    if (!rollNo || rollNo.trim().length === 0) {
+        var year = new Date().getFullYear();
+        var code = 'CBSE';
+        var bUpper = (batch + ' ' + classGrade).toUpperCase();
+        if (bUpper.indexOf('JEE') >= 0) code = 'JEE';
+        else if (bUpper.indexOf('NEET') >= 0 || bUpper.indexOf('MED') >= 0) code = 'NEET';
+        else if (bUpper.indexOf('10') >= 0) code = 'CBSE';
+        else if (bUpper.indexOf('11') >= 0) code = 'CBSE11';
+        else if (bUpper.indexOf('12') >= 0) code = 'CBSE12';
+
+        var serial = String(idx + 1);
+        while (serial.length < 4) serial = '0' + serial;
+        rollNo = year + '-' + code + '-' + serial;
+    }
+
+    return {
+        roll_no: rollNo,
+        pin: s.pin || '1234',
+        name: titleName,
+        class_name: classGrade,
+        batch: batch,
+        avatar: avatar,
+        phone: phone,
+        streak: typeof s.streak === 'number' ? s.streak : 10,
+        accuracy: typeof s.accuracy === 'number' ? s.accuracy : 85,
+        tests_completed: typeof s.tests_completed === 'number' ? s.tests_completed : 14,
+        top_percent: typeof s.top_percent === 'number' ? s.top_percent : 10
+    };
+}
+
+window.exportSupabaseSQL = function () {
+    var students = getStudents();
+    if (students.length === 0) {
+        alert('No students found to export.');
+        return;
+    }
+
+    var lines = [
+        '--',
+        '-- Supabase PostgreSQL Seed: Students & Companion Records',
+        '-- Generated: ' + new Date().toISOString(),
+        '-- Total Students: ' + students.length,
+        '--',
+        'BEGIN;',
+        ''
+    ];
+
+    students.forEach(function (raw, idx) {
+        var s = formatStudentForSupabase(raw, idx);
+        var escName = s.name.replace(/'/g, "''");
+        var escClass = s.class_name.replace(/'/g, "''");
+        var escBatch = s.batch.replace(/'/g, "''");
+
+        lines.push('-- Student: ' + s.name + ' (' + s.roll_no + ')');
+        lines.push(
+            "INSERT INTO students (roll_no, pin, name, class_name, batch, avatar, phone, streak, accuracy, tests_completed, top_percent) " +
+            "VALUES ('" + s.roll_no + "', '" + s.pin + "', '" + escName + "', '" + escClass + "', '" + escBatch + "', '" + s.avatar + "', '" + s.phone + "', " + s.streak + ", " + s.accuracy + ", " + s.tests_completed + ", " + s.top_percent + ") " +
+            "ON CONFLICT (roll_no) DO UPDATE SET " +
+            "name = EXCLUDED.name, class_name = EXCLUDED.class_name, batch = EXCLUDED.batch, phone = EXCLUDED.phone;"
+        );
+        lines.push(
+            "INSERT INTO attendance_records (roll_no, overall, attended, total, today_subjects, history) " +
+            "VALUES ('" + s.roll_no + "', 90, 45, 50, '[]'::jsonb, '[]'::jsonb) " +
+            "ON CONFLICT (roll_no) DO NOTHING;"
+        );
+        lines.push(
+            "INSERT INTO fees_records (roll_no, current_due, due_date, days_left, months_paid_on_time, loyalty_months, recent_payments) " +
+            "VALUES ('" + s.roll_no + "', 1, '25 Sep 2026', 5, 2, '[]'::jsonb, '[]'::jsonb) " +
+            "ON CONFLICT (roll_no) DO NOTHING;"
+        );
+        lines.push(
+            "INSERT INTO progress_records (roll_no, tests_attended, highest_score, top_percent, total_students, improvement, accuracy, incorrect) " +
+            "VALUES ('" + s.roll_no + "', 14, 92, 10, 1200, 15, 85, 15) " +
+            "ON CONFLICT (roll_no) DO NOTHING;\n"
+        );
+    });
+
+    lines.push('COMMIT;');
+    var sqlStr = lines.join('\n');
+    var blob = new Blob([sqlStr], { type: 'text/plain;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.download = 'supabase_students_seed_' + new Date().toISOString().slice(0, 10) + '.sql';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert('✅ Supabase PostgreSQL SQL export downloaded (' + students.length + ' students)!');
+};
+
+window.exportSupabaseCSV = function () {
+    var students = getStudents();
+    if (students.length === 0) {
+        alert('No students found to export.');
+        return;
+    }
+
+    var escapeCsv = function (val) {
+        var str = String(val == null ? '' : val);
+        if (str.indexOf(',') >= 0 || str.indexOf('"') >= 0 || str.indexOf('\n') >= 0) {
+            return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+    };
+
+    var headers = ['roll_no', 'pin', 'name', 'class_name', 'batch', 'avatar', 'phone', 'streak', 'accuracy', 'tests_completed', 'top_percent'];
+    var rows = students.map(function (raw, idx) {
+        var s = formatStudentForSupabase(raw, idx);
+        return [
+            escapeCsv(s.roll_no),
+            escapeCsv(s.pin),
+            escapeCsv(s.name),
+            escapeCsv(s.class_name),
+            escapeCsv(s.batch),
+            escapeCsv(s.avatar),
+            escapeCsv(s.phone),
+            s.streak,
+            s.accuracy,
+            s.tests_completed,
+            s.top_percent
+        ].join(',');
+    });
+
+    var csvStr = [headers.join(','), rows.join('\n')].join('\n');
+    var blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.download = 'supabase_students_' + new Date().toISOString().slice(0, 10) + '.csv';
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert('✅ Supabase CSV export downloaded (' + students.length + ' students)!');
+};
+
 window.sendExportToWhatsApp = function () {
     const students = getStudents();
     if (students.length === 0) {
