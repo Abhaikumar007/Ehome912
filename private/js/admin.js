@@ -76,8 +76,51 @@ window.exportStudentData = function () {
 };
 
 // --- SUPABASE EXPORT HELPERS (SQL & CSV) ---
+async function getStudentsForSupabaseExport() {
+    var toggle = document.getElementById('sourceToggleSwitch');
+    var isCloud = toggle ? toggle.checked : false;
+
+    // 1. If toggle is set to cloud, try cloud first
+    if (isCloud && typeof sb_getStudents === 'function') {
+        try {
+            var cloudData = await sb_getStudents();
+            if (cloudData && cloudData.length > 0) return cloudData;
+        } catch (e) {
+            console.warn('[Export] Cloud fetch error:', e);
+        }
+    }
+
+    // 2. Check local storage
+    var local = getStudents();
+    if (local && local.length > 0) return local;
+
+    // 3. Fallback to Cloud if local had 0 students
+    if (typeof sb_getStudents === 'function') {
+        try {
+            var cloudDataFallback = await sb_getStudents();
+            if (cloudDataFallback && cloudDataFallback.length > 0) return cloudDataFallback;
+        } catch (e) {
+            console.warn('[Export] Cloud fallback fetch error:', e);
+        }
+    }
+
+    // 4. Also try sb_loadFromCloud if available to sync
+    if (typeof sb_loadFromCloud === 'function') {
+        try {
+            var res = await sb_loadFromCloud();
+            if (res && res.ok && res.students && res.students.length > 0) {
+                return res.students;
+            }
+        } catch (e) {
+            console.warn('[Export] sb_loadFromCloud error:', e);
+        }
+    }
+
+    return [];
+}
+
 function formatStudentForSupabase(s, idx) {
-    var rawName = (s.name || '').trim();
+    var rawName = String(s.name || s.student_name || '').trim();
     var titleName = rawName.toLowerCase().split(' ').filter(Boolean).map(function (w) {
         return w.charAt(0).toUpperCase() + w.slice(1);
     }).join(' ') || 'Student';
@@ -85,32 +128,39 @@ function formatStudentForSupabase(s, idx) {
     // 2-Letter Uppercase Initials
     var parts = rawName.split(/\s+/).filter(Boolean);
     var avatar = 'AS';
-    if (parts.length === 1) {
+    if (parts.length === 1 && parts[0].length >= 2) {
         avatar = parts[0].slice(0, 2).toUpperCase();
     } else if (parts.length > 1) {
         avatar = (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    } else if (parts.length === 1 && parts[0].length === 1) {
+        avatar = (parts[0] + 'S').toUpperCase();
     }
 
-    // Clean Phone (10 digits, strip +91)
-    var phoneStr = String(s.phone || '').replace(/[^0-9]/g, '');
+    // Clean Phone (10 digits, strip +91, dashes, spaces)
+    var phoneStr = String(s.phone || s.mobile || s.contact || '').replace(/[^0-9]/g, '');
     if (phoneStr.length > 10 && phoneStr.indexOf('91') === 0) {
         phoneStr = phoneStr.slice(2);
     }
-    var phone = phoneStr.slice(-10) || '9876543210';
+    var phone = phoneStr.slice(-10);
+    while (phone.length < 10) phone = '9' + phone;
 
-    // Grade and Batch
-    var classGrade = s.class_name || (s.class ? (String(s.class).toLowerCase().indexOf('class') >= 0 ? s.class : 'Class ' + s.class) : 'Class 12');
+    // Class Name
+    var rawClass = String(s.class_name || s.class || '12').trim();
+    var classGrade = rawClass.toLowerCase().indexOf('class') >= 0 ? rawClass : 'Class ' + rawClass;
+
+    // Batch Name
     var batch = s.batch;
     if (!batch) {
-        var numClass = parseInt(s.class || '12', 10);
+        var numClass = parseInt(rawClass.replace(/[^0-9]/g, ''), 10);
         if (numClass === 12) batch = 'JEE Target (Batch A)';
         else if (numClass === 11) batch = 'Class 11 (CBSE)';
-        else batch = 'Class ' + (s.class || '10') + '-A (CBSE)';
+        else if (numClass === 10) batch = 'Class 10-A (CBSE)';
+        else batch = 'Class ' + (numClass || 10) + ' Batch';
     }
 
     // Roll Number
     var rollNo = s.roll_no || s.rollNo;
-    if (!rollNo || rollNo.trim().length === 0) {
+    if (!rollNo || String(rollNo).trim().length === 0) {
         var year = new Date().getFullYear();
         var code = 'CBSE';
         var bUpper = (batch + ' ' + classGrade).toUpperCase();
@@ -126,8 +176,8 @@ function formatStudentForSupabase(s, idx) {
     }
 
     return {
-        roll_no: rollNo,
-        pin: s.pin || '1234',
+        roll_no: String(rollNo).trim(),
+        pin: s.pin && String(s.pin).length === 4 ? String(s.pin) : '1234',
         name: titleName,
         class_name: classGrade,
         batch: batch,
@@ -140,111 +190,180 @@ function formatStudentForSupabase(s, idx) {
     };
 }
 
-window.exportSupabaseSQL = function () {
-    var students = getStudents();
-    if (students.length === 0) {
-        alert('No students found to export.');
-        return;
+window.exportSupabaseSQL = async function () {
+    var btn = document.getElementById('exportSupabaseSqlBtn');
+    var origHtml = btn ? btn.innerHTML : '';
+    var status = document.getElementById('syncStatus');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Fetching Data...';
+    }
+    if (status) {
+        status.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin mr-1"></i>Gathering student records from storage...</span>';
     }
 
-    var lines = [
-        '--',
-        '-- Supabase PostgreSQL Seed: Students & Companion Records',
-        '-- Generated: ' + new Date().toISOString(),
-        '-- Total Students: ' + students.length,
-        '--',
-        'BEGIN;',
-        ''
-    ];
+    try {
+        var students = await getStudentsForSupabaseExport();
+        if (!students || students.length === 0) {
+            alert('No student records found in Local Storage or Cloud Storage.\n\nTip: If your data is in Google Sheets, click the "Pull" button first.');
+            if (status) status.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle mr-1"></i>No student records found to export.</span>';
+            return;
+        }
 
-    students.forEach(function (raw, idx) {
-        var s = formatStudentForSupabase(raw, idx);
-        var escName = s.name.replace(/'/g, "''");
-        var escClass = s.class_name.replace(/'/g, "''");
-        var escBatch = s.batch.replace(/'/g, "''");
+        var lines = [
+            '--',
+            '-- ==============================================================================--',
+            '-- EduHome: Supabase Students & Companion Records Seed SQL',
+            '-- Generated: ' + new Date().toISOString(),
+            '-- Total Students: ' + students.length,
+            '-- ==============================================================================--',
+            'BEGIN;',
+            ''
+        ];
 
-        lines.push('-- Student: ' + s.name + ' (' + s.roll_no + ')');
-        lines.push(
-            "INSERT INTO students (roll_no, pin, name, class_name, batch, avatar, phone, streak, accuracy, tests_completed, top_percent) " +
-            "VALUES ('" + s.roll_no + "', '" + s.pin + "', '" + escName + "', '" + escClass + "', '" + escBatch + "', '" + s.avatar + "', '" + s.phone + "', " + s.streak + ", " + s.accuracy + ", " + s.tests_completed + ", " + s.top_percent + ") " +
-            "ON CONFLICT (roll_no) DO UPDATE SET " +
-            "name = EXCLUDED.name, class_name = EXCLUDED.class_name, batch = EXCLUDED.batch, phone = EXCLUDED.phone;"
-        );
-        lines.push(
-            "INSERT INTO attendance_records (roll_no, overall, attended, total, today_subjects, history) " +
-            "VALUES ('" + s.roll_no + "', 90, 45, 50, '[]'::jsonb, '[]'::jsonb) " +
-            "ON CONFLICT (roll_no) DO NOTHING;"
-        );
-        lines.push(
-            "INSERT INTO fees_records (roll_no, current_due, due_date, days_left, months_paid_on_time, loyalty_months, recent_payments) " +
-            "VALUES ('" + s.roll_no + "', 1, '25 Sep 2026', 5, 2, '[]'::jsonb, '[]'::jsonb) " +
-            "ON CONFLICT (roll_no) DO NOTHING;"
-        );
-        lines.push(
-            "INSERT INTO progress_records (roll_no, tests_attended, highest_score, top_percent, total_students, improvement, accuracy, incorrect) " +
-            "VALUES ('" + s.roll_no + "', 14, 92, 10, 1200, 15, 85, 15) " +
-            "ON CONFLICT (roll_no) DO NOTHING;\n"
-        );
-    });
+        students.forEach(function (raw, idx) {
+            var s = formatStudentForSupabase(raw, idx);
+            var escName = s.name.replace(/'/g, "''");
+            var escClass = s.class_name.replace(/'/g, "''");
+            var escBatch = s.batch.replace(/'/g, "''");
 
-    lines.push('COMMIT;');
-    var sqlStr = lines.join('\n');
-    var blob = new Blob([sqlStr], { type: 'text/plain;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.download = 'supabase_students_seed_' + new Date().toISOString().slice(0, 10) + '.sql';
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    alert('✅ Supabase PostgreSQL SQL export downloaded (' + students.length + ' students)!');
+            lines.push('-- Student: ' + s.name + ' (' + s.roll_no + ')');
+            lines.push(
+                "INSERT INTO students (roll_no, pin, name, class_name, batch, avatar, phone, streak, accuracy, tests_completed, top_percent) " +
+                "VALUES ('" + s.roll_no + "', '" + s.pin + "', '" + escName + "', '" + escClass + "', '" + escBatch + "', '" + s.avatar + "', '" + s.phone + "', " + s.streak + ", " + s.accuracy + ", " + s.tests_completed + ", " + s.top_percent + ") " +
+                "ON CONFLICT (roll_no) DO UPDATE SET " +
+                "name = EXCLUDED.name, class_name = EXCLUDED.class_name, batch = EXCLUDED.batch, phone = EXCLUDED.phone;"
+            );
+            lines.push(
+                "INSERT INTO attendance_records (roll_no, overall, attended, total, today_subjects, history) " +
+                "VALUES ('" + s.roll_no + "', 90, 45, 50, '[]'::jsonb, '[]'::jsonb) " +
+                "ON CONFLICT (roll_no) DO NOTHING;"
+            );
+            lines.push(
+                "INSERT INTO fees_records (roll_no, current_due, due_date, days_left, months_paid_on_time, loyalty_months, recent_payments) " +
+                "VALUES ('" + s.roll_no + "', 1, '25 Sep 2026', 5, 2, '[]'::jsonb, '[]'::jsonb) " +
+                "ON CONFLICT (roll_no) DO NOTHING;"
+            );
+            lines.push(
+                "INSERT INTO progress_records (roll_no, tests_attended, highest_score, top_percent, total_students, improvement, accuracy, incorrect) " +
+                "VALUES ('" + s.roll_no + "', 14, 92, 10, 1200, 15, 85, 15) " +
+                "ON CONFLICT (roll_no) DO NOTHING;\n"
+            );
+        });
+
+        lines.push('COMMIT;');
+        var sqlStr = lines.join('\n');
+
+        // Safe Download
+        var blob = new Blob([sqlStr], { type: 'text/plain;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var filename = 'supabase_students_seed_' + new Date().toISOString().slice(0, 10) + '.sql';
+
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+
+        setTimeout(function () {
+            if (link.parentNode) link.parentNode.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 5000);
+
+        if (status) {
+            status.innerHTML = '<span class="text-success"><i class="fas fa-check-circle mr-1"></i>Successfully exported ' + students.length + ' students to ' + filename + '!</span>';
+        }
+    } catch (err) {
+        console.error('[Export Error]', err);
+        alert('Export failed: ' + err.message);
+        if (status) status.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>Export failed: ' + err.message + '</span>';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+    }
 };
 
-window.exportSupabaseCSV = function () {
-    var students = getStudents();
-    if (students.length === 0) {
-        alert('No students found to export.');
-        return;
+window.exportSupabaseCSV = async function () {
+    var btn = document.getElementById('exportSupabaseCsvBtn');
+    var origHtml = btn ? btn.innerHTML : '';
+    var status = document.getElementById('syncStatus');
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Fetching Data...';
+    }
+    if (status) {
+        status.innerHTML = '<span class="text-info"><i class="fas fa-spinner fa-spin mr-1"></i>Gathering student records for CSV...</span>';
     }
 
-    var escapeCsv = function (val) {
-        var str = String(val == null ? '' : val);
-        if (str.indexOf(',') >= 0 || str.indexOf('"') >= 0 || str.indexOf('\n') >= 0) {
-            return '"' + str.replace(/"/g, '""') + '"';
+    try {
+        var students = await getStudentsForSupabaseExport();
+        if (!students || students.length === 0) {
+            alert('No student records found in Local Storage or Cloud Storage.\n\nTip: If your data is in Google Sheets, click the "Pull" button first.');
+            if (status) status.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle mr-1"></i>No student records found to export.</span>';
+            return;
         }
-        return str;
-    };
 
-    var headers = ['roll_no', 'pin', 'name', 'class_name', 'batch', 'avatar', 'phone', 'streak', 'accuracy', 'tests_completed', 'top_percent'];
-    var rows = students.map(function (raw, idx) {
-        var s = formatStudentForSupabase(raw, idx);
-        return [
-            escapeCsv(s.roll_no),
-            escapeCsv(s.pin),
-            escapeCsv(s.name),
-            escapeCsv(s.class_name),
-            escapeCsv(s.batch),
-            escapeCsv(s.avatar),
-            escapeCsv(s.phone),
-            s.streak,
-            s.accuracy,
-            s.tests_completed,
-            s.top_percent
-        ].join(',');
-    });
+        var escapeCsv = function (val) {
+            var str = String(val == null ? '' : val);
+            if (str.indexOf(',') >= 0 || str.indexOf('"') >= 0 || str.indexOf('\n') >= 0) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        };
 
-    var csvStr = [headers.join(','), rows.join('\n')].join('\n');
-    var blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.download = 'supabase_students_' + new Date().toISOString().slice(0, 10) + '.csv';
-    link.href = url;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    alert('✅ Supabase CSV export downloaded (' + students.length + ' students)!');
+        var headers = ['roll_no', 'pin', 'name', 'class_name', 'batch', 'avatar', 'phone', 'streak', 'accuracy', 'tests_completed', 'top_percent'];
+        var rows = students.map(function (raw, idx) {
+            var s = formatStudentForSupabase(raw, idx);
+            return [
+                escapeCsv(s.roll_no),
+                escapeCsv(s.pin),
+                escapeCsv(s.name),
+                escapeCsv(s.class_name),
+                escapeCsv(s.batch),
+                escapeCsv(s.avatar),
+                escapeCsv(s.phone),
+                s.streak,
+                s.accuracy,
+                s.tests_completed,
+                s.top_percent
+            ].join(',');
+        });
+
+        var csvStr = [headers.join(','), rows.join('\n')].join('\n');
+        var blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var filename = 'supabase_students_' + new Date().toISOString().slice(0, 10) + '.csv';
+
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+
+        setTimeout(function () {
+            if (link.parentNode) link.parentNode.removeChild(link);
+            URL.revokeObjectURL(url);
+        }, 5000);
+
+        if (status) {
+            status.innerHTML = '<span class="text-success"><i class="fas fa-check-circle mr-1"></i>Successfully exported ' + students.length + ' students to ' + filename + '!</span>';
+        }
+    } catch (err) {
+        console.error('[Export Error]', err);
+        alert('CSV Export failed: ' + err.message);
+        if (status) status.innerHTML = '<span class="text-danger"><i class="fas fa-exclamation-triangle mr-1"></i>CSV export failed: ' + err.message + '</span>';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = origHtml;
+        }
+    }
 };
 
 window.sendExportToWhatsApp = function () {
