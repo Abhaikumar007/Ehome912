@@ -6,10 +6,10 @@ export const studentData = {
   class: 'Class 12',
   batch: 'JEE Target (Batch A)',
   avatar: 'AS',
-  streak: 12,
-  accuracy: 86,
-  testsCompleted: 16,
-  topPercent: 8,
+  streak: 0,
+  accuracy: 0,
+  testsCompleted: 0,
+  topPercent: 0,
 };
 
 // ─── TODAY'S CLASSES ──────────────────────────────────────────────────────────
@@ -24,65 +24,49 @@ export const todaysClasses = [
 // ─── ATTENDANCE ───────────────────────────────────────────────────────────────
 
 export const attendanceData = {
-  overall: 92,
-  attended: 46,
-  total: 50,
-  todaySubjects: [
-    { id: '1', subject: 'Physics',     time: '09:00 AM – 10:30 AM', icon: 'flash',    status: 'present' },
-    { id: '2', subject: 'Mathematics', time: '11:00 AM – 12:30 PM', icon: 'book',     status: 'present' },
-    { id: '3', subject: 'Chemistry',   time: '02:00 PM – 03:30 PM', icon: 'flask',    status: 'absent' },
-    { id: '4', subject: 'Biology',     time: '04:00 PM – 05:30 PM', icon: 'leaf',     status: 'present' },
-  ],
-  history: [
-    { date: 'Tue, 08 Sep 2026', subjects: 'Physics, Math, Chemistry, Biology', score: '4/4', status: 'full' },
-    { date: 'Mon, 07 Sep 2026', subjects: 'Physics, Math, Biology',             score: '3/3', status: 'full' },
-    { date: 'Sat, 05 Sep 2026', subjects: 'Chemistry, Biology',                 score: '1/2', status: 'partial' },
-    { date: 'Fri, 04 Sep 2026', subjects: 'Physics, Math, Chemistry, Biology',  score: '4/4', status: 'full' },
-  ],
+  overall: 0,
+  attended: 0,
+  total: 0,
+  todaySubjects: [] as any[],
+  history: [] as any[],
 };
 
 // ─── FEES ────────────────────────────────────────────────────────────────────
 
 export const feesData = {
-  currentDue: 1, // Set to ₹1 for testing as requested
-  dueDate: '25 Sep 2026',
-  daysLeft: 6,
+  currentDue: 1, // placeholder; actual amount loaded from EDUSYNC_FEES per student
+  monthlyFee: 0, // loaded from student record
+  actualDue: 0,
+  dueDate: '—',
+  daysLeft: 0,
   isPaid: false,
   status: 'due' as 'due' | 'pending_verification' | 'paid',
   upiId: 'devitintu12345@oksbi',
   payeeName: 'EduHome Tuition Center',
   loyaltyMonths: [
-    { label: 'Month 1', earned: true },
-    { label: 'Month 2', earned: true },
+    { label: 'Month 1', earned: false },
+    { label: 'Month 2', earned: false },
     { label: 'Month 3', earned: false, comingSoon: true },
   ],
-  monthsPaidOnTime: 2,
-  recentPayments: [
-    { month: 'AUG', fullMonth: 'August 2026', paidOn: '08 Aug 2026, 07:03 PM', amount: 6000, onTime: true, status: 'Verified' },
-    { month: 'JUL', fullMonth: 'July 2026',   paidOn: '09 Jul 2026, 05:56 PM', amount: 6000, onTime: true, status: 'Verified' },
-  ],
+  monthsPaidOnTime: 0,
+  recentPayments: [] as any[],
 };
 
 // ─── PROGRESS ────────────────────────────────────────────────────────────────
 
 export const progressData = {
-  testsAttended: 18,
-  highestScore: 96,
-  topPercent: 8,
-  totalStudents: 1200,
-  improvement: 16,
-  chartLabels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'],
-  yourScores:  [48,   62,   68,   72,   78,   82,   88,   92],
-  avgScores:   [50,   50,   52,   55,   58,   60,   62,   65],
-  accuracy: 86,
-  incorrect: 14,
-  commonMistakes: [
-    { rank: 1, text: 'Sign errors in equations',    count: 24 },
-    { rank: 2, text: 'Unit conversion mistakes',    count: 18 },
-    { rank: 3, text: 'Diagram-based questions',     count: 15 },
-    { rank: 4, text: 'Formula recall errors',       count: 12 },
-  ],
-  practice: { attended: 18, completed: 14, pending: 4, highest: 96 },
+  testsAttended: 0,
+  highestScore: 0,
+  topPercent: 0,
+  totalStudents: 0,
+  improvement: 0,
+  chartLabels: [] as string[],
+  yourScores:  [] as number[],
+  avgScores:   [] as number[],
+  accuracy: 0,
+  incorrect: 0,
+  commonMistakes: [] as { rank: number; text: string; count: number }[],
+  practice: { attended: 0, completed: 0, pending: 0, highest: 0 },
 };
 
 // ─── MATERIALS ────────────────────────────────────────────────────────────────

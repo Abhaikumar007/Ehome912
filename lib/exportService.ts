@@ -14,6 +14,9 @@ export interface RawStudent {
   accuracy?: number;
   tests_completed?: number;
   top_percent?: number;
+  monthly_fee?: number;
+  monthlyFee?: number;
+  subjects?: string;
 }
 
 export interface FormattedStudent {
@@ -28,6 +31,8 @@ export interface FormattedStudent {
   accuracy: number;
   tests_completed: number;
   top_percent: number;
+  monthly_fee: number;
+  subjects: string;
 }
 
 /**
@@ -104,6 +109,8 @@ export function formatStudents(rawList: RawStudent[]): FormattedStudent[] {
     accuracy: typeof s.accuracy === 'number' ? s.accuracy : 85,
     tests_completed: typeof s.tests_completed === 'number' ? s.tests_completed : 14,
     top_percent: typeof s.top_percent === 'number' ? s.top_percent : 10,
+    monthly_fee: s.monthly_fee || s.monthlyFee || 4000,
+    subjects: s.subjects || 'Physics, Chemistry, Maths',
   }));
 }
 
@@ -126,6 +133,7 @@ export function generatePostgreSql(students: FormattedStudent[]): string {
     const escapedName = s.name.replace(/'/g, "''");
     const escapedClass = s.class_name.replace(/'/g, "''");
     const escapedBatch = s.batch.replace(/'/g, "''");
+    const escapedSubjects = s.subjects.replace(/'/g, "''");
 
     lines.push(`-- --------------------------------------------------------------------------`);
     lines.push(`-- Student: ${s.name} (${s.roll_no})`);
@@ -148,9 +156,9 @@ export function generatePostgreSql(students: FormattedStudent[]): string {
 
     // Companion 2: fees_records
     lines.push(
-      `INSERT INTO fees_records (roll_no, current_due, due_date, days_left, months_paid_on_time, loyalty_months, recent_payments) ` +
-      `VALUES ('${s.roll_no}', 1, '25 Sep 2026', 5, 2, '[]'::jsonb, '[]'::jsonb) ` +
-      `ON CONFLICT (roll_no) DO NOTHING;`
+      `INSERT INTO fees_records (roll_no, monthly_fee, current_due, due_date, days_left, months_paid_on_time, subjects, loyalty_months, recent_payments) ` +
+      `VALUES ('${s.roll_no}', ${s.monthly_fee}, 1, '25 Sep 2026', 5, 2, '${escapedSubjects}', '[]'::jsonb, '[]'::jsonb) ` +
+      `ON CONFLICT (roll_no) DO UPDATE SET monthly_fee = EXCLUDED.monthly_fee, subjects = EXCLUDED.subjects;`
     );
 
     // Companion 3: progress_records
@@ -181,6 +189,8 @@ export function generateCsv(students: FormattedStudent[]): string {
     'accuracy',
     'tests_completed',
     'top_percent',
+    'monthly_fee',
+    'subjects',
   ];
 
   const escapeCsv = (val: any) => {
@@ -204,6 +214,8 @@ export function generateCsv(students: FormattedStudent[]): string {
       s.accuracy,
       s.tests_completed,
       s.top_percent,
+      s.monthly_fee,
+      escapeCsv(s.subjects),
     ].join(',')
   );
 

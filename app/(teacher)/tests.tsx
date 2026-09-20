@@ -109,9 +109,9 @@ const SUBJECTS: Array<'Physics' | 'Chemistry' | 'Mathematics'> = ['Physics', 'Ch
 
 export default function TeacherTestsScreen() {
   const router = useRouter();
-  const [tests, setTests] = useState<ExamItem[]>(INITIAL_TESTS);
+  const [tests, setTests] = useState<ExamItem[]>([]);
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
-  const [activeTestId, setActiveTestId] = useState<string>('test-8');
+  const [activeTestId, setActiveTestId] = useState<string>('');
 
   // Edit marks modal state
   const [selectedStudent, setSelectedStudent] = useState<TestStudent | null>(null);
@@ -123,12 +123,13 @@ export default function TeacherTestsScreen() {
   const [newTitle, setNewTitle] = useState('');
   const [newSubject, setNewSubject] = useState<'Physics' | 'Chemistry' | 'Mathematics'>('Physics');
   const [newClass, setNewClass] = useState('Class 10-A');
-  const [newDate, setNewDate] = useState('Mon, 29 Sep 2026');
+  const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('04:30 PM - 06:00 PM');
   const [newRoom, setNewRoom] = useState('Room 204');
   const [newMaxMarks, setNewMaxMarks] = useState('100');
-  const [newSyllabus, setNewSyllabus] = useState('Chapter 12: Electricity & Ohm\'s Law\nChapter 13: Magnetic Effects of Current');
+  const [newSyllabus, setNewSyllabus] = useState('');
   const [publishAsAlert, setPublishAsAlert] = useState(true);
+  const [showUntilDate, setShowUntilDate] = useState('');
 
   // Active test
   const activeTest = tests.find((t) => t.id === activeTestId) || tests[0];
@@ -194,6 +195,7 @@ export default function TeacherTestsScreen() {
       ],
       updatedBy: 'Mr. R Madhusudanan (Super Admin)',
       updatedAt: 'Just now',
+      expiryDate: showUntilDate || undefined,
     };
 
     await DataService.saveAcademicAlert(alertData);
@@ -626,9 +628,11 @@ export default function TeacherTestsScreen() {
               onChangeText={setNewSyllabus}
               multiline
               numberOfLines={3}
+              placeholder="e.g. Ch 9: Reflection of Light"
+              placeholderTextColor={Colors.textMuted}
             />
 
-            {/* Publish Toggle */}
+            {/* Publish Toggle + Show Until Date */}
             <View style={styles.switchRow}>
               <View style={{ flex: 1, paddingRight: 10 }}>
                 <Text style={styles.switchLabel}>Broadcast as Student Alert</Text>
@@ -641,6 +645,22 @@ export default function TeacherTestsScreen() {
                 thumbColor={publishAsAlert ? '#0284C7' : '#f4f3f4'}
               />
             </View>
+
+            {publishAsAlert && (
+              <View>
+                <Text style={styles.formLabel}>Hide Alert After (Date) — Optional</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={showUntilDate}
+                  onChangeText={setShowUntilDate}
+                  placeholder="e.g. 2026-09-23 (YYYY-MM-DD)"
+                  placeholderTextColor={Colors.textMuted}
+                />
+                <Text style={{ fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular', marginTop: 2, marginBottom: 6 }}>
+                  Alert will automatically disappear from student home screen after this date.
+                </Text>
+              </View>
+            )}
 
             <TouchableOpacity style={styles.submitTestBtn} onPress={handleCreateTest} activeOpacity={0.85}>
               <Ionicons name="add-circle" size={18} color="#fff" />

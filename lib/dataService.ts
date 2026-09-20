@@ -8,6 +8,7 @@ import {
   progressData as mockProgress,
   studyMaterials as mockMaterials,
 } from '../constants/mockData';
+import { EDUSYNC_STUDENTS, EDUSYNC_FEES } from './studentsRoster';
 
 const CURRENT_STUDENT_KEY = 'eduhome_current_student';
 const CACHE_PREFIX = 'eduhome_cache_';
@@ -84,6 +85,7 @@ export interface AcademicAlert {
   instructions?: string[];
   updatedBy: string;
   updatedAt?: string;
+  expiryDate?: string; // ISO date string; hide alert after this date
 }
 
 export const DataService = {
@@ -182,11 +184,11 @@ export const DataService = {
           photoUrl: data.photo_url || undefined,
           phone: data.phone || '9876543210',
           email: data.email || `${data.roll_no.toLowerCase()}@eduhome.ac.in`,
-          goals: data.goals || 'JEE Advanced 2027 (Top 1000)',
-          streak: data.streak ?? 12,
-          accuracy: data.accuracy ?? 86,
-          testsCompleted: data.tests_completed ?? 16,
-          topPercent: data.top_percent ?? 8,
+          goals: data.goals || data.class_name || '',
+          streak: data.streak ?? 0,
+          accuracy: data.accuracy ?? 0,
+          testsCompleted: data.tests_completed ?? 0,
+          topPercent: data.top_percent ?? 0,
         };
         await this.saveCurrentStudent(student);
         return { success: true, student };
@@ -195,7 +197,7 @@ export const DataService = {
       console.log('Supabase login query notice (using offline demo fallback if matching):', err);
     }
 
-    // Graceful offline demo fallback
+    // Graceful offline fallback: Check Arjun demo student
     if (
       (trimmedRoll.toUpperCase() === '2024-JEE-0842' || trimmedRoll.toUpperCase() === 'ARJUN' || trimmedRoll === '') &&
       (trimmedPin === '1234' || trimmedPin === '')
@@ -212,13 +214,36 @@ export const DataService = {
         topPercent: mockStudent.topPercent,
         phone: '9876543210',
         email: 'arjun.sharma@eduhome.ac.in',
-        goals: 'JEE Advanced 2027 (Top 1000)',
+        goals: mockStudent.class,
       };
       await this.saveCurrentStudent(student);
       return { success: true, student };
     }
 
-    return { success: false, error: 'Invalid Roll Number or PIN. Demo: 2024-JEE-0842 / PIN 1234' };
+    // Graceful offline fallback: Check all 49 EduHome 2026 Batch students
+    const matchedEduStudent = EDUSYNC_STUDENTS.find(
+      (s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase()
+    );
+    if (matchedEduStudent && (trimmedPin === matchedEduStudent.pin || trimmedPin === '1234')) {
+      const student: StudentProfile = {
+        rollNo: matchedEduStudent.rollNo,
+        name: matchedEduStudent.name,
+        class: matchedEduStudent.class,
+        batch: matchedEduStudent.batch,
+        avatar: matchedEduStudent.avatar,
+        streak: matchedEduStudent.streak || 0,
+        accuracy: matchedEduStudent.accuracy || 0,
+        testsCompleted: matchedEduStudent.testsCompleted || 0,
+        topPercent: matchedEduStudent.topPercent || 0,
+        phone: matchedEduStudent.phone,
+        email: `${matchedEduStudent.name.toLowerCase().replace(/\s+/g, '.')}@eduhome.ac.in`,
+        goals: matchedEduStudent.class,
+      };
+      await this.saveCurrentStudent(student);
+      return { success: true, student };
+    }
+
+    return { success: false, error: 'Invalid Roll Number or PIN. Example: EDU-2026-001 / PIN 1234' };
   },
 
   // Update Student Profile & Security
@@ -312,19 +337,19 @@ export const DataService = {
     return cached || mockClasses;
   },
 
-  // Fetch Announcements with Cache & 2.5s Timeout
-  async getAnnouncements() {
+  // Fetch Announcements — Network-First with Cache Fallback
+  async getAnnouncements(forceRefresh = false) {
     const cacheKey = 'eduhome_announcements';
     const cached = await getCached<any[]>(cacheKey);
-    if (cached && cached.length > 0) return cached;
 
+    // 1. Try Supabase Network-First so announcements from Admin Web App appear immediately
     try {
       const query = supabase
         .from('announcements')
         .select('*')
         .order('created_at', { ascending: false });
 
-      const { data, error } = (await withTimeout(query, 2500)) as any;
+      const { data, error } = (await withTimeout(query, 3000)) as any;
       if (data && data.length > 0 && !error) {
         const mapped = data.map((a: any) => ({
           id: a.id,
@@ -335,15 +360,19 @@ export const DataService = {
           desc: a.description,
           time: a.time_label || 'Recently',
           important: a.important || false,
-          tag: a.tag || 'Notice',
+          tag: a.tag || (a.important ? 'Urgent Alert' : 'Notice'),
           author: a.author || 'EduHome Administration',
+          createdAt: a.created_at,
         }));
         await setCached(cacheKey, mapped);
         return mapped;
       }
     } catch (e) {
-      // Timeout or offline
+      console.warn('Network fetch for announcements failed, falling back to cache', e);
     }
+
+    // 2. Offline / timeout fallback to cached announcements
+    if (cached && cached.length > 0) return cached;
 
     const defaultAnnouncements = [
       {
@@ -431,15 +460,33 @@ export const DataService = {
     return cached || mockAttendance;
   },
 
-  // Dynamic Days Calculation Helper
-  calculateDueInfo(dueDay = 25) {
+  // Dynamic Days Calculation Helper based on student's joining date or day of the month
+  calculateDueInfo(joiningDateOrDay?: string | number) {
     const now = new Date();
+    let dueDay = 25;
+    if (typeof joiningDateOrDay === 'number') {
+      dueDay = joiningDateOrDay;
+    } else if (typeof joiningDateOrDay === 'string') {
+      // Support formats like '15 Sep 2026', '2026-06-12', '12', etc.
+      const match = joiningDateOrDay.match(/^(\d{1,2})/);
+      if (match) {
+        dueDay = parseInt(match[1], 10);
+      } else {
+        const parsed = new Date(joiningDateOrDay);
+        if (!isNaN(parsed.getDate())) {
+          dueDay = parsed.getDate();
+        }
+      }
+    }
+    // Cap due day between 1 and 28 for safe monthly recurrence
+    dueDay = Math.max(1, Math.min(28, dueDay));
     const target = new Date(now.getFullYear(), now.getMonth(), dueDay, 23, 59, 59);
     const diffTime = target.getTime() - now.getTime();
     const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const monthName = target.toLocaleDateString('en-US', { month: 'short' });
     const dueDate = `${dueDay} ${monthName} ${now.getFullYear()}`;
     return {
+      dueDay,
       daysLeft,
       dueDate,
       isOverdue: daysLeft < 0,
@@ -452,14 +499,30 @@ export const DataService = {
     const cacheKey = `fees_${rollNo}`;
     const cached = await getCached<any>(cacheKey);
 
-    const dueInfo = this.calculateDueInfo(25);
+    const studentFeeInfo = (EDUSYNC_FEES as any)[rollNo] || {
+      monthlyFee: 4000,
+      currentDue: 4000,
+      dueDate: '25 Sep 2026',
+      joiningDate: '25 Sep 2024',
+      daysLeft: 5,
+      monthsPaidOnTime: 2,
+      subjects: 'Physics, Chemistry, Maths',
+    };
+
+    // Calculate dynamic due date and days left based on student's joining date
+    const dueInfo = this.calculateDueInfo(studentFeeInfo.joiningDate || studentFeeInfo.dueDate || 25);
 
     if (cached) {
       return {
         ...cached,
-        currentDue: cached.isPaid ? 0 : 1, // Strictly ₹1 test amount
+        monthlyFee: cached.monthlyFee || studentFeeInfo.monthlyFee,
+        subjects: cached.subjects || studentFeeInfo.subjects,
+        joiningDate: cached.joiningDate || studentFeeInfo.joiningDate,
+        currentDue: cached.isPaid ? 0 : 1, // Strictly ₹1 test amount for seamless UPI testing
+        actualDue: cached.isPaid ? 0 : (cached.monthlyFee || studentFeeInfo.monthlyFee),
         daysLeft: cached.isPaid ? 0 : dueInfo.daysLeft,
         dueDate: dueInfo.dueDate,
+        monthsPaidOnTime: cached.monthsPaidOnTime ?? studentFeeInfo.monthsPaidOnTime,
       };
     }
 
@@ -472,16 +535,21 @@ export const DataService = {
 
       const { data, error } = await withTimeout(query, 2500) as any;
       if (data && !error) {
+        const studentDueInfo = this.calculateDueInfo(data.joining_date || data.due_date || studentFeeInfo.joiningDate || 25);
         const mapped = {
+          monthlyFee: Number(data.monthly_fee) || studentFeeInfo.monthlyFee,
           currentDue: data.status === 'paid' ? 0 : 1, // Strictly ₹1 test amount
-          dueDate: dueInfo.dueDate,
-          daysLeft: dueInfo.daysLeft,
+          actualDue: data.status === 'paid' ? 0 : (Number(data.monthly_fee) || studentFeeInfo.monthlyFee),
+          dueDate: data.due_date || studentDueInfo.dueDate,
+          joiningDate: data.joining_date || studentFeeInfo.joiningDate || studentDueInfo.dueDate,
+          daysLeft: studentDueInfo.daysLeft,
           isPaid: data.status === 'paid',
           status: (data.status || 'due') as 'due' | 'pending_verification' | 'paid',
+          subjects: data.subjects || studentFeeInfo.subjects,
           upiId: 'devitintu12345@oksbi',
           payeeName: 'EduHome Tuition Center',
           loyaltyMonths: data.loyalty_months || mockFees.loyaltyMonths,
-          monthsPaidOnTime: data.months_paid_on_time ?? 2,
+          monthsPaidOnTime: data.months_paid_on_time ?? studentFeeInfo.monthsPaidOnTime,
           recentPayments: data.recent_payments || mockFees.recentPayments,
         };
         await setCached(cacheKey, mapped);
@@ -493,8 +561,15 @@ export const DataService = {
 
     const initial = {
       ...mockFees,
-      daysLeft: dueInfo.daysLeft,
-      dueDate: dueInfo.dueDate,
+      monthlyFee: studentFeeInfo.monthlyFee,
+      currentDue: 1, // Strictly ₹1 test amount for smooth UPI
+      actualDue: studentFeeInfo.monthlyFee,
+      subjects: studentFeeInfo.subjects,
+      joiningDate: studentFeeInfo.joiningDate,
+      school: studentFeeInfo.school,
+      daysLeft: studentFeeInfo.daysLeft !== undefined ? studentFeeInfo.daysLeft : dueInfo.daysLeft,
+      dueDate: studentFeeInfo.dueDate || dueInfo.dueDate,
+      monthsPaidOnTime: studentFeeInfo.monthsPaidOnTime,
     };
     await setCached(cacheKey, initial);
     return initial;
@@ -513,13 +588,16 @@ export const DataService = {
     await setCached(cacheKey, updated);
 
     // Save pending verification to admin queue
+    const studentFeeInfo = (EDUSYNC_FEES as any)[rollNo];
+    const studentName = studentFeeInfo?.name || (current as any).studentName || (rollNo === '2024-JEE-0842' ? 'Arjun S' : rollNo);
+
     const adminKey = 'admin_pending_fees';
     const pendingList = (await getCached<any[]>(adminKey)) || [];
     const exists = pendingList.find((p) => p.rollNo === rollNo);
     if (!exists) {
       pendingList.push({
         rollNo,
-        studentName: 'Arjun S',
+        studentName,
         amount: 1,
         upiId: 'devitintu12345@oksbi',
         utr: updated.utr,
@@ -591,19 +669,97 @@ export const DataService = {
     return updated;
   },
 
+  // Super Admin marks fee paid via cash directly from student roster or admin app
+  async markFeeAsPaidCash(rollNo: string, amount: number, verifiedBy: string = 'Mr. R Madhusudanan (Super Admin)') {
+    const cacheKey = `fees_${rollNo}`;
+    const current = (await getCached<any>(cacheKey)) || mockFees;
+    const now = new Date();
+    const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) +
+      ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const curMonth = monthNames[now.getMonth()].toUpperCase();
+    const curFullMonth = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const newPayment = {
+      month: curMonth,
+      fullMonth: curFullMonth,
+      paidOn: paidOnStr,
+      amount: amount || current.monthlyFee || 4000,
+      onTime: true,
+      status: 'Cash Payment - Verified by Super Admin',
+      receiptNo: `REC-${now.getFullYear()}-${curMonth}-${Math.floor(1000 + Math.random() * 9000)}`,
+    };
+
+    const updated = {
+      ...current,
+      currentDue: 0,
+      isPaid: true,
+      status: 'paid' as const,
+      daysLeft: 0,
+      monthsPaidOnTime: (current.monthsPaidOnTime || 0) + 1,
+      recentPayments: [newPayment, ...(current.recentPayments || [])],
+      verifiedAt: paidOnStr,
+      verifiedBy,
+    };
+
+    await setCached(cacheKey, updated);
+
+    // Remove from admin pending queue if any
+    const adminKey = 'admin_pending_fees';
+    const pendingList = (await getCached<any[]>(adminKey)) || [];
+    const filtered = pendingList.filter((p) => p.rollNo !== rollNo);
+    await setCached(adminKey, filtered);
+
+    try {
+      await supabase
+        .from('fees_records')
+        .update({
+          status: 'paid',
+          current_due: 0,
+          updated_at: new Date().toISOString(),
+          recent_payments: updated.recentPayments,
+        })
+        .eq('roll_no', rollNo);
+    } catch {}
+
+    return updated;
+  },
+
   // Reset fee back to due (for demo / testing reset)
   async resetFeePayment(rollNo: string) {
     const cacheKey = `fees_${rollNo}`;
-    const dueInfo = this.calculateDueInfo(25);
+    const studentFeeInfo = (EDUSYNC_FEES as any)[rollNo] || {
+      monthlyFee: 4000,
+      currentDue: 4000,
+      dueDate: '15 Sep 2026',
+      daysLeft: -5,
+      joiningDate: '15 Jan 2026',
+      monthsPaidOnTime: 2,
+      subjects: 'Physics, Chemistry, Maths',
+    };
+    const dueInfo = this.calculateDueInfo(studentFeeInfo.joiningDate || studentFeeInfo.dueDate || 25);
     const reset = {
       ...mockFees,
+      monthlyFee: studentFeeInfo.monthlyFee,
+      actualDue: studentFeeInfo.monthlyFee,
+      subjects: studentFeeInfo.subjects,
+      joiningDate: studentFeeInfo.joiningDate,
+      school: studentFeeInfo.school,
       currentDue: 1,
       isPaid: false,
       status: 'due' as const,
-      daysLeft: dueInfo.daysLeft,
-      dueDate: dueInfo.dueDate,
+      daysLeft: studentFeeInfo.daysLeft !== undefined ? studentFeeInfo.daysLeft : dueInfo.daysLeft,
+      dueDate: studentFeeInfo.dueDate || dueInfo.dueDate,
+      monthsPaidOnTime: studentFeeInfo.monthsPaidOnTime,
     };
     await setCached(cacheKey, reset);
+    try {
+      await supabase
+        .from('fees_records')
+        .update({ status: 'due', current_due: 1 })
+        .eq('roll_no', rollNo);
+    } catch {}
     return reset;
   },
 
@@ -729,39 +885,164 @@ export const DataService = {
   // Academic / Test Paper Alert (Shown on Student Home above Attendance)
   async getAcademicAlert() {
     const key = 'academic_alert_active';
-    const cached = await getCached<any>(key);
-    if (cached) return cached;
 
-    return {
-      id: 'alert-test-9',
-      type: 'test_paper', // 'test_paper' | 'top_scorer' | 'special_notice'
-      badge: 'Upcoming Test Paper Alert',
-      title: 'Class 12 Physics & Chemistry Mock Test 9',
-      shortDesc: 'Ray Optics, Chemical Kinetics & Integral Calculus',
-      date: 'Monday, 22 Sep 2026',
-      time: '04:00 PM – 06:30 PM (2.5 Hours)',
-      room: 'Main Exam Hall B',
-      maxMarks: 100,
-      negativeMarking: '-1 for incorrect MCQs',
-      syllabus: [
-        'Physics: Ray Optics, Mirrors, Lens Maker Formula & Optical Instruments',
-        'Chemistry: Chemical Kinetics, Rate Laws, First Order Reactions & Arrhenius Equation',
-        'Mathematics: Definite Integrals, Substitution & Area Under Curves',
-      ],
-      instructions: [
-        'Reporting time is strictly 15 minutes before test commencement.',
-        'Bring your scientific calculator and geometry instruments.',
-        'Answer papers will be evaluated and reviewed in the next classroom discussion.',
-      ],
-      updatedBy: 'Mr. R Madhusudanan (Super Admin)',
-      updatedAt: 'Today at 09:30 AM',
-    };
+    // 1. Try to fetch latest active exam alert from Supabase announcements
+    try {
+      const { data, error } = (await withTimeout(
+        supabase
+          .from('announcements')
+          .select('*')
+          .or('icon.eq.calendar,title.ilike.%Exam Alert%,title.ilike.%Test Alert%')
+          .order('created_at', { ascending: false })
+          .limit(1),
+        2500
+      )) as any;
+
+      if (data && data.length > 0 && !error) {
+        const top = data[0];
+        // Parse syllabus and date from description if formatted by master hub
+        const desc = top.description || '';
+        const now = new Date();
+
+        // Check if there is an expiry in description
+        let isExpired = false;
+        const expiryMatch = desc.match(/Valid Until:\s*([^\n|]+)/i) || desc.match(/Expiry:\s*([^\n|]+)/i);
+        if (expiryMatch) {
+          const expDate = new Date(expiryMatch[1].trim());
+          if (!isNaN(expDate.getTime()) && now > expDate) {
+            isExpired = true;
+          }
+        }
+
+        if (!isExpired) {
+          const dateMatch = desc.match(/Exam Date:\s*([^\n|]+)/i);
+          const syllabusMatch = desc.match(/Syllabus:\s*([^\n]+)/i);
+          const alertObj = {
+            id: top.id,
+            type: 'exam',
+            title: top.title.replace(/^\[(Exam Alert|Test Alert)[^\]]*\]\s*/i, ''),
+            shortDesc: desc,
+            date: dateMatch ? dateMatch[1].trim() : (top.time_label || 'Upcoming Exam'),
+            time: '09:30 AM - 12:30 PM',
+            room: 'Exam Hall 1',
+            maxMarks: 100,
+            syllabus: syllabusMatch ? syllabusMatch[1].split(',').map((s: string) => s.trim()) : ['Full Chapters'],
+            instructions: ['Arrive 15 minutes before the exam starts.', 'Carry blue/black ballpoint pens.', 'Calculator not permitted.'],
+            updatedBy: 'Examination Controller',
+            expiryDate: expiryMatch ? expiryMatch[1].trim() : undefined,
+          };
+          await setCached(key, alertObj);
+          return alertObj;
+        }
+      }
+    } catch (e) {
+      // fallback to cached
+    }
+
+    const cached = await getCached<any>(key);
+    if (!cached) return null;
+
+    // If alert has expiryDate and it has passed, auto-remove it
+    if (cached.expiryDate) {
+      const expiry = new Date(cached.expiryDate);
+      const now = new Date();
+      if (now > expiry) {
+        await setCached(key, null);
+        return null;
+      }
+    }
+
+    // Also check by date string (e.g. 'Monday, 22 Sep 2026')
+    if (cached.date) {
+      try {
+        const alertDate = new Date(cached.date);
+        const now = new Date();
+        if (!isNaN(alertDate.getTime()) && alertDate < now) {
+          const diffMs = now.getTime() - alertDate.getTime();
+          if (diffMs > 24 * 60 * 60 * 1000) {
+            await setCached(key, null);
+            return null;
+          }
+        }
+      } catch {}
+    }
+
+    return cached;
   },
 
   async saveAcademicAlert(alert: any) {
     const key = 'academic_alert_active';
     await setCached(key, alert);
+    // Also try to push to Supabase
+    try {
+      await supabase.from('academic_alerts').upsert({
+        id: alert.id,
+        type: alert.type,
+        title: alert.title,
+        short_desc: alert.shortDesc,
+        date: alert.date,
+        time: alert.time,
+        room: alert.room,
+        max_marks: alert.maxMarks,
+        syllabus: alert.syllabus,
+        instructions: alert.instructions,
+        updated_by: alert.updatedBy,
+        expiry_date: alert.expiryDate,
+        is_active: true,
+      });
+    } catch {}
     return alert;
+  },
+
+  async clearAcademicAlert() {
+    const key = 'academic_alert_active';
+    await setCached(key, null);
+    try {
+      await supabase.from('academic_alerts').update({ is_active: false }).eq('is_active', true);
+    } catch {}
+  },
+
+  // Save attendance record for a student (called from faculty portal)
+  async saveAttendance(rollNo: string, date: string, subject: string, classLabel: string, status: 'P' | 'A') {
+    const cacheKey = `attendance_${rollNo}`;
+    const existing = (await getCached<any>(cacheKey)) || { overall: 0, attended: 0, total: 0, history: [], todaySubjects: [] };
+
+    // Update history
+    const historyEntry = {
+      date,
+      subjects: subject,
+      score: status === 'P' ? '1/1' : '0/1',
+      status: status === 'P' ? 'full' : 'absent',
+      class: classLabel,
+    };
+
+    const history = [historyEntry, ...(existing.history || [])].slice(0, 60);
+    const attended = history.filter((h: any) => h.status === 'full').length;
+    const total = history.length;
+    const overall = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+    const updated = { ...existing, overall, attended, total, history };
+    await setCached(cacheKey, updated);
+
+    // Push to Supabase
+    try {
+      await supabase.from('attendance_records').insert({
+        roll_no: rollNo,
+        date,
+        subject,
+        class_label: classLabel,
+        status,
+      });
+    } catch {}
+
+    return updated;
+  },
+
+  // Batch save attendance for a full class (from faculty submit)
+  async saveBatchAttendance(students: { rollNo: string; name: string; status: 'P' | 'A' }[], date: string, subject: string, classLabel: string) {
+    for (const stu of students) {
+      await this.saveAttendance(stu.rollNo, date, subject, classLabel, stu.status);
+    }
   },
 
   // Mark single notification read

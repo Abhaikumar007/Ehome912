@@ -40,104 +40,30 @@ function DonutChart({ pct, size = 100 }: { pct: number; size?: number }) {
 const subjectFilters = ['Overall', 'Maths', 'Physics', 'Chemistry'] as const;
 type SubjectFilter = typeof subjectFilters[number];
 
-const SUBJECT_PROGRESS: Record<SubjectFilter, {
-  testsAttended: number;
-  highestScore: number;
-  topPercent: number;
-  totalStudents: number;
-  improvement: number;
-  chartLabels: string[];
-  yourScores: number[];
-  avgScores: number[];
-  accuracy: number;
-  incorrect: number;
-  gainMarks: number;
-  subjectName: string;
-  commonMistakes: { rank: number; text: string; count: number }[];
-  practice: { attended: number; completed: number; pending: number; highest: number };
-}> = {
-  Overall: {
-    testsAttended: 18,
-    highestScore: 96,
-    topPercent: 8,
-    totalStudents: 1200,
-    improvement: 16,
-    chartLabels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8'],
-    yourScores:  [48,   62,   68,   72,   78,   82,   88,   92],
-    avgScores:   [50,   50,   52,   55,   58,   60,   62,   65],
-    accuracy: 86,
-    incorrect: 14,
-    gainMarks: 44,
-    subjectName: 'Overall',
-    commonMistakes: [
-      { rank: 1, text: 'Sign errors in algebraic equations', count: 24 },
-      { rank: 2, text: 'Unit conversion mistakes in numericals', count: 18 },
-      { rank: 3, text: 'Diagram-based reasoning questions', count: 15 },
-      { rank: 4, text: 'Formula recall under time pressure', count: 12 },
-    ],
-    practice: { attended: 18, completed: 14, pending: 4, highest: 96 },
-  },
-  Maths: {
-    testsAttended: 7,
-    highestScore: 98,
-    topPercent: 5,
-    totalStudents: 1200,
-    improvement: 24,
-    chartLabels: ['M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7'],
-    yourScores:  [54,   68,   76,   82,   88,   92,   98],
-    avgScores:   [52,   55,   58,   60,   63,   65,   68],
-    accuracy: 91,
-    incorrect: 9,
-    gainMarks: 44,
-    subjectName: 'Mathematics',
-    commonMistakes: [
-      { rank: 1, text: 'Definite integrals boundary sign errors', count: 14 },
-      { rank: 2, text: 'Matrix inverse simplification steps', count: 9 },
-      { rank: 3, text: 'Trigonometric half-angle formula recall', count: 6 },
-    ],
-    practice: { attended: 7, completed: 6, pending: 1, highest: 98 },
-  },
-  Physics: {
-    testsAttended: 6,
-    highestScore: 92,
-    topPercent: 10,
-    totalStudents: 1200,
-    improvement: 18,
-    chartLabels: ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'],
-    yourScores:  [50,   62,   70,   78,   85,   92],
-    avgScores:   [54,   56,   58,   62,   64,   66],
-    accuracy: 83,
-    incorrect: 17,
-    gainMarks: 42,
-    subjectName: 'Physics',
-    commonMistakes: [
-      { rank: 1, text: 'Free-body diagram vector resolution', count: 12 },
-      { rank: 2, text: 'SI vs CGS unit conversion in thermodynamics', count: 10 },
-      { rank: 3, text: 'Convex vs concave lens sign convention', count: 7 },
-    ],
-    practice: { attended: 6, completed: 5, pending: 1, highest: 92 },
-  },
-  Chemistry: {
-    testsAttended: 5,
-    highestScore: 95,
-    topPercent: 6,
-    totalStudents: 1200,
-    improvement: 20,
-    chartLabels: ['C1', 'C2', 'C3', 'C4', 'C5'],
-    yourScores:  [55,   66,   78,   88,   95],
-    avgScores:   [58,   60,   63,   67,   70],
-    accuracy: 88,
-    incorrect: 12,
-    gainMarks: 40,
-    subjectName: 'Chemistry',
-    commonMistakes: [
-      { rank: 1, text: 'Organic reaction mechanism electron arrows', count: 11 },
-      { rank: 2, text: 'Balancing redox half-equations in acidic medium', count: 8 },
-      { rank: 3, text: 'IUPAC naming of coordination complexes', count: 5 },
-    ],
-    practice: { attended: 5, completed: 4, pending: 1, highest: 95 },
-  },
+const BLANK_SUBJECT_DATA = {
+  testsAttended: 0,
+  highestScore: 0,
+  topPercent: 0,
+  totalStudents: 0,
+  improvement: 0,
+  chartLabels: [] as string[],
+  yourScores: [] as number[],
+  avgScores: [] as number[],
+  accuracy: 0,
+  incorrect: 0,
+  gainMarks: 0,
+  subjectName: '',
+  commonMistakes: [] as { rank: number; text: string; count: number }[],
+  practice: { attended: 0, completed: 0, pending: 0, highest: 0 },
 };
+
+const SUBJECT_PROGRESS: Record<SubjectFilter, typeof BLANK_SUBJECT_DATA & { subjectName: string }> = {
+  Overall:   { ...BLANK_SUBJECT_DATA, subjectName: 'Overall' },
+  Maths:     { ...BLANK_SUBJECT_DATA, subjectName: 'Mathematics' },
+  Physics:   { ...BLANK_SUBJECT_DATA, subjectName: 'Physics' },
+  Chemistry: { ...BLANK_SUBJECT_DATA, subjectName: 'Chemistry' },
+};
+
 
 export default function ProgressScreen() {
   const router = useRouter();
@@ -237,30 +163,32 @@ export default function ProgressScreen() {
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { flex: 1 }]}>
             <Ionicons name="checkbox-outline" size={20} color={Colors.primary} />
-            <Text style={styles.statValue}>{currentData.testsAttended}</Text>
+            <Text style={styles.statValue}>{currentData.testsAttended > 0 ? currentData.testsAttended : '—'}</Text>
             <Text style={styles.statLabel}>Tests Attended</Text>
           </View>
           <View style={[styles.statCard, { flex: 1 }]}>
             <Ionicons name="trophy" size={20} color={Colors.amber} />
-            <Text style={styles.statValue}>{currentData.highestScore}<Text style={styles.statSub}>/100</Text></Text>
+            <Text style={styles.statValue}>{currentData.highestScore > 0 ? <>{currentData.highestScore}<Text style={styles.statSub}>/100</Text></> : '—'}</Text>
             <Text style={styles.statLabel}>Highest Score</Text>
-            <View style={styles.excellentBadge}>
-              <Text style={styles.excellentText}>Excellent!</Text>
-            </View>
+            {currentData.highestScore > 0 && (
+              <View style={styles.excellentBadge}>
+                <Text style={styles.excellentText}>Excellent!</Text>
+              </View>
+            )}
           </View>
         </View>
         <View style={styles.statsGrid}>
           <View style={[styles.statCard, { flex: 1 }]}>
             <Ionicons name="people-outline" size={20} color={Colors.purple} />
-            <Text style={styles.statValue}>Top {currentData.topPercent}%</Text>
-            <Text style={styles.statLabel}>Among {currentData.totalStudents.toLocaleString()} students</Text>
-            <View style={styles.aheadBadge}><Text style={styles.aheadText}>You're ahead!</Text></View>
+            <Text style={styles.statValue}>{currentData.topPercent > 0 ? `Top ${currentData.topPercent}%` : '—'}</Text>
+            <Text style={styles.statLabel}>{currentData.totalStudents > 0 ? `Among ${currentData.totalStudents.toLocaleString()} students` : 'No data yet'}</Text>
+            {currentData.topPercent > 0 && <View style={styles.aheadBadge}><Text style={styles.aheadText}>You're ahead!</Text></View>}
           </View>
           <View style={[styles.statCard, { flex: 1 }]}>
             <Ionicons name="trending-up" size={20} color={Colors.green} />
-            <Text style={styles.statValue}>+{currentData.improvement}%</Text>
+            <Text style={styles.statValue}>{currentData.improvement > 0 ? `+${currentData.improvement}%` : '—'}</Text>
             <Text style={styles.statLabel}>Overall Improvement</Text>
-            <View style={styles.greatBadge}><Text style={styles.greatText}>Great Progress!</Text></View>
+            {currentData.improvement > 0 && <View style={styles.greatBadge}><Text style={styles.greatText}>Great Progress!</Text></View>}
           </View>
         </View>
 
@@ -272,50 +200,60 @@ export default function ProgressScreen() {
             </View>
             <Text style={styles.chartTitle}>{activeFilter === 'Overall' ? 'Your Marks Progress' : `${activeFilter} Progress Curve`}</Text>
           </View>
-          <View style={styles.legendRow}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: '#CBD5E1' }]} />
-              <Text style={styles.legendText}>Average Student Score</Text>
+          {currentData.yourScores.length > 0 ? (
+            <>
+              <View style={styles.legendRow}>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: '#CBD5E1' }]} />
+                  <Text style={styles.legendText}>Average Student Score</Text>
+                </View>
+                <View style={styles.legendItem}>
+                  <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
+                  <Text style={styles.legendText}>Your Score</Text>
+                </View>
+              </View>
+              <LineChart
+                data={{
+                  labels: currentData.chartLabels,
+                  datasets: [
+                    { data: currentData.avgScores, color: () => '#CBD5E1', strokeWidth: 2 },
+                    { data: currentData.yourScores, color: () => Colors.primary, strokeWidth: 2.5 },
+                  ],
+                }}
+                width={CHART_WIDTH}
+                height={180}
+                yAxisSuffix=""
+                chartConfig={{
+                  backgroundColor: '#fff',
+                  backgroundGradientFrom: '#fff',
+                  backgroundGradientTo: '#fff',
+                  decimalPlaces: 0,
+                  color: () => Colors.primary,
+                  labelColor: () => Colors.textMuted,
+                  style: { borderRadius: 12 },
+                  propsForDots: { r: '4', strokeWidth: '2', stroke: Colors.primary },
+                  propsForBackgroundLines: { stroke: Colors.borderLight },
+                }}
+                bezier
+                style={{ borderRadius: 12, marginLeft: -8 }}
+                withInnerLines
+                withOuterLines={false}
+              />
+              <View style={styles.chartBanner}>
+                <Text style={styles.chartBannerEmoji}>🎉</Text>
+                <Text style={styles.chartBannerText}>
+                  You've improved by <Text style={{ color: Colors.primary, fontFamily: 'Inter_700Bold' }}>+{currentData.gainMarks} marks</Text> in {currentData.subjectName}!{'\n'}
+                  <Text style={styles.chartBannerSub}>Keep this momentum up for term exams.</Text>
+                </Text>
+              </View>
+            </>
+          ) : (
+            <View style={{ alignItems: 'center', paddingVertical: 32, gap: 8 }}>
+              <Ionicons name="bar-chart-outline" size={36} color={Colors.textMuted} />
+              <Text style={{ fontSize: 13, color: Colors.textSecondary, fontFamily: 'Inter_500Medium' }}>No test data yet</Text>
+              <Text style={{ fontSize: 11, color: Colors.textMuted, fontFamily: 'Inter_400Regular', textAlign: 'center' }}>Your progress chart will appear once tests are evaluated.</Text>
             </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: Colors.primary }]} />
-              <Text style={styles.legendText}>Your Score</Text>
-            </View>
-          </View>
-          <LineChart
-            data={{
-              labels: currentData.chartLabels,
-              datasets: [
-                { data: currentData.avgScores, color: () => '#CBD5E1', strokeWidth: 2 },
-                { data: currentData.yourScores, color: () => Colors.primary, strokeWidth: 2.5 },
-              ],
-            }}
-            width={CHART_WIDTH}
-            height={180}
-            yAxisSuffix=""
-            chartConfig={{
-              backgroundColor: '#fff',
-              backgroundGradientFrom: '#fff',
-              backgroundGradientTo: '#fff',
-              decimalPlaces: 0,
-              color: () => Colors.primary,
-              labelColor: () => Colors.textMuted,
-              style: { borderRadius: 12 },
-              propsForDots: { r: '4', strokeWidth: '2', stroke: Colors.primary },
-              propsForBackgroundLines: { stroke: Colors.borderLight },
-            }}
-            bezier
-            style={{ borderRadius: 12, marginLeft: -8 }}
-            withInnerLines
-            withOuterLines={false}
-          />
-          <View style={styles.chartBanner}>
-            <Text style={styles.chartBannerEmoji}>🎉</Text>
-            <Text style={styles.chartBannerText}>
-              You've improved by <Text style={{ color: Colors.primary, fontFamily: 'Inter_700Bold' }}>+{currentData.gainMarks} marks</Text> in {currentData.subjectName}!{'\n'}
-              <Text style={styles.chartBannerSub}>Keep this momentum up for term exams.</Text>
-            </Text>
-          </View>
+          )}
         </View>
 
         {/* Accuracy Donut */}
@@ -354,13 +292,19 @@ export default function ProgressScreen() {
           </View>
 
           <Text style={styles.mistakesTitle}>⚠️ Most Common Mistakes ({activeFilter})</Text>
-          {currentData.commonMistakes.map((m: any) => (
-            <View key={m.rank} style={styles.mistakeRow}>
-              <View style={styles.mistakeRank}><Text style={styles.mistakeRankText}>{m.rank}</Text></View>
-              <Text style={styles.mistakeText}>{m.text}</Text>
-              <Text style={styles.mistakeCount}>{m.count} times</Text>
+          {currentData.commonMistakes.length > 0 ? (
+            currentData.commonMistakes.map((m: any) => (
+              <View key={m.rank} style={styles.mistakeRow}>
+                <View style={styles.mistakeRank}><Text style={styles.mistakeRankText}>{m.rank}</Text></View>
+                <Text style={styles.mistakeText}>{m.text}</Text>
+                <Text style={styles.mistakeCount}>{m.count} times</Text>
+              </View>
+            ))
+          ) : (
+            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+              <Text style={{ fontSize: 12, color: Colors.textMuted, fontFamily: 'Inter_400Regular' }}>No mistakes recorded yet. Keep attending tests!</Text>
             </View>
-          ))}
+          )}
         </View>
 
         {/* Practice & Tests */}

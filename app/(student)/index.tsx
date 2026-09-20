@@ -10,6 +10,7 @@ import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
 import { DataService } from '../../lib/dataService';
 import { studentData as defaultStudent, todaysClasses as defaultClasses, attendanceData as defaultAtt, feesData as defaultFees } from '../../constants/mockData';
+import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
 
@@ -98,6 +99,26 @@ export default function DashboardScreen() {
 
   useEffect(() => {
     loadData();
+
+    // Supabase Realtime listener: instant pop-up when admin broadcasts an announcement or alert
+    const channel = supabase
+      .channel('student_announcements_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
+        console.log('[Realtime] Announcement change detected:', payload);
+        DataService.getAnnouncements(true).then((anns) => {
+          if (anns && anns.length > 0) {
+            setAnnouncementsList(anns);
+          }
+        });
+        DataService.getAcademicAlert().then((alt) => {
+          if (alt) setAcademicAlert(alt);
+        });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [rollNo]);
 
   const onRefresh = async () => {
@@ -216,6 +237,45 @@ export default function DashboardScreen() {
           </View>
         </View>
 
+        {/* Top Broadcast Notice Banner from Super Admin */}
+        {announcementsList && announcementsList.length > 0 && (
+          <TouchableOpacity
+            style={[
+              styles.broadcastBanner,
+              announcementsList[0].important ? styles.broadcastBannerUrgent : styles.broadcastBannerNormal,
+            ]}
+            onPress={() => {
+              setSelectedAnnouncement(announcementsList[0]);
+              setCommunityModalVisible(true);
+            }}
+            activeOpacity={0.88}
+          >
+            <View style={styles.broadcastBannerLeft}>
+              <View style={[styles.broadcastIconWrap, { backgroundColor: announcementsList[0].iconBg || '#FEF3F2' }]}>
+                <Ionicons name={(announcementsList[0].icon as any) || 'megaphone'} size={18} color={announcementsList[0].iconColor || '#F04438'} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <View style={styles.broadcastBadgeRow}>
+                  <Text style={[styles.broadcastBadgeText, { color: announcementsList[0].important ? '#DC2626' : '#2563EB' }]}>
+                    {announcementsList[0].important ? 'URGENT NOTICE' : 'BROADCAST ANNOUNCEMENT'}
+                  </Text>
+                  <Text style={styles.broadcastTimeText}>{announcementsList[0].time || 'Recently'}</Text>
+                </View>
+                <Text style={styles.broadcastTitleText} numberOfLines={1}>
+                  {announcementsList[0].title}
+                </Text>
+                <Text style={styles.broadcastDescText} numberOfLines={2}>
+                  {announcementsList[0].desc}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.broadcastActionRight}>
+              <Text style={[styles.broadcastViewText, { color: announcementsList[0].important ? '#DC2626' : '#2563EB' }]}>View</Text>
+              <Ionicons name="chevron-forward" size={14} color={announcementsList[0].important ? '#DC2626' : '#2563EB'} />
+            </View>
+          </TouchableOpacity>
+        )}
+
         {/* Classes & Attendance for Date */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
@@ -310,10 +370,13 @@ export default function DashboardScreen() {
             <View style={styles.feesLeft}>
               <View style={styles.feesDot} />
               <Ionicons name="wallet-outline" size={20} color={Colors.red} />
-              <View>
-                <Text style={styles.feesAmount}>₹{feesSummary.currentDue.toLocaleString('en-IN')} is due</Text>
-                <Text style={styles.feesDue}>
-                  Due on {feesSummary.dueDate} • {feesSummary.daysLeft <= 0 ? (feesSummary.daysLeft === 0 ? 'Due Today!' : `Overdue by ${Math.abs(feesSummary.daysLeft)}d`) : `${feesSummary.daysLeft} days left`}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.feesAmount}>₹{(feesSummary.monthlyFee || feesSummary.actualDue || feesSummary.currentDue || 0).toLocaleString('en-IN')} is due</Text>
+                <Text style={styles.feesDue} numberOfLines={2}>
+                  Due on {feesSummary.dueDate}{' '}•{' '}
+                  {feesSummary.daysLeft <= 0
+                    ? (feesSummary.daysLeft === 0 ? 'Due Today!' : `Overdue by ${Math.abs(feesSummary.daysLeft)}d`)
+                    : `${feesSummary.daysLeft} days left`}
                 </Text>
               </View>
             </View>
@@ -356,7 +419,6 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         )}
 
-        {/* Attendance Summary */}
         <TouchableOpacity
           style={styles.card}
           onPress={() => router.push('/(student)/attendance' as any)}
@@ -369,12 +431,18 @@ export default function DashboardScreen() {
               </View>
               <View>
                 <Text style={styles.cardTitle}>Overall Attendance</Text>
-                <Text style={styles.attSub}>{attSummary.attended} of {attSummary.total} classes attended this term</Text>
+                <Text style={styles.attSub}>
+                  {attSummary.total > 0
+                    ? `${attSummary.attended} of ${attSummary.total} classes attended this term`
+                    : 'No attendance records yet'}
+                </Text>
               </View>
             </View>
             <View style={styles.attBadge}>
               <View style={styles.attDot} />
-              <Text style={styles.attBadgeText}>{attSummary.overall}% On Track</Text>
+              <Text style={styles.attBadgeText}>
+                {attSummary.total > 0 ? `${attSummary.overall}% On Track` : '— %'}
+              </Text>
             </View>
           </View>
           <View style={styles.progressBarBg}>
@@ -1048,5 +1116,79 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: Colors.textSecondary,
     lineHeight: 17,
+  },
+
+  // Broadcast Notice Banner
+  broadcastBanner: {
+    marginHorizontal: 16,
+    marginBottom: 14,
+    borderRadius: 14,
+    padding: 14,
+    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  broadcastBannerNormal: {
+    backgroundColor: '#F0F7FF',
+    borderColor: '#BFDBFE',
+  },
+  broadcastBannerUrgent: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  broadcastBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    flex: 1,
+    gap: 10,
+  },
+  broadcastIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  broadcastBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 2,
+  },
+  broadcastBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  broadcastTimeText: {
+    fontSize: 11,
+    color: Colors.textMuted,
+  },
+  broadcastTitleText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.textPrimary,
+    marginBottom: 2,
+  },
+  broadcastDescText: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    lineHeight: 16,
+  },
+  broadcastActionRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 8,
+  },
+  broadcastViewText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
 });

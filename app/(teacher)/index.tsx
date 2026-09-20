@@ -9,6 +9,8 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService } from '../../lib/dataService';
 import { ExportModal } from '../../components/ExportModal';
+import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
+import { supabase } from '../../lib/supabase';
 
 const TODAY_CLASSES = [
   {
@@ -50,35 +52,19 @@ const ASSIGNED_STUDENTS = [
   {
     rollNo: '2024-JEE-0842',
     name: 'Arjun S',
-    class: 'Class 12 - JEE Advanced',
-    batch: 'Batch A',
+    class: 'Class 12',
+    batch: 'JEE Target (Batch A)',
+    school: 'EduHome Campus',
+    joiningDate: '15 Jan 2026',
+    dueDate: '15 Sep 2026',
+    daysLeft: -5,
     recentScore: '92%',
     avatarColor: '#0284C7',
+    avatar: 'AS',
+    monthlyFee: 4000,
+    subjects: 'Physics, Chemistry, Maths',
   },
-  {
-    rollNo: '2024-MED-0311',
-    name: 'Priya Nair',
-    class: 'Class 12 - NEET Medical',
-    batch: 'Batch B',
-    recentScore: '89%',
-    avatarColor: '#10B981',
-  },
-  {
-    rollNo: '2024-CBSE-0199',
-    name: 'Rohan Sharma',
-    class: 'Class 10-A (CBSE)',
-    batch: 'Batch C',
-    recentScore: '95%',
-    avatarColor: '#8B5CF6',
-  },
-  {
-    rollNo: '2024-CBSE-0245',
-    name: 'Sneha Gupta',
-    class: 'Class 10-A (CBSE)',
-    batch: 'Batch C',
-    recentScore: '91%',
-    avatarColor: '#F59E0B',
-  },
+  ...EDUSYNC_STUDENTS,
 ];
 
 export default function TeacherHomeScreen() {
@@ -88,6 +74,7 @@ export default function TeacherHomeScreen() {
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
   const [pendingFees, setPendingFees] = useState<any[]>([]);
+  const [rosterClassFilter, setRosterClassFilter] = useState('All');
 
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
@@ -166,6 +153,19 @@ export default function TeacherHomeScreen() {
     loadPendingFees();
     loadAnnouncements();
     loadPendingOpinions();
+
+    // Supabase Realtime: updates instantly when admin broadcasts from PC
+    const channel = supabase
+      .channel('teacher_announcements_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
+        console.log('[Realtime] Teacher announcements updated from Supabase!');
+        loadAnnouncements();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleApproveFee = async (rollNo: string, studentName: string) => {
@@ -174,11 +174,33 @@ export default function TeacherHomeScreen() {
       await loadPendingFees();
       Alert.alert(
         'Payment Approved ✓',
-        `₹1 fee payment from ${studentName} (${rollNo}) has been verified.\n\nThe student dashboard, home alert banner, and profile status have been marked as Cleared/Paid!`
+        `Fee payment from ${studentName} (${rollNo}) has been verified.\n\nThe student dashboard, home alert banner, and profile status have been marked as Cleared/Paid!`
       );
     } catch {
       Alert.alert('Error', 'Failed to approve payment.');
     }
+  };
+
+  const handleMarkCashPayment = (rollNo: string, studentName: string, amount: number) => {
+    Alert.alert(
+      'Mark as Paid (Cash)',
+      `Confirm cash payment of ₹${amount.toLocaleString('en-IN')} received from ${studentName}?\n\nThis will immediately update their student dashboard and profile to Paid status.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Confirm Paid',
+          onPress: async () => {
+            try {
+              await DataService.markFeeAsPaidCash(rollNo, amount, 'Mr. R Madhusudanan (Super Admin)');
+              await loadPendingFees();
+              Alert.alert('Marked as Paid ✓', `Cash payment for ${studentName} has been recorded and their dashboard updated.`);
+            } catch {
+              Alert.alert('Error', 'Failed to mark payment.');
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handlePostAnnouncement = async () => {
@@ -429,7 +451,15 @@ export default function TeacherHomeScreen() {
                     activeOpacity={0.85}
                   >
                     <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                    <Text style={styles.approveBtnText}>Approve & Update Dashboard</Text>
+                    <Text style={styles.approveBtnText}>Approve UPI & Update Dashboard</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.approveBtn, { backgroundColor: '#10B981', marginTop: 6 }]}
+                    onPress={() => handleMarkCashPayment(item.rollNo, item.studentName, item.amount)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="cash-outline" size={16} color="#fff" />
+                    <Text style={styles.approveBtnText}>Mark as Paid (Cash)</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -536,15 +566,42 @@ export default function TeacherHomeScreen() {
         {/* Student Academic Opinions & Faculty Remarks Workflow */}
         <View style={[styles.sectionHeader, { marginTop: 16 }]}>
           <View>
-            <Text style={styles.sectionTitle}>Student Academic Opinions & Remarks</Text>
-            <Text style={styles.sectionSubHint}>Assigned by Main Admin • Synced with Student Portals</Text>
+            <Text style={styles.sectionTitle}>Student Roster & Faculty Remarks</Text>
+            <Text style={styles.sectionSubHint}>
+              {ASSIGNED_STUDENTS.length} Students Assigned by Main Admin • Synced with Portals
+            </Text>
           </View>
         </View>
 
-        {ASSIGNED_STUDENTS.map((stu) => (
+        {/* Class Filter Chips */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+          {['All', 'Class 12', 'Class 11', 'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6'].map((cls) => {
+            const isSelected = rosterClassFilter === cls;
+            return (
+              <TouchableOpacity
+                key={cls}
+                style={[
+                  styles.opinionSubChip,
+                  isSelected && styles.opinionSubChipActive,
+                  { marginRight: 8, paddingHorizontal: 12, paddingVertical: 6 },
+                ]}
+                onPress={() => setRosterClassFilter(cls)}
+              >
+                <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive]}>
+                  {cls}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {ASSIGNED_STUDENTS.filter((stu) => {
+          if (rosterClassFilter === 'All') return true;
+          return stu.class.toLowerCase().includes(rosterClassFilter.toLowerCase());
+        }).map((stu) => (
           <View key={stu.rollNo} style={styles.studentCard}>
-            <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor }]}>
-              <Text style={styles.studentAvatarText}>{stu.name.slice(0, 2).toUpperCase()}</Text>
+            <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
+              <Text style={styles.studentAvatarText}>{stu.avatar || stu.name.slice(0, 2).toUpperCase()}</Text>
             </View>
             <View style={styles.studentInfoWrap}>
               <View style={styles.studentNameRow}>
@@ -554,11 +611,31 @@ export default function TeacherHomeScreen() {
                   <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
                 </View>
               </View>
-              <Text style={styles.studentClassText}>{stu.class} • {stu.rollNo}</Text>
+              {/* ADMIN-ONLY: Fee info — not shown to regular faculty */}
+              <Text style={styles.studentClassText}>
+                {stu.class} • {stu.rollNo} • ₹{((stu as any).monthlyFee || 4000).toLocaleString('en-IN')}/mo
+              </Text>
+              <Text style={styles.studentMetaSubText} numberOfLines={1}>
+                Due: {(stu as any).dueDate || '15 Sep'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
+              </Text>
+              {(stu as any).subjects && (
+                <Text style={styles.studentSubjectsText} numberOfLines={1}>
+                  📚 {(stu as any).subjects}
+                </Text>
+              )}
               <View style={styles.scoreRow}>
                 <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
                 <Text style={styles.scoreVal}>{stu.recentScore}</Text>
               </View>
+              {/* Admin cash payment shortcut */}
+              <TouchableOpacity
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: '#ECFDF3', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start' }}
+                onPress={() => handleMarkCashPayment(stu.rollNo, stu.name, (stu as any).monthlyFee || 4000)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="cash-outline" size={13} color="#10B981" />
+                <Text style={{ fontSize: 11, color: '#10B981', fontFamily: 'Inter_600SemiBold' }}>Mark Paid (Cash)</Text>
+              </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.addOpinionBtn}
@@ -1216,6 +1293,18 @@ const styles = StyleSheet.create({
   },
   syncBadgeText: { fontSize: 9, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
   studentClassText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
+  studentMetaSubText: {
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  studentSubjectsText: {
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
+    color: '#0369A1',
+    marginTop: 2,
+  },
   scoreRow: { flexDirection: 'row', alignItems: 'center', marginTop: 3 },
   scoreLabel: { fontSize: 10, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
   scoreVal: { fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#10B981' },

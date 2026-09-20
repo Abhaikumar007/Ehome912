@@ -24,7 +24,7 @@ const HARDCODED_PAYEE_NAME = 'EduHome Tuition Center';
 export default function FeesScreen() {
   const router = useRouter();
   const { student } = useAuth();
-  const [fees, setFees] = useState(defaultFees);
+  const [fees, setFees] = useState<any>(defaultFees);
   const [refreshing, setRefreshing] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] = useState(false);
   const [allPaymentsModalVisible, setAllPaymentsModalVisible] = useState(false);
@@ -220,18 +220,26 @@ export default function FeesScreen() {
 
               <View style={styles.paidMetaRow}>
                 <View>
-                  <Text style={styles.paidMetaLabel}>Amount Paid</Text>
-                  <Text style={styles.paidMetaVal}>₹ 1.00</Text>
+                  <Text style={styles.paidMetaLabel}>Monthly Fee</Text>
+                  <Text style={styles.paidMetaVal}>₹ {fees.monthlyFee || fees.actualDue || 4000}.00</Text>
                 </View>
                 <View>
-                  <Text style={styles.paidMetaLabel}>Target UPI ID</Text>
-                  <Text style={styles.paidMetaVal}>{HARDCODED_UPI_ID}</Text>
+                  <Text style={styles.paidMetaLabel}>Paid (Test UPI)</Text>
+                  <Text style={styles.paidMetaVal}>₹ 1.00 ✓</Text>
                 </View>
                 <View>
                   <Text style={styles.paidMetaLabel}>Status</Text>
                   <Text style={[styles.paidMetaVal, { color: Colors.green }]}>On-Time ✓</Text>
                 </View>
               </View>
+
+              {fees.subjects ? (
+                <View style={[styles.subjectsBadgeRow, { marginTop: 10, backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }]}>
+                  <Ionicons name="book-outline" size={13} color="#059669" />
+                  <Text style={[styles.subjectsBadgeLabel, { color: '#047857' }]}>Subjects:</Text>
+                  <Text style={[styles.subjectsBadgeValue, { color: '#065F46' }]} numberOfLines={1}>{fees.subjects}</Text>
+                </View>
+              ) : null}
 
               <View style={styles.nextCycleBox}>
                 <Ionicons name="information-circle-outline" size={14} color={Colors.primary} />
@@ -246,7 +254,7 @@ export default function FeesScreen() {
                 activeOpacity={0.8}
               >
                 <Ionicons name="refresh" size={12} color={Colors.textMuted} />
-                <Text style={styles.resetTestText}>Reset to ₹1 Due (For Testing Demo)</Text>
+                <Text style={styles.resetTestText}>Reset to Due (For Testing Demo)</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -257,14 +265,22 @@ export default function FeesScreen() {
                 <Ionicons name="time" size={24} color="#D97706" />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.pendingTitle}>₹1 Payment Submitted</Text>
-                <Text style={styles.pendingSub}>Awaiting Super Admin Verification</Text>
+                <Text style={styles.pendingTitle}>Payment Submitted</Text>
+                <Text style={styles.pendingSub}>₹1 Test UPI • Monthly Fee ₹{fees.monthlyFee || 4000}</Text>
               </View>
               <View style={styles.pendingStatusBadge}>
                 <View style={styles.pendingPulse} />
                 <Text style={styles.pendingStatusText}>In Review</Text>
               </View>
             </View>
+
+            {fees.subjects ? (
+              <View style={[styles.subjectsBadgeRow, { marginTop: 10, backgroundColor: '#FFFBEB', borderColor: '#FDE68A' }]}>
+                <Ionicons name="book-outline" size={13} color="#D97706" />
+                <Text style={[styles.subjectsBadgeLabel, { color: '#B45309' }]}>Subjects:</Text>
+                <Text style={[styles.subjectsBadgeValue, { color: '#92400E' }]} numberOfLines={1}>{fees.subjects}</Text>
+              </View>
+            ) : null}
 
             <Text style={styles.pendingExplainText}>
               Your transfer of ₹1 to <Text style={{ fontFamily: 'Inter_700Bold' }}>{HARDCODED_UPI_ID}</Text> is currently queued in the Superadmin portal for confirmation.
@@ -286,16 +302,18 @@ export default function FeesScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="refresh" size={12} color={Colors.textMuted} />
-              <Text style={styles.resetTestText}>Reset back to ₹1 Due</Text>
+              <Text style={styles.resetTestText}>Reset back to Due</Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={[styles.feeStatusCard, styles.dueCard]}>
             <View style={styles.dueTopRow}>
-              <View>
-                <Text style={styles.dueLabel}>Current Tuition Due</Text>
-                <Text style={styles.dueAmount}>₹ {fees.currentDue}.00</Text>
-                <Text style={styles.dueDateText}>Due on {fees.dueDate}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.dueLabel}>Monthly Tuition Fee</Text>
+                <Text style={styles.dueAmount}>₹ {fees.monthlyFee || fees.actualDue || 4000}.00</Text>
+                <Text style={styles.dueDateText}>
+                  Due on {fees.dueDate} {fees.joiningDate ? `• Joined: ${fees.joiningDate}` : ''}
+                </Text>
               </View>
               <View style={[styles.daysLeftBadge, fees.daysLeft <= 0 && { backgroundColor: '#FEF2F2' }]}>
                 <Ionicons
@@ -312,6 +330,15 @@ export default function FeesScreen() {
                 </Text>
               </View>
             </View>
+
+            {/* Enrolled Subjects Pill */}
+            {fees.subjects ? (
+              <View style={styles.subjectsBadgeRow}>
+                <Ionicons name="book-outline" size={13} color="#0284C7" />
+                <Text style={styles.subjectsBadgeLabel}>Subjects:</Text>
+                <Text style={styles.subjectsBadgeValue} numberOfLines={1}>{fees.subjects}</Text>
+              </View>
+            ) : null}
 
             <TouchableOpacity
               style={styles.duePayBtn}
@@ -463,7 +490,7 @@ export default function FeesScreen() {
             </TouchableOpacity>
           </View>
 
-          {fees.recentPayments.map((p, i) => (
+          {(fees.recentPayments || []).map((p: any, i: number) => (
             <View key={i} style={[styles.paymentRow, i < fees.recentPayments.length - 1 && styles.paymentRowBorder]}>
               <View style={styles.monthBadge}>
                 <Text style={styles.monthBadgeText}>{p.month}</Text>
@@ -671,6 +698,29 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   daysLeftText: { fontSize: 11, color: Colors.red, fontFamily: 'Inter_600SemiBold' },
+  subjectsBadgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  subjectsBadgeLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#0284C7',
+  },
+  subjectsBadgeValue: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: '#0369A1',
+    flex: 1,
+  },
   duePayBtn: {
     backgroundColor: Colors.primary,
     flexDirection: 'row',

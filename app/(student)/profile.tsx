@@ -14,7 +14,7 @@ import { DataService } from '../../lib/dataService';
 
 const menuItems = [
   { icon: 'person-outline',       title: 'Personal Details',    sub: 'Name, class, contact info',      color: Colors.primary,  bg: Colors.primaryLight },
-  { icon: 'people-outline',       title: 'Parent / Guardian',   sub: 'Linked contact: Raghav Sharma',  color: Colors.purple,   bg: Colors.purpleLight },
+  { icon: 'people-outline',       title: 'Parent / Guardian',   sub: 'Linked guardian contact',        color: Colors.purple,   bg: Colors.purpleLight },
   { icon: 'flag-outline',         title: 'Learning Goals',      sub: 'Set your subjects and targets',   color: Colors.green,    bg: Colors.greenLight },
   { icon: 'notifications-outline',title: 'Notifications',       sub: 'Manage alerts and reminders',     color: Colors.amber,    bg: Colors.amberLight },
   { icon: 'shield-outline',       title: 'Privacy & Security',  sub: 'Account security and data',       color: Colors.teal,     bg: Colors.tealLight },
@@ -42,12 +42,12 @@ export default function ProfileScreen() {
   const [selectedAvatar, setSelectedAvatar] = useState('AS');
   const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
 
-  // Parent / Guardian Modal State (Raghav Sharma)
+  // Parent / Guardian Modal State
   const [parentModalVisible, setParentModalVisible] = useState(false);
-  const [guardianName, setGuardianName] = useState('Raghav Sharma');
-  const [guardianRelation, setGuardianRelation] = useState('Father & Primary Guardian');
-  const [guardianPhone, setGuardianPhone] = useState('+91 98765 43210');
-  const [guardianEmail, setGuardianEmail] = useState('raghav.sharma@gmail.com');
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianRelation, setGuardianRelation] = useState('');
+  const [guardianPhone, setGuardianPhone] = useState('');
+  const [guardianEmail, setGuardianEmail] = useState('');
   const [attendanceAlerts, setAttendanceAlerts] = useState(true);
   const [feeAlerts, setFeeAlerts] = useState(true);
   const [reportCardAlerts, setReportCardAlerts] = useState(true);
@@ -90,8 +90,8 @@ export default function ProfileScreen() {
 
   const openEditModal = () => {
     setNameInput(student?.name || studentData.name);
-    setPhoneInput(student?.phone || '9876543210');
-    setGoalsInput(student?.goals || 'JEE Advanced 2027 (Top 1000)');
+    setPhoneInput(student?.phone || '');
+    setGoalsInput(student?.goals || studentClass);
     setSelectedAvatar(student?.avatar || 'AS');
     setSelectedPhoto(student?.photoUrl || null);
     setChangePin(false);
@@ -173,6 +173,7 @@ export default function ProfileScreen() {
   const studentClass = student?.class || studentData.class;
   const studentAvatar = student?.avatar || studentData.avatar;
   const studentPhoto = student?.photoUrl;
+  // Show blank dash if stat is 0 (not yet populated)
   const streak = student?.streak ?? studentData.streak;
   const accuracy = student?.accuracy ?? studentData.accuracy;
   const testsCompleted = student?.testsCompleted ?? studentData.testsCompleted;
@@ -254,25 +255,25 @@ export default function ProfileScreen() {
           <View style={styles.statsBar}>
             <View style={styles.statItem}>
               <Ionicons name="flame" size={18} color={Colors.orange} />
-              <Text style={styles.statValue}>{streak}</Text>
+              <Text style={styles.statValue}>{streak > 0 ? streak : '—'}</Text>
               <Text style={styles.statLabel}>Day{'\n'}Streak</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.statItem}>
               <Ionicons name="radio-button-on" size={18} color={Colors.green} />
-              <Text style={styles.statValue}>{accuracy}%</Text>
+              <Text style={styles.statValue}>{accuracy > 0 ? `${accuracy}%` : '—'}</Text>
               <Text style={styles.statLabel}>Overall{'\n'}Accuracy</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.statItem}>
               <Ionicons name="bar-chart" size={18} color={Colors.primary} />
-              <Text style={styles.statValue}>{testsCompleted}</Text>
+              <Text style={styles.statValue}>{testsCompleted > 0 ? testsCompleted : '—'}</Text>
               <Text style={styles.statLabel}>Tests{'\n'}Completed</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.statItem}>
               <Ionicons name="trophy" size={18} color={Colors.amber} />
-              <Text style={styles.statValue}>Top{'\n'}{topPercent}%</Text>
+              <Text style={styles.statValue}>{topPercent > 0 ? `Top\n${topPercent}%` : '—'}</Text>
               <Text style={styles.statLabel}>Among{'\n'}{studentClass}</Text>
             </View>
           </View>
@@ -356,17 +357,17 @@ export default function ProfileScreen() {
             <View style={styles.menuText}>
               <Text style={styles.menuTitle}>
                 {feeRecord?.isPaid
-                  ? 'Tuition Fees: Cleared (Sep 2026)'
+                  ? 'Tuition Fees: Cleared'
                   : feeRecord?.status === 'pending_verification'
                   ? 'Tuition Fees: Verification Pending'
-                  : `Tuition Fees: ₹${feeRecord?.currentDue ?? 1} Due`}
+                  : `Tuition Fees: ₹${(feeRecord?.monthlyFee || feeRecord?.actualDue || feeRecord?.currentDue || 0).toLocaleString('en-IN')} Due`}
               </Text>
               <Text style={styles.menuSub}>
                 {feeRecord?.isPaid
-                  ? 'Paid ₹1 • Verified by Super Admin Mr. R Madhusudanan ✓'
+                  ? `Paid ₹${(feeRecord?.monthlyFee || feeRecord?.actualDue || feeRecord?.currentDue || 0).toLocaleString('en-IN')} • Verified by Admin ✓`
                   : feeRecord?.status === 'pending_verification'
-                  ? '₹1 submitted via UPI • Awaiting Admin'
-                  : `Due on ${feeRecord?.dueDate ?? '25 Sep 2026'} • Tap to Pay`}
+                  ? 'Submitted via UPI • Awaiting Admin approval'
+                  : `Due on ${feeRecord?.dueDate ?? '—'} • Tap to Pay`}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
