@@ -222,8 +222,10 @@ export function downloadFile(content: string, filename: string, mimeType: string
     link.download = filename;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      if (link.parentNode) link.parentNode.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 4000);
   }
 }
 
