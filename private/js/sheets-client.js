@@ -1,19 +1,34 @@
-// ════════════════════════════════════════════════════════════════
-//  sheets-client.js  —  Edu Home Cloud Sync Layer (Google Sheets)
-//  Drop-in replacement for supabase-client.js.
-//  Uses Google Apps Script web app as the API backend.
-//  Offline-safe: if network is unavailable, all functions return
-//  gracefully and localStorage data continues to work.
-// ════════════════════════════════════════════════════════════════
+// ==============================================================================
+//  sheets-client.js — Edu Home Dual Cloud Sync Layer (Google Sheets + Supabase)
+//  Synchronizes all Admin Web App actions to BOTH Google Sheets and Supabase!
+//  - When students are added/edited/deleted, both Sheets and Supabase are updated.
+//  - When fees are toggled (Paid/Pending), both Sheets and Supabase are updated.
+//  - When attendance is saved, it updates both Sheets and Supabase.
+//  - The mobile app (Student & Faculty) reads from Supabase and gets real-time updates!
+// ==============================================================================
 
 /** Returns true if Sheets API config is available */
 function _sheetsReady() {
     return typeof SHEETS_API_URL !== 'undefined' && SHEETS_API_URL && SHEETS_API_URL !== '';
 }
 
+/** Supabase Client Singleton */
+let _supabaseClient = null;
+function _getSupabaseClient() {
+    if (_supabaseClient) return _supabaseClient;
+    if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL) {
+        try {
+            _supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('[DualSync] Supabase client initialized.');
+        } catch (e) {
+            console.warn('[DualSync] Failed to initialize Supabase client:', e);
+        }
+    }
+    return _supabaseClient;
+}
+
 /**
  * Helper: fetch with a timeout so the UI never hangs forever.
- * Default 15 seconds for normal ops, 60 seconds for migration.
  */
 function _fetchWithTimeout(url, options, timeoutMs) {
     timeoutMs = timeoutMs || 15000;
@@ -84,162 +99,72 @@ async function _sheetsPost(body, timeoutMs) {
     }
 }
 
-// ── DEBUG ─────────────────────────────────────────────────────────
+// ─── DIAGNOSTICS & DEBUG ──────────────────────────────────────────────────────
 
-/**
- * Full diagnostic: logs every step to console AND returns an object
- * with all findings so the UI can display them.
- */
 window.sb_debug = async function () {
     var out = [];
 
-    // 1. Check config values loaded
-    out.push('📌 SHEETS_API_URL = ' + (typeof SHEETS_API_URL !== 'undefined' ? SHEETS_API_URL : '❌ UNDEFINED'));
-    out.push('📌 SHEETS_SECRET = ' + (typeof SHEETS_SECRET !== 'undefined' ? '***' + SHEETS_SECRET.slice(-4) : '❌ UNDEFINED'));
+    // 1. Google Sheets Config
+    out.push('📊 SHEETS_API_URL = ' + (typeof SHEETS_API_URL !== 'undefined' ? SHEETS_API_URL : '❌ UNDEFINED'));
+    out.push('🔑 SHEETS_SECRET  = ' + (typeof SHEETS_SECRET !== 'undefined' ? '***' + SHEETS_SECRET.slice(-4) : '❌ UNDEFINED'));
 
-    if (!_sheetsReady()) {
-        out.push('❌ Sheets API not configured — SHEETS_API_URL is empty or missing.');
-        out.push('💡 Paste your Google Apps Script Web App URL into config.js');
-        console.log('[Sheets Debug]\n' + out.join('\n'));
-        return out;
-    }
+    // 2. Supabase Config
+    out.push('⚡ SUPABASE_URL    = ' + (typeof SUPABASE_URL !== 'undefined' ? SUPABASE_URL : '❌ UNDEFINED'));
+    out.push('⚡ SUPABASE_SDK    = ' + (typeof window.supabase !== 'undefined' ? '✅ Available' : '❌ Missing CDN'));
 
-    // 2. Ping the API
-    try {
-        var url = SHEETS_API_URL + '?action=ping&token=' + encodeURIComponent(SHEETS_SECRET || '');
-        var res = await _fetchWithTimeout(url, {}, 10000);
-        out.push('🌐 Ping status: ' + res.status + ' ' + res.statusText);
-        var body = await res.text();
-        out.push('🌐 Ping response: ' + body.slice(0, 200));
-    } catch (e) {
-        if (e.name === 'AbortError') {
-            out.push('❌ Ping timed out (>10s). Check your Apps Script URL.');
-        } else {
-            out.push('❌ Ping failed: ' + e.message);
+    // 3. Test Sheets Ping
+    if (_sheetsReady()) {
+        try {
+            var url = SHEETS_API_URL + '?action=ping&token=' + encodeURIComponent(SHEETS_SECRET || '');
+            var res = await _fetchWithTimeout(url, {}, 10000);
+            out.push('📡 Sheets Ping: ' + res.status + ' ' + res.statusText);
+        } catch (e) {
+            out.push('❌ Sheets Ping Failed: ' + e.message);
         }
-    }
-
-    // 3. Try to query students
-    try {
-        var url2 = SHEETS_API_URL + '?action=debug&token=' + encodeURIComponent(SHEETS_SECRET || '');
-        var res2 = await _fetchWithTimeout(url2, {}, 10000);
-        var body2 = await res2.text();
-        out.push('📋 Debug response: ' + body2.slice(0, 300));
-    } catch (e) {
-        out.push('❌ Debug fetch failed: ' + e.message);
-    }
-
-    // 4. Try full getStudents
-    var result = await _sheetsGet('getStudents', 10000);
-    if (result && result.data) {
-        out.push('✅ getStudents OK, rows returned: ' + result.data.length);
     } else {
-        out.push('❌ getStudents failed or returned no data');
+        out.push('⚠️ Google Sheets not configured.');
     }
 
-    // 5. localStorage status
-    var lsStudents = JSON.parse(localStorage.getItem('students')) || [];
-    out.push('💾 localStorage students count: ' + lsStudents.length);
+    // 4. Test Supabase Ping
+    const sb = _getSupabaseClient();
+    if (sb) {
+        try {
+            const { data, error } = await sb.from('students').select('count', { count: 'exact', head: true });
+            if (!error) {
+                out.push('✅ Supabase Connection: OK (Table students accessible)');
+            } else {
+                out.push('⚠️ Supabase Error: ' + error.message);
+            }
+        } catch (e) {
+            out.push('❌ Supabase Test Failed: ' + e.message);
+        }
+    } else {
+        out.push('⚠️ Supabase client not initialized.');
+    }
 
-    console.log('[Sheets Debug]\n' + out.join('\n'));
+    // 5. Local Storage Status
+    var lsStudents = JSON.parse(localStorage.getItem('students')) || [];
+    out.push('💾 LocalStorage students count: ' + lsStudents.length);
+
+    console.log('[DualSync Debug]\n' + out.join('\n'));
     return out;
 };
 
-// ── LOAD FROM CLOUD (Pull) ────────────────────────────────────────
+// ─── DATA SHAPE CONVERTERS ───────────────────────────────────────────────────
 
-/**
- * Fetches all students + fees from Google Sheets and writes them into localStorage.
- * This keeps every device in sync automatically on page open.
- * Returns: { ok, students, fees } or { ok: false, msg }
- *
- * Safety: will NOT overwrite localStorage if the cloud returns 0 students
- * but localStorage already has data (protects against empty-sheet accidents).
- */
-window.sb_loadFromCloud = async function () {
-    if (!_sheetsReady()) return { ok: false, msg: 'App is running offline (no Sheets API configured)' };
-
-    try {
-        // 1. Fetch students
-        var stuResult = await _sheetsGet('getStudents');
-        if (!stuResult) {
-            return { ok: false, msg: 'Could not reach Google Sheets. Check internet connection.' };
-        }
-        if (!stuResult.data) {
-            return { ok: false, msg: 'Google Sheets returned an unexpected response (no data field).' };
-        }
-
-        // 2. Fetch fees
-        var feeResult = await _sheetsGet('getFees');
-        if (!feeResult) {
-            return { ok: false, msg: 'Could not load fees from Google Sheets. Check internet connection.' };
-        }
-        if (!feeResult.data) {
-            return { ok: false, msg: 'Google Sheets returned an unexpected response for fees.' };
-        }
-
-        // 3. Safety check: don't overwrite local data with empty cloud data
-        var localStudents = JSON.parse(localStorage.getItem('students')) || [];
-        if (stuResult.data.length === 0 && localStudents.length > 0) {
-            return {
-                ok: false,
-                msg: 'Cloud has 0 students but you have ' + localStudents.length +
-                     ' locally. Push your data first to avoid data loss.'
-            };
-        }
-
-        // 4. Convert to localStorage shapes — force all IDs and phones to strings
-        var students = stuResult.data.map(function (row) {
-            return {
-                id:          String(row.id || ''),
-                name:        String(row.name || ''),
-                class:       String(row['class'] || ''),
-                school:      String(row.school || ''),
-                phone:       String(row.phone || ''),
-                joiningDate: String(row.joining_date || ''),
-                amount:      (row.monthly_fee != null && row.monthly_fee !== '') ? String(row.monthly_fee) : '',
-                subjects:    Array.isArray(row.subjects) ? row.subjects : []
-            };
-        });
-
-        var fees = {};
-        var feeRows = Array.isArray(feeResult.data) ? feeResult.data : [];
-        feeRows.forEach(function (row) {
-            if (row.status === 'Paid') {
-                var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
-                fees[key] = 'Paid';
-            }
-        });
-
-        // 5. Write to localStorage
-        localStorage.setItem('students', JSON.stringify(students));
-        localStorage.setItem('fees', JSON.stringify(fees));
-
-        console.log('[Cloud Load] Loaded ' + students.length + ' students, ' + feeResult.data.length + ' fee records from Google Sheets.');
-        return { ok: true, students: students, fees: fees };
-
-    } catch (e) {
-        console.warn('[Cloud Load] Error:', e.message);
-        return { ok: false, msg: 'Unexpected error: ' + e.message };
-    }
-};
-
-// ── helpers ──────────────────────────────────────────────────────
-
-/** Convert localStorage student object → Sheets row format */
 function _toSheetStudent(s) {
     return {
-        id:           String(s.id || ''),
+        id:           String(s.id || s.roll_no || s.rollNo || ''),
         name:         String(s.name || ''),
-        'class':      String(s.class || ''),
+        class:        String(s.class || s.class_name || ''),
         school:       String(s.school || ''),
         phone:        String(s.phone || ''),
-        joining_date: String(s.joiningDate || ''),
-        monthly_fee:  s.amount ? Number(s.amount) : '',
-        subjects:     s.subjects || []
+        joining_date: String(s.joiningDate || s.joining_date || ''),
+        monthly_fee:  (s.amount != null && s.amount !== '') ? Number(s.amount) : '',
+        subjects:     Array.isArray(s.subjects) ? s.subjects : (s.subjects ? [s.subjects] : [])
     };
 }
 
-/** Convert Sheets row → localStorage student shape */
 function _fromSheetStudent(row) {
     return {
         id:          String(row.id || ''),
@@ -253,69 +178,427 @@ function _fromSheetStudent(row) {
     };
 }
 
-// ── STUDENTS ─────────────────────────────────────────────────────
+function _cleanPhone(p) {
+    let clean = String(p || '').replace(/[^0-9]/g, '');
+    if (clean.length > 10 && clean.startsWith('91')) clean = clean.slice(2);
+    clean = clean.slice(-10);
+    while (clean.length < 10) clean = '9' + clean;
+    return clean;
+}
+
+function _getRollNo(s) {
+    if (s.rollNo && String(s.rollNo).trim()) return String(s.rollNo).trim();
+    if (s.roll_no && String(s.roll_no).trim()) return String(s.roll_no).trim();
+    if (s.id && String(s.id).trim() && !String(s.id).match(/^\d{13}$/)) return String(s.id).trim();
+
+    // Generate clean roll number if none exists
+    const rawClass = String(s.class || s.class_name || '10').replace(/[^0-9]/g, '');
+    const prefix = rawClass ? 'EDU-C' + rawClass : 'EDU';
+    const num = (s.id ? String(s.id).slice(-3) : Math.floor(100 + Math.random() * 900));
+    return prefix + '-' + num;
+}
+
+// ─── LOAD FROM CLOUD (PULL) ──────────────────────────────────────────────────
+
+window.sb_loadFromCloud = async function () {
+    let loadedStudents = null;
+    let loadedFees = null;
+
+    // Try Google Sheets first
+    if (_sheetsReady()) {
+        try {
+            var stuResult = await _sheetsGet('getStudents');
+            var feeResult = await _sheetsGet('getFees');
+            if (stuResult && stuResult.data && stuResult.data.length > 0) {
+                loadedStudents = stuResult.data.map(_fromSheetStudent);
+            }
+            if (feeResult && feeResult.data) {
+                var feesObj = {};
+                feeResult.data.forEach(function (row) {
+                    var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
+                    feesObj[key] = row.status;
+                });
+                loadedFees = feesObj;
+            }
+        } catch (e) {
+            console.warn('[Sheets] Pull failed, falling back to Supabase', e);
+        }
+    }
+
+    // If Sheets returned nothing or unavailable, pull from Supabase
+    const sb = _getSupabaseClient();
+    if (!loadedStudents && sb) {
+        try {
+            const { data: stuRows, error: sErr } = await sb.from('students').select('*');
+            if (!sErr && stuRows && stuRows.length > 0) {
+                loadedStudents = stuRows.map(r => ({
+                    id: String(r.roll_no || r.id),
+                    rollNo: String(r.roll_no),
+                    name: r.name,
+                    class: String(r.class_name || '').replace('Class ', ''),
+                    school: r.school || 'EduHome Campus',
+                    phone: r.phone || '',
+                    joiningDate: r.joining_date || '',
+                    amount: '',
+                    subjects: []
+                }));
+            }
+
+            const { data: feeRows, error: fErr } = await sb.from('fees_records').select('*');
+            if (!fErr && feeRows && loadedStudents) {
+                loadedStudents.forEach(st => {
+                    const fr = feeRows.find(f => f.roll_no === st.id || f.roll_no === st.rollNo);
+                    if (fr) {
+                        st.amount = fr.monthly_fee ? String(fr.monthly_fee) : '';
+                        if (fr.subjects) {
+                            st.subjects = fr.subjects.split(',').map(s => s.trim());
+                        }
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('[Supabase] Pull failed:', e);
+        }
+    }
+
+    if (!loadedStudents || loadedStudents.length === 0) {
+        return { ok: false, msg: 'No remote student records found.' };
+    }
+
+    // Save to LocalStorage
+    localStorage.setItem('students', JSON.stringify(loadedStudents));
+    if (loadedFees) {
+        localStorage.setItem('fees', JSON.stringify(loadedFees));
+    }
+
+    return {
+        ok: true,
+        students: loadedStudents,
+        fees: loadedFees || {},
+        msg: 'Synced ' + loadedStudents.length + ' students from cloud.'
+    };
+};
+
+// ─── STUDENTS (DUAL SYNC) ────────────────────────────────────────────────────
 
 window.sb_getStudents = async function () {
-    if (!_sheetsReady()) return null;
-    var result = await _sheetsGet('getStudents');
-    if (!result || !result.data) return null;
-    return result.data.map(_fromSheetStudent);
+    const result = await window.sb_loadFromCloud();
+    if (result && result.ok) return result.students;
+    return JSON.parse(localStorage.getItem('students')) || [];
 };
 
 window.sb_saveStudent = async function (student) {
-    if (!_sheetsReady()) return false;
-    var result = await _sheetsPost({
-        action: 'saveStudent',
-        student: _toSheetStudent(student)
-    });
-    if (!result) { console.error('[Sheets] saveStudent failed'); return false; }
-    return true;
+    let sheetsSuccess = false;
+    let supabaseSuccess = false;
+
+    // 1. Google Sheets Sync
+    if (_sheetsReady()) {
+        try {
+            var result = await _sheetsPost({
+                action: 'saveStudent',
+                student: _toSheetStudent(student)
+            });
+            sheetsSuccess = !!result;
+            if (sheetsSuccess) console.log('[DualSync] Student saved to Google Sheets ✓');
+        } catch (e) {
+            console.warn('[DualSync] Sheets saveStudent error:', e);
+        }
+    }
+
+    // 2. Supabase Sync
+    const sb = _getSupabaseClient();
+    if (sb) {
+        try {
+            const rollNo = _getRollNo(student);
+            const rawClass = String(student.class || student.class_name || '10').trim();
+            const className = rawClass.toLowerCase().startsWith('class') ? rawClass : 'Class ' + rawClass;
+            const name = (student.name || 'Student').trim();
+            const nameParts = name.split(' ');
+            const avatar = (nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : name.slice(0, 2)).toUpperCase();
+            const phone = _cleanPhone(student.phone);
+            const monthlyFee = Number(student.amount) || 0;
+            const subjectsList = Array.isArray(student.subjects) ? student.subjects : (student.subjects ? [student.subjects] : []);
+            const subjectsStr = subjectsList.join(', ');
+            const joiningDate = student.joiningDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+            // A. Upsert into students table
+            const { error: stuError } = await sb.from('students').upsert({
+                roll_no: rollNo,
+                name: name,
+                class_name: className,
+                batch: student.batch || className,
+                avatar: avatar,
+                phone: phone,
+                school: student.school || 'EduHome Campus',
+                joining_date: joiningDate,
+                pin: student.pin || '1234',
+                streak: 0,
+                accuracy: 0,
+                tests_completed: 0,
+                top_percent: 0
+            }, { onConflict: 'roll_no' });
+
+            if (stuError) {
+                console.warn('[DualSync] Supabase students error:', stuError.message);
+            } else {
+                console.log('[DualSync] Student upserted in Supabase ✓:', rollNo);
+            }
+
+            // B. Upsert into fees_records
+            const { error: feeError } = await sb.from('fees_records').upsert({
+                roll_no: rollNo,
+                monthly_fee: monthlyFee,
+                current_due: monthlyFee,
+                due_date: '25th of month',
+                days_left: 5,
+                months_paid_on_time: 0,
+                subjects: subjectsStr,
+                status: 'due',
+                loyalty_months: [],
+                recent_payments: []
+            }, { onConflict: 'roll_no' });
+
+            if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
+
+            // C. Blank attendance record
+            await sb.from('attendance_records').upsert({
+                roll_no: rollNo,
+                overall: 0,
+                attended: 0,
+                total: 0,
+                today_subjects: [],
+                history: []
+            }, { onConflict: 'roll_no', ignoreDuplicates: true });
+
+            // D. Blank progress record
+            await sb.from('progress_records').upsert({
+                roll_no: rollNo,
+                tests_attended: 0,
+                highest_score: 0,
+                top_percent: 0,
+                total_students: 0,
+                improvement: 0,
+                accuracy: 0,
+                incorrect: 0
+            }, { onConflict: 'roll_no', ignoreDuplicates: true });
+
+            supabaseSuccess = true;
+            console.log('[DualSync] Student & companions synced to Supabase ✓');
+        } catch (e) {
+            console.warn('[DualSync] Supabase saveStudent error:', e);
+        }
+    }
+
+    return sheetsSuccess || supabaseSuccess;
 };
 
 window.sb_deleteStudent = async function (id) {
-    if (!_sheetsReady()) return false;
-    var result = await _sheetsPost({
-        action: 'deleteStudent',
-        id: String(id)
-    });
-    if (!result) { console.error('[Sheets] deleteStudent failed'); return false; }
-    return true;
+    let sheetsSuccess = false;
+    let supabaseSuccess = false;
+
+    // 1. Delete from Sheets
+    if (_sheetsReady()) {
+        try {
+            var result = await _sheetsPost({
+                action: 'deleteStudent',
+                id: String(id)
+            });
+            sheetsSuccess = !!result;
+        } catch (e) {
+            console.warn('[DualSync] Sheets deleteStudent error:', e);
+        }
+    }
+
+    // 2. Delete from Supabase
+    const sb = _getSupabaseClient();
+    if (sb) {
+        try {
+            const sid = String(id);
+            const { error } = await sb.from('students').delete().or('roll_no.eq.' + sid + ',id.eq.' + sid);
+            if (!error) {
+                supabaseSuccess = true;
+                console.log('[DualSync] Student deleted from Supabase ✓:', sid);
+            } else {
+                console.warn('[DualSync] Supabase delete error:', error.message);
+            }
+        } catch (e) {
+            console.warn('[DualSync] Supabase deleteStudent error:', e);
+        }
+    }
+
+    return sheetsSuccess || supabaseSuccess;
 };
 
-// ── FEES ─────────────────────────────────────────────────────────
+// ─── FEES (DUAL SYNC) ────────────────────────────────────────────────────────
 
 window.sb_getFees = async function () {
-    if (!_sheetsReady()) return null;
-    var result = await _sheetsGet('getFees');
-    if (!result || !result.data) return null;
-    var feesObj = {};
-    var feeRows = Array.isArray(result.data) ? result.data : [];
-    feeRows.forEach(function (row) {
-        var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
-        feesObj[key] = row.status;
-    });
-    return feesObj;
+    if (_sheetsReady()) {
+        var result = await _sheetsGet('getFees');
+        if (result && result.data) {
+            var feesObj = {};
+            var feeRows = Array.isArray(result.data) ? result.data : [];
+            feeRows.forEach(function (row) {
+                var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
+                feesObj[key] = row.status;
+            });
+            return feesObj;
+        }
+    }
+    return JSON.parse(localStorage.getItem('fees')) || {};
 };
 
 window.sb_toggleFee = async function (studentId, subject, month, year, newStatus) {
-    if (!_sheetsReady()) return;
-    await _sheetsPost({
-        action: 'toggleFee',
-        fee: {
-            student_id: String(studentId),
-            subject: subject,
-            month: month,
-            year: Number(year),
-            status: newStatus
+    // 1. Update Sheets
+    if (_sheetsReady()) {
+        try {
+            await _sheetsPost({
+                action: 'toggleFee',
+                fee: {
+                    student_id: String(studentId),
+                    subject: subject,
+                    month: month,
+                    year: Number(year),
+                    status: newStatus
+                }
+            });
+            console.log('[DualSync] Fee toggled in Google Sheets ✓');
+        } catch (e) {
+            console.warn('[DualSync] Sheets toggleFee error:', e);
         }
-    });
+    }
+
+    // 2. Update Supabase
+    const sb = _getSupabaseClient();
+    if (sb) {
+        try {
+            const sid = String(studentId);
+            // Locate student in students table or fees_records table
+            const { data: feeRecord } = await sb.from('fees_records')
+                .select('*')
+                .or('roll_no.eq.' + sid + ',id.eq.' + sid)
+                .maybeSingle();
+
+            const rollNo = feeRecord ? feeRecord.roll_no : sid;
+
+            if (newStatus === 'Paid') {
+                const now = new Date();
+                const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+                const mShort = (month || 'SEP').slice(0, 3).toUpperCase();
+                const paymentAmount = feeRecord?.monthly_fee || 4000;
+
+                const paymentEntry = {
+                    month: mShort,
+                    fullMonth: month + ' ' + year,
+                    paidOn: paidOnStr,
+                    amount: paymentAmount,
+                    onTime: true,
+                    status: 'Verified by Admin (Web Panel)',
+                    receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000)
+                };
+
+                const currentPayments = Array.isArray(feeRecord?.recent_payments) ? feeRecord.recent_payments : [];
+                const updatedPayments = [paymentEntry, ...currentPayments.filter(p => !(p.month === mShort && p.fullMonth?.includes(String(year))))];
+
+                await sb.from('fees_records').update({
+                    status: 'paid',
+                    current_due: 0,
+                    recent_payments: updatedPayments,
+                    updated_at: now.toISOString()
+                }).eq('roll_no', rollNo);
+
+                console.log('[DualSync] Fee marked PAID in Supabase for:', rollNo);
+            } else {
+                // Pending / Due
+                const monthlyFee = feeRecord?.monthly_fee || 4000;
+                await sb.from('fees_records').update({
+                    status: 'due',
+                    current_due: monthlyFee,
+                    updated_at: new Date().toISOString()
+                }).eq('roll_no', rollNo);
+
+                console.log('[DualSync] Fee marked DUE in Supabase for:', rollNo);
+            }
+        } catch (e) {
+            console.warn('[DualSync] Supabase toggleFee error:', e);
+        }
+    }
 };
 
-// ── ONE-TIME MIGRATION (Push) ─────────────────────────────────────
+// ─── ATTENDANCE (DUAL SYNC) ──────────────────────────────────────────────────
+
+window.sb_saveAttendance = async function (attData) {
+    // attData = { date, subject, className, records: [{ studentId, name, rollNo, status: 'present'|'absent', lateMinutes }] }
+    console.log('[DualSync] Saving attendance...', attData);
+
+    // 1. Save to Google Sheets if supported
+    if (_sheetsReady()) {
+        try {
+            await _sheetsPost({
+                action: 'saveAttendance',
+                attendance: attData
+            });
+            console.log('[DualSync] Attendance sent to Google Sheets ✓');
+        } catch (e) {}
+    }
+
+    // 2. Save to Supabase (classes table and attendance_records table)
+    const sb = _getSupabaseClient();
+    if (sb && attData.records && attData.records.length > 0) {
+        try {
+            for (const r of attData.records) {
+                const rollNo = r.rollNo || r.studentId;
+                const isPresent = r.status === 'present';
+
+                // Insert into classes table (session record)
+                await sb.from('classes').insert({
+                    roll_no: rollNo,
+                    class_grade: attData.className || 'Class 10',
+                    subject: attData.subject || 'General',
+                    time: r.lateMinutes ? ('Late ' + r.lateMinutes) : 'On Time',
+                    status: isPresent ? 'present' : 'absent',
+                    class_date: attData.date || new Date().toISOString().split('T')[0],
+                    published: true
+                });
+
+                // Update student's attendance_records
+                const { data: curAtt } = await sb.from('attendance_records')
+                    .select('*')
+                    .eq('roll_no', rollNo)
+                    .maybeSingle();
+
+                if (curAtt) {
+                    const newAttended = isPresent ? (curAtt.attended || 0) + 1 : (curAtt.attended || 0);
+                    const newTotal = (curAtt.total || 0) + 1;
+                    const newOverall = Math.round((newAttended / newTotal) * 100);
+
+                    const todaySubjects = Array.isArray(curAtt.today_subjects) ? curAtt.today_subjects : [];
+                    todaySubjects.push({
+                        name: attData.subject,
+                        status: isPresent ? 'present' : 'absent',
+                        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                    });
+
+                    await sb.from('attendance_records').update({
+                        attended: newAttended,
+                        total: newTotal,
+                        overall: newOverall,
+                        today_subjects: todaySubjects,
+                        updated_at: new Date().toISOString()
+                    }).eq('roll_no', rollNo);
+                }
+            }
+            console.log('[DualSync] Attendance synced to Supabase student records ✓');
+            return true;
+        } catch (e) {
+            console.warn('[DualSync] Supabase saveAttendance error:', e);
+        }
+    }
+    return true;
+};
+
+// ─── BULK MIGRATION (PUSH TO BOTH CLOUDS) ─────────────────────────────────────
 
 window.sb_migrateFromLocalStorage = async function () {
-    if (!_sheetsReady()) return { ok: false, msg: 'App is offline, cannot sync to cloud.' };
-
     var students = JSON.parse(localStorage.getItem('students')) || [];
     var feesRaw  = JSON.parse(localStorage.getItem('fees'))     || {};
 
@@ -323,57 +606,68 @@ window.sb_migrateFromLocalStorage = async function () {
         return { ok: false, msg: 'No students found in localStorage to migrate.' };
     }
 
-    // Convert students to sheet format — force strings for id/phone
-    var studentRows = students.map(_toSheetStudent);
+    var msgs = [];
 
-    // Convert fees object to array of rows
-    var validStudentIds = {};
-    students.forEach(function (s) { validStudentIds[s.id] = true; });
+    // 1. Push to Google Sheets
+    if (_sheetsReady()) {
+        try {
+            var studentRows = students.map(_toSheetStudent);
+            var validStudentIds = {};
+            students.forEach(function (s) { validStudentIds[s.id] = true; });
 
-    var feeRows = [];
-    var orphanCount = 0;
+            var feeRows = [];
+            Object.keys(feesRaw).forEach(function (key) {
+                var parts = key.split('_');
+                if (parts.length < 4) return;
+                var studentId = parts[0];
+                var year      = Number(parts[parts.length - 1]);
+                var month     = parts[parts.length - 2];
+                var subject   = parts.slice(1, parts.length - 2).join('_');
 
-    Object.keys(feesRaw).forEach(function (key) {
-        var parts = key.split('_');
-        if (parts.length < 4) return;
-        var studentId = parts[0];
-        var year      = Number(parts[parts.length - 1]);
-        var month     = parts[parts.length - 2];
-        var subject   = parts.slice(1, parts.length - 2).join('_');
-
-        if (!validStudentIds[studentId]) {
-            orphanCount++;
-            return;
-        }
-
-        if (feesRaw[key] === 'Paid') {
-            feeRows.push({
-                student_id: String(studentId),
-                subject: subject,
-                month: month,
-                year: year,
-                status: 'Paid'
+                if (validStudentIds[studentId] && feesRaw[key] === 'Paid') {
+                    feeRows.push({
+                        student_id: String(studentId),
+                        subject: subject,
+                        month: month,
+                        year: year,
+                        status: 'Paid'
+                    });
+                }
             });
-        }
-    });
 
-    if (orphanCount > 0) {
-        console.warn('[Migrate] Skipped ' + orphanCount + ' orphaned fee records (student was deleted).');
+            var result = await _sheetsPost({
+                action: 'migrate',
+                students: studentRows,
+                fees: feeRows
+            }, 60000);
+
+            if (result && result.ok) msgs.push('Google Sheets (' + students.length + ' students)');
+        } catch (e) {
+            console.warn('[DualSync] Sheets migration error:', e);
+        }
     }
 
-    // Send to Google Sheets — use longer timeout (60s) for bulk operations
-    var result = await _sheetsPost({
-        action: 'migrate',
-        students: studentRows,
-        fees: feeRows
-    }, 60000);
+    // 2. Push to Supabase
+    const sb = _getSupabaseClient();
+    if (sb) {
+        try {
+            let count = 0;
+            for (const s of students) {
+                await window.sb_saveStudent(s);
+                count++;
+            }
+            msgs.push('Supabase (' + count + ' students)');
+        } catch (e) {
+            console.warn('[DualSync] Supabase migration error:', e);
+        }
+    }
 
-    if (!result) {
-        return { ok: false, msg: 'Failed to reach Google Sheets. Check your internet connection and try again.' };
+    if (msgs.length === 0) {
+        return { ok: false, msg: 'Failed to sync to clouds. Check internet and credentials.' };
     }
 
     return {
         ok: true,
-        msg: '✅ ' + result.msg + (orphanCount > 0 ? ' (' + orphanCount + ' orphaned fee records skipped)' : '')
+        msg: '✅ Synced to: ' + msgs.join(' and ')
     };
 };

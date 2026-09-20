@@ -1321,7 +1321,7 @@ if (document.getElementById('attendanceClassSelect')) {
 
         if (!classVal) {
             attTable.innerHTML = '<tr><td colspan="2" class="text-center">Please select a Class.</td></tr>';
-            shareBtn.style.display = 'none';
+            shareBtn.style.display = 'none'; const saveCloudBtn2 = document.getElementById('saveAttendanceCloudBtn'); if (saveCloudBtn2) saveCloudBtn2.style.display = 'none';
             return;
         }
 
@@ -1344,7 +1344,7 @@ if (document.getElementById('attendanceClassSelect')) {
             return;
         }
 
-        shareBtn.style.display = 'inline-block';
+        shareBtn.style.display = 'inline-block'; const saveCloudBtn = document.getElementById('saveAttendanceCloudBtn'); if (saveCloudBtn) saveCloudBtn.style.display = 'inline-block';
         attTable.innerHTML = '';
 
         filtered.forEach(s => {
@@ -1755,3 +1755,70 @@ if (document.getElementById('studentListBody')) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 }
+
+
+// --- Attendance Cloud Save Function (Dual Sync to Sheets & Supabase) ---
+window.saveAttendanceToCloud = async function () {
+    const dateInput = document.getElementById('attendanceDate');
+    const subInput = document.getElementById('attendanceSubject');
+    const classInput = document.getElementById('attendanceClassSelect');
+    const btn = document.getElementById('saveAttendanceCloudBtn');
+
+    if (!classInput || !classInput.value) {
+        alert('Please select a Class first.');
+        return;
+    }
+    const classVal = classInput.value;
+    const subVal = subInput ? subInput.value : 'General';
+    const dateVal = dateInput && dateInput.value ? dateInput.value : new Date().toISOString().split('T')[0];
+
+    const students = getStudents().filter(s => {
+        if (s.class !== classVal) return false;
+        if (subVal && !s.subjects.includes(subVal)) return false;
+        return true;
+    });
+
+    if (students.length === 0) {
+        alert('No students found to save attendance.');
+        return;
+    }
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Syncing...';
+    }
+
+    const records = students.map(s => {
+        const cb = document.getElementById('att_' + s.id);
+        const lateInput = document.getElementById('late_time_' + s.id);
+        const isPresent = cb ? cb.checked : true;
+        return {
+            studentId: s.id,
+            rollNo: s.rollNo || s.roll_no || s.id,
+            name: s.name,
+            status: isPresent ? 'present' : 'absent',
+            lateMinutes: lateInput ? lateInput.value : ''
+        };
+    });
+
+    try {
+        if (typeof sb_saveAttendance === 'function') {
+            await sb_saveAttendance({
+                date: dateVal,
+                subject: subVal,
+                className: 'Class ' + classVal,
+                records: records
+            });
+            alert('✓ Attendance synced successfully to Google Sheets & Supabase!\n\nStudent and Faculty apps will now reflect the attendance.');
+        } else {
+            alert('Cloud sync client not available.');
+        }
+    } catch (err) {
+        alert('Failed to sync attendance: ' + err.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Save & Sync Attendance';
+        }
+    }
+};

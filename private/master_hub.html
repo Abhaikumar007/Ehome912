@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin Master Control Hub - Edu Home</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .hub-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: #fff;
+            padding: 24px 0;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-cloud {
+            font-size: 0.78rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .badge-cloud-green {
+            background: #10b981;
+            color: #fff;
+        }
+
+        .badge-cloud-amber {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .nav-tabs .nav-link {
+            font-weight: 600;
+            color: #475569;
+            border: none;
+            padding: 12px 20px;
+            border-bottom: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #0284c7;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #0284c7;
+            background: transparent;
+            border-bottom: 3px solid #0284c7;
+        }
+
+        .hub-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .grid-table-wrapper {
+            max-height: 540px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .grid-table {
+            margin-bottom: 0;
+            font-size: 0.88rem;
+        }
+
+        .grid-table thead th {
+            position: sticky;
+            top: 0;
+            background: #0f172a;
+            color: #fff;
+            z-index: 2;
+            padding: 10px 8px;
+            font-weight: 600;
+            border: none;
+        }
+
+        .grid-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+
+        .grid-input {
+            width: 100%;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 4px 6px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            transition: border 0.2s, background 0.2s;
+        }
+
+        .grid-input:focus {
+            border: 1px solid #0284c7;
+            background: #fff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+        }
+
+        .stat-widget {
+            border-radius: 10px;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-right: 14px;
+        }
+
+        .broadcast-item {
+            border-left: 4px solid #0284c7;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Security Check -->
+    <script src="js/security.js"></script>
+
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-graduation-cap text-warning mr-2"></i>Edu Home Admin
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#hubNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="hubNav">
+                <ul class="navbar-nav mr-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Dashboard</a></li>
+                    <li class="nav-item active"><a class="nav-link" href="master_hub.html"><strong>Master Hub</strong></a></li>
+                    <li class="nav-item"><a class="nav-link" href="add_student.html">Students</a></li>
+                    <li class="nav-item"><a class="nav-link" href="fees.html">Fees</a></li>
+                    <li class="nav-item"><a class="nav-link" href="attendance.html">Attendance</a></li>
+                    <li class="nav-item"><a class="nav-link" href="timetable.html">Timetable</a></li>
+                </ul>
+                <div class="navbar-text d-flex align-items-center">
+                    <span class="badge badge-cloud badge-cloud-green mr-2" id="navSheetsStatus">
+                        <i class="fas fa-file-excel mr-1"></i>Sheets: Ready
+                    </span>
+                    <span class="badge badge-cloud badge-cloud-green" id="navSupabaseStatus">
+                        <i class="fas fa-bolt mr-1"></i>Supabase: Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hub Header Banner -->
+    <div class="hub-header">
+        <div class="container-fluid px-4">
+            <div class="row align-items-center">
+                <div class="col-md-7">
+                    <h2 class="font-weight-bold mb-1"><i class="fas fa-satellite-dish mr-2 text-primary"></i>Super Admin Master Hub</h2>
+                    <p class="mb-0 text-white-50">Bulk Student Spreadsheet, Real-time Broadcast Alerts, and 1-Click Monthly Fee Automation with Dual Cloud Sync.</p>
+                </div>
+                <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                    <button class="btn btn-outline-light btn-sm mr-2" onclick="refreshMasterData()">
+                        <i class="fas fa-sync-alt mr-1"></i> Refresh Data
+                    </button>
+                    <button class="btn btn-success btn-sm" onclick="saveAllMasterChanges()">
+                        <i class="fas fa-cloud-upload-alt mr-1"></i> Push All to Sheets & Supabase
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Container -->
+    <div class="container-fluid px-4">
+        <!-- Tabs Header -->
+        <ul class="nav nav-tabs mb-4" id="masterHubTabs" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" id="tab-spreadsheet-link" data-toggle="tab" href="#tab-spreadsheet" role="tab">
+                    <i class="fas fa-table mr-2"></i>Student Quick-Grid (Spreadsheet)
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-broadcast-link" data-toggle="tab" href="#tab-broadcast" role="tab">
+                    <i class="fas fa-bullhorn mr-2"></i>Global Broadcast & Exam Alerts
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-fees-link" data-toggle="tab" href="#tab-fees" role="tab">
+                    <i class="fas fa-calendar-check mr-2"></i>Monthly Fee Cycle Automation
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-health-link" data-toggle="tab" href="#tab-health" role="tab">
+                    <i class="fas fa-heartbeat mr-2"></i>Cloud Health & Resync
+                </a>
+            </li>
+        </ul>
+
+        <!-- Tabs Content -->
+        <div class="tab-content" id="masterHubTabContent">
+
+            <!-- TAB 1: SPREADSHEET EDITOR -->
+            <div class="tab-pane fade show active" id="tab-spreadsheet" role="tabpanel">
+                <div class="hub-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <input type="text" id="gridSearchInput" class="form-control form-control-sm mr-2" placeholder="Search by name, roll no, or phone..." style="width: 260px;" oninput="filterGridTable()">
+                            <select id="gridClassFilter" class="form-control form-control-sm" style="width: 140px;" onchange="filterGridTable()">
+                                <option value="">All Classes</option>
+                                <option value="7">Class 7</option>
+                                <option value="8">Class 8</option>
+                                <option value="9">Class 9</option>
+                                <option value="10">Class 10</option>
+                                <option value="11">Class 11</option>
+                                <option value="12">Class 12</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <button class="btn btn-outline-primary btn-sm mr-2" onclick="addNewGridRow()">
+                                <i class="fas fa-plus mr-1"></i> Add Row
+                            </button>
+                            <button class="btn btn-primary btn-sm" onclick="saveAllMasterChanges()">
+                                <i class="fas fa-save mr-1"></i> Save Changes (Both Clouds)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="gridStatusAlert"></div>
+
+                    <!-- Scrollable Table Grid -->
+                    <div class="grid-table-wrapper">
+                        <table class="table table-hover table-bordered grid-table" id="masterGridTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 45px;" class="text-center">#</th>
+                                    <th style="width: 130px;">Roll No</th>
+                                    <th style="width: 180px;">Student Name</th>
+                                    <th style="width: 90px;">Class</th>
+                                    <th style="width: 130px;">Phone</th>
+                                    <th style="width: 110px;">Monthly Fee</th>
+                                    <th style="min-width: 180px;">Subjects</th>
+                                    <th style="width: 120px;">School</th>
+                                    <th style="width: 75px;">PIN</th>
+                                    <th style="width: 120px;">Joining Date</th>
+                                    <th style="width: 60px;" class="text-center">Del</th>
+                                </tr>
+                            </thead>
+                            <tbody id="masterGridTbody">
+                                <tr>
+                                    <td colspan="11" class="text-center text-muted py-4">
+                                        <i class="fas fa-spinner fa-spin mr-2"></i>Loading student records...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <small class="text-muted mt-2 d-block">
+                        <i class="fas fa-info-circle mr-1"></i> Click any field to edit. Edits are highlighted and saved to both Google Sheets and Supabase upon clicking <strong>Save Changes</strong>.
+                    </small>
+                </div>
+            </div>
+
+            <!-- TAB 2: BROADCAST & EXAM ALERTS -->
+            <div class="tab-pane fade" id="tab-broadcast" role="tabpanel">
+                <div class="row">
+                    <!-- Left: Post Announcement -->
+                    <div class="col-lg-6">
+                        <div class="hub-card">
+                            <h5 class="font-weight-bold mb-3 text-primary">
+                                <i class="fas fa-bullhorn mr-2"></i>Post Instant Announcement
+                            </h5>
+                            <form id="announcementForm" onsubmit="handlePublishAnnouncement(event)">
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Announcement Title</label>
+                                    <input type="text" class="form-control" id="annTitle" placeholder="e.g. Special Physics Revision Class This Saturday" required>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label class="font-weight-bold">Target Audience</label>
+                                        <select class="form-control" id="annTarget">
+                                            <option value="All">All Students & Teachers</option>
+                                            <option value="Class 12">Class 12 Only</option>
+                                            <option value="Class 11">Class 11 Only</option>
+                                            <option value="Class 10">Class 10 Only</option>
+                                            <option value="Class 9">Class 9 Only</option>
+                                            <option value="Class 8">Class 8 Only</option>
+                                            <option value="Class 7">Class 7 Only</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="font-weight-bold">Category</label>
+                                        <select class="form-control" id="annCategory">
+                                            <option value="notice">General Notice</option>
+                                            <option value="urgent">Urgent Alert</option>
+                                            <option value="holiday">Holiday / Reschedule</option>
+                                            <option value="event">Event / Exam</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Message Details</label>
+                                    <textarea class="form-control" id="annMsg" rows="3" placeholder="Enter details to appear on student home screens..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="publishAnnBtn">
+                                    <i class="fas fa-paper-plane mr-1"></i> Broadcast to All Apps
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Right: Post Exam / Test Alert -->
+                    <div class="col-lg-6">
+                        <div class="hub-card">
+                            <h5 class="font-weight-bold mb-3 text-danger">
+                                <i class="fas fa-file-signature mr-2"></i>Publish Academic Test Alert
+                            </h5>
+                            <form id="testAlertForm" onsubmit="handlePublishTestAlert(event)">
+                                <div class="form-row">
+                                    <div class="form-group col-md-8">
+                                        <label class="font-weight-bold">Exam / Test Title</label>
+                                        <input type="text" class="form-control" id="testTitle" placeholder="e.g. Unit Test: Ray Optics & Wave Optics" required>
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label class="font-weight-bold">Class</label>
+                                        <select class="form-control" id="testClass" required>
+                                            <option value="Class 12">Class 12</option>
+                                            <option value="Class 11">Class 11</option>
+                                            <option value="Class 10">Class 10</option>
+                                            <option value="Class 9">Class 9</option>
+                                            <option value="Class 8">Class 8</option>
+                                            <option value="Class 7">Class 7</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label class="font-weight-bold">Subject</label>
+                                        <input type="text" class="form-control" id="testSubject" placeholder="e.g. Physics" required>
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label class="font-weight-bold">Exam Date</label>
+                                        <input type="date" class="form-control" id="testExamDate" required>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold text-danger">
+                                        <i class="fas fa-calendar-times mr-1"></i>Show Alert Until Date (Expiry)
+                                    </label>
+                                    <input type="date" class="form-control" id="testExpiryDate" required title="The alert will automatically disappear from the student dashboard after this date">
+                                    <small class="text-muted">The alert automatically vanishes from student screens once this date passes.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label class="font-weight-bold">Syllabus Chapters (One per line)</label>
+                                    <textarea class="form-control" id="testSyllabus" rows="2" placeholder="Chapter 1: Electric Charges&#10;Chapter 2: Electrostatics"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-danger" id="publishTestBtn">
+                                    <i class="fas fa-bell mr-1"></i> Publish Exam Alert
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Broadcasts Feed -->
+                <div class="hub-card">
+                    <h5 class="font-weight-bold mb-3"><i class="fas fa-history mr-2"></i>Active Announcements & Live Alerts</h5>
+                    <div id="activeBroadcastsContainer">
+                        <p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Loading active broadcasts...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: MONTHLY FEES AUTOMATION -->
+            <div class="tab-pane fade" id="tab-fees" role="tabpanel">
+                <!-- Summary Widgets -->
+                <div class="row mb-4">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-widget">
+                            <div class="stat-icon bg-primary text-white"><i class="fas fa-users"></i></div>
+                            <div>
+                                <small class="text-muted font-weight-bold">TOTAL STUDENTS</small>
+                                <h4 class="mb-0 font-weight-bold" id="feeTotalStudents">0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-widget">
+                            <div class="stat-icon bg-success text-white"><i class="fas fa-rupee-sign"></i></div>
+                            <div>
+                                <small class="text-muted font-weight-bold">TOTAL EXPECTED</small>
+                                <h4 class="mb-0 font-weight-bold" id="feeTotalExpected">₹0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-widget">
+                            <div class="stat-icon bg-info text-white"><i class="fas fa-check-circle"></i></div>
+                            <div>
+                                <small class="text-muted font-weight-bold">COLLECTED</small>
+                                <h4 class="mb-0 font-weight-bold" id="feeTotalCollected">₹0</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="stat-widget">
+                            <div class="stat-icon bg-warning text-white"><i class="fas fa-hourglass-half"></i></div>
+                            <div>
+                                <small class="text-muted font-weight-bold">PENDING / DUE</small>
+                                <h4 class="mb-0 font-weight-bold" id="feeTotalPending">₹0</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hub-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                        <div>
+                            <h5 class="font-weight-bold mb-1">Monthly Billing Cycle Generator</h5>
+                            <p class="text-muted mb-0">Generate or reset fees for all enrolled students for any billing cycle.</p>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <select id="cycleMonthSelect" class="form-control mr-2" style="width: 180px;">
+                                <option value="September 2026">September 2026</option>
+                                <option value="October 2026" selected>October 2026</option>
+                                <option value="November 2026">November 2026</option>
+                                <option value="December 2026">December 2026</option>
+                            </select>
+                            <button class="btn btn-warning font-weight-bold" onclick="generateMonthlyFeeCycle()">
+                                <i class="fas fa-bolt mr-1"></i> Generate Cycle Dues
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped" id="cycleFeeTable">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Class</th>
+                                    <th>Enrolled Students</th>
+                                    <th>Monthly Fee Standard</th>
+                                    <th>Class Revenue Target</th>
+                                    <th>Status in Supabase</th>
+                                </tr>
+                            </thead>
+                            <tbody id="cycleFeeTbody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">Loading class breakdown...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: CLOUD HEALTH & RESYNC -->
+            <div class="tab-pane fade" id="tab-health" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="hub-card">
+                            <h5 class="font-weight-bold mb-3"><i class="fas fa-database text-primary mr-2"></i>Supabase Cloud Status</h5>
+                            <div class="p-3 bg-light rounded mb-3" id="supabaseHealthDetails">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Checking Supabase connectivity...
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="testCloudHealth()">
+                                <i class="fas fa-redo mr-1"></i> Re-test Connection
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="hub-card">
+                            <h5 class="font-weight-bold mb-3"><i class="fas fa-file-excel text-success mr-2"></i>Google Sheets Status</h5>
+                            <div class="p-3 bg-light rounded mb-3" id="sheetsHealthDetails">
+                                <i class="fas fa-spinner fa-spin mr-2"></i>Checking Google Sheets connectivity...
+                            </div>
+                            <button class="btn btn-outline-success btn-sm" onclick="testCloudHealth()">
+                                <i class="fas fa-redo mr-1"></i> Re-test Connection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hub-card text-center py-4">
+                    <h5 class="font-weight-bold mb-2">Master Cloud Synchronization</h5>
+                    <p class="text-muted mb-4 max-w-600 mx-auto">
+                        Push all student records, fee statuses, and attendance logs to both Google Sheets and Supabase simultaneously, or pull the latest records from the cloud.
+                    </p>
+                    <button class="btn btn-success btn-lg px-4 mr-3" onclick="forcePushAllToClouds()">
+                        <i class="fas fa-cloud-upload-alt mr-2"></i>Force Push All to Both Clouds
+                    </button>
+                    <button class="btn btn-outline-dark btn-lg px-4" onclick="forcePullAllFromClouds()">
+                        <i class="fas fa-cloud-download-alt mr-2"></i>Force Pull from Clouds
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/sheets-client.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/master_hub.js"></script>
+</body>
+
+</html>

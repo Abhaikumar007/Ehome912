@@ -74,6 +74,10 @@
             </div>
 
             <div class="text-center mt-4">
+                
+                <button class="btn btn-success mr-2" id="saveAttendanceCloudBtn" style="display:none;" onclick="saveAttendanceToCloud()">
+                    <i class="fas fa-cloud-upload-alt mr-1"></i> Save & Sync Attendance
+                </button>
                 <button class="btn btn-primary" id="shareAttendanceBtn" style="display:none;">
                     <i class="fab fa-whatsapp"></i> Share Attendance
                 </button>
@@ -83,6 +87,9 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/js/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/sheets-client.js"></script>
     <script src="js/admin.js"></script>
 </body>
 

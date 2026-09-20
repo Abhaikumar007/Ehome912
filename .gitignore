@@ -7,3 +7,5 @@ keam_previous_year_question_papers/
 
 # Supabase keys — config.js intentionally committed (anon key only, safe)
 # private/js/config.js
+
+*.bak
