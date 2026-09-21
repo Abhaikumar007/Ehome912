@@ -326,19 +326,22 @@ export const DataService = {
       const { data, error } = await withTimeout(query, 2500) as any;
 
       if (!error && Array.isArray(data)) {
-        // Deduplicate so each subject/time slot on a date appears EXACTLY ONCE
+        // Deduplicate so each subject on a given date appears EXACTLY ONCE (latest schedule takes precedence)
         const seen = new Set<string>();
         const deduplicated: any[] = [];
-        for (const c of data) {
+        const reversed = [...data].reverse();
+        for (const c of reversed) {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
-          const normTime = (c.time || '').replace(/[\s\u2013\u2014\-]/g, '').toLowerCase();
-          const key = `${normSubject}_${normTime}_${normDate}`;
+          const key = `${normSubject}_${normDate}`;
           if (!seen.has(key)) {
             seen.add(key);
             deduplicated.push(c);
           }
         }
+
+        // Sort chronologically
+        deduplicated.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
         const mapped = deduplicated.map((c: any) => ({
           id: c.id,
@@ -360,15 +363,15 @@ export const DataService = {
       const isOldFakeMock = cached.some((c) => c.id === '1' && c.time === '5:00 PM – 6:00 PM');
       if (!isOldFakeMock) {
         const seen = new Set<string>();
-        return cached.filter((c: any) => {
+        const list = [...cached].reverse().filter((c: any) => {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
-          const normTime = (c.time || '').replace(/[\s\u2013\u2014\-]/g, '').toLowerCase();
-          const key = `${normSubject}_${normTime}_${normDate}`;
+          const key = `${normSubject}_${normDate}`;
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
         });
+        return list.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
       }
     }
 

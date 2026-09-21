@@ -150,17 +150,21 @@ export default function DashboardScreen() {
   // Dynamic day-based classes and attendance history
   const getDayClasses = (offset: number) => {
     const seen = new Set<string>();
-    return classes.filter((cls: any) => {
-      if (cls.published === false) return false;
+    const reversed = [...classes].reverse();
+    const result: any[] = [];
+    for (const cls of reversed) {
+      if (cls.published === false) continue;
       const matchesDate = cls.class_date ? (cls.class_date === currentDateIso) : (offset === 0);
-      if (!matchesDate) return false;
+      if (!matchesDate) continue;
       const normSubject = (cls.subject || '').trim().toLowerCase();
-      const normTime = (cls.time || '').replace(/[\s\u2013\u2014\-]/g, '').toLowerCase();
-      const key = `${normSubject}_${normTime}_${cls.class_date || currentDateIso}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+      const normDate = (cls.class_date || currentDateIso).trim();
+      const key = `${normSubject}_${normDate}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(cls);
+      }
+    }
+    return result.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   };
 
   const displayedClasses = getDayClasses(dateOffset);
