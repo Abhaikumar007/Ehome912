@@ -1300,6 +1300,10 @@ if (document.getElementById('timetableTableBody')) {
     });
 
 
+    
+
+
+
     // --- SHARE TIMETABLE TO MOBILE APP (STUDENT & FACULTY SYNC) ---
     window.shareTimetableToApp = async function () {
         const entries = (typeof timetableEntries !== 'undefined' && timetableEntries.length > 0) 
@@ -1332,15 +1336,25 @@ if (document.getElementById('timetableTableBody')) {
             const { data: dbStudents } = await sb.from('students').select('roll_no, name, class_name');
             const allStudents = dbStudents || [];
 
+            function to12Hr(t) {
+                if (!t) return '';
+                const parts = t.split(':');
+                const h = parseInt(parts[0], 10);
+                const m = parseInt(parts[1] || '0', 10);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const h12 = h % 12 || 12;
+                return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+            }
+
             const rowsToInsert = [];
             const announcementsToInsert = [];
 
             for (const entry of entries) {
                 let timeStr = '';
                 if (entry.startTime && entry.endTime) {
-                    timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
+                    timeStr = to12Hr(entry.startTime) + ' – ' + to12Hr(entry.endTime);
                 } else if (entry.startTime) {
-                    timeStr = formatTime12Hour(entry.startTime);
+                    timeStr = to12Hr(entry.startTime);
                 } else {
                     timeStr = 'Scheduled';
                 }
@@ -1386,8 +1400,8 @@ if (document.getElementById('timetableTableBody')) {
                 }
 
                 announcementsToInsert.push({
-                    title: `📅 Timetable: ${gradeStr} - ${entry.subject}`,
-                    description: `Date: ${formatDateFriendly(entry.date)} | Time: ${timeStr} | Venue: ${entry.location || 'In Center'} (${entry.board || 'Both'} Board). Check your schedule tab.`,
+                    title: '📅 Timetable: ' + gradeStr + ' - ' + entry.subject,
+                    description: 'Date: ' + formatDateFriendly(entry.date) + ' | Time: ' + timeStr + ' | Venue: ' + (entry.location || 'In Center') + ' (' + (entry.board || 'Both') + ' Board). Check your schedule tab.',
                     author: 'Center Admin',
                     tag: 'Timetable',
                     important: true,
@@ -1406,7 +1420,7 @@ if (document.getElementById('timetableTableBody')) {
                 await sb.from('announcements').insert(announcementsToInsert);
             }
 
-            alert(`✓ Timetable Successfully Shared to Mobile App!\n\n${rowsToInsert.length} student session(s) published for ${entries.length} class slot(s).\nAll students in ${gradeStr} and faculty will see this schedule on their live dashboard.`);
+            alert('✓ Timetable Successfully Shared to Mobile App!\n\n' + rowsToInsert.length + ' student session(s) published for ' + entries.length + ' class slot(s).\nAll students in ' + gradeStr + ' and faculty will see this schedule on their live dashboard.');
         } catch (e) {
             console.error('Failed to share timetable:', e);
             alert("Failed to share timetable to mobile app: " + (e.message || e));
