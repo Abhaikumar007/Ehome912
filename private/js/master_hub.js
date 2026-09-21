@@ -15,6 +15,25 @@ document.addEventListener('DOMContentLoaded', async function () {
     await refreshMasterData();
     testCloudHealth();
     loadActiveBroadcasts();
+
+    // One-time event delegation for broadcast delete buttons
+    const bcContainer = document.getElementById('activeBroadcastsContainer');
+    if (bcContainer) {
+        bcContainer.addEventListener('click', function (evt) {
+            const deleteBtn = evt.target.closest('.btn-delete-ann');
+            if (deleteBtn) {
+                evt.preventDefault();
+                const annId = deleteBtn.getAttribute('data-ann-id');
+                if (annId) _doDeleteAnnouncement(annId);
+                return;
+            }
+            if (evt.target.closest('#btnClearAllAnn')) {
+                evt.preventDefault();
+                _doDeleteAllAnnouncements();
+                return;
+            }
+        });
+    }
 });
 
 // ─── 1. SPREADSHEET GRID LOGIC ───────────────────────────────────────────────
@@ -385,18 +404,16 @@ async function loadActiveBroadcasts() {
                     html += '<h6 class="font-weight-bold text-muted mb-2">Live Community Announcements</h6>';
                     regularAnns.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += `
-                            <div class="broadcast-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${a.title}</strong>
-                                    <p class="mb-0 text-muted small">${a.description || ''}</p>
-                                    <span class="badge badge-light mt-1">${a.time_label || dateStr || 'Active'}</span>
-                                </div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="window._deleteAnnouncement('${a.id}')" title="Delete this announcement">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        `;
+                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center">'
+                            + '<div>'
+                            + '<strong>' + (a.title || '') + '</strong>'
+                            + '<p class="mb-0 text-muted small">' + (a.description || '') + '</p>'
+                            + '<span class="badge badge-light mt-1">' + (a.time_label || dateStr || 'Active') + '</span>'
+                            + '</div>'
+                            + '<button class="btn btn-sm btn-outline-danger btn-delete-ann" data-ann-id="' + a.id + '" title="Delete this announcement">'
+                            + '<i class="fas fa-trash-alt"></i>'
+                            + '</button>'
+                            + '</div>';
                     });
                 }
 
@@ -404,29 +421,25 @@ async function loadActiveBroadcasts() {
                     html += '<h6 class="font-weight-bold text-muted mt-3 mb-2">Active Exam / Test Alerts</h6>';
                     examAlerts.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += `
-                            <div class="broadcast-item d-flex justify-content-between align-items-center" style="border-left-color: #ef4444">
-                                <div>
-                                    <strong>${a.title}</strong>
-                                    <p class="mb-0 text-muted small">${a.description || ''}</p>
-                                    <span class="badge badge-danger mt-1">${a.time_label || dateStr || 'Active'}</span>
-                                </div>
-                                <button class="btn btn-sm btn-outline-danger" onclick="window._deleteAnnouncement('${a.id}')" title="Delete this exam alert">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
-                        `;
+                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center" style="border-left-color: #ef4444">'
+                            + '<div>'
+                            + '<strong>' + (a.title || '') + '</strong>'
+                            + '<p class="mb-0 text-muted small">' + (a.description || '') + '</p>'
+                            + '<span class="badge badge-danger mt-1">' + (a.time_label || dateStr || 'Active') + '</span>'
+                            + '</div>'
+                            + '<button class="btn btn-sm btn-outline-danger btn-delete-ann" data-ann-id="' + a.id + '" title="Delete this exam alert">'
+                            + '<i class="fas fa-trash-alt"></i>'
+                            + '</button>'
+                            + '</div>';
                     });
                 }
 
                 // Add a "Clear All" button at the bottom
-                html += `
-                    <div class="mt-3 text-right">
-                        <button class="btn btn-sm btn-outline-secondary" onclick="window._deleteAllAnnouncements()" title="Remove all announcements">
-                            <i class="fas fa-broom mr-1"></i> Clear All Announcements
-                        </button>
-                    </div>
-                `;
+                html += '<div class="mt-3 text-right">'
+                    + '<button class="btn btn-sm btn-outline-secondary" id="btnClearAllAnn" title="Remove all announcements">'
+                    + '<i class="fas fa-broom mr-1"></i> Clear All Announcements'
+                    + '</button>'
+                    + '</div>';
             }
         } catch (e) {
             console.warn('Could not load active broadcasts:', e);
@@ -438,49 +451,66 @@ async function loadActiveBroadcasts() {
     } else {
         container.innerHTML = html;
     }
+
+    // Attach event listeners using event delegation (bulletproof — no window scope needed)
+    container.addEventListener('click', function handler(evt) {
+        // Handle individual delete buttons
+        const deleteBtn = evt.target.closest('.btn-delete-ann');
+        if (deleteBtn) {
+            evt.preventDefault();
+            const annId = deleteBtn.getAttribute('data-ann-id');
+            if (annId) _doDeleteAnnouncement(annId);
+            return;
+        }
+        // Handle Clear All button
+        if (evt.target.closest('#btnClearAllAnn')) {
+            evt.preventDefault();
+            _doDeleteAllAnnouncements();
+            return;
+        }
+    });
 }
 
-// Bind delete functions to window so inline onclick handlers can find them
-window._deleteAnnouncement = async function (id) {
+async function _doDeleteAnnouncement(id) {
     if (!confirm('Are you sure you want to delete this announcement/alert?')) return;
     const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
-    if (sb) {
-        try {
-            const { error } = await sb.from('announcements').delete().eq('id', id);
-            if (error) {
-                alert('Failed to delete: ' + error.message);
-                return;
-            }
-            // Also clean up any companion notification rows
-            try { await sb.from('notifications').delete().eq('id', id); } catch(_){}
-            loadActiveBroadcasts();
-        } catch (err) {
-            alert('Error deleting announcement: ' + err.message);
+    if (!sb) { alert('Supabase client not available.'); return; }
+    try {
+        const { error } = await sb.from('announcements').delete().eq('id', id);
+        if (error) {
+            alert('Failed to delete: ' + error.message);
+            return;
         }
+        // Also clean up any companion notification rows
+        try { await sb.from('notifications').delete().eq('id', id); } catch(_){}
+        alert('Announcement deleted successfully!');
+        loadActiveBroadcasts();
+    } catch (err) {
+        alert('Error deleting announcement: ' + err.message);
     }
-};
+}
 
-window._deleteAllAnnouncements = async function () {
+async function _doDeleteAllAnnouncements() {
     if (!confirm('Are you sure you want to delete ALL announcements? This cannot be undone.')) return;
     const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
-    if (sb) {
-        try {
-            // Delete all rows from announcements table
-            const { error } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-            if (error) {
-                alert('Failed to clear announcements: ' + error.message);
-                return;
-            }
-            loadActiveBroadcasts();
-        } catch (err) {
-            alert('Error clearing announcements: ' + err.message);
+    if (!sb) { alert('Supabase client not available.'); return; }
+    try {
+        // Delete all rows from announcements table (neq a dummy UUID to match all)
+        const { error } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (error) {
+            alert('Failed to clear announcements: ' + error.message);
+            return;
         }
+        alert('All announcements cleared!');
+        loadActiveBroadcasts();
+    } catch (err) {
+        alert('Error clearing announcements: ' + err.message);
     }
-};
+}
 
-// Legacy aliases so any old references still work
-window.deleteAnnouncement = window._deleteAnnouncement;
-window.deleteExamAlert = window._deleteAnnouncement;
+// Also expose on window for any legacy inline onclick references
+window.deleteAnnouncement = _doDeleteAnnouncement;
+window.deleteExamAlert = _doDeleteAnnouncement;
 
 // ─── 3. MONTHLY FEES AUTOMATION ──────────────────────────────────────────────
 
