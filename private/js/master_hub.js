@@ -391,6 +391,18 @@ async function handlePublishTestAlert(e) {
     }
 }
 
+function showBroadcastStatus(msg, isError = false) {
+    const box = document.getElementById('broadcastStatusMsg');
+    if (!box) return;
+    box.className = 'alert ' + (isError ? 'alert-danger' : 'alert-success') + ' alert-dismissible fade show mb-3';
+    box.innerHTML = '<strong>' + (isError ? '⚠️ Error: ' : '✓ ') + '</strong>' + msg
+        + '<button type="button" class="close" onclick="this.parentElement.style.display=\'none\'">&times;</button>';
+    box.style.display = 'block';
+    setTimeout(function () {
+        if (box) box.style.display = 'none';
+    }, 6000);
+}
+
 async function loadActiveBroadcasts() {
     const container = document.getElementById('activeBroadcastsContainer');
     if (!container) return;
@@ -400,7 +412,6 @@ async function loadActiveBroadcasts() {
 
     if (sb) {
         try {
-            // Load all announcements (community + exam alerts are all in 'announcements' table)
             const { data: anns, error: fetchErr } = await sb
                 .from('announcements')
                 .select('*')
@@ -412,21 +423,20 @@ async function loadActiveBroadcasts() {
             }
 
             if (anns && anns.length > 0) {
-                // Separate exam alerts from regular announcements
                 const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')));
                 const regularAnns = anns.filter(a => !a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert')));
 
                 if (regularAnns.length > 0) {
-                    html += '<h6 class="font-weight-bold text-muted mb-2"><i class="fas fa-bullhorn mr-1 text-primary"></i>Live Community Announcements</h6>';
+                    html += '<h6 class="font-weight-bold text-muted mb-2"><i class="fas fa-bullhorn mr-1 text-primary"></i>Live Community Announcements (' + regularAnns.length + ')</h6>';
                     regularAnns.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm">'
+                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm" id="annCard_' + a.id + '">'
                             + '<div style="flex: 1; min-width: 0; margin-right: 12px;">'
                             + '<strong class="text-dark">' + (a.title || '') + '</strong>'
                             + '<p class="mb-1 text-muted small text-break">' + (a.description || '') + '</p>'
                             + '<span class="badge badge-light border text-secondary">' + (a.time_label || dateStr || 'Active') + '</span>'
                             + '</div>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0" onclick="window.deleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement" style="cursor: pointer; z-index: 10; position: relative;">'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement" style="cursor: pointer; z-index: 10; position: relative;">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
                             + '</div>';
@@ -434,25 +444,25 @@ async function loadActiveBroadcasts() {
                 }
 
                 if (examAlerts.length > 0) {
-                    html += '<h6 class="font-weight-bold text-muted mt-3 mb-2"><i class="fas fa-calendar-alt mr-1 text-danger"></i>Active Exam / Test Alerts</h6>';
+                    html += '<h6 class="font-weight-bold text-muted mt-3 mb-2"><i class="fas fa-calendar-alt mr-1 text-danger"></i>Active Exam / Test Alerts (' + examAlerts.length + ')</h6>';
                     examAlerts.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm" style="border-left: 4px solid #ef4444 !important;">'
+                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm" style="border-left: 4px solid #ef4444 !important;" id="annCard_' + a.id + '">'
                             + '<div style="flex: 1; min-width: 0; margin-right: 12px;">'
                             + '<strong class="text-dark">' + (a.title || '') + '</strong>'
                             + '<p class="mb-1 text-muted small text-break">' + (a.description || '') + '</p>'
                             + '<span class="badge badge-danger mt-1">' + (a.time_label || dateStr || 'Active') + '</span>'
                             + '</div>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0" onclick="window.deleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert" style="cursor: pointer; z-index: 10; position: relative;">'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert" style="cursor: pointer; z-index: 10; position: relative;">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
                             + '</div>';
                     });
                 }
 
-                // Add a "Clear All Announcements" button at the bottom
+                // Add "Clear All Announcements" button at bottom
                 html += '<div class="mt-3 text-right">'
-                    + '<button type="button" class="btn btn-sm btn-danger px-3 py-2" id="btnClearAllAnn" onclick="window.clearAllAnnouncements(this, event)" title="Remove all announcements" style="cursor: pointer; z-index: 10; position: relative;">'
+                    + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2" id="btnClearAllAnn" onclick="window.requestClearAll(this, event)" title="Remove all announcements" style="cursor: pointer; z-index: 10; position: relative;">'
                     + '<i class="fas fa-broom mr-1" style="pointer-events: none;"></i> Clear All Announcements'
                     + '</button>'
                     + '</div>';
@@ -461,7 +471,7 @@ async function loadActiveBroadcasts() {
             console.warn('[MasterHub] Could not load active broadcasts:', e);
         }
     } else {
-        console.warn('[MasterHub] Supabase not yet available, will retry loading broadcasts...');
+        console.warn('[MasterHub] Supabase not ready, retrying load in 800ms...');
         setTimeout(loadActiveBroadcasts, 800);
     }
 
@@ -472,30 +482,49 @@ async function loadActiveBroadcasts() {
     }
 }
 
-// ─── Direct Global Delete Functions ──────────────────────────────────────────
+// ─── Direct Global Delete Functions with 2-Step In-Place Confirmation ─────────
+// This eliminates browser confirm() popup blocking entirely!
 
-window.deleteAnnouncement = async function (id, btnElement, evt) {
+window.requestDeleteAnnouncement = function (id, btnElement, evt) {
     if (evt) {
         evt.preventDefault();
         evt.stopPropagation();
     }
-    if (!id) {
-        alert('Invalid announcement ID.');
-        return;
+    if (!btnElement) return;
+
+    // First click: Transform button into instant "Confirm Delete?"
+    btnElement.className = 'btn btn-sm btn-danger px-3 py-2 flex-shrink-0 font-weight-bold animate__animated animate__pulse';
+    btnElement.innerHTML = '<i class="fas fa-check mr-1" style="pointer-events: none;"></i> Confirm?';
+    btnElement.onclick = function (e) {
+        window.executeDeleteAnnouncement(id, btnElement, e);
+    };
+
+    // Auto-revert after 5 seconds if not clicked
+    setTimeout(function () {
+        if (btnElement && btnElement.innerHTML.includes('Confirm?')) {
+            btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0 btn-delete-ann';
+            btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete';
+            btnElement.onclick = function (e) {
+                window.requestDeleteAnnouncement(id, btnElement, e);
+            };
+        }
+    }, 5000);
+};
+
+window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
+    if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
     }
-    if (!confirm('Are you sure you want to delete this announcement/alert?')) {
-        return;
-    }
+    if (!id) return;
 
     const sb = _getMasterHubSupabase();
     if (!sb) {
-        alert('Database connection unavailable. Please check internet connection or reload the page.');
+        showBroadcastStatus('Supabase database client not ready. Please reload the page.', true);
         return;
     }
 
-    let originalHtml = '';
     if (btnElement) {
-        originalHtml = btnElement.innerHTML;
         btnElement.disabled = true;
         btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
     }
@@ -503,82 +532,110 @@ window.deleteAnnouncement = async function (id, btnElement, evt) {
     try {
         const { error } = await sb.from('announcements').delete().eq('id', id);
         if (error) {
-            alert('Failed to delete: ' + error.message);
+            showBroadcastStatus('Failed to delete announcement: ' + error.message, true);
             if (btnElement) {
                 btnElement.disabled = false;
-                btnElement.innerHTML = originalHtml;
+                btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Delete';
             }
             return;
         }
 
-        // Clean up companion notification if any
+        // Clean up matching notification row if any
         try { await sb.from('notifications').delete().eq('id', id); } catch (_) {}
 
-        // Optimistically remove card from DOM immediately for fast UI feedback
-        if (btnElement) {
-            const card = btnElement.closest('.broadcast-item');
-            if (card) card.remove();
-        }
+        // Optimistically remove card from DOM immediately
+        const card = document.getElementById('annCard_' + id) || (btnElement ? btnElement.closest('.broadcast-item') : null);
+        if (card) card.remove();
 
-        alert('✓ Announcement deleted successfully!');
+        showBroadcastStatus('Announcement removed successfully from all student & teacher devices!');
         await loadActiveBroadcasts();
     } catch (err) {
-        alert('Error deleting announcement: ' + (err.message || err));
+        showBroadcastStatus('Error: ' + (err.message || err), true);
         if (btnElement) {
             btnElement.disabled = false;
-            btnElement.innerHTML = originalHtml;
+            btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Delete';
         }
     }
 };
 
-window.clearAllAnnouncements = async function (btnElement, evt) {
+window.requestClearAll = function (btnElement, evt) {
     if (evt) {
         evt.preventDefault();
         evt.stopPropagation();
     }
-    if (!confirm('Are you sure you want to delete ALL active announcements and alerts? This cannot be undone.')) {
-        return;
+    if (!btnElement) return;
+
+    btnElement.className = 'btn btn-sm btn-danger px-3 py-2 font-weight-bold';
+    btnElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1" style="pointer-events: none;"></i> Really Clear ALL Announcements?';
+    btnElement.onclick = function (e) {
+        window.executeClearAll(btnElement, e);
+    };
+
+    setTimeout(function () {
+        if (btnElement && btnElement.innerHTML.includes('Really Clear')) {
+            btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2';
+            btnElement.innerHTML = '<i class="fas fa-broom mr-1" style="pointer-events: none;"></i> Clear All Announcements';
+            btnElement.onclick = function (e) {
+                window.requestClearAll(btnElement, e);
+            };
+        }
+    }, 6000);
+};
+
+window.executeClearAll = async function (btnElement, evt) {
+    if (evt) {
+        evt.preventDefault();
+        evt.stopPropagation();
     }
 
     const sb = _getMasterHubSupabase();
     if (!sb) {
-        alert('Database connection unavailable. Please reload the page.');
+        showBroadcastStatus('Database connection not ready. Please reload the page.', true);
         return;
     }
 
-    let originalHtml = '';
     if (btnElement) {
-        originalHtml = btnElement.innerHTML;
         btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing...';
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing all...';
     }
 
     try {
         const { error } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
         if (error) {
-            alert('Failed to clear announcements: ' + error.message);
+            showBroadcastStatus('Failed to clear announcements: ' + error.message, true);
             if (btnElement) {
                 btnElement.disabled = false;
-                btnElement.innerHTML = originalHtml;
+                btnElement.innerHTML = '<i class="fas fa-broom mr-1"></i> Clear All Announcements';
             }
             return;
         }
 
-        alert('✓ All announcements cleared successfully!');
+        showBroadcastStatus('All announcements and alerts cleared successfully!');
         await loadActiveBroadcasts();
     } catch (err) {
-        alert('Error clearing announcements: ' + (err.message || err));
+        showBroadcastStatus('Error: ' + (err.message || err), true);
         if (btnElement) {
             btnElement.disabled = false;
-            btnElement.innerHTML = originalHtml;
+            btnElement.innerHTML = '<i class="fas fa-broom mr-1"></i> Clear All Announcements';
         }
     }
 };
 
-// Aliases for compatibility
-window.deleteExamAlert = window.deleteAnnouncement;
+// Aliases for compatibility with any existing or delegated calls
+window.deleteAnnouncement = function (id, btn, e) { window.executeDeleteAnnouncement(id, btn, e); };
+window.deleteExamAlert = function (id, btn, e) { window.executeDeleteAnnouncement(id, btn, e); };
+window.clearAllAnnouncements = function (btn, e) { window.executeClearAll(btn, e); };
 window._doDeleteAnnouncement = window.deleteAnnouncement;
 window._doDeleteAllAnnouncements = window.clearAllAnnouncements;
+
+// Global fallback event delegation
+document.addEventListener('click', function (evt) {
+    const delBtn = evt.target.closest('.btn-delete-ann');
+    if (delBtn && !delBtn.onclick) {
+        const annId = delBtn.getAttribute('data-id');
+        if (annId) window.requestDeleteAnnouncement(annId, delBtn, evt);
+    }
+});
 
 // ─── 3. MONTHLY FEES AUTOMATION ──────────────────────────────────────────────
 
