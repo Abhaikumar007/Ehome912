@@ -373,44 +373,60 @@ async function loadActiveBroadcasts() {
 
     if (sb) {
         try {
-            const { data: anns } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(5);
-            const { data: alerts } = await sb.from('academic_alerts').select('*').order('created_at', { ascending: false }).limit(5);
+            // Load all announcements (community + exam alerts are all in 'announcements' table)
+            const { data: anns } = await sb.from('announcements').select('*').order('created_at', { ascending: false }).limit(30);
 
             if (anns && anns.length > 0) {
-                html += '<h6 class="font-weight-bold text-muted mb-2">Live Announcements</h6>';
-                anns.forEach(a => {
-                    html += `
-                        <div class="broadcast-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong>${a.title}</strong>
-                                <p class="mb-0 text-muted small">${a.description}</p>
-                                <span class="badge badge-light mt-1">${a.time_label || 'Active'}</span>
-                            </div>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement('${a.id}')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    `;
-                });
-            }
+                // Separate exam alerts from regular announcements
+                const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')));
+                const regularAnns = anns.filter(a => !a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert')));
 
-            if (alerts && alerts.length > 0) {
-                html += '<h6 class="font-weight-bold text-muted mt-3 mb-2">Active Exam Alerts (With Expiry)</h6>';
-                alerts.forEach(al => {
-                    const isExpired = new Date(al.expiry_date) < new Date();
-                    html += `
-                        <div class="broadcast-item d-flex justify-content-between align-items-center" style="border-left-color: ${isExpired ? '#94a3b8' : '#ef4444'}">
-                            <div>
-                                <strong>${al.test_name} (${al.class_label} - ${al.subject})</strong>
-                                <p class="mb-0 text-muted small">Exam Date: ${al.exam_date} | Visible Until: ${al.expiry_date}</p>
-                                <span class="badge ${isExpired ? 'badge-secondary' : 'badge-danger'} mt-1">${isExpired ? 'Expired' : 'Active Banner'}</span>
+                if (regularAnns.length > 0) {
+                    html += '<h6 class="font-weight-bold text-muted mb-2">Live Community Announcements</h6>';
+                    regularAnns.forEach(a => {
+                        const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
+                        html += `
+                            <div class="broadcast-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${a.title}</strong>
+                                    <p class="mb-0 text-muted small">${a.description || ''}</p>
+                                    <span class="badge badge-light mt-1">${a.time_label || dateStr || 'Active'}</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="window._deleteAnnouncement('${a.id}')" title="Delete this announcement">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteExamAlert('${al.id}')">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                    `;
-                });
+                        `;
+                    });
+                }
+
+                if (examAlerts.length > 0) {
+                    html += '<h6 class="font-weight-bold text-muted mt-3 mb-2">Active Exam / Test Alerts</h6>';
+                    examAlerts.forEach(a => {
+                        const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
+                        html += `
+                            <div class="broadcast-item d-flex justify-content-between align-items-center" style="border-left-color: #ef4444">
+                                <div>
+                                    <strong>${a.title}</strong>
+                                    <p class="mb-0 text-muted small">${a.description || ''}</p>
+                                    <span class="badge badge-danger mt-1">${a.time_label || dateStr || 'Active'}</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger" onclick="window._deleteAnnouncement('${a.id}')" title="Delete this exam alert">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                }
+
+                // Add a "Clear All" button at the bottom
+                html += `
+                    <div class="mt-3 text-right">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window._deleteAllAnnouncements()" title="Remove all announcements">
+                            <i class="fas fa-broom mr-1"></i> Clear All Announcements
+                        </button>
+                    </div>
+                `;
             }
         } catch (e) {
             console.warn('Could not load active broadcasts:', e);
@@ -424,23 +440,47 @@ async function loadActiveBroadcasts() {
     }
 }
 
-async function deleteAnnouncement(id) {
-    if (!confirm('Remove this announcement?')) return;
+// Bind delete functions to window so inline onclick handlers can find them
+window._deleteAnnouncement = async function (id) {
+    if (!confirm('Are you sure you want to delete this announcement/alert?')) return;
     const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
     if (sb) {
-        await sb.from('announcements').delete().eq('id', id);
-        loadActiveBroadcasts();
+        try {
+            const { error } = await sb.from('announcements').delete().eq('id', id);
+            if (error) {
+                alert('Failed to delete: ' + error.message);
+                return;
+            }
+            // Also clean up any companion notification rows
+            try { await sb.from('notifications').delete().eq('id', id); } catch(_){}
+            loadActiveBroadcasts();
+        } catch (err) {
+            alert('Error deleting announcement: ' + err.message);
+        }
     }
-}
+};
 
-async function deleteExamAlert(id) {
-    if (!confirm('Remove this exam alert banner?')) return;
+window._deleteAllAnnouncements = async function () {
+    if (!confirm('Are you sure you want to delete ALL announcements? This cannot be undone.')) return;
     const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
     if (sb) {
-        await sb.from('academic_alerts').delete().eq('id', id);
-        loadActiveBroadcasts();
+        try {
+            // Delete all rows from announcements table
+            const { error } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+            if (error) {
+                alert('Failed to clear announcements: ' + error.message);
+                return;
+            }
+            loadActiveBroadcasts();
+        } catch (err) {
+            alert('Error clearing announcements: ' + err.message);
+        }
     }
-}
+};
+
+// Legacy aliases so any old references still work
+window.deleteAnnouncement = window._deleteAnnouncement;
+window.deleteExamAlert = window._deleteAnnouncement;
 
 // ─── 3. MONTHLY FEES AUTOMATION ──────────────────────────────────────────────
 

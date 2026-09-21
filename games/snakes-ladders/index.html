@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snakes, Ladders & Gifts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;800&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(-45deg, #f0f9ff, #e0f2fe, #bae6fd, #7dd3fc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #1e293b;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1,
+        h2,
+        h3,
+        .brand-font {
+            font-family: 'Fredoka One', cursive;
+        }
+
+        .board-glow {
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .player-marker {
+            position: absolute;
+            width: clamp(16px, 3vw, 24px);
+            height: clamp(16px, 3vw, 24px);
+            border-radius: 50%;
+            transition: left 0.35s ease-in-out, top 0.35s ease-in-out;
+            transform: translate(-50%, -50%);
+            z-index: 30;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.5), inset 0 2px 4px rgba(255, 255, 255, 0.4);
+            border: 2px solid white;
+        }
+
+        .gift {
+            animation: bounce-slight 2s infinite ease-in-out;
+            text-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes bounce-slight {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+
+        .gift-spawn {
+            animation: spawn-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes spawn-in {
+            0% {
+                transform: scale(0) rotate(-180deg);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+
+        .dice-spin {
+            animation: spin-dice 0.4s ease-in-out;
+        }
+
+        @keyframes spin-dice {
+            0% {
+                transform: scale(1) rotate(0deg);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+
+        .player-hop {
+            animation: hop 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        @keyframes hop {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, calc(-50% - 25px)) scale(1.15);
+            }
+        }
+
+        .gift-collect {
+            animation: collect 0.7s forwards;
+        }
+
+        @keyframes collect {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+                filter: brightness(1);
+            }
+
+            50% {
+                transform: scale(1.5) translateY(-30px);
+                opacity: 0.9;
+                filter: brightness(1.5);
+            }
+
+            100% {
+                transform: scale(0);
+                opacity: 0;
+                filter: brightness(2);
+            }
+        }
+
+        .floating-text {
+            position: absolute;
+            animation: float-up 1.2s ease-out forwards;
+            font-weight: 900;
+            font-size: 2rem;
+            color: #fbbf24;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+            z-index: 50;
+            pointer-events: none;
+            font-family: 'Fredoka One', cursive;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(0) scale(0.5);
+                opacity: 0;
+            }
+
+            20% {
+                transform: translateY(-20px) scale(1.2);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-60px) scale(1);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="auth-loading"
+        class="fixed inset-0 bg-blue-50/90 backdrop-blur z-[100] flex flex-col items-center justify-center">
+        <div class="text-4xl md:text-5xl font-black brand-font text-blue-600 animate-pulse mb-4">EduHome GAME</div>
+        <div class="text-lg font-bold text-slate-500">Loading your profile & saved games...</div>
+    </div>
+
+    <div id="custom-modal"
+        class="hidden fixed inset-0 bg-slate-900/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full transform transition-all scale-95 opacity-0"
+            id="modal-content">
+            <h3 id="modal-title" class="text-2xl font-bold mb-3 brand-font text-indigo-900"></h3>
+            <p id="modal-message" class="text-slate-600 mb-6 font-medium leading-relaxed"></p>
+            <div id="modal-buttons" class="flex flex-wrap justify-end gap-3"></div>
+        </div>
+    </div>
+
+    <div id="admin-modal"
+        class="hidden fixed inset-0 bg-slate-900/80 z-[60] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-slate-800 p-4 text-white flex justify-between items-center">
+                <h2 class="text-xl font-black brand-font">⚙️ God Mode Panel</h2>
+                <button onclick="closeAdmin()"
+                    class="text-slate-400 hover:text-white font-bold text-xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1">
+                <div id="admin-msg" class="text-sm font-bold h-5 mb-2 transition-colors"></div>
+
+                <!-- Teleport -->
+                <div class="mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-2">Teleport Player</h3>
+                    <div class="flex gap-2">
+                        <select id="admin-player-select"
+                            class="flex-1 p-2 rounded bg-white border border-slate-300"></select>
+                        <input type="number" id="admin-cell-input" placeholder="Cell 1-50" min="1" max="50"
+                            class="w-24 p-2 rounded bg-white border border-slate-300">
+                        <button onclick="adminMove()"
+                            class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 rounded">Move</button>
+                    </div>
+                </div>
+
+                <!-- Manage Snakes -->
+                <div class="mb-6 bg-red-50 p-4 rounded-xl border border-red-200">
+                    <h3 class="font-bold text-red-900 mb-2">Manage Snakes</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="number" id="admin-snake-head" placeholder="Head (Top)"
+                            class="w-full p-2 rounded bg-white border border-red-300">
+                        <input type="number" id="admin-snake-tail" placeholder="Tail (Bottom)"
+                            class="w-full p-2 rounded bg-white border border-red-300">
+                        <button onclick="adminAddSnake()"
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 rounded">Add</button>
+                    </div>
+                    <div id="admin-snakes-list" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                </div>
+
+                <!-- Manage Ladders -->
+                <div class="bg-green-50 p-4 rounded-xl border border-green-200">
+                    <h3 class="font-bold text-green-900 mb-2">Manage Ladders</h3>
+                    <div class="flex gap-2 mb-3">
+                        <input type="number" id="admin-ladder-bottom" placeholder="Bottom"
+                            class="w-full p-2 rounded bg-white border border-green-300">
+                        <input type="number" id="admin-ladder-top" placeholder="Top"
+                            class="w-full p-2 rounded bg-white border border-green-300">
+                        <button onclick="adminAddLadder()"
+                            class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 rounded">Add</button>
+                    </div>
+                    <div id="admin-ladders-list" class="space-y-1 max-h-32 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="setup-screen"
+        class="flex-1 flex flex-col items-center justify-center p-6 w-full max-w-2xl mx-auto relative z-10">
+        <div class="bg-white/95 backdrop-blur p-8 rounded-3xl shadow-2xl w-full border-4 border-blue-100">
+            <div class="text-center mb-8">
+                <h1
+                    class="text-5xl md:text-6xl brand-font text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-400 mb-2 drop-shadow-sm">
+                    EduHome Game</h1>
+                <p class="text-blue-600 font-bold tracking-widest uppercase text-sm mb-3">A Snakes & Ladders Adventure
+                </p>
+            </div>
+
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-lg font-bold text-slate-700">Player Setup</h2>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Max 10
+                        Players</span>
+                </div>
+                <div id="setup-players-list" class="space-y-3">
+                    <!-- Setup rows generated here -->
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-4 mt-8">
+                <button onclick="addSetupPlayer()" id="add-player-btn"
+                    class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition duration-200 border-2 border-slate-200">
+                    + Add Player
+                </button>
+                <button onclick="startGame()"
+                    class="flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white rounded-xl font-bold text-lg shadow-lg transform transition hover:-translate-y-1">
+                    Start Game 🎲
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-screen"
+        class="hidden flex-1 flex flex-col lg:flex-row gap-6 max-w-[1400px] mx-auto w-full p-4 md:p-6 z-10">
+        <!-- Game Board Area -->
+        <div class="flex-1 w-full relative flex items-center justify-center">
+            <div
+                class="w-full relative rounded-xl overflow-hidden border-8 border-blue-900 bg-blue-900 isolate aspect-[4/3] md:aspect-[2/1] board-glow">
+                <div id="board" class="w-full h-full grid grid-cols-10 grid-rows-5 gap-[2px] bg-blue-800">
+                    <!-- 50 Cells generated here -->
+                </div>
+                <canvas id="overlay" class="absolute inset-0 w-full h-full pointer-events-none z-20"></canvas>
+                <div id="markers-container" class="absolute inset-0 w-full h-full pointer-events-none z-30"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Controls -->
+        <div class="w-full lg:w-80 flex flex-col gap-5">
+            <!-- Turn Control Module -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border-b-4 border-indigo-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold brand-font text-indigo-900">Turn Control</h3>
+                    <div id="save-indicator"
+                        class="text-xs font-bold text-green-500 opacity-0 transition-opacity duration-500 flex items-center gap-1">
+                        <span class="relative flex h-2 w-2"><span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span><span
+                                class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span></span> Auto-saved
+                    </div>
+                </div>
+
+                <div class="mb-5 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                    <label class="block text-xs font-bold text-indigo-400 uppercase mb-1">Who Rolls Next?</label>
+                    <select id="roller-select"
+                        class="w-full p-2 rounded bg-white border border-indigo-200 font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer">
+                    </select>
+                </div>
+
+                <div class="flex flex-col items-center mb-6">
+                    <div id="dice-display"
+                        class="w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-5xl text-white font-bold shadow-inner mb-2 shadow-[0_10px_20px_rgba(0,0,0,0.2)] brand-font transition-all duration-200 border-4 border-white/30">
+                        🎲
+                    </div>
+                </div>
+                <button id="roll-btn"
+                    class="w-full py-4 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 hover:from-blue-600 hover:via-indigo-600 hover:to-purple-700 text-white rounded-xl font-black text-xl shadow-[0_6px_0_rgb(49,46,129)] transform transition hover:translate-y-[2px] hover:shadow-[0_4px_0_rgb(49,46,129)] active:translate-y-[6px] active:shadow-none">
+                    ROLL DICE
+                </button>
+            </div>
+
+            <!-- Leaderboard Module -->
+            <div class="bg-white rounded-2xl shadow-xl p-6 border-b-4 border-indigo-200 flex-grow flex flex-col">
+                <h3 class="text-xl font-bold mb-4 brand-font text-indigo-900">Leaderboard</h3>
+                <div id="player-stats" class="space-y-3 flex-1 overflow-y-auto">
+                    <!-- Stats rows generated here -->
+                </div>
+
+                <!-- God Mode Trigger -->
+                <button onclick="openAdmin()"
+                    class="mt-6 w-full py-2 bg-slate-800 hover:bg-slate-900 text-slate-200 rounded-lg font-bold text-xs shadow transition border border-slate-700 flex items-center justify-center gap-2">
+                    <span>⚙️</span> God Mode Admin
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global state vars
+        let currentUser = null;
+        let auth, db, appId;
+
+        const availableColors = [
+            { name: 'Red', twClass: 'bg-red-500', hex: '#ef4444' },
+            { name: 'Blue', twClass: 'bg-blue-500', hex: '#3b82f6' },
+            { name: 'Green', twClass: 'bg-green-500', hex: '#22c55e' },
+            { name: 'Yellow', twClass: 'bg-yellow-400', hex: '#facc15' },
+            { name: 'Purple', twClass: 'bg-purple-500', hex: '#a855f7' },
+            { name: 'Pink', twClass: 'bg-pink-500', hex: '#ec4899' },
+            { name: 'Orange', twClass: 'bg-orange-500', hex: '#f97316' },
+            { name: 'Teal', twClass: 'bg-teal-500', hex: '#14b8a6' },
+            { name: 'Cyan', twClass: 'bg-cyan-400', hex: '#22d3ee' },
+            { name: 'Rose', twClass: 'bg-rose-500', hex: '#f43f5e' }
+        ];
+
+        let snakes = { 17: 4, 18: 7, 28: 12, 35: 19, 42: 21, 48: 16, 49: 9 };
+        let ladders = { 3: 15, 14: 26, 20: 38, 32: 46 };
+
+        let setupPlayers = [
+            { name: 'Player 1', color: 'bg-red-500' },
+            { name: 'Player 2', color: 'bg-blue-500' }
+        ];
+
+        let players = [];
+        let gifts = [];
+        let isRolling = false;
+        let isGameActive = false;
+
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function initFirebase() {
+            try {
+                const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        currentUser = user;
+                        await loadGameState();
+                        document.getElementById('auth-loading').classList.add('hidden');
+                    }
+                });
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (e) {
+                console.error("Firebase init fallback to local", e);
+                document.getElementById('auth-loading').classList.add('hidden');
+                renderSetupPlayers();
+            }
+        }
+
+        async function saveGameState() {
+            if (!isGameActive) return;
+            const state = { players, gifts, isGameActive, setupPlayers, snakes, ladders, currentTurnIndex: parseInt(document.getElementById('roller-select').value || 0) };
+
+            // ALWAYS save locally as an immediate, reliable fallback
+            localStorage.setItem('snakesAndLaddersState', JSON.stringify(state));
+
+            try {
+                if (currentUser && db && appId) {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saves', 'gameState');
+                    await setDoc(docRef, state);
+                }
+            } catch (e) {
+                console.warn("Cloud save skipped, local storage active");
+            }
+
+            // Visual feedback
+            const ind = document.getElementById('save-indicator');
+            if (ind) {
+                ind.classList.remove('opacity-0');
+                clearTimeout(window.saveIndTimeout);
+                window.saveIndTimeout = setTimeout(() => ind.classList.add('opacity-0'), 2000);
+            }
+        }
+
+        async function loadGameState() {
+            let state = null;
+            try {
+                if (currentUser) {
+                    const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saves', 'gameState');
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists() && docSnap.data().isGameActive) state = docSnap.data();
+                }
+            } catch (e) { }
+
+            if (!state) {
+                const ls = localStorage.getItem('snakesAndLaddersState');
+                if (ls) state = JSON.parse(ls);
+            }
+
+            if (state && state.isGameActive) {
+                players = state.players;
+                gifts = state.gifts;
+                setupPlayers = state.setupPlayers;
+                isGameActive = true;
+                if (state.snakes) snakes = state.snakes;
+                if (state.ladders) ladders = state.ladders;
+
+                document.getElementById('setup-screen').classList.add('hidden');
+                const gs = document.getElementById('game-screen');
+                gs.classList.remove('hidden'); gs.classList.add('flex');
+
+                generateBoard();
+                createPlayerMarkers();
+
+                const select = document.getElementById('roller-select');
+                select.innerHTML = players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+                select.value = state.currentTurnIndex || 0;
+                document.getElementById('roll-btn').innerText = `ROLL FOR ${players[select.value].name.toUpperCase()}`;
+
+                attachRollerSelectListener();
+                updateStatsUI();
+                renderGifts();
+                setTimeout(() => resizeCanvas(), 100);
+            } else {
+                renderSetupPlayers();
+            }
+        }
+
+        async function clearGameState() {
+            localStorage.removeItem('snakesAndLaddersState');
+            if (!currentUser) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'saves', 'gameState');
+                await deleteDoc(docRef);
+            } catch (e) { }
+        }
+
+        function attachRollerSelectListener() {
+            document.getElementById('roller-select').addEventListener('change', async (e) => {
+                const idx = parseInt(e.target.value);
+                document.getElementById('roll-btn').innerText = `ROLL FOR ${players[idx].name.toUpperCase()}`;
+                await saveGameState();
+            });
+        }
+
+        window.addSetupPlayer = function () {
+            if (setupPlayers.length >= 10) return;
+            const existingColors = setupPlayers.map(p => p.color);
+            const nextColor = availableColors.find(c => !existingColors.includes(c.twClass)) || availableColors[Math.floor(Math.random() * availableColors.length)];
+            setupPlayers.push({ name: `Player ${setupPlayers.length + 1}`, color: nextColor.twClass });
+            renderSetupPlayers();
+        }
+
+        window.removeSetupPlayer = function (index) {
+            if (setupPlayers.length <= 2) return;
+            setupPlayers.splice(index, 1);
+            renderSetupPlayers();
+        }
+
+        window.updateSetupPlayer = function (index, key, value) {
+            setupPlayers[index][key] = value;
+        }
+
+        function renderSetupPlayers() {
+            const list = document.getElementById('setup-players-list');
+            if (!list) return; // safety
+            list.innerHTML = '';
+            setupPlayers.forEach((p, index) => {
+                const div = document.createElement('div');
+                div.className = "flex gap-3 items-center bg-slate-50 p-3 rounded-xl border border-slate-200";
+                div.innerHTML = `
+                    <span class="font-bold text-slate-400 w-6 text-center">${index + 1}.</span>
+                    <input type="text" value="${p.name}" onchange="updateSetupPlayer(${index}, 'name', this.value)" class="flex-1 border-2 border-transparent focus:border-indigo-300 p-2 rounded-lg bg-white font-bold text-slate-700 outline-none transition" placeholder="Name">
+                    <select onchange="updateSetupPlayer(${index}, 'color', this.value)" class="border-2 border-transparent focus:border-indigo-300 p-2 rounded-lg bg-white font-bold text-slate-600 outline-none transition cursor-pointer">
+                        ${availableColors.map(c => `<option value="${c.twClass}" ${p.color === c.twClass ? 'selected' : ''}>${c.name}</option>`).join('')}
+                    </select>
+                    ${setupPlayers.length > 2 ? `<button onclick="removeSetupPlayer(${index})" class="text-red-400 hover:text-red-600 hover:bg-red-50 p-2 rounded-lg font-bold transition">✕</button>` : `<div class="w-8"></div>`}
+                `;
+                list.appendChild(div);
+            });
+            document.getElementById('add-player-btn').style.display = setupPlayers.length >= 10 ? 'none' : 'block';
+        }
+
+        window.startGame = async function () {
+            players = setupPlayers.map((p, i) => ({
+                id: i, name: p.name.trim() || `Player ${i + 1}`, color: p.color,
+                pos: 0, score: 0, hasWon: false, giftStage: 1
+            }));
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            const gs = document.getElementById('game-screen');
+            gs.classList.remove('hidden'); gs.classList.add('flex');
+
+            generateBoard();
+            createPlayerMarkers();
+
+            const select = document.getElementById('roller-select');
+            select.innerHTML = players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+            attachRollerSelectListener();
+            document.getElementById('roll-btn').innerText = `ROLL FOR ${players[0].name.toUpperCase()}`;
+
+            updateStatsUI();
+            gifts = [];
+            players.forEach(p => spawnAssignedGift(p));
+            isGameActive = true;
+            await saveGameState();
+            setTimeout(() => resizeCanvas(), 100);
+        }
+
+        function generateBoard() {
+            const boardEl = document.getElementById('board');
+            boardEl.innerHTML = '';
+            const domOrder = [
+                50, 49, 48, 47, 46, 45, 44, 43, 42, 41,
+                31, 32, 33, 34, 35, 36, 37, 38, 39, 40,
+                30, 29, 28, 27, 26, 25, 24, 23, 22, 21,
+                11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+                1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+            ];
+
+            domOrder.forEach(cellId => {
+                const cell = document.createElement('div');
+                cell.id = `cell-${cellId}`;
+                const row = Math.floor((cellId - 1) / 10);
+                const col = (cellId - 1) % 10;
+                const isEven = (row + col) % 2 === 0;
+                cell.className = `cell relative flex flex-col items-center justify-center ${isEven ? 'bg-white' : 'bg-blue-50/90'} w-full h-full shadow-inner`;
+
+                const num = document.createElement('span');
+                num.className = 'absolute top-1 left-1.5 text-[8px] md:text-xs lg:text-sm font-black opacity-40 text-blue-900 pointer-events-none select-none brand-font';
+                num.innerText = cellId;
+                cell.appendChild(num);
+                boardEl.appendChild(cell);
+            });
+        }
+
+        function getCellCenter(cellId) {
+            const cell = document.getElementById(`cell-${cellId}`);
+            if (!cell) return { x: 0, y: 0 };
+            const board = document.getElementById('board');
+            const cRect = cell.getBoundingClientRect();
+            const bRect = board.getBoundingClientRect();
+            return { x: cRect.left - bRect.left + cRect.width / 2, y: cRect.top - bRect.top + cRect.height / 2 };
+        }
+
+        function createPlayerMarkers() {
+            const container = document.getElementById('markers-container');
+            container.innerHTML = '';
+            players.forEach(p => {
+                const marker = document.createElement('div');
+                marker.id = `player-marker-${p.id}`;
+                marker.className = `player-marker ${p.color} opacity-0`;
+                container.appendChild(marker);
+            });
+        }
+
+        function updatePlayerMarkerPosition(player) {
+            const marker = document.getElementById(`player-marker-${player.id}`);
+            if (!marker) return;
+            if (player.pos === 0) { marker.style.opacity = '0'; return; }
+            marker.style.opacity = '1';
+
+            const center = getCellCenter(player.pos);
+            const scale = window.innerWidth < 768 ? 0.6 : 1;
+            const offsets = [
+                { x: 0, y: 0 }, { x: -8 * scale, y: -8 * scale }, { x: 8 * scale, y: 8 * scale },
+                { x: -8 * scale, y: 8 * scale }, { x: 8 * scale, y: -8 * scale }, { x: 0, y: 12 * scale },
+                { x: -12 * scale, y: 0 }, { x: 12 * scale, y: 0 }, { x: -12 * scale, y: -12 * scale }, { x: 12 * scale, y: 12 * scale }
+            ];
+            const off = offsets[player.id % offsets.length];
+            marker.style.left = `${center.x + off.x}px`;
+            marker.style.top = `${center.y + off.y}px`;
+        }
+
+        function resizeCanvas() {
+            if (!isGameActive) return;
+            const canvas = document.getElementById('overlay');
+            const board = document.getElementById('board');
+            canvas.width = board.clientWidth;
+            canvas.height = board.clientHeight;
+            drawOverlays();
+            players.forEach(p => updatePlayerMarkerPosition(p));
+        }
+
+        function drawOverlays() {
+            const canvas = document.getElementById('overlay');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const [start, end] of Object.entries(ladders)) drawLadder(ctx, parseInt(start), parseInt(end));
+            for (const [start, end] of Object.entries(snakes)) drawSnake(ctx, parseInt(start), parseInt(end));
+        }
+
+        function drawLadder(ctx, start, end) {
+            const s = getCellCenter(start);
+            const e = getCellCenter(end);
+            const dx = e.x - s.x, dy = e.y - s.y;
+            const len = Math.sqrt(dx * dx + dy * dy);
+            if (len === 0) return;
+            const nx = dx / len, ny = dy / len;
+            const baseWidth = Math.min(14, len * 0.15);
+            const width = window.innerWidth < 768 ? baseWidth * 0.7 : baseWidth;
+
+            const px = -ny * width, py = nx * width;
+
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = window.innerWidth < 768 ? 4 : 6;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 6; ctx.shadowOffsetX = 3; ctx.shadowOffsetY = 3;
+
+            ctx.beginPath(); ctx.moveTo(s.x + px, s.y + py); ctx.lineTo(e.x + px, e.y + py); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(s.x - px, s.y - py); ctx.lineTo(e.x - px, e.y - py); ctx.stroke();
+
+            ctx.lineWidth = window.innerWidth < 768 ? 2 : 4;
+            ctx.strokeStyle = '#94a3b8';
+            const rungCount = Math.max(3, Math.floor(len / (window.innerWidth < 768 ? 15 : 25)));
+            for (let i = 1; i <= rungCount; i++) {
+                const rx = s.x + dx * (i / (rungCount + 1));
+                const ry = s.y + dy * (i / (rungCount + 1));
+                ctx.beginPath(); ctx.moveTo(rx + px, ry + py); ctx.lineTo(rx - px, ry - py); ctx.stroke();
+            }
+            ctx.shadowColor = 'transparent';
+        }
+
+        function drawSnake(ctx, start, end) {
+            const s = getCellCenter(start), e = getCellCenter(end);
+            const dx = e.x - s.x, dy = e.y - s.y;
+            const cp1x = s.x + dx * 0.2 + dy * 0.35, cp1y = s.y + dy * 0.2 - dx * 0.35;
+            const cp2x = s.x + dx * 0.8 - dy * 0.35, cp2y = s.y + dy * 0.8 + dx * 0.35;
+
+            ctx.shadowColor = 'rgba(0,0,0,0.3)'; ctx.shadowBlur = 8; ctx.shadowOffsetX = 4; ctx.shadowOffsetY = 4;
+            const baseWidth = 16;
+            const width = window.innerWidth < 768 ? baseWidth * 0.6 : baseWidth;
+
+            ctx.strokeStyle = '#1e3a8a'; ctx.lineWidth = width; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, e.x, e.y); ctx.stroke();
+
+            ctx.shadowColor = 'transparent'; ctx.strokeStyle = '#3b82f6'; ctx.lineWidth = width * 0.6;
+            ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, e.x, e.y); ctx.stroke();
+
+            ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(s.x, s.y, width * 0.8, 0, Math.PI * 2); ctx.fill();
+            ctx.lineWidth = window.innerWidth < 768 ? 2 : 3; ctx.strokeStyle = '#1e3a8a'; ctx.stroke();
+
+            const eyeDist = width * 0.3, eyeSize = width * 0.25, pupilSize = width * 0.12, tongueLen = width * 0.8;
+            ctx.fillStyle = 'white';
+            ctx.beginPath(); ctx.arc(s.x - eyeDist, s.y - eyeDist, eyeSize, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(s.x + eyeDist, s.y - eyeDist, eyeSize, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = 'black';
+            ctx.beginPath(); ctx.arc(s.x - eyeDist, s.y - eyeDist, pupilSize, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(s.x + eyeDist, s.y - eyeDist, pupilSize, 0, Math.PI * 2); ctx.fill();
+
+            ctx.strokeStyle = '#ef4444'; ctx.lineWidth = window.innerWidth < 768 ? 1.5 : 2;
+            ctx.beginPath(); ctx.moveTo(s.x, s.y - width * 0.8); ctx.lineTo(s.x, s.y - width * 0.8 - tongueLen);
+            ctx.lineTo(s.x - width * 0.25, s.y - width * 0.8 - tongueLen - width * 0.25);
+            ctx.moveTo(s.x, s.y - width * 0.8 - tongueLen); ctx.lineTo(s.x + width * 0.25, s.y - width * 0.8 - tongueLen - width * 0.25);
+            ctx.stroke();
+        }
+
+        function spawnAssignedGift(player) {
+            if (player.giftStage > 3) return; // Stop spawning after 3 stages
+            const ranges = { 1: [2, 10], 2: [11, 25], 3: [26, 49] };
+            const range = ranges[player.giftStage];
+            if (!range) return;
+
+            let emptyCells = [];
+            for (let i = range[0]; i <= range[1]; i++) {
+                if (!snakes[i] && !ladders[i] && !gifts.find(g => g.cell === i)) emptyCells.push(i);
+            }
+
+            if (emptyCells.length > 0) {
+                gifts.push({ playerId: player.id, cell: emptyCells[Math.floor(Math.random() * emptyCells.length)] });
+                renderGifts();
+            }
+        }
+
+        function renderGifts() {
+            document.querySelectorAll('.gift').forEach(el => el.remove());
+            gifts.forEach(giftData => {
+                const cell = document.getElementById(`cell-${giftData.cell}`);
+                if (!cell) return;
+                const player = players.find(p => p.id === giftData.playerId);
+                const colorHex = player ? (availableColors.find(c => c.twClass === player.color)?.hex || '#fff') : '#fff';
+                const badgeText = player ? (player.id + 1) : '';
+
+                const giftIcon = document.createElement('div');
+                giftIcon.id = `gift-${giftData.playerId}-${giftData.cell}`;
+                giftIcon.className = 'gift absolute inset-0 flex items-center justify-center pointer-events-none z-10 gift-spawn';
+                giftIcon.innerHTML = `
+                    <div class="relative transform hover:scale-110 transition-transform">
+                        <div class="absolute -inset-1 md:-inset-2 bg-white/40 rounded-full blur-sm animate-pulse"></div>
+                        <span class="text-xl md:text-3xl lg:text-4xl drop-shadow-xl relative z-10">🎁</span>
+                        <div class="absolute -bottom-1 -right-1 w-4 h-4 md:w-5 md:h-5 rounded-full border-2 border-white shadow-md z-20 flex items-center justify-center bg-slate-800 text-[8px] md:text-[10px] font-bold text-white" style="background-color: ${colorHex}">${badgeText}</div>
+                    </div>
+                `;
+                cell.appendChild(giftIcon);
+            });
+        }
+
+        document.getElementById('roll-btn').onclick = async () => {
+            if (isRolling) return;
+            isRolling = true;
+            await executeTurn(parseInt(document.getElementById('roller-select').value));
+        };
+
+        async function animateDice(finalRoll) {
+            const diceEl = document.getElementById('dice-display');
+            diceEl.classList.add('dice-spin');
+            for (let i = 0; i < 10; i++) {
+                diceEl.innerText = Math.floor(Math.random() * 6) + 1;
+                await sleep(40);
+            }
+            diceEl.innerText = finalRoll;
+            diceEl.classList.remove('dice-spin');
+            diceEl.classList.add('scale-110', 'brightness-125');
+            await sleep(300);
+            diceEl.classList.remove('scale-110', 'brightness-125');
+        }
+
+        async function executeTurn(playerIndex) {
+            const player = players[playerIndex];
+            if (player.hasWon) { isRolling = false; return; }
+            const roll = Math.floor(Math.random() * 6) + 1;
+            await animateDice(roll);
+
+            for (let i = 0; i < roll; i++) {
+                if (player.pos >= 50) break;
+                player.pos++;
+                updatePlayerMarkerPosition(player);
+                const marker = document.getElementById(`player-marker-${player.id}`);
+                if (marker) { marker.classList.remove('player-hop'); void marker.offsetWidth; marker.classList.add('player-hop'); }
+
+                await saveGameState(); // AGGRESSIVE SAVE ON MOVEMENT
+
+                await sleep(350);
+
+                if (i < roll - 1) {
+                    const passingGift = gifts.find(g => g.cell === player.pos && g.playerId === player.id);
+                    if (passingGift) {
+                        const stopToOpen = await new Promise(resolve => {
+                            showModal('🎁 Gift on Path!', `${player.name}, you are passing over a gift!\n\nDo you want to stop here and reveal it, or keep moving your remaining ${roll - 1 - i} step(s)?`, [
+                                { label: 'Stop & Reveal', class: 'bg-blue-600', onClick: () => resolve(true) },
+                                { label: 'Keep Moving', class: 'bg-slate-500', onClick: () => resolve(false) }
+                            ]);
+                        });
+                        if (stopToOpen) break;
+                    }
+                }
+            }
+
+            if (player.pos >= 50) {
+                player.pos = 50; player.hasWon = true;
+                updatePlayerMarkerPosition(player); updateStatsUI(); await clearGameState();
+                showModal('Winner! 🎉', `${player.name} has reached the final cell and won the game!`, [{ label: 'Play Again', class: 'bg-indigo-500', onClick: () => location.reload() }]);
+                return;
+            }
+            await checkCellInteractions(player);
+            advanceTurn();
+        }
+
+        async function handleGiftCollection(player) {
+            const giftIndex = gifts.findIndex(g => g.cell === player.pos && g.playerId === player.id);
+            if (giftIndex === -1) return;
+
+            const giftData = gifts.splice(giftIndex, 1)[0];
+            const points = Math.floor(Math.random() * 10) + 1;
+            player.score += points;
+
+            const giftEl = document.getElementById(`gift-${giftData.playerId}-${player.pos}`);
+            if (giftEl) {
+                giftEl.classList.remove('gift', 'gift-spawn'); giftEl.classList.add('gift-collect');
+                const floatTxt = document.createElement('div');
+                floatTxt.className = 'floating-text'; floatTxt.innerText = `+${points}`;
+                giftEl.appendChild(floatTxt);
+                await sleep(700); giftEl.remove();
+            }
+
+            player.giftStage++;
+            spawnAssignedGift(player);
+            updateStatsUI();
+            await saveGameState();
+
+            await new Promise(resolve => {
+                showModal('🎁 Gift Collected!', `${player.name} landed on a gift and earned ${points} bonus points!${player.giftStage <= 3 ? ' A new gift has appeared!' : ''}`, [
+                    { label: 'Awesome', class: 'bg-blue-500', onClick: resolve }
+                ]);
+            });
+        }
+
+        async function checkCellInteractions(player) {
+            updateStatsUI();
+            let movedToNewCell = false;
+
+            await handleGiftCollection(player);
+
+            if (snakes[player.pos]) {
+                await sleep(300);
+                movedToNewCell = await new Promise(resolve => {
+                    showModal('🐍 Snake Encounter!', `Oh no! ${player.name} stepped on a snake leading down to cell ${snakes[player.pos]}.\n\nSlide down or stay here?`, [
+                        { label: 'Slide Down', class: 'bg-blue-600', onClick: () => { player.pos = snakes[player.pos]; updatePlayerMarkerPosition(player); saveGameState(); resolve(true); } },
+                        { label: 'Stay Here', class: 'bg-cyan-600', onClick: () => resolve(false) }
+                    ]);
+                });
+            }
+            else if (ladders[player.pos]) {
+                const ladderStart = player.pos;
+                const ladderEnd = ladders[player.pos];
+                await sleep(300);
+                await new Promise(resolve => showModal('🪜 Ladder Found!', `Great job! ${player.name} found a ladder to cell ${ladderEnd}!`, [{ label: 'Climb Up!', class: 'bg-blue-500', onClick: resolve }]));
+
+                for (let c = ladderStart + 1; c <= ladderEnd; c++) {
+                    const passingGift = gifts.find(g => g.cell === c && g.playerId === player.id);
+                    if (passingGift) {
+                        player.pos = c; updatePlayerMarkerPosition(player);
+                        await saveGameState();
+                        await sleep(400);
+                        const grabGift = await new Promise(resolve => {
+                            showModal('🎁 Gift on Ladder!', `You passed a gift at cell ${c} while climbing!\n\nGrab it for bonus points before reaching the top?`, [
+                                { label: 'Grab Gift', class: 'bg-blue-600', onClick: () => resolve(true) },
+                                { label: 'Ignore', class: 'bg-slate-500', onClick: () => resolve(false) }
+                            ]);
+                        });
+                        if (grabGift) await handleGiftCollection(player);
+                    }
+                }
+                player.pos = ladderEnd;
+                updatePlayerMarkerPosition(player);
+                await saveGameState();
+                await sleep(400);
+                movedToNewCell = true;
+            }
+
+            if (movedToNewCell) await checkCellInteractions(player);
+        }
+
+        async function advanceTurn() {
+            updateStatsUI();
+            const select = document.getElementById('roller-select');
+            let currentIndex = parseInt(select.value);
+            let attempts = 0;
+            while (attempts < players.length) {
+                currentIndex = (currentIndex + 1) % players.length;
+                if (!players[currentIndex].hasWon) { select.value = currentIndex; break; }
+                attempts++;
+            }
+            document.getElementById('roll-btn').innerText = `ROLL FOR ${players[currentIndex].name.toUpperCase()}`;
+            isRolling = false;
+            await saveGameState();
+        }
+
+        function updateStatsUI() {
+            const statsContainer = document.getElementById('player-stats');
+            statsContainer.innerHTML = '';
+            players.forEach(p => {
+                const colorHex = availableColors.find(c => c.twClass === p.color)?.hex || '#333';
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between p-3 rounded-xl bg-slate-50 border-l-8 shadow-sm ${p.hasWon ? 'opacity-50' : ''}`;
+                div.style.borderLeftColor = colorHex;
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 truncate">
+                        <div class="w-4 h-4 shrink-0 rounded-full shadow-inner border border-white" style="background-color: ${colorHex}"></div>
+                        <div class="truncate">
+                            <div class="font-bold text-slate-700 text-xs md:text-sm truncate">${p.name} ${p.hasWon ? '(Won)' : ''}</div>
+                            <div class="text-[10px] font-bold text-slate-400 tracking-wide uppercase">Cell: ${p.pos === 0 ? 'Start' : p.pos}</div>
+                        </div>
+                    </div>
+                    <div class="text-right pl-2">
+                        <div class="text-lg md:text-xl font-bold brand-font text-indigo-600">${p.score}<span class="text-[10px] font-normal text-slate-500 ml-1">pts</span></div>
+                    </div>
+                `;
+                statsContainer.appendChild(div);
+            });
+        }
+
+        function showModal(title, message, buttons) {
+            const modal = document.getElementById('custom-modal');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-message').innerText = message;
+            const btnContainer = document.getElementById('modal-buttons');
+            btnContainer.innerHTML = '';
+            buttons.forEach(btn => {
+                const b = document.createElement('button');
+                b.className = `px-5 py-2.5 rounded-xl text-white font-bold shadow-md transition-transform hover:scale-105 active:scale-95 ${btn.class}`;
+                b.innerText = btn.label;
+                b.onclick = () => { closeModal(); if (btn.onClick) btn.onClick(); };
+                btnContainer.appendChild(b);
+            });
+            modal.classList.remove('hidden'); void modal.offsetWidth;
+            content.classList.remove('scale-95', 'opacity-0'); content.classList.add('scale-100', 'opacity-100');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            const content = document.getElementById('modal-content');
+            content.classList.remove('scale-100', 'opacity-100'); content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function showAdminMsg(msg, isError = true) {
+            const el = document.getElementById('admin-msg');
+            el.innerText = msg; el.className = `text-sm font-bold h-5 mb-2 ${isError ? 'text-red-500' : 'text-green-500'}`;
+            setTimeout(() => el.innerText = '', 3000);
+        }
+
+        window.openAdmin = function () {
+            document.getElementById('admin-modal').classList.remove('hidden');
+            document.getElementById('admin-player-select').innerHTML = players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            renderAdminLists();
+        };
+
+        window.closeAdmin = function () {
+            document.getElementById('admin-modal').classList.add('hidden');
+            drawOverlays(); saveGameState();
+        };
+
+        window.renderAdminLists = function () {
+            document.getElementById('admin-snakes-list').innerHTML = Object.entries(snakes).map(([start, end]) =>
+                `<div class="flex justify-between items-center text-xs bg-white p-2 rounded border border-red-100"><span class="font-bold text-red-800">Head: ${start} → Tail: ${end}</span><button onclick="adminRemoveSnake(${start})" class="text-white bg-red-500 hover:bg-red-600 rounded px-2 py-1 font-bold">Del</button></div>`
+            ).join('') || '<div class="text-xs text-slate-400 p-1 font-bold">No snakes</div>';
+
+            document.getElementById('admin-ladders-list').innerHTML = Object.entries(ladders).map(([start, end]) =>
+                `<div class="flex justify-between items-center text-xs bg-white p-2 rounded border border-green-100"><span class="font-bold text-green-800">Bot: ${start} → Top: ${end}</span><button onclick="adminRemoveLadder(${start})" class="text-white bg-green-500 hover:bg-green-600 rounded px-2 py-1 font-bold">Del</button></div>`
+            ).join('') || '<div class="text-xs text-slate-400 p-1 font-bold">No ladders</div>';
+        };
+
+        window.adminMove = async function () {
+            const pId = parseInt(document.getElementById('admin-player-select').value);
+            const target = parseInt(document.getElementById('admin-cell-input').value);
+            if (isNaN(target) || target < 1 || target > 50) return showAdminMsg("Enter valid cell (1-50)");
+            const player = players.find(p => p.id === pId);
+            if (player) {
+                player.pos = target >= 50 ? 50 : target;
+                if (target >= 50) player.hasWon = true;
+                updatePlayerMarkerPosition(player); updateStatsUI(); await saveGameState();
+                showAdminMsg(`Teleported ${player.name} to cell ${player.pos}!`, false);
+            }
+        };
+
+        window.adminAddSnake = function () {
+            const head = parseInt(document.getElementById('admin-snake-head').value);
+            const tail = parseInt(document.getElementById('admin-snake-tail').value);
+            if (isNaN(head) || isNaN(tail) || head <= tail || head > 49 || tail < 1) return showAdminMsg("Invalid! Head > Tail (1-49).");
+            if (ladders[head]) return showAdminMsg("Ladder exists there!");
+            snakes[head] = tail; renderAdminLists(); showAdminMsg(`Snake added!`, false);
+        };
+        window.adminRemoveSnake = function (head) { delete snakes[head]; renderAdminLists(); showAdminMsg("Snake removed.", false); };
+
+        window.adminAddLadder = function () {
+            const bottom = parseInt(document.getElementById('admin-ladder-bottom').value);
+            const top = parseInt(document.getElementById('admin-ladder-top').value);
+            if (isNaN(bottom) || isNaN(top) || bottom >= top || top > 49 || bottom < 2) return showAdminMsg("Invalid! Bottom < Top (2-49).");
+            if (snakes[bottom]) return showAdminMsg("Snake exists there!");
+            ladders[bottom] = top; renderAdminLists(); showAdminMsg(`Ladder added!`, false);
+        };
+        window.adminRemoveLadder = function (bottom) { delete ladders[bottom]; renderAdminLists(); showAdminMsg("Ladder removed.", false); };
+
+        // Bind events & boot
+        window.addEventListener('resize', () => { if (isGameActive) resizeCanvas(); });
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && isGameActive) resizeCanvas(); });
+        window.onload = initFirebase;
+    </script>
+</body>
+
+</html>
