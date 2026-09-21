@@ -1305,6 +1305,7 @@ if (document.getElementById('timetableTableBody')) {
 
 
     // --- SHARE TIMETABLE TO MOBILE APP (STUDENT & FACULTY SYNC) ---
+        // --- SHARE TIMETABLE TO MOBILE APP (STUDENT & FACULTY SYNC) ---
     window.shareTimetableToApp = async function () {
         const entries = (typeof timetableEntries !== 'undefined' && timetableEntries.length > 0) 
             ? timetableEntries 
@@ -1327,14 +1328,10 @@ if (document.getElementById('timetableTableBody')) {
                 alert("Database connection not ready. Please check your network and try again.");
                 if (shareBtn) {
                     shareBtn.disabled = false;
-                    shareBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> 🚀 Share Timetable to Mobile App';
+                    shareBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Share Timetable to Mobile App';
                 }
                 return;
             }
-
-            // Fetch students from Supabase to match roll numbers
-            const { data: dbStudents } = await sb.from('students').select('roll_no, name, class_name');
-            const allStudents = dbStudents || [];
 
             function to12Hr(t) {
                 if (!t) return '';
@@ -1352,7 +1349,7 @@ if (document.getElementById('timetableTableBody')) {
             for (const entry of entries) {
                 let timeStr = '';
                 if (entry.startTime && entry.endTime) {
-                    timeStr = to12Hr(entry.startTime) + ' – ' + to12Hr(entry.endTime);
+                    timeStr = to12Hr(entry.startTime) + ' - ' + to12Hr(entry.endTime);
                 } else if (entry.startTime) {
                     timeStr = to12Hr(entry.startTime);
                 } else {
@@ -1362,45 +1359,34 @@ if (document.getElementById('timetableTableBody')) {
                 const rawCls = String(entry.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
 
-                // Find all students in this class
-                let matchingStudents = allStudents.filter(s => {
-                    const sc = String(s.class_name || s.class || '').trim();
-                    return sc === gradeStr || sc === rawCls || sc.includes(rawCls);
+                // 1. Cleanly delete any existing entries for this class, date and subject
+                // (Clears both class-level entries and legacy per-student rows)
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', gradeStr)
+                    .eq('class_date', entry.date)
+                    .eq('subject', entry.subject);
+
+                // Also delete if stored with roll_no = gradeStr
+                await sb.from('classes')
+                    .delete()
+                    .eq('roll_no', gradeStr)
+                    .eq('class_date', entry.date)
+                    .eq('subject', entry.subject);
+
+                // 2. Insert EXACTLY ONE row per class session (not per-student duplicates!)
+                rowsToInsert.push({
+                    roll_no: gradeStr,
+                    class_grade: gradeStr,
+                    subject: entry.subject,
+                    time: timeStr,
+                    status: 'upcoming',
+                    published: true,
+                    class_date: entry.date,
                 });
 
-                // Always ensure Arjun S (2024-JEE-0842) gets Class 12 timetable
-                if (rawCls === '12' || gradeStr === 'Class 12') {
-                    if (!matchingStudents.some(s => s.roll_no === '2024-JEE-0842')) {
-                        matchingStudents.push({ roll_no: '2024-JEE-0842', name: 'Arjun S', class_name: 'Class 12' });
-                    }
-                }
-
-                // If no students found in DB for this class, add fallback grade entry
-                if (matchingStudents.length === 0) {
-                    matchingStudents.push({ roll_no: 'CLASS-' + rawCls + '-STUDENT', name: gradeStr, class_name: gradeStr });
-                }
-
-                // Delete previous entries for this date, class and subject so updates overwrite cleanly
-                for (const stu of matchingStudents) {
-                    await sb.from('classes')
-                        .delete()
-                        .eq('roll_no', stu.roll_no)
-                        .eq('class_date', entry.date)
-                        .eq('subject', entry.subject);
-
-                    rowsToInsert.push({
-                        roll_no: stu.roll_no,
-                        class_grade: gradeStr,
-                        subject: entry.subject,
-                        time: timeStr,
-                        status: 'upcoming',
-                        published: true,
-                        class_date: entry.date,
-                    });
-                }
-
                 announcementsToInsert.push({
-                    title: '📅 Timetable: ' + gradeStr + ' - ' + entry.subject,
+                    title: '🗓️ Timetable: ' + gradeStr + ' - ' + entry.subject,
                     description: 'Date: ' + formatDateFriendly(entry.date) + ' | Time: ' + timeStr + ' | Venue: ' + (entry.location || 'In Center') + ' (' + (entry.board || 'Both') + ' Board). Check your schedule tab.',
                     author: 'Center Admin',
                     tag: 'Timetable',
@@ -1420,19 +1406,17 @@ if (document.getElementById('timetableTableBody')) {
                 await sb.from('announcements').insert(announcementsToInsert);
             }
 
-            alert('✓ Timetable Successfully Shared to Mobile App!\n\n' + rowsToInsert.length + ' student session(s) published for ' + entries.length + ' class slot(s).\nAll students in ' + gradeStr + ' and faculty will see this schedule on their live dashboard.');
+            alert('✅ Timetable Successfully Shared to Mobile App!\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
         } catch (e) {
             console.error('Failed to share timetable:', e);
             alert("Failed to share timetable to mobile app: " + (e.message || e));
         } finally {
             if (shareBtn) {
                 shareBtn.disabled = false;
-                shareBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> 🚀 Share Timetable to Mobile App';
+                shareBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Share Timetable to Mobile App';
             }
         }
     };
-
-}
 
 // --- ATTENDANCE PAGE ---
 if (document.getElementById('attendanceClassSelect')) {
