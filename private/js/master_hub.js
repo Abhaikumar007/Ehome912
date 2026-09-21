@@ -33,6 +33,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     loadActiveBroadcasts();
 
     // Refresh active broadcasts when clicking the Broadcasts tab
+    const feesTabLink = document.getElementById('tab-fees-link');
+    if (feesTabLink) {
+        feesTabLink.addEventListener('shown.bs.tab', function () {
+            if (typeof window.loadPendingVerifications === 'function') {
+                window.loadPendingVerifications();
+            }
+        });
+        feesTabLink.addEventListener('click', function () {
+            setTimeout(function () {
+                if (typeof window.loadPendingVerifications === 'function') {
+                    window.loadPendingVerifications();
+                }
+            }, 100);
+        });
+    }
+
     const broadcastTabLink = document.getElementById('tab-broadcast-link');
     if (broadcastTabLink) {
         broadcastTabLink.addEventListener('shown.bs.tab', function () {

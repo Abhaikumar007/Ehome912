@@ -438,6 +438,42 @@
                     </div>
                 </div>
 
+                
+                <!-- Pending Verification Queue for Mobile App Student Payments -->
+                <div class="hub-card mb-4 border-warning" style="border-left: 5px solid #f59e0b;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="font-weight-bold text-warning mb-1">
+                                <i class="fas fa-clock mr-2"></i> Pending Student Fee Verifications (Mobile App)
+                            </h5>
+                            <p class="text-muted mb-0 small">Review and approve fee receipts submitted by students from the EduHome mobile app.</p>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning" onclick="loadPendingVerifications()" style="border-radius: 20px; font-weight: 600;">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh Queue
+                        </button>
+                    </div>
+                    <div class="pending-fee-notice-area"></div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" style="font-size: 0.92rem;">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Class & Roll</th>
+                                    <th>Amount</th>
+                                    <th>Transaction / UTR</th>
+                                    <th>Submitted On</th>
+                                    <th style="width: 200px;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pendingVerificationBody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-3">Checking for pending mobile payments...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
                 <div class="hub-card">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
                         <div>
@@ -528,7 +564,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/admin.js?v=20260921_fee"></script>
     <script src="js/master_hub.js?v=20260921_3"></script>
 </body>
 

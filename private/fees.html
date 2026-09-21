@@ -40,6 +40,7 @@
                 </button>
             </div>
             <div class="card-body p-0">
+                <div class="p-3 pending-fee-notice-area"></div>
                 <div class="table-responsive">
                     <table class="table table-hover mb-0" style="font-size: 0.92rem;">
                         <thead class="thead-light">
@@ -122,13 +123,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js"></script>
+    <script src="js/admin.js?v=20260921_fee"></script>
 
     <script>
     // ── Cloud Sync Handlers for Fees Page ─────────────────────────────
 
     // Auto-pull on load to keep fee records fresh across devices
     document.addEventListener('DOMContentLoaded', function() {
+        if (typeof window.loadPendingVerifications === 'function') {
+            window.loadPendingVerifications();
+        }
         if (typeof sb_loadFromCloud === 'function') {
             sb_loadFromCloud().then(function(result) {
                 if (result && result.ok) {
