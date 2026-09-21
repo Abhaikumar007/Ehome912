@@ -8,7 +8,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService } from '../../lib/dataService';
-import { ExportModal } from '../../components/ExportModal';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import { supabase } from '../../lib/supabase';
 
@@ -70,10 +69,8 @@ const ASSIGNED_STUDENTS = [
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
-  const [exportModalVisible, setExportModalVisible] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
-  const [pendingFees, setPendingFees] = useState<any[]>([]);
   const [rosterClassFilter, setRosterClassFilter] = useState('All');
 
   // Teacher Opinions per Student workflow
@@ -125,32 +122,7 @@ export default function TeacherHomeScreen() {
     } catch {}
   };
 
-  const loadPendingFees = async () => {
-    try {
-      const list = await DataService.getPendingFeeApprovals();
-      // Also check Arjun's current fee record
-      const arjunFees = await DataService.getFees('2024-JEE-0842');
-      if (arjunFees && arjunFees.status === 'pending_verification') {
-        const hasArjun = list.some((p: any) => p.rollNo === '2024-JEE-0842');
-        if (!hasArjun) {
-          list.push({
-            rollNo: '2024-JEE-0842',
-            studentName: 'Arjun S',
-            amount: 1,
-            upiId: 'devitintu12345@oksbi',
-            utr: arjunFees.utr || 'UPI-APP-4821',
-            submittedAt: arjunFees.submittedAt || 'Today',
-          });
-        }
-      }
-      setPendingFees(list);
-    } catch {
-      // ignore
-    }
-  };
-
   useEffect(() => {
-    loadPendingFees();
     loadAnnouncements();
     loadPendingOpinions();
 
@@ -168,41 +140,6 @@ export default function TeacherHomeScreen() {
     };
   }, []);
 
-  const handleApproveFee = async (rollNo: string, studentName: string) => {
-    try {
-      await DataService.approveFeePayment(rollNo);
-      await loadPendingFees();
-      Alert.alert(
-        'Payment Approved ✓',
-        `Fee payment from ${studentName} (${rollNo}) has been verified.\n\nThe student dashboard, home alert banner, and profile status have been marked as Cleared/Paid!`
-      );
-    } catch {
-      Alert.alert('Error', 'Failed to approve payment.');
-    }
-  };
-
-  const handleMarkCashPayment = (rollNo: string, studentName: string, amount: number) => {
-    Alert.alert(
-      'Mark as Paid (Cash)',
-      `Confirm cash payment of ₹${amount.toLocaleString('en-IN')} received from ${studentName}?\n\nThis will immediately update their student dashboard and profile to Paid status.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Confirm Paid',
-          onPress: async () => {
-            try {
-              await DataService.markFeeAsPaidCash(rollNo, amount, 'Mr. R Madhusudanan (Super Admin)');
-              await loadPendingFees();
-              Alert.alert('Marked as Paid ✓', `Cash payment for ${studentName} has been recorded and their dashboard updated.`);
-            } catch {
-              Alert.alert('Error', 'Failed to mark payment.');
-            }
-          },
-        },
-      ]
-    );
-  };
-
   const handlePostAnnouncement = async () => {
     if (!announcementTitle.trim()) {
       Alert.alert('Error', 'Please enter an announcement title.');
@@ -212,7 +149,7 @@ export default function TeacherHomeScreen() {
       const updated = await DataService.addAnnouncement({
         title: announcementTitle.trim(),
         desc: announcementMsg.trim() || 'No additional details provided.',
-        author: 'Mr. R Madhusudanan (Main Admin & Faculty Head)',
+        author: 'Mr. R Madhusudanan (Senior Faculty • Physics & Chemistry)',
         tag: 'Faculty Broadcast',
         important: true,
       });
@@ -331,11 +268,11 @@ export default function TeacherHomeScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingSmall}>Welcome back,</Text>
             <Text style={styles.teacherName}>Mr. R Madhusudanan</Text>
-            <Text style={styles.roleBadgeText}>Super Admin • Physics & Chemistry</Text>
+            <Text style={styles.roleBadgeText}>Senior Faculty • Physics & Chemistry</Text>
             <Text style={styles.dateText}>📅 Tue, 9 Sep 2026</Text>
           </View>
           <View style={styles.adminBadge}>
-            <Ionicons name="shield-checkmark" size={20} color="#0284C7" />
+            <Ionicons name="school" size={20} color="#0284C7" />
             <Text style={styles.adminBadgeTitle}>Staff ID</Text>
             <Text style={styles.adminBadgeSub}>FAC-042</Text>
           </View>
@@ -390,92 +327,7 @@ export default function TeacherHomeScreen() {
             <Text style={styles.quickCardTitle}>Announcement</Text>
             <Text style={styles.quickCardSub}>Broadcast to Students</Text>
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.quickCard, { backgroundColor: '#EFF6FF', borderColor: '#BFDBFE' }]}
-            onPress={() => setExportModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.quickIconBox, { backgroundColor: '#1A56DB' }]}>
-              <Ionicons name="cloud-download" size={20} color="#fff" />
-            </View>
-            <Text style={styles.quickCardTitle}>Export Data</Text>
-            <Text style={styles.quickCardSub}>Supabase SQL & CSV</Text>
-          </TouchableOpacity>
         </View>
-
-        {/* Superadmin Fee Approval Queue (Main Admin Confidential) */}
-        <View style={styles.confidentialAlertBox}>
-          <Ionicons name="lock-closed" size={14} color="#B45309" />
-          <Text style={styles.confidentialAlertText}>
-            MAIN ADMIN CONFIDENTIAL • Student fee details & UPI approvals are restricted from regular faculty and managed exclusively by Mr. R Madhusudanan.
-          </Text>
-        </View>
-
-        {pendingFees.length > 0 ? (
-          <View style={styles.approvalSection}>
-            <View style={styles.approvalHeader}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="cash" size={18} color="#D97706" />
-                <Text style={styles.approvalTitle}>Pending Fee Approvals</Text>
-              </View>
-              <View style={styles.pendingCountBadge}>
-                <Text style={styles.pendingCountText}>{pendingFees.length} Pending</Text>
-              </View>
-            </View>
-            <Text style={styles.approvalSub}>
-              Verify student UPI ₹1 transfers to <Text style={{ fontFamily: 'Inter_700Bold' }}>devitintu12345@oksbi</Text> and release dashboards.
-            </Text>
-
-            {pendingFees.map((item, idx) => (
-              <View key={idx} style={styles.pendingFeeItem}>
-                <View style={styles.feeItemTop}>
-                  <View style={styles.feeStudentIcon}>
-                    <Text style={styles.feeStudentIconText}>
-                      {item.studentName ? item.studentName.slice(0, 2).toUpperCase() : 'ST'}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.feeStudentName}>{item.studentName} ({item.rollNo})</Text>
-                    <Text style={styles.feeUpiText}>Target: {item.upiId} • Ref: {item.utr || 'Direct'}</Text>
-                  </View>
-                  <View style={styles.feeAmountBadge}>
-                    <Text style={styles.feeAmountText}>₹{item.amount}</Text>
-                  </View>
-                </View>
-
-                <View style={styles.feeItemActions}>
-                  <TouchableOpacity
-                    style={styles.approveBtn}
-                    onPress={() => handleApproveFee(item.rollNo, item.studentName)}
-                    activeOpacity={0.85}
-                  >
-                    <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                    <Text style={styles.approveBtnText}>Approve UPI & Update Dashboard</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.approveBtn, { backgroundColor: '#10B981', marginTop: 6 }]}
-                    onPress={() => handleMarkCashPayment(item.rollNo, item.studentName, item.amount)}
-                    activeOpacity={0.85}
-                  >
-                    <Ionicons name="cash-outline" size={16} color="#fff" />
-                    <Text style={styles.approveBtnText}>Mark as Paid (Cash)</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View style={styles.feeStatusSummary}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
-              <Ionicons name="checkmark-circle" size={18} color={Colors.green} />
-              <Text style={styles.feeStatusSummaryText}>All student fees up-to-date (devitintu12345@oksbi)</Text>
-            </View>
-            <TouchableOpacity onPress={loadPendingFees} style={{ padding: 4 }}>
-              <Ionicons name="refresh" size={14} color={Colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
-        )}
 
         {/* Today's Teaching Schedule */}
         <View style={styles.sectionHeader}>
@@ -611,12 +463,11 @@ export default function TeacherHomeScreen() {
                   <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
                 </View>
               </View>
-              {/* ADMIN-ONLY: Fee info — not shown to regular faculty */}
               <Text style={styles.studentClassText}>
-                {stu.class} • {stu.rollNo} • ₹{((stu as any).monthlyFee || 4000).toLocaleString('en-IN')}/mo
+                {stu.class} • Roll No: {stu.rollNo}
               </Text>
               <Text style={styles.studentMetaSubText} numberOfLines={1}>
-                Due: {(stu as any).dueDate || '15 Sep'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
+                Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
               </Text>
               {(stu as any).subjects && (
                 <Text style={styles.studentSubjectsText} numberOfLines={1}>
@@ -627,15 +478,6 @@ export default function TeacherHomeScreen() {
                 <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
                 <Text style={styles.scoreVal}>{stu.recentScore}</Text>
               </View>
-              {/* Admin cash payment shortcut */}
-              <TouchableOpacity
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, backgroundColor: '#ECFDF3', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4, alignSelf: 'flex-start' }}
-                onPress={() => handleMarkCashPayment(stu.rollNo, stu.name, (stu as any).monthlyFee || 4000)}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="cash-outline" size={13} color="#10B981" />
-                <Text style={{ fontSize: 11, color: '#10B981', fontFamily: 'Inter_600SemiBold' }}>Mark Paid (Cash)</Text>
-              </TouchableOpacity>
             </View>
             <TouchableOpacity
               style={styles.addOpinionBtn}
@@ -750,13 +592,6 @@ export default function TeacherHomeScreen() {
           </View>
         </View>
       </Modal>
-
-      {/* Export Student Data Modal */}
-      <ExportModal
-        visible={exportModalVisible}
-        onClose={() => setExportModalVisible(false)}
-        students={ASSIGNED_STUDENTS}
-      />
 
       {/* Add Teacher Opinion Modal */}
       <Modal visible={opinionModalVisible} transparent animationType="slide">

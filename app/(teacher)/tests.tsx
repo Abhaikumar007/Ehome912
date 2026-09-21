@@ -33,22 +33,22 @@ interface ExamItem {
 }
 
 const INITIAL_STUDENTS_OPTICS: TestStudent[] = [
-  { id: 'ts1', name: 'Meera K', roll: '#2026-1005', marks: 96, grade: 'A+', color: '#10B981' },
-  { id: 'ts2', name: 'Arjun S', roll: '#2026-1001', marks: 94, grade: 'A+', color: '#10B981' },
-  { id: 'ts3', name: 'Akhil S', roll: '#2026-1002', marks: 91, grade: 'A',  color: '#10B981' },
-  { id: 'ts4', name: 'Priya S', roll: '#2026-1008', marks: 90, grade: 'A',  color: '#10B981' },
-  { id: 'ts5', name: 'Dev P', roll: '#2026-1004', marks: 88, grade: 'B+', color: '#0284C7' },
-  { id: 'ts6', name: 'Riya M', roll: '#2026-1006', marks: 82, grade: 'B',  color: '#0284C7' },
-  { id: 'ts7', name: 'Karan V', roll: '#2026-1007', marks: 74, grade: 'C',  color: '#F59E0B' },
-  { id: 'ts8', name: 'Ananya R', roll: '#2026-1003', marks: 68, grade: 'C', color: '#F59E0B' },
+  { id: 'ts1', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts2', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts4', name: 'Priya S', roll: '#2026-1008', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts5', name: 'Dev P', roll: '#2026-1004', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts6', name: 'Riya M', roll: '#2026-1006', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts7', name: 'Karan V', roll: '#2026-1007', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'ts8', name: 'Ananya R', roll: '#2026-1003', marks: 0, grade: 'Pending', color: '#94A3B8' },
 ];
 
 const INITIAL_STUDENTS_CHEM: TestStudent[] = [
-  { id: 'tc1', name: 'Arjun S', roll: '#2026-1001', marks: 88, grade: 'B+', color: '#0284C7' },
-  { id: 'tc2', name: 'Meera K', roll: '#2026-1005', marks: 92, grade: 'A',  color: '#10B981' },
-  { id: 'tc3', name: 'Akhil S', roll: '#2026-1002', marks: 85, grade: 'B+', color: '#0284C7' },
-  { id: 'tc4', name: 'Dev P', roll: '#2026-1004', marks: 80, grade: 'B',  color: '#0284C7' },
-  { id: 'tc5', name: 'Priya S', roll: '#2026-1008', marks: 84, grade: 'B+', color: '#0284C7' },
+  { id: 'tc1', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'tc2', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'tc3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'tc4', name: 'Dev P', roll: '#2026-1004', marks: 0, grade: 'Pending', color: '#94A3B8' },
+  { id: 'tc5', name: 'Priya S', roll: '#2026-1008', marks: 0, grade: 'Pending', color: '#94A3B8' },
 ];
 
 const INITIAL_TESTS: ExamItem[] = [
@@ -66,7 +66,7 @@ const INITIAL_TESTS: ExamItem[] = [
       'Ch 10: Refraction & Snell\'s Law with Ray Diagrams',
       'Ch 11: Human Eye and Colorful World (Numerical Section)',
     ],
-    isEvaluated: true,
+    isEvaluated: false,
     students: INITIAL_STUDENTS_OPTICS,
   },
   {
@@ -83,7 +83,7 @@ const INITIAL_TESTS: ExamItem[] = [
       'Ch 2: Balancing Complex Chemical Equations',
       'Pre-board Board Sample Questions Q1-Q15',
     ],
-    isEvaluated: true,
+    isEvaluated: false,
     students: INITIAL_STUDENTS_CHEM,
   },
   {
@@ -112,6 +112,29 @@ export default function TeacherTestsScreen() {
   const [tests, setTests] = useState<ExamItem[]>([]);
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
   const [activeTestId, setActiveTestId] = useState<string>('');
+
+  // Load persisted tests from DataService
+  useEffect(() => {
+    const loadTests = async () => {
+      const data = await DataService.getTests();
+      if (data && data.length > 0) {
+        setTests(data);
+        const match = data.find((t: ExamItem) => t.classTag === selectedClass) || data[0];
+        if (match) setActiveTestId(match.id);
+      }
+    };
+    loadTests();
+  }, []);
+
+  // Update active test on class selection
+  useEffect(() => {
+    if (tests.length > 0) {
+      const match = tests.find((t) => t.classTag === selectedClass);
+      if (match) {
+        setActiveTestId(match.id);
+      }
+    }
+  }, [selectedClass]);
 
   // Edit marks modal state
   const [selectedStudent, setSelectedStudent] = useState<TestStudent | null>(null);
@@ -147,7 +170,7 @@ export default function TeacherTestsScreen() {
     setEditModalVisible(true);
   };
 
-  const handleSaveMarks = () => {
+  const handleSaveMarks = async () => {
     if (!selectedStudent || !activeTest) return;
     const val = parseInt(editMarksInput, 10);
     const max = activeTest.maxMarks || 100;
@@ -171,8 +194,20 @@ export default function TeacherTestsScreen() {
         return t;
       })
     );
+
+    // Sync marks to student's progress report & notifications
+    await DataService.updateTestMarks(
+      activeTest.id,
+      selectedStudent.id,
+      selectedStudent.roll,
+      val,
+      max,
+      grade,
+      color
+    );
+
     setEditModalVisible(false);
-    Alert.alert('Marks Saved', `Updated marks for ${selectedStudent.name} (${val}/${max}).`);
+    Alert.alert('Marks Saved & Synced', `Updated marks for ${selectedStudent.name} (${val}/${max}) and synced to student report!`);
   };
 
   // Publish Active Test as Academic Alert to Student Dashboard
@@ -223,8 +258,8 @@ export default function TeacherTestsScreen() {
       title: newTitle.trim(),
       subject: newSubject,
       classTag: newClass,
-      dateStr: newDate.trim(),
-      timeStr: newTime.trim(),
+      dateStr: newDate.trim() || 'Upcoming Session',
+      timeStr: newTime.trim() || '04:30 PM - 06:00 PM',
       roomStr: newRoom.trim() || 'Room 204',
       maxMarks: maxVal,
       syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
@@ -236,13 +271,16 @@ export default function TeacherTestsScreen() {
     setActiveTestId(newTestObj.id);
     setSelectedClass(newClass);
 
+    // Save test paper in DataService so students can see it in Mock Tests & Alerts
+    await DataService.saveTest(newTestObj);
+
     if (publishAsAlert) {
       await handlePublishAlert(newTestObj);
     }
 
     setCreateModalVisible(false);
     setNewTitle('');
-    Alert.alert('Success', `New test "${newTestObj.title}" created successfully.`);
+    Alert.alert('Success', `New test "${newTestObj.title}" assigned to ${newClass} successfully.`);
   };
 
   // Filter tests matching selected class
@@ -283,9 +321,9 @@ export default function TeacherTestsScreen() {
           <View style={styles.adminAuthInfo}>
             <View style={styles.adminBadgeRow}>
               <Text style={styles.adminAuthTitle}>Mr. R Madhusudanan</Text>
-              <View style={styles.superBadge}>
-                <Ionicons name="shield-checkmark" size={10} color="#fff" />
-                <Text style={styles.superBadgeText}>MAIN ADMIN</Text>
+              <View style={[styles.superBadge, { backgroundColor: '#0284C7' }]}>
+                <Ionicons name="school" size={10} color="#fff" />
+                <Text style={styles.superBadgeText}>FACULTY</Text>
               </View>
             </View>
             <Text style={styles.adminAuthSub}>
@@ -936,7 +974,7 @@ const styles = StyleSheet.create({
 
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
   modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
-  createModalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginVertical: 40 },
+  createModalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginVertical: 40, maxWidth: 580, width: '100%', alignSelf: 'center' },
   modalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   modalTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   createModalSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },

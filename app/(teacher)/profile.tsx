@@ -54,7 +54,7 @@ export default function TeacherProfileScreen() {
           </View>
 
           <Text style={styles.profileName}>Mr. R Madhusudanan</Text>
-          <Text style={styles.profileRole}>Super Admin & Head Faculty</Text>
+          <Text style={styles.profileRole}>Senior Faculty • Physics & Chemistry</Text>
           <Text style={styles.profileId}>Faculty ID: FAC-2024-001</Text>
 
           <View style={styles.tagsRow}>
@@ -108,14 +108,14 @@ export default function TeacherProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => Alert.alert('Super Admin Sync', 'Attendance and exam marks are auto-synchronized with the center cloud server.')}
+            onPress={() => Alert.alert('Cloud Sync', 'Attendance and exam marks are auto-synchronized with the center cloud server.')}
           >
             <View style={[styles.menuIconBox, { backgroundColor: '#ECFDF3' }]}>
               <Ionicons name="sync-outline" size={18} color={Colors.green} />
             </View>
             <View style={styles.menuTextWrap}>
-              <Text style={styles.menuTitle}>Super Admin Database Sync</Text>
-              <Text style={styles.menuSub}>Live cloud backup & parent SMS queue</Text>
+              <Text style={styles.menuTitle}>Center Database Sync</Text>
+              <Text style={styles.menuSub}>Live cloud backup & records synchronization</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
           </TouchableOpacity>

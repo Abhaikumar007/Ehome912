@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, RefreshControl, Image, Alert, Modal, TextInput,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, RefreshControl, Image, Alert, Modal, TextInput, Platform,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -10,11 +11,53 @@ import { feesData as defaultFees } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
 import { useAuth } from '../../lib/authContext';
 
-const UPI_APPS = [
-  { label: 'G Pay', icon: 'logo-google', color: '#4285F4', bg: '#EBF3FF' },
-  { label: 'PhonePe', icon: 'phone-portrait-outline', color: '#5F259F', bg: '#F5F3FF' },
-  { label: 'Paytm', icon: 'wallet-outline', color: '#00BAF2', bg: '#E0F7FE' },
-  { label: 'Other UPI', icon: 'flash-outline', color: Colors.amber, bg: Colors.amberLight },
+export interface UpiAppConfig {
+  label: string;
+  fullName: string;
+  icon: string;
+  color: string;
+  bg: string;
+  packageName: string;
+  scheme: string;
+}
+
+const UPI_APPS: UpiAppConfig[] = [
+  {
+    label: 'G Pay',
+    fullName: 'Google Pay',
+    icon: 'logo-google',
+    color: '#4285F4',
+    bg: '#EBF3FF',
+    packageName: 'com.google.android.apps.nbu.paisa.user',
+    scheme: 'tez://',
+  },
+  {
+    label: 'PhonePe',
+    fullName: 'PhonePe',
+    icon: 'phone-portrait-outline',
+    color: '#5F259F',
+    bg: '#F5F3FF',
+    packageName: 'com.phonepe.app',
+    scheme: 'phonepe://',
+  },
+  {
+    label: 'Paytm',
+    fullName: 'Paytm',
+    icon: 'wallet-outline',
+    color: '#00BAF2',
+    bg: '#E0F7FE',
+    packageName: 'net.one97.paytm',
+    scheme: 'paytm://',
+  },
+  {
+    label: 'Other UPI',
+    fullName: 'BHIM / Any UPI App',
+    icon: 'flash-outline',
+    color: Colors.amber,
+    bg: Colors.amberLight,
+    packageName: 'in.org.npci.upiapp',
+    scheme: 'upi://',
+  },
 ];
 
 // Target Tuition Center UPI ID & Payee details (Hardcoded as requested)
@@ -31,8 +74,10 @@ export default function FeesScreen() {
   const [allPaymentsHistory, setAllPaymentsHistory] = useState<any[]>([]);
   const [utrInput, setUtrInput] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [copiedToast, setCopiedToast] = useState(false);
 
   const rollNo = student?.rollNo || '2024-JEE-0842';
+  const targetFeeAmount = Number(fees.actualDue || fees.monthlyFee || fees.currentDue || 4000);
 
   const loadData = async () => {
     try {
@@ -59,52 +104,114 @@ export default function FeesScreen() {
     setRefreshing(false);
   };
 
-  const handlePayUPI = async (appLabel?: string) => {
-    // Strictly ₹1 formatted with 2 decimals (1.00) as required by NPCI standard
-    const amount = '1.00';
-    // Clean alphanumeric note without special characters (dashes/parentheses cause SBI/GPay gateway errors)
-    const note = 'EduHome Tuition Fee';
-    const genericUpi = `upi://pay?pa=${encodeURIComponent(HARDCODED_UPI_ID)}&pn=${encodeURIComponent(HARDCODED_PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-
-    let targetUrl = genericUpi;
-    if (appLabel === 'PhonePe') {
-      targetUrl = `phonepe://pay?pa=${encodeURIComponent(HARDCODED_UPI_ID)}&pn=${encodeURIComponent(HARDCODED_PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
-    } else if (appLabel === 'Paytm') {
-      targetUrl = `paytmmp://pay?pa=${encodeURIComponent(HARDCODED_UPI_ID)}&pn=${encodeURIComponent(HARDCODED_PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(note)}`;
+  // Build launcher URLs to open the app directly by package name on Android (not going to payment portal)
+  const buildAppLauncherUrls = (app: UpiAppConfig) => {
+    if (Platform.OS === 'android' && app.packageName) {
+      // 1. Direct Android package launcher Intent: strictly launches the app itself
+      const launcherIntent = `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${app.packageName};end`;
+      // 2. Direct android-app URI scheme
+      const androidAppUrl = `android-app://${app.packageName}`;
+      // 3. Fallback Play Store link if app is not installed
+      const playStoreUrl = `market://details?id=${app.packageName}`;
+      return {
+        primaryUrl: launcherIntent,
+        secondaryUrl: androidAppUrl,
+        fallbackScheme: app.scheme,
+        storeUrl: playStoreUrl,
+      };
+    } else {
+      // iOS or fallback: direct app scheme
+      return {
+        primaryUrl: app.scheme,
+        secondaryUrl: '',
+        fallbackScheme: app.scheme,
+        storeUrl: '',
+      };
     }
-    // Note: For GPay, generic upi://pay works reliably across all Android/iOS versions without merchant checks
+  };
 
+  // Copy UPI ID to clipboard with visual toast feedback
+  const handleCopyUpiId = async () => {
     try {
-      const canOpen = await Linking.canOpenURL(targetUrl);
-      if (canOpen) {
-        await Linking.openURL(targetUrl);
-      } else {
-        const canGeneric = await Linking.canOpenURL(genericUpi);
-        if (canGeneric) {
-          await Linking.openURL(genericUpi);
-        } else {
-          Alert.alert(
-            'UPI Payment (₹1)',
-            `UPI ID: ${HARDCODED_UPI_ID}\nName: ${HARDCODED_PAYEE_NAME}\nAmount: ₹1\n\nPlease transfer ₹1 to ${HARDCODED_UPI_ID} using Google Pay, PhonePe, or Paytm.`,
-            [
-              { text: 'Copy UPI ID', onPress: () => Alert.alert('Copied', `UPI ID: ${HARDCODED_UPI_ID}`) },
-              { text: 'OK' }
-            ]
-          );
-        }
-      }
-    } catch (e) {
+      await Clipboard.setStringAsync(HARDCODED_UPI_ID);
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 3500);
       Alert.alert(
-        'UPI Payment (₹1)',
-        `UPI ID: ${HARDCODED_UPI_ID}\nName: ${HARDCODED_PAYEE_NAME}\nAmount: ₹1\n\nPay directly via Google Pay, PhonePe, or Paytm to: ${HARDCODED_UPI_ID}`
+        'UPI ID Copied ✓',
+        `${HARDCODED_UPI_ID}\n\nPayee: ${HARDCODED_PAYEE_NAME}\nAmount to pay: ₹${targetFeeAmount.toLocaleString('en-IN')}\n\nYou can now paste this UPI ID directly inside Google Pay, PhonePe, or Paytm.`
+      );
+    } catch {
+      Alert.alert('UPI ID', HARDCODED_UPI_ID);
+    }
+  };
+
+  const handlePayUPI = async (appOrLabel?: string | UpiAppConfig) => {
+    // 1. Determine target app (defaults to Google Pay)
+    let selectedApp = UPI_APPS[0];
+    if (typeof appOrLabel === 'string') {
+      const found = UPI_APPS.find(
+        (a) => a.label.toLowerCase() === appOrLabel.toLowerCase() || a.fullName.toLowerCase() === appOrLabel.toLowerCase()
+      );
+      if (found) selectedApp = found;
+    } else if (appOrLabel) {
+      selectedApp = appOrLabel;
+    }
+
+    // 2. Automatically copy UPI ID to clipboard once user clicks Pay
+    try {
+      await Clipboard.setStringAsync(HARDCODED_UPI_ID);
+      setCopiedToast(true);
+      setTimeout(() => setCopiedToast(false), 3500);
+    } catch (e) {
+      console.warn('Could not copy to clipboard:', e);
+    }
+
+    const { primaryUrl, secondaryUrl, fallbackScheme, storeUrl } = buildAppLauncherUrls(selectedApp);
+
+    let opened = false;
+    // Step A: Launch the app directly using Android package launcher intent (no payment portal)
+    try {
+      await Linking.openURL(primaryUrl);
+      opened = true;
+    } catch {
+      // Step B: Try android-app:// format
+      if (secondaryUrl) {
+        try {
+          await Linking.openURL(secondaryUrl);
+          opened = true;
+        } catch {}
+      }
+      // Step C: Fallback to custom app scheme (e.g. tez://, phonepe://, paytm://)
+      if (!opened && fallbackScheme) {
+        try {
+          const canScheme = await Linking.canOpenURL(fallbackScheme);
+          if (canScheme) {
+            await Linking.openURL(fallbackScheme);
+            opened = true;
+          }
+        } catch {}
+      }
+    }
+
+    if (!opened) {
+      Alert.alert(
+        'UPI ID Copied to Clipboard ✓',
+        `UPI ID: ${HARDCODED_UPI_ID}\nAmount to pay: ₹${targetFeeAmount.toLocaleString('en-IN')}\nPayee: ${HARDCODED_PAYEE_NAME}\n\n${selectedApp.fullName} is not installed on your device or could not be opened automatically.\n\nThe UPI ID has been copied to your clipboard. Please open your payment app and paste ${HARDCODED_UPI_ID} to complete the payment.`,
+        [
+          storeUrl
+            ? {
+                text: 'Get on Play Store',
+                onPress: () => {
+                  Linking.openURL(storeUrl).catch(() => {});
+                },
+              }
+            : { text: 'OK' },
+          { text: 'OK' },
+        ]
       );
     }
 
-    // Auto prompt verification submission modal
-    setTimeout(() => {
-      setUtrInput(`UPI-${Date.now().toString().slice(-6)}`);
-      setVerificationModalVisible(true);
-    }, 1200);
+    // NOTE: Auto-prompt modal removed as requested. User can tap 'Already Paid? Submit UTR →' whenever ready.
   };
 
   const handleSubmitVerification = async () => {
@@ -114,9 +221,9 @@ export default function FeesScreen() {
       setFees(updated);
       setVerificationModalVisible(false);
       Alert.alert(
-        'Submitted for Superadmin Approval',
-        `Your payment proof of ₹1 has been sent to Super Admin Mr. R Madhusudanan.\n\nOnce received and approved, your dashboard and profile will immediately update to Paid.`,
-        [{ text: 'OK' }]
+        'Payment Submitted!',
+        `Your payment proof of ₹${targetFeeAmount.toLocaleString('en-IN')} has been sent to Center Admin.\n\nOnce received and approved, your dashboard and profile will immediately update to Paid.`,
+        [{ text: 'Great!', onPress: () => {} }]
       );
     } catch {
       Alert.alert('Error', 'Could not submit payment. Please try again.');
@@ -132,7 +239,7 @@ export default function FeesScreen() {
       setFees(updated);
       Alert.alert(
         'Superadmin Approved ✓',
-        'Payment of ₹1 has been verified and approved by Mr. R Madhusudanan.\n\nStudent dashboard, home alert banner, and profile status are now cleared and marked as Paid!',
+        `Payment of ₹${targetFeeAmount.toLocaleString('en-IN')} has been verified and approved by Mr. R Madhusudanan.\n\nStudent dashboard, home alert banner, and profile status are now cleared and marked as Paid!`,
         [{ text: 'Awesome' }]
       );
     } catch {
@@ -144,7 +251,7 @@ export default function FeesScreen() {
     try {
       const reset = await DataService.resetFeePayment(rollNo);
       setFees(reset);
-      Alert.alert('Reset', 'Fee status has been reset back to ₹1 Due for testing.');
+      Alert.alert('Reset', `Fee status has been reset back to ₹${targetFeeAmount.toLocaleString('en-IN')} Due for testing.`);
     } catch {}
   };
 
@@ -178,6 +285,16 @@ export default function FeesScreen() {
         </View>
       </View>
 
+      {/* Floating Clipboard Copy Notification Toast */}
+      {copiedToast && (
+        <View style={styles.copiedFloatingToast}>
+          <Ionicons name="checkmark-circle" size={18} color="#34D399" />
+          <Text style={styles.copiedFloatingToastText}>
+            UPI ID <Text style={{ fontFamily: 'Inter_700Bold', color: '#fff' }}>{HARDCODED_UPI_ID}</Text> copied to clipboard!
+          </Text>
+        </View>
+      )}
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
@@ -209,7 +326,7 @@ export default function FeesScreen() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.paidTitle}>September Fees Cleared</Text>
-                  <Text style={styles.paidSub}>Verified by Super Admin Mr. R Madhusudanan ✓</Text>
+                  <Text style={styles.paidSub}>Verified by Center Admin ✓</Text>
                 </View>
                 <View style={styles.receiptBadge}>
                   <Text style={styles.receiptText}>Receipt Active ✓</Text>
@@ -221,11 +338,11 @@ export default function FeesScreen() {
               <View style={styles.paidMetaRow}>
                 <View>
                   <Text style={styles.paidMetaLabel}>Monthly Fee</Text>
-                  <Text style={styles.paidMetaVal}>₹ {fees.monthlyFee || fees.actualDue || 4000}.00</Text>
+                  <Text style={styles.paidMetaVal}>₹ {(fees.monthlyFee || targetFeeAmount).toLocaleString('en-IN')}.00</Text>
                 </View>
                 <View>
-                  <Text style={styles.paidMetaLabel}>Paid (Test UPI)</Text>
-                  <Text style={styles.paidMetaVal}>₹ 1.00 ✓</Text>
+                  <Text style={styles.paidMetaLabel}>Paid (UPI)</Text>
+                  <Text style={styles.paidMetaVal}>₹ {targetFeeAmount.toLocaleString('en-IN')}.00 ✓</Text>
                 </View>
                 <View>
                   <Text style={styles.paidMetaLabel}>Status</Text>
@@ -266,7 +383,7 @@ export default function FeesScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.pendingTitle}>Payment Submitted</Text>
-                <Text style={styles.pendingSub}>₹1 Test UPI • Monthly Fee ₹{fees.monthlyFee || 4000}</Text>
+                <Text style={styles.pendingSub}>₹{targetFeeAmount.toLocaleString('en-IN')} UPI • Monthly Fee ₹{(fees.monthlyFee || targetFeeAmount).toLocaleString('en-IN')}</Text>
               </View>
               <View style={styles.pendingStatusBadge}>
                 <View style={styles.pendingPulse} />
@@ -283,7 +400,7 @@ export default function FeesScreen() {
             ) : null}
 
             <Text style={styles.pendingExplainText}>
-              Your transfer of ₹1 to <Text style={{ fontFamily: 'Inter_700Bold' }}>{HARDCODED_UPI_ID}</Text> is currently queued in the Superadmin portal for confirmation.
+              Your transfer of ₹{targetFeeAmount.toLocaleString('en-IN')} to <Text style={{ fontFamily: 'Inter_700Bold' }}>{HARDCODED_UPI_ID}</Text> is currently queued in the Superadmin portal for confirmation.
             </Text>
 
             {/* Instant Demo Helper */}
@@ -310,7 +427,7 @@ export default function FeesScreen() {
             <View style={styles.dueTopRow}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.dueLabel}>Monthly Tuition Fee</Text>
-                <Text style={styles.dueAmount}>₹ {fees.monthlyFee || fees.actualDue || 4000}.00</Text>
+                <Text style={styles.dueAmount}>₹ {targetFeeAmount.toLocaleString('en-IN')}.00</Text>
                 <Text style={styles.dueDateText}>
                   Due on {fees.dueDate} {fees.joiningDate ? `• Joined: ${fees.joiningDate}` : ''}
                 </Text>
@@ -345,14 +462,14 @@ export default function FeesScreen() {
               onPress={() => handlePayUPI('G Pay')}
               activeOpacity={0.85}
             >
-              <Ionicons name="flash" size={15} color="#fff" />
-              <Text style={styles.duePayBtnText}>Pay ₹1 with GPay / UPI</Text>
+              <Ionicons name="logo-google" size={16} color="#fff" />
+              <Text style={styles.duePayBtnText}>Open Google Pay</Text>
             </TouchableOpacity>
 
             <View style={styles.dueSecondaryActionRow}>
               <TouchableOpacity
                 style={styles.actionPillBtn}
-                onPress={() => Alert.alert('UPI ID Copied', `${HARDCODED_UPI_ID}\n\nYou can transfer ₹1 directly inside Google Pay, PhonePe, or Paytm.`)}
+                onPress={handleCopyUpiId}
                 activeOpacity={0.75}
               >
                 <Ionicons name="copy-outline" size={13} color={Colors.primary} />
@@ -440,21 +557,25 @@ export default function FeesScreen() {
         <View style={styles.card}>
           <View style={styles.payHeader}>
             <View>
-              <Text style={styles.payTitle}>Pay Instantly</Text>
-              <Text style={styles.paySub}>Google Pay, PhonePe, Paytm or UPI</Text>
+              <Text style={styles.payTitle}>Open Payment App</Text>
+              <Text style={styles.paySub}>Launches app directly • Copies UPI ID automatically</Text>
             </View>
-            <Text style={styles.payTagline}>Quick{'\n'}Secure{'\n'}Hassle-free ✓</Text>
+            <View style={styles.payDirectBadge}>
+              <Text style={styles.payDirectBadgeText}>₹{targetFeeAmount.toLocaleString('en-IN')}</Text>
+              <Text style={styles.payDirectBadgeSub}>Set Fee</Text>
+            </View>
           </View>
           <View style={styles.upiRow}>
             {UPI_APPS.map((app) => (
               <TouchableOpacity
                 key={app.label}
                 style={[styles.upiBtn, { backgroundColor: app.bg }]}
-                onPress={() => handlePayUPI(app.label)}
+                onPress={() => handlePayUPI(app)}
                 activeOpacity={0.8}
               >
                 <Ionicons name={app.icon as any} size={20} color={app.color} />
                 <Text style={[styles.upiLabel, { color: app.color }]}>{app.label}</Text>
+                <Text style={styles.upiDirectTag} numberOfLines={1}>Direct</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -494,18 +615,20 @@ export default function FeesScreen() {
             <View key={i} style={[styles.paymentRow, i < fees.recentPayments.length - 1 && styles.paymentRowBorder]}>
               <View style={styles.monthBadge}>
                 <Text style={styles.monthBadgeText}>{p.month}</Text>
-                <Ionicons name="calendar-outline" size={14} color={Colors.primary} />
+                <Ionicons name="calendar-outline" size={13} color={Colors.primary} />
               </View>
               <View style={styles.paymentInfo}>
                 <Text style={styles.paymentMonth}>{p.fullMonth}</Text>
                 <Text style={styles.paymentDate}>Paid on {p.paidOn}</Text>
               </View>
-              <Text style={styles.paymentAmount}>₹ {p.amount.toLocaleString('en-IN')}</Text>
-              <View style={[styles.onTimeBadge, { backgroundColor: p.onTime ? Colors.greenLight : Colors.redLight }]}>
-                <Ionicons name={p.onTime ? 'checkmark' : 'close'} size={12} color={p.onTime ? Colors.green : Colors.red} />
-                <Text style={[styles.onTimeText, { color: p.onTime ? Colors.green : Colors.red }]}>
-                  {p.onTime ? 'On\nTime' : 'Late'}
-                </Text>
+              <View style={styles.paymentRightCol}>
+                <Text style={styles.paymentAmount}>₹ {p.amount.toLocaleString('en-IN')}</Text>
+                <View style={[styles.onTimeBadge, { backgroundColor: p.onTime ? Colors.greenLight : Colors.redLight }]}>
+                  <Ionicons name={p.onTime ? 'checkmark-circle' : 'time-outline'} size={11} color={p.onTime ? Colors.green : Colors.red} />
+                  <Text style={[styles.onTimeText, { color: p.onTime ? Colors.green : Colors.red }]}>
+                    {p.onTime ? 'On Time' : 'Late'}
+                  </Text>
+                </View>
               </View>
             </View>
           ))}
@@ -528,7 +651,7 @@ export default function FeesScreen() {
                 <View style={[styles.logoBox, { width: 30, height: 30, backgroundColor: Colors.primary }]}>
                   <Ionicons name="receipt-outline" size={16} color="#fff" />
                 </View>
-                <Text style={styles.modalHeaderTitle}>Submit ₹1 UPI Proof</Text>
+                <Text style={styles.modalHeaderTitle}>Submit ₹{targetFeeAmount.toLocaleString('en-IN')} UPI Proof</Text>
               </View>
               <TouchableOpacity
                 style={styles.modalCloseBtn}
@@ -539,7 +662,7 @@ export default function FeesScreen() {
             </View>
 
             <Text style={styles.modalDesc}>
-              Once submitted, Super Admin Mr. R Madhusudanan will verify your ₹1 transfer to{' '}
+              Once submitted, Center Admin will verify your ₹{targetFeeAmount.toLocaleString('en-IN')} transfer to{' '}
               <Text style={{ fontFamily: 'Inter_700Bold', color: Colors.primary }}>{HARDCODED_UPI_ID}</Text> and unlock your cleared status.
             </Text>
 
@@ -573,7 +696,7 @@ export default function FeesScreen() {
               activeOpacity={0.8}
             >
               <Ionicons name="shield-checkmark" size={14} color={Colors.green} />
-              <Text style={styles.instantSimulateText}>⚡ Instant Superadmin Approval (Test Mode)</Text>
+              <Text style={styles.instantSimulateText}>⚡ Instant Admin Approval (Test Mode)</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -595,7 +718,7 @@ export default function FeesScreen() {
                 </View>
                 <View>
                   <Text style={styles.modalHeaderTitle}>All Payment Receipts</Text>
-                  <Text style={styles.historySubtitle}>Verified by Super Admin Mr. R Madhusudanan</Text>
+                  <Text style={styles.historySubtitle}>Verified by Center Admin</Text>
                 </View>
               </View>
               <TouchableOpacity
@@ -1224,10 +1347,63 @@ const styles = StyleSheet.create({
   paymentInfo: { flex: 1 },
   paymentMonth: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   paymentDate: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', marginTop: 1 },
-  paymentAmount: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  paymentRightCol: { alignItems: 'flex-end', justifyContent: 'center', gap: 4 },
+  paymentAmount: { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   onTimeBadge: {
-    alignItems: 'center', justifyContent: 'center', borderRadius: 8,
-    paddingHorizontal: 8, paddingVertical: 4, flexDirection: 'row', gap: 2,
+    alignItems: 'center', justifyContent: 'center', borderRadius: 6,
+    paddingHorizontal: 7, paddingVertical: 2.5, flexDirection: 'row', gap: 3,
   },
   onTimeText: { fontSize: 10, fontFamily: 'Inter_600SemiBold' },
+
+  // Toast & Direct Pay Badges
+  copiedFloatingToast: {
+    position: 'absolute',
+    top: 60,
+    left: 16,
+    right: 16,
+    zIndex: 999,
+    backgroundColor: '#064E3B',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  copiedFloatingToastText: {
+    color: '#ECFDF5',
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    flex: 1,
+  },
+  payDirectBadge: {
+    alignItems: 'flex-end',
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+  },
+  payDirectBadgeText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.primary,
+  },
+  payDirectBadgeSub: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  upiDirectTag: {
+    fontSize: 8.5,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textMuted,
+    marginTop: -2,
+  },
 });

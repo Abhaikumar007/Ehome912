@@ -47,7 +47,7 @@ const categories = [
     tagColors: [Colors.greenLight, Colors.greenLight],
     tagTextColors: [Colors.teal, Colors.teal],
     route: '/(student)/mock-tests',
-    comingSoon: true,
+    comingSoon: false,
   },
 ];
 

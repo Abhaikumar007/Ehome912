@@ -274,7 +274,7 @@ export default function ProfileScreen() {
             <View style={styles.statItem}>
               <Ionicons name="trophy" size={18} color={Colors.amber} />
               <Text style={styles.statValue}>{topPercent > 0 ? `Top\n${topPercent}%` : '—'}</Text>
-              <Text style={styles.statLabel}>Among{'\n'}{studentClass}</Text>
+              <Text style={styles.statLabel}>{topPercent > 0 ? `Among\n${studentClass}` : 'Percentile\nRank'}</Text>
             </View>
           </View>
         </View>

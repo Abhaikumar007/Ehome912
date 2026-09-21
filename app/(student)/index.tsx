@@ -38,7 +38,7 @@ const badgeStyles = StyleSheet.create({
 const HOME_TEACHER_OPINIONS = [
   {
     teacher: 'Mr. R Madhusudanan',
-    subject: 'Physics (Super Admin)',
+    subject: 'Physics (Senior Faculty)',
     remark: 'Arjun demonstrates disciplined attendance in Physics. Excellent grasp of ray diagrams and formulas.',
   },
   {
@@ -75,7 +75,7 @@ export default function DashboardScreen() {
   const loadData = async () => {
     try {
       const [cls, anns, att, fees, alert, opinions, notifs] = await Promise.all([
-        DataService.getClasses(rollNo),
+        DataService.getClasses(rollNo, student?.class),
         DataService.getAnnouncements(),
         DataService.getAttendance(rollNo),
         DataService.getFees(rollNo),
@@ -100,9 +100,9 @@ export default function DashboardScreen() {
   useEffect(() => {
     loadData();
 
-    // Supabase Realtime listener: instant pop-up when admin broadcasts an announcement or alert
+    // Supabase Realtime listener: instant updates when admin/faculty submits attendance, announcements or alerts
     const channel = supabase
-      .channel('student_announcements_realtime')
+      .channel('student_dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
         console.log('[Realtime] Announcement change detected:', payload);
         DataService.getAnnouncements(true).then((anns) => {
@@ -114,12 +114,22 @@ export default function DashboardScreen() {
           if (alt) setAcademicAlert(alt);
         });
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records', filter: `roll_no=eq.${rollNo}` }, () => {
+        DataService.getAttendance(rollNo).then((att) => {
+          if (att) setAttSummary(att);
+        });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
+        DataService.getClasses(rollNo, student?.class).then((cls) => {
+          if (cls) setClasses(cls);
+        });
+      })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [rollNo]);
+  }, [rollNo, student?.class]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -129,41 +139,28 @@ export default function DashboardScreen() {
     setRefreshing(false);
   };
 
-  const today = new Date(2026, 8, 9); // Sep 9 2026
+  const today = new Date();
   today.setDate(today.getDate() + dateOffset);
   const dateLabel = today.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+  const currentDateIso = `${year}-${month}-${day}`;
 
   // Dynamic day-based classes and attendance history
   const getDayClasses = (offset: number) => {
-    if (offset === 0) {
-      return classes.filter((cls: any) => cls.published !== false);
-    } else if (offset === -1) {
-      return [
-        { id: 'y1', time: '09:00 AM – 10:30 AM', subject: 'Physics', status: 'present', published: true },
-        { id: 'y2', time: '11:00 AM – 12:30 PM', subject: 'Mathematics', status: 'present', published: true },
-        { id: 'y3', time: '02:00 PM – 03:30 PM', subject: 'Chemistry', status: 'present', published: true },
-        { id: 'y4', time: '04:00 PM – 05:30 PM', subject: 'Biology', status: 'present', published: true },
-      ];
-    } else if (offset === -2) {
-      return [
-        { id: 'm1', time: '09:00 AM – 10:30 AM', subject: 'Physics', status: 'present', published: true },
-        { id: 'm2', time: '11:00 AM – 12:30 PM', subject: 'Mathematics', status: 'present', published: true },
-        { id: 'm3', time: '04:00 PM – 05:30 PM', subject: 'Biology', status: 'present', published: true },
-      ];
-    } else if (offset === -4) {
-      return [
-        { id: 's1', time: '02:00 PM – 03:30 PM', subject: 'Chemistry', status: 'present', published: true },
-        { id: 's2', time: '04:00 PM – 05:30 PM', subject: 'Biology', status: 'absent', published: true },
-      ];
-    } else if (offset === -5) {
-      return [
-        { id: 'f1', time: '09:00 AM – 10:30 AM', subject: 'Physics', status: 'present', published: true },
-        { id: 'f2', time: '11:00 AM – 12:30 PM', subject: 'Mathematics', status: 'present', published: true },
-        { id: 'f3', time: '02:00 PM – 03:30 PM', subject: 'Chemistry', status: 'present', published: true },
-        { id: 'f4', time: '04:00 PM – 05:30 PM', subject: 'Biology', status: 'present', published: true },
-      ];
-    }
-    return [];
+    const seen = new Set<string>();
+    return classes.filter((cls: any) => {
+      if (cls.published === false) return false;
+      const matchesDate = cls.class_date ? (cls.class_date === currentDateIso) : (offset === 0);
+      if (!matchesDate) return false;
+      const normSubject = (cls.subject || '').trim().toLowerCase();
+      const normTime = (cls.time || '').replace(/[\s\u2013\u2014\-]/g, '').toLowerCase();
+      const key = `${normSubject}_${normTime}_${cls.class_date || currentDateIso}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   };
 
   const displayedClasses = getDayClasses(dateOffset);
@@ -226,10 +223,10 @@ export default function DashboardScreen() {
             <Text style={styles.greetMotivation}>Keep going, every step counts!</Text>
           </View>
           <View style={styles.characterBox}>
-            {(student?.accuracy && student?.streak) || 16 ? (
+            {student?.accuracy && student?.streak ? (
               <View style={{ alignItems: 'center' }}>
-                <Text style={styles.improvementNumber}>+16%</Text>
-                <Text style={styles.improvementLabel}>Improved</Text>
+                <Text style={styles.improvementNumber}>+{student.streak}%</Text>
+                <Text style={styles.improvementLabel}>Streak</Text>
               </View>
             ) : (
               <Text style={styles.characterText}>You{'\n'}Can Do It!</Text>
@@ -320,13 +317,19 @@ export default function DashboardScreen() {
             </View>
           </View>
           {displayedClasses.length > 0 ? (
-            displayedClasses.map((cls, i) => (
-              <View key={cls.id} style={[styles.classRow, i < displayedClasses.length - 1 && styles.classRowBorder]}>
-                <Text style={styles.classTime}>{cls.time}</Text>
-                <Text style={styles.classSubject}>{cls.subject}</Text>
-                <StatusBadge status={cls.status as ClassStatus} />
-              </View>
-            ))
+            displayedClasses.map((cls, i) => {
+              const subAtt = attSummary?.todaySubjects?.find(
+                (s: any) => s.subject && cls.subject && s.subject.trim().toLowerCase() === cls.subject.trim().toLowerCase()
+              );
+              const effectiveStatus = (subAtt?.status || cls.status || 'upcoming') as ClassStatus;
+              return (
+                <View key={cls.id || `${cls.subject}_${i}`} style={[styles.classRow, i < displayedClasses.length - 1 && styles.classRowBorder]}>
+                  <Text style={styles.classTime}>{cls.time}</Text>
+                  <Text style={styles.classSubject}>{cls.subject}</Text>
+                  <StatusBadge status={effectiveStatus} />
+                </View>
+              );
+            })
           ) : (
             <View style={styles.noClassWrap}>
               <Ionicons name={isSunday ? "sunny-outline" : "calendar-outline"} size={28} color={Colors.textMuted} />
@@ -355,7 +358,9 @@ export default function DashboardScreen() {
               <View style={styles.pendingDot} />
               <Ionicons name="time-outline" size={18} color="#D97706" />
               <View>
-                <Text style={styles.feesPendingTitle}>₹1 Payment Verification Pending</Text>
+                <Text style={styles.feesPendingTitle}>
+                  ₹{(feesSummary.monthlyFee || feesSummary.actualDue || feesSummary.currentDue || 4000).toLocaleString('en-IN')} Payment Verification Pending
+                </Text>
                 <Text style={styles.feesPendingSub}>Superadmin is reviewing your UPI transaction</Text>
               </View>
             </View>
@@ -438,15 +443,15 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             </View>
-            <View style={styles.attBadge}>
-              <View style={styles.attDot} />
-              <Text style={styles.attBadgeText}>
-                {attSummary.total > 0 ? `${attSummary.overall}% On Track` : '— %'}
+            <View style={attSummary.total > 0 ? styles.attBadge : styles.attBadgeBlank}>
+              {attSummary.total > 0 && <View style={styles.attDot} />}
+              <Text style={attSummary.total > 0 ? styles.attBadgeText : styles.attBadgeTextBlank}>
+                {attSummary.total > 0 ? `${attSummary.overall}% On Track` : '—'}
               </Text>
             </View>
           </View>
           <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${attSummary.overall}%` }]} />
+            <View style={[styles.progressBarFill, { width: `${attSummary.total > 0 ? attSummary.overall : 0}%` }]} />
           </View>
           <View style={styles.viewLogsRow}>
             <Text style={styles.viewLogsText}>View Logs →</Text>
@@ -802,6 +807,10 @@ const styles = StyleSheet.create({
   },
   attDot: { width: 7, height: 7, borderRadius: 3.5, backgroundColor: Colors.green },
   attBadgeText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.green },
+  attBadgeBlank: {
+    backgroundColor: '#F1F5F9', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4,
+  },
+  attBadgeTextBlank: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textMuted },
 
   progressBarBg: {
     height: 8, borderRadius: 4, backgroundColor: Colors.borderLight, marginTop: 4, marginBottom: 8,

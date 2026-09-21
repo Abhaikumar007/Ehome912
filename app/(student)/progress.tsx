@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Dimensions, RefreshControl, Image,
+  Dimensions, RefreshControl, Image, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -71,6 +71,7 @@ export default function ProgressScreen() {
   const [activeFilter, setActiveFilter] = useState<SubjectFilter>('Overall');
   const [remoteProgress, setRemoteProgress] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [mistakesModalVisible, setMistakesModalVisible] = useState(false);
 
   const rollNo = student?.rollNo || '2024-JEE-0842';
 
@@ -265,15 +266,15 @@ export default function ProgressScreen() {
               </View>
               <Text style={styles.chartTitle}>{activeFilter === 'Overall' ? 'Accuracy & Mistakes' : `${activeFilter} Accuracy & Mistakes`}</Text>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setMistakesModalVisible(true)} activeOpacity={0.7}>
               <Text style={styles.viewAll}>View Details &gt;</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.donutWrap}>
-            <DonutChart pct={currentData.accuracy} size={110} />
+            <DonutChart pct={currentData.testsAttended > 0 ? currentData.accuracy : 0} size={110} />
             <View style={styles.donutCenter}>
-              <Text style={styles.donutPct}>{currentData.accuracy}%</Text>
+              <Text style={styles.donutPct}>{currentData.testsAttended > 0 ? `${currentData.accuracy}%` : '—'}</Text>
               <Text style={styles.donutLabel}>Accuracy</Text>
             </View>
           </View>
@@ -282,12 +283,16 @@ export default function ProgressScreen() {
             <View style={styles.accuracyItem}>
               <View style={[styles.legendDot, { backgroundColor: Colors.green }]} />
               <Text style={styles.accuracyText}>Correct:&nbsp;</Text>
-              <Text style={[styles.accuracyText, { fontFamily: 'Inter_700Bold' }]}>{currentData.accuracy}%</Text>
+              <Text style={[styles.accuracyText, { fontFamily: 'Inter_700Bold' }]}>
+                {currentData.testsAttended > 0 ? `${currentData.accuracy}%` : '—'}
+              </Text>
             </View>
             <View style={styles.accuracyItem}>
               <View style={[styles.legendDot, { backgroundColor: Colors.red }]} />
               <Text style={styles.accuracyText}>Incorrect:&nbsp;</Text>
-              <Text style={[styles.accuracyText, { fontFamily: 'Inter_700Bold' }]}>{currentData.incorrect}%</Text>
+              <Text style={[styles.accuracyText, { fontFamily: 'Inter_700Bold' }]}>
+                {currentData.testsAttended > 0 ? `${currentData.incorrect}%` : '—'}
+              </Text>
             </View>
           </View>
 
@@ -316,7 +321,7 @@ export default function ProgressScreen() {
               </View>
               <Text style={styles.chartTitle}>Practice & Tests</Text>
             </View>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => router.push('/(student)/mock-tests')}>
               <Text style={styles.viewAll}>View All &gt;</Text>
             </TouchableOpacity>
           </View>
@@ -329,7 +334,7 @@ export default function ProgressScreen() {
             ].map((item) => (
               <View key={item.label} style={styles.practiceItem}>
                 <Ionicons name={item.icon as any} size={22} color={item.color} />
-                <Text style={styles.practiceValue}>{item.value}</Text>
+                <Text style={styles.practiceValue}>{item.value > 0 ? item.value : '—'}</Text>
                 <Text style={styles.practiceLabel}>{item.label}</Text>
               </View>
             ))}
@@ -347,6 +352,96 @@ export default function ProgressScreen() {
 
         <View style={{ height: 20 }} />
       </ScrollView>
+
+      {/* Accuracy & Most Common Mistakes Details Modal */}
+      <Modal
+        visible={mistakesModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setMistakesModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <View style={[styles.cardIconBox, { backgroundColor: Colors.greenLight }]}>
+                  <Ionicons name="analytics-outline" size={18} color={Colors.green} />
+                </View>
+                <View>
+                  <Text style={styles.modalTitle}>Accuracy & Mistakes Analysis</Text>
+                  <Text style={styles.modalSub}>{activeFilter} Performance Breakdown</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => setMistakesModalVisible(false)}
+                style={styles.modalCloseBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={20} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 420 }}>
+              {currentData.testsAttended > 0 ? (
+                <>
+                  <View style={styles.modalStatsRow}>
+                    <View style={styles.modalStatBox}>
+                      <Text style={styles.modalStatVal}>{currentData.accuracy}%</Text>
+                      <Text style={styles.modalStatLbl}>Overall Accuracy</Text>
+                    </View>
+                    <View style={styles.modalStatBox}>
+                      <Text style={[styles.modalStatVal, { color: Colors.green }]}>{currentData.accuracy}%</Text>
+                      <Text style={styles.modalStatLbl}>Correct Rate</Text>
+                    </View>
+                    <View style={styles.modalStatBox}>
+                      <Text style={[styles.modalStatVal, { color: Colors.red }]}>{currentData.incorrect}%</Text>
+                      <Text style={styles.modalStatLbl}>Error Rate</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.modalSectionHeading}>⚠️ Frequency Breakdown of Mistakes</Text>
+                  {currentData.commonMistakes.length > 0 ? (
+                    currentData.commonMistakes.map((m: any) => (
+                      <View key={m.rank} style={styles.modalMistakeCard}>
+                        <View style={styles.modalMistakeHeader}>
+                          <View style={styles.mistakeRank}><Text style={styles.mistakeRankText}>{m.rank}</Text></View>
+                          <Text style={styles.modalMistakeTitle}>{m.text}</Text>
+                        </View>
+                        <Text style={styles.modalMistakeCount}>Repeated in tests: {m.count} times</Text>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.modalEmptyText}>No specific recurring errors recorded for {activeFilter}.</Text>
+                  )}
+
+                  <View style={styles.modalTipBox}>
+                    <Ionicons name="bulb-outline" size={18} color="#D97706" />
+                    <Text style={styles.modalTipText}>
+                      Faculty Advice: Focus on chapter revision notes in Study Materials before your next mock test.
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.modalEmptyWrap}>
+                  <Ionicons name="bar-chart-outline" size={44} color={Colors.textMuted} />
+                  <Text style={styles.modalEmptyTitle}>No Evaluation Data Yet</Text>
+                  <Text style={styles.modalEmptySub}>
+                    Your comprehensive mistake patterns, chapter-wise accuracy, and remedial tips will automatically appear here once faculty evaluates your tests.
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalDismissBtn}
+              onPress={() => setMistakesModalVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalDismissBtnText}>Close Analysis</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -446,4 +541,90 @@ const styles = StyleSheet.create({
   inspiQuote: { fontSize: 15, fontFamily: 'Inter_700Bold', color: '#fff', lineHeight: 22, marginBottom: 10 },
   inspiTagWrap: { backgroundColor: 'rgba(255,255,255,0.15)', alignSelf: 'flex-start', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
   inspiTag: { fontSize: 11, color: '#fff', fontFamily: 'Inter_500Medium' },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 18,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 520,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+    marginBottom: 14,
+  },
+  modalTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  modalSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 1 },
+  modalCloseBtn: { padding: 4, borderRadius: 16, backgroundColor: Colors.borderLight },
+
+  modalStatsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
+  modalStatBox: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  modalStatVal: { fontSize: 18, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
+  modalStatLbl: { fontSize: 10, fontFamily: 'Inter_500Medium', color: Colors.textMuted, marginTop: 2 },
+
+  modalSectionHeading: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 10 },
+  modalMistakeCard: {
+    backgroundColor: '#FFF7ED',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FED7AA',
+  },
+  modalMistakeHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  modalMistakeTitle: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#9A3412', flex: 1 },
+  modalMistakeCount: { fontSize: 11, fontFamily: 'Inter_400Regular', color: '#C2410C', paddingLeft: 30 },
+  modalEmptyText: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, marginVertical: 10 },
+
+  modalTipBox: {
+    flexDirection: 'row',
+    gap: 8,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  modalTipText: { flex: 1, fontSize: 11.5, fontFamily: 'Inter_500Medium', color: '#92400E', lineHeight: 16 },
+
+  modalEmptyWrap: { alignItems: 'center', justifyContent: 'center', paddingVertical: 28, gap: 8 },
+  modalEmptyTitle: { fontSize: 15, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  modalEmptySub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, textAlign: 'center', paddingHorizontal: 16, lineHeight: 17 },
+
+  modalDismissBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 16,
+  },
+  modalDismissBtnText: { color: '#fff', fontSize: 13, fontFamily: 'Inter_600SemiBold' },
 });

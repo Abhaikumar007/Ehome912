@@ -93,10 +93,14 @@ export default function AttendanceScreen() {
   // Dynamic day-based attendance calculation
   const getDayAttendance = (offset: number) => {
     if (offset === 0) {
+      const todayList = attendance.todaySubjects || [];
+      const presentCnt = todayList.filter((s: any) => s.status === 'present').length;
+      const totalCnt = todayList.length;
+      const pct = totalCnt > 0 ? Math.round((presentCnt / totalCnt) * 100) : 0;
       return {
-        subjects: attendance.todaySubjects,
-        sessionCount: '3 of 4 Sessions Attended (75%)',
-        statusSummary: '3 Present, 1 Absent',
+        subjects: todayList,
+        sessionCount: totalCnt > 0 ? `${presentCnt} of ${totalCnt} Sessions Attended (${pct}%)` : 'No sessions recorded yet today',
+        statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : 'Attendance pending',
         isHoliday: false,
       };
     } else if (offset === -1) {

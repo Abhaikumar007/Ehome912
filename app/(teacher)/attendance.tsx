@@ -26,6 +26,7 @@ const INITIAL_CLASSES = [
   { id: 'c1', label: 'Class 10-A (Physics)', batch: 'Batch A • Optics & Lenses', studentsCount: 42 },
   { id: 'c2', label: 'Class 10-B (Chemistry)', batch: 'Batch B • Chemical Reactions', studentsCount: 38 },
   { id: 'c3', label: 'Class 11-A (Maths)', batch: 'Batch A • Quadratic Calculus', studentsCount: 35 },
+  { id: 'c4', label: 'Class 12-JEE (Physics & Chem)', batch: 'Target JEE • Advanced Batch', studentsCount: 40 },
 ];
 
 // Map class label to EDUSYNC class name for filtering
@@ -33,6 +34,7 @@ const CLASS_MAP: Record<string, string> = {
   'c1': 'Class 10',
   'c2': 'Class 10',
   'c3': 'Class 11',
+  'c4': 'Class 12',
 };
 
 export default function FacultyAttendanceScreen() {
@@ -173,7 +175,7 @@ export default function FacultyAttendanceScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingSmall}>Good Afternoon,</Text>
             <Text style={styles.teacherName}>Mr. R Madhusudanan</Text>
-            <Text style={styles.teacherSub}>Super Admin • Physics & Chemistry</Text>
+            <Text style={styles.teacherSub}>Senior Faculty • Physics & Chemistry</Text>
           </View>
 
           <View style={styles.dateNavPill}>

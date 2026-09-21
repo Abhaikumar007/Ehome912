@@ -14,12 +14,7 @@ export const studentData = {
 
 // ─── TODAY'S CLASSES ──────────────────────────────────────────────────────────
 
-export const todaysClasses = [
-  { id: '1', time: '5:00 PM – 6:00 PM',  subject: 'Physics',   status: 'present',  published: true },
-  { id: '2', time: '6:00 PM – 7:00 PM',  subject: 'Chemistry', status: 'absent',   published: true },
-  { id: '3', time: '7:00 PM – 8:00 PM',  subject: 'Maths',     status: 'upcoming', published: true },
-  { id: '4', time: '8:00 PM – 9:00 PM',  subject: 'Biology',   status: 'upcoming', published: true },
-];
+export const todaysClasses: any[] = [];
 
 // ─── ATTENDANCE ───────────────────────────────────────────────────────────────
 
@@ -34,7 +29,7 @@ export const attendanceData = {
 // ─── FEES ────────────────────────────────────────────────────────────────────
 
 export const feesData = {
-  currentDue: 1, // placeholder; actual amount loaded from EDUSYNC_FEES per student
+  currentDue: 0, // placeholder; actual amount loaded from EDUSYNC_FEES per student
   monthlyFee: 0, // loaded from student record
   actualDue: 0,
   dueDate: '—',
@@ -120,7 +115,7 @@ export const studyMaterials = [
 
 export const teacherData = {
   name: 'Mr. R Madhusudanan',
-  role: 'Super Admin',
+  role: 'Faculty',
   subjects: 'Physics & Chemistry',
   avatar: 'RM',
   date: 'Tue, 9 Sep 2026',
@@ -128,6 +123,7 @@ export const teacherData = {
     { id: 'c1', label: 'Class 10-A (Physics)',    active: true },
     { id: 'c2', label: 'Class 10-B (Chemistry)',  active: false },
     { id: 'c3', label: 'Class 11-A (Maths)',      active: false },
+    { id: 'c4', label: 'Class 12-JEE (Physics & Chem)', active: false },
   ],
   summary: { total: 42, present: 38, absent: 4 },
   students: [
