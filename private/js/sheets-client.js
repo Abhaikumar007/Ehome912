@@ -556,16 +556,7 @@ window.sb_saveAttendance = async function (attData) {
                 const rollNo = r.rollNo || r.studentId;
                 const isPresent = r.status === 'present';
 
-                // Insert into classes table (session record)
-                await sb.from('classes').insert({
-                    roll_no: rollNo,
-                    class_grade: attData.className || 'Class 10',
-                    subject: attData.subject || 'General',
-                    time: r.lateMinutes ? ('Late ' + r.lateMinutes) : 'On Time',
-                    status: isPresent ? 'present' : 'absent',
-                    class_date: attData.date || new Date().toISOString().split('T')[0],
-                    published: true
-                });
+                // (Attendance is tracked in attendance_records, keeping classes table strictly for timetables)
 
                 // Update student's attendance_records
                 const { data: curAtt } = await sb.from('attendance_records')

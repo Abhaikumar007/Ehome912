@@ -25,14 +25,31 @@ async function refreshMasterData() {
         tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading student records from storage...</td></tr>';
     }
 
-    // Load from local storage or cloud
-    let students = JSON.parse(localStorage.getItem('students')) || [];
-    if (students.length === 0 && typeof sb_getStudents === 'function') {
-        students = await sb_getStudents();
+    // Always fetch deduplicated list
+    let students = [];
+    if (typeof getStudents === 'function') {
+        students = getStudents();
+    } else {
+        students = JSON.parse(localStorage.getItem('students')) || [];
     }
 
-    currentStudents = JSON.parse(JSON.stringify(students));
-    originalStudents = JSON.parse(JSON.stringify(students));
+    // Extra deduplication safeguard to guarantee no duplicate rows
+    const uniqueMap = new Map();
+    students.forEach(s => {
+        const roll = (s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
+        const normName = (s.name || '').toLowerCase().trim();
+        const key = roll ? roll : (normName + '_' + (s.class || '10'));
+        if (!uniqueMap.has(key)) {
+            uniqueMap.set(key, s);
+        }
+    });
+
+    const uniqueStudents = Array.from(uniqueMap.values());
+    currentStudents = JSON.parse(JSON.stringify(uniqueStudents));
+    originalStudents = JSON.parse(JSON.stringify(uniqueStudents));
+
+    // Save cleaned list so localStorage is permanently de-duplicated
+    try { localStorage.setItem('students', JSON.stringify(uniqueStudents)); } catch (e) {}
 
     renderMasterGrid(currentStudents);
     updateFeeSummary();

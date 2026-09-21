@@ -746,62 +746,68 @@ function getStudents() {
         if (stored) list = JSON.parse(stored);
     } catch (e) {}
 
-    // If completely empty, seed directly from master roster
-    if (!Array.isArray(list) || list.length === 0) {
-        list = JSON.parse(JSON.stringify(MASTER_STUDENTS_ROSTER));
-        try { localStorage.setItem('students', JSON.stringify(list)); } catch (e) {}
-        return list;
+    // Deduplicate and consolidate any duplicates by rollNo, name, or phone
+    const masterMapByName = new Map();
+    const masterMapByRoll = new Map();
+    if (typeof MASTER_STUDENTS_ROSTER !== 'undefined' && Array.isArray(MASTER_STUDENTS_ROSTER)) {
+        MASTER_STUDENTS_ROSTER.forEach(m => {
+            if (m.name) masterMapByName.set(m.name.toLowerCase().trim(), m);
+            if (m.rollNo) masterMapByRoll.set(m.rollNo.toUpperCase().trim(), m);
+            if (m.id) masterMapByRoll.set(m.id.toUpperCase().trim(), m);
+        });
     }
 
-    // Hydrate any missing subjects/amounts from master roster
-    const masterMap = new Map(MASTER_STUDENTS_ROSTER.map(m => [m.id || m.rollNo, m]));
+    const finalMap = new Map();
     let needsSave = false;
 
-    const merged = list.map(s => {
-        const key = s.id || s.rollNo;
-        const master = masterMap.get(key);
-        if (!master) {
-            if (!s.subjects || !Array.isArray(s.subjects) || s.subjects.length === 0) {
-                s.subjects = ['General Tuition'];
+    // Process stored students and merge duplicates
+    if (Array.isArray(list) && list.length > 0) {
+        list.forEach(s => {
+            const normName = (s.name || '').toLowerCase().trim();
+            const roll = (s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
+            const master = masterMapByRoll.get(roll) || masterMapByName.get(normName);
+
+            // Canonical key: prefer official master rollNo, or normalized name + class
+            const key = master ? (master.rollNo || master.id) : (normName ? normName + '_' + (s.class || '10') : roll);
+            if (!key) return;
+
+            if (!finalMap.has(key)) {
+                finalMap.set(key, {
+                    id: master ? (master.rollNo || master.id) : (s.id || roll),
+                    rollNo: master ? master.rollNo : (s.rollNo || roll),
+                    name: master ? master.name : (s.name || 'Student'),
+                    class: String(master ? master.class : (s.class || '10')).replace('Class ', '').trim(),
+                    school: master ? master.school : (s.school || 'EduHome Campus'),
+                    phone: master ? master.phone : (s.phone || ''),
+                    joiningDate: master ? master.joiningDate : (s.joiningDate || '2026-01-15'),
+                    amount: master ? String(master.amount) : String(s.amount || 4000),
+                    subjects: (master && master.subjects && master.subjects.length > 0)
+                        ? master.subjects
+                        : (Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects : ['General Tuition'])
+                });
+            } else {
+                needsSave = true; // Consolidating a duplicate
             }
-            return s;
-        }
-
-        const copy = { ...s };
-        if (!copy.subjects || !Array.isArray(copy.subjects) || copy.subjects.length === 0) {
-            copy.subjects = master.subjects;
-            needsSave = true;
-        }
-        if (!copy.amount || copy.amount === '-' || copy.amount === '') {
-            copy.amount = master.amount;
-            needsSave = true;
-        }
-        if (!copy.joiningDate) {
-            copy.joiningDate = master.joiningDate;
-            needsSave = true;
-        }
-        if (!copy.school || copy.school === 'EduHome Campus') {
-            copy.school = master.school;
-            needsSave = true;
-        }
-        return copy;
-    });
-
-    // Ensure any students from master that are missing are also added
-    const existingIds = new Set(merged.map(s => s.id || s.rollNo));
-    MASTER_STUDENTS_ROSTER.forEach(m => {
-        const k = m.id || m.rollNo;
-        if (!existingIds.has(k)) {
-            merged.push(JSON.parse(JSON.stringify(m)));
-            needsSave = true;
-        }
-    });
-
-    if (needsSave) {
-        try { localStorage.setItem('students', JSON.stringify(merged)); } catch (e) {}
+        });
     }
 
-    return merged;
+    // Ensure all 50 students from master roster are populated
+    if (typeof MASTER_STUDENTS_ROSTER !== 'undefined' && Array.isArray(MASTER_STUDENTS_ROSTER)) {
+        MASTER_STUDENTS_ROSTER.forEach(m => {
+            const k = (m.rollNo || m.id);
+            if (!finalMap.has(k)) {
+                finalMap.set(k, JSON.parse(JSON.stringify(m)));
+                needsSave = true;
+            }
+        });
+    }
+
+    const deduplicated = Array.from(finalMap.values());
+    if (needsSave || !list || list.length !== deduplicated.length) {
+        try { localStorage.setItem('students', JSON.stringify(deduplicated)); } catch (e) {}
+    }
+
+    return deduplicated;
 }
 
 function saveStudents(students) {
@@ -1862,7 +1868,12 @@ if (document.getElementById('timetableTableBody')) {
         }
 
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType };
-        timetableEntries.push(entry);
+        const existingIdx = timetableEntries.findIndex(e => e.class === studentClass && e.date === date && (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim());
+        if (existingIdx !== -1) {
+            timetableEntries[existingIdx] = entry;
+        } else {
+            timetableEntries.push(entry);
+        }
         renderTimetable();
 
         // Don't clear date to make adding multiple slots for same day easier
@@ -2107,11 +2118,11 @@ if (document.getElementById('timetableTableBody')) {
     // --- SHARE TIMETABLE TO MOBILE APP (STUDENT & FACULTY SYNC) ---
         // --- SHARE TIMETABLE TO MOBILE APP (STUDENT & FACULTY SYNC) ---
     window.shareTimetableToApp = async function () {
-        const entries = (typeof timetableEntries !== 'undefined' && timetableEntries.length > 0) 
+        const rawEntries = (typeof timetableEntries !== 'undefined' && timetableEntries.length > 0) 
             ? timetableEntries 
             : (window.timetableEntries || []);
 
-        if (!entries || entries.length === 0) {
+        if (!rawEntries || rawEntries.length === 0) {
             alert("Please add at least one timetable entry to share.");
             return;
         }
@@ -2143,10 +2154,21 @@ if (document.getElementById('timetableTableBody')) {
                 return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
             }
 
+            // Deduplicate entries so each class + subject + date has only 1 final slot
+            const entriesMap = new Map();
+            rawEntries.forEach(e => {
+                const rawCls = String(e.class || '').trim();
+                const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
+                const normSub = (e.subject || '').trim().toLowerCase();
+                const key = gradeStr + '_' + normSub + '_' + e.date;
+                entriesMap.set(key, e);
+            });
+            const deduplicatedEntries = Array.from(entriesMap.values());
+
             const rowsToInsert = [];
             const announcementsToInsert = [];
 
-            for (const entry of entries) {
+            for (const entry of deduplicatedEntries) {
                 let timeStr = '';
                 if (entry.startTime && entry.endTime) {
                     timeStr = to12Hr(entry.startTime) + ' - ' + to12Hr(entry.endTime);
@@ -2159,8 +2181,7 @@ if (document.getElementById('timetableTableBody')) {
                 const rawCls = String(entry.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
 
-                // 1. Cleanly delete any existing entries for this class, date and subject
-                // (Clears both class-level entries and legacy per-student rows)
+                // 1. Delete previous entries for this grade, date, and subject from Supabase
                 await sb.from('classes')
                     .delete()
                     .eq('class_grade', gradeStr)
@@ -2174,7 +2195,7 @@ if (document.getElementById('timetableTableBody')) {
                     .eq('class_date', entry.date)
                     .eq('subject', entry.subject);
 
-                // 2. Insert EXACTLY ONE row per class session (not per-student duplicates!)
+                // 2. Insert exactly 1 clean class session
                 rowsToInsert.push({
                     roll_no: gradeStr,
                     class_grade: gradeStr,
@@ -2194,7 +2215,7 @@ if (document.getElementById('timetableTableBody')) {
                 });
             }
 
-            // 1. Insert into Supabase classes table
+            // 1. Insert clean sessions into Supabase
             const { error: classErr } = await sb.from('classes').insert(rowsToInsert);
             if (classErr) {
                 console.error('Error inserting classes:', classErr);
@@ -2218,6 +2239,7 @@ if (document.getElementById('timetableTableBody')) {
         }
     };
 }
+
 
 // --- ATTENDANCE PAGE ---
 if (document.getElementById('attendanceClassSelect')) {
