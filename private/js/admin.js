@@ -1,9 +1,809 @@
-// Helper to get students from LocalStorage
+// Master Roster of all 50 students with full subjects, fees, schools, and joining dates
+const MASTER_STUDENTS_ROSTER = [
+    {
+        "id": "2024-JEE-0842",
+        "rollNo": "2024-JEE-0842",
+        "name": "Arjun S",
+        "class": "12",
+        "school": "EduHome Campus",
+        "phone": "9876543210",
+        "joiningDate": "2026-01-15",
+        "amount": "4000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-001",
+        "rollNo": "EDU-2026-001",
+        "name": "Amaljith",
+        "class": "10",
+        "school": "Vendar",
+        "phone": "919895423986",
+        "joiningDate": "2026-04-18",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-002",
+        "rollNo": "EDU-2026-002",
+        "name": "Karthik",
+        "class": "11",
+        "school": "Boys",
+        "phone": "919961796378",
+        "joiningDate": "2026-07-06",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-003",
+        "rollNo": "EDU-2026-003",
+        "name": "Sivanya",
+        "class": "11",
+        "school": "Boys",
+        "phone": "918848157457",
+        "joiningDate": "2026-05-01",
+        "amount": "4500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-004",
+        "rollNo": "EDU-2026-004",
+        "name": "Abhinanda",
+        "class": "9",
+        "school": "Vendar",
+        "phone": "919895446203",
+        "joiningDate": "2026-05-01",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-005",
+        "rollNo": "EDU-2026-005",
+        "name": "Krishnaveni",
+        "class": "8",
+        "school": "Puthoor",
+        "phone": "9544443618",
+        "joiningDate": "2026-05-04",
+        "amount": "750",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-006",
+        "rollNo": "EDU-2026-006",
+        "name": "Meerakrishnan",
+        "class": "7",
+        "school": "Marthoma",
+        "phone": "8089939249",
+        "joiningDate": "2026-05-23",
+        "amount": "600",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-007",
+        "rollNo": "EDU-2026-007",
+        "name": "Niranjana",
+        "class": "12",
+        "school": "Divine",
+        "phone": "7025747029",
+        "joiningDate": "2026-05-23",
+        "amount": "1000",
+        "subjects": [
+            "Physics"
+        ]
+    },
+    {
+        "id": "EDU-2026-008",
+        "rollNo": "EDU-2026-008",
+        "name": "Vaiga",
+        "class": "8",
+        "school": "Marthoma",
+        "phone": "9446614427",
+        "joiningDate": "2026-05-23",
+        "amount": "1500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-009",
+        "rollNo": "EDU-2026-009",
+        "name": "Sari N Raj",
+        "class": "12",
+        "school": "Boys VHSE",
+        "phone": "9746865309",
+        "joiningDate": "2026-05-24",
+        "amount": "3500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-010",
+        "rollNo": "EDU-2026-010",
+        "name": "Aromal",
+        "class": "8",
+        "school": "Technical Scool",
+        "phone": "9745777289",
+        "joiningDate": "2026-04-08",
+        "amount": "1500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-011",
+        "rollNo": "EDU-2026-011",
+        "name": "Vaishnavi",
+        "class": "8",
+        "school": "Siddhartha",
+        "phone": "7558859373",
+        "joiningDate": "2026-04-05",
+        "amount": "1500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-012",
+        "rollNo": "EDU-2026-012",
+        "name": "Avani",
+        "class": "9",
+        "school": "Puthoor",
+        "phone": "8921856088",
+        "joiningDate": "2026-04-06",
+        "amount": "1000",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-013",
+        "rollNo": "EDU-2026-013",
+        "name": "Nakshathra",
+        "class": "9",
+        "school": "Marthoma",
+        "phone": "9633076463",
+        "joiningDate": "2026-04-06",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-014",
+        "rollNo": "EDU-2026-014",
+        "name": "Asna",
+        "class": "10",
+        "school": "Marthoma",
+        "phone": "9446253365",
+        "joiningDate": "2026-04-06",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-015",
+        "rollNo": "EDU-2026-015",
+        "name": "Sivani",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "8590976055",
+        "joiningDate": "2026-04-13",
+        "amount": "4500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Computer Science"
+        ]
+    },
+    {
+        "id": "EDU-2026-016",
+        "rollNo": "EDU-2026-016",
+        "name": "Nandana",
+        "class": "12",
+        "school": "MIBS",
+        "phone": "7736592931",
+        "joiningDate": "2026-04-08",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-017",
+        "rollNo": "EDU-2026-017",
+        "name": "Karun",
+        "class": "12",
+        "school": "Divine",
+        "phone": "918089978209",
+        "joiningDate": "2026-04-04",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-018",
+        "rollNo": "EDU-2026-018",
+        "name": "Aadidev",
+        "class": "12",
+        "school": "Divine",
+        "phone": "9446258069",
+        "joiningDate": "2026-04-04",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-019",
+        "rollNo": "EDU-2026-019",
+        "name": "Abhinand",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "7012451748",
+        "joiningDate": "2026-04-08",
+        "amount": "3500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-020",
+        "rollNo": "EDU-2026-020",
+        "name": "Poojitha",
+        "class": "7",
+        "school": "Kottathala UP School",
+        "phone": "8157933242",
+        "joiningDate": "2026-05-04",
+        "amount": "600",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-021",
+        "rollNo": "EDU-2026-021",
+        "name": "Irfan",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "9567187275",
+        "joiningDate": "2026-05-14",
+        "amount": "3500",
+        "subjects": [
+            "Physics",
+            "Maths",
+            "Computer Science"
+        ]
+    },
+    {
+        "id": "EDU-2026-022",
+        "rollNo": "EDU-2026-022",
+        "name": "Karthik Nath",
+        "class": "9",
+        "school": "CBSE",
+        "phone": "9847270637",
+        "joiningDate": "2026-04-03",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-023",
+        "rollNo": "EDU-2026-023",
+        "name": "Vishwathej",
+        "class": "12",
+        "school": "SG",
+        "phone": "9961803001",
+        "joiningDate": "2026-01-01",
+        "amount": "4500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-024",
+        "rollNo": "EDU-2026-024",
+        "name": "Ganga",
+        "class": "10",
+        "school": "Divine",
+        "phone": "8547495160",
+        "joiningDate": "2026-03-09",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-025",
+        "rollNo": "EDU-2026-025",
+        "name": "Adithya Krishnan",
+        "class": "9",
+        "school": "MGM",
+        "phone": "918129754629",
+        "joiningDate": "2026-05-31",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-026",
+        "rollNo": "EDU-2026-026",
+        "name": "Alecia Mathew",
+        "class": "10",
+        "school": "Divine",
+        "phone": "9650974040",
+        "joiningDate": "2026-03-13",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-027",
+        "rollNo": "EDU-2026-027",
+        "name": "Krishnanandh",
+        "class": "9",
+        "school": "Siddhartha",
+        "phone": "9495195776",
+        "joiningDate": "2026-06-08",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-028",
+        "rollNo": "EDU-2026-028",
+        "name": "Ashwanath",
+        "class": "8",
+        "school": "Puthoor",
+        "phone": "9544477117",
+        "joiningDate": "2026-04-05",
+        "amount": "1500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-029",
+        "rollNo": "EDU-2026-029",
+        "name": "Niranjan",
+        "class": "12",
+        "school": "SG",
+        "phone": "919567026060",
+        "joiningDate": "2026-04-28",
+        "amount": "4500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-030",
+        "rollNo": "EDU-2026-030",
+        "name": "Lekshmipriya",
+        "class": "9",
+        "school": "Marthoma",
+        "phone": "918921477592",
+        "joiningDate": "2026-05-07",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-031",
+        "rollNo": "EDU-2026-031",
+        "name": "Achyuth",
+        "class": "9",
+        "school": "Divine",
+        "phone": "919562902227",
+        "joiningDate": "2026-06-06",
+        "amount": "1000",
+        "subjects": [
+            "Physics"
+        ]
+    },
+    {
+        "id": "EDU-2026-032",
+        "rollNo": "EDU-2026-032",
+        "name": "Hiba",
+        "class": "11",
+        "school": "Brm",
+        "phone": "919072435565",
+        "joiningDate": "2026-06-22",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-033",
+        "rollNo": "EDU-2026-033",
+        "name": "Gowtham",
+        "class": "9",
+        "school": "Sree Sree",
+        "phone": "9447063343",
+        "joiningDate": "2026-07-01",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-034",
+        "rollNo": "EDU-2026-034",
+        "name": "Vyshnavi",
+        "class": "12",
+        "school": "Divine",
+        "phone": "9562820950",
+        "joiningDate": "2026-07-11",
+        "amount": "1000",
+        "subjects": [
+            "Physics"
+        ]
+    },
+    {
+        "id": "EDU-2026-035",
+        "rollNo": "EDU-2026-035",
+        "name": "Gopika",
+        "class": "8",
+        "school": "Divine",
+        "phone": "9947540424",
+        "joiningDate": "2026-07-15",
+        "amount": "1000",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-036",
+        "rollNo": "EDU-2026-036",
+        "name": "Cristine",
+        "class": "10",
+        "school": "Divine cbse",
+        "phone": "9446118812",
+        "joiningDate": "2026-09-04",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-037",
+        "rollNo": "EDU-2026-037",
+        "name": "Roshan",
+        "class": "12",
+        "school": "Divine",
+        "phone": "8921159422",
+        "joiningDate": "2026-09-10",
+        "amount": "3500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-038",
+        "rollNo": "EDU-2026-038",
+        "name": "Fathima",
+        "class": "12",
+        "school": "Svmmhss",
+        "phone": "7034492498",
+        "joiningDate": "2026-09-02",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-039",
+        "rollNo": "EDU-2026-039",
+        "name": "Hajira",
+        "class": "12",
+        "school": "Svmmhss",
+        "phone": "9747841626",
+        "joiningDate": "2026-09-02",
+        "amount": "2500",
+        "subjects": [
+            "Physics",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-040",
+        "rollNo": "EDU-2026-040",
+        "name": "Keerthana",
+        "class": "11",
+        "school": "Svmmhss",
+        "phone": "9656839908",
+        "joiningDate": "2026-08-08",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry"
+        ]
+    },
+    {
+        "id": "EDU-2026-041",
+        "rollNo": "EDU-2026-041",
+        "name": "Karthika",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "9656839908",
+        "joiningDate": "2026-08-03",
+        "amount": "2500",
+        "subjects": [
+            "Chemistry",
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-042",
+        "rollNo": "EDU-2026-042",
+        "name": "Dwaitha",
+        "class": "11",
+        "school": "MGM mylam",
+        "phone": "6238332685",
+        "joiningDate": "2026-08-08",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-043",
+        "rollNo": "EDU-2026-043",
+        "name": "Adarsh",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "9544166131",
+        "joiningDate": "2026-08-08",
+        "amount": "2000",
+        "subjects": [
+            "Physics",
+            "Chemistry"
+        ]
+    },
+    {
+        "id": "EDU-2026-044",
+        "rollNo": "EDU-2026-044",
+        "name": "Sreedev",
+        "class": "12",
+        "school": "Vendar",
+        "phone": "9744795650",
+        "joiningDate": "2026-08-08",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-045",
+        "rollNo": "EDU-2026-045",
+        "name": "Dharmic Krishna",
+        "class": "10",
+        "school": "Puthoor",
+        "phone": "8547534316",
+        "joiningDate": "2026-09-04",
+        "amount": "3000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-046",
+        "rollNo": "EDU-2026-046",
+        "name": "Amrutha",
+        "class": "12",
+        "school": "Puthoor",
+        "phone": "6282355118",
+        "joiningDate": "2026-09-09",
+        "amount": "1500",
+        "subjects": [
+            "Maths"
+        ]
+    },
+    {
+        "id": "EDU-2026-047",
+        "rollNo": "EDU-2026-047",
+        "name": "Punya.r",
+        "class": "11",
+        "school": "EVHS Neduvathoor",
+        "phone": "8593078422",
+        "joiningDate": "2026-09-11",
+        "amount": "4500",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    },
+    {
+        "id": "EDU-2026-048",
+        "rollNo": "EDU-2026-048",
+        "name": "Sreehari",
+        "class": "10",
+        "school": "Divine School Puthoor",
+        "phone": "9539122202",
+        "joiningDate": "2026-09-12",
+        "amount": "1000",
+        "subjects": [
+            "Physics"
+        ]
+    },
+    {
+        "id": "EDU-2026-049",
+        "rollNo": "EDU-2026-049",
+        "name": "Sivananda",
+        "class": "6",
+        "school": "MTGHS",
+        "phone": "5555555555",
+        "joiningDate": "2026-06-01",
+        "amount": "1000",
+        "subjects": [
+            "Physics",
+            "Chemistry",
+            "Maths",
+            "Biology"
+        ]
+    }
+];
+
+// Helper to get students from LocalStorage with automatic master roster fallback & hydration
 function getStudents() {
-    return JSON.parse(localStorage.getItem('students')) || [];
+    let list = [];
+    try {
+        const stored = localStorage.getItem('students');
+        if (stored) list = JSON.parse(stored);
+    } catch (e) {}
+
+    // If completely empty, seed directly from master roster
+    if (!Array.isArray(list) || list.length === 0) {
+        list = JSON.parse(JSON.stringify(MASTER_STUDENTS_ROSTER));
+        try { localStorage.setItem('students', JSON.stringify(list)); } catch (e) {}
+        return list;
+    }
+
+    // Hydrate any missing subjects/amounts from master roster
+    const masterMap = new Map(MASTER_STUDENTS_ROSTER.map(m => [m.id || m.rollNo, m]));
+    let needsSave = false;
+
+    const merged = list.map(s => {
+        const key = s.id || s.rollNo;
+        const master = masterMap.get(key);
+        if (!master) {
+            if (!s.subjects || !Array.isArray(s.subjects) || s.subjects.length === 0) {
+                s.subjects = ['General Tuition'];
+            }
+            return s;
+        }
+
+        const copy = { ...s };
+        if (!copy.subjects || !Array.isArray(copy.subjects) || copy.subjects.length === 0) {
+            copy.subjects = master.subjects;
+            needsSave = true;
+        }
+        if (!copy.amount || copy.amount === '-' || copy.amount === '') {
+            copy.amount = master.amount;
+            needsSave = true;
+        }
+        if (!copy.joiningDate) {
+            copy.joiningDate = master.joiningDate;
+            needsSave = true;
+        }
+        if (!copy.school || copy.school === 'EduHome Campus') {
+            copy.school = master.school;
+            needsSave = true;
+        }
+        return copy;
+    });
+
+    // Ensure any students from master that are missing are also added
+    const existingIds = new Set(merged.map(s => s.id || s.rollNo));
+    MASTER_STUDENTS_ROSTER.forEach(m => {
+        const k = m.id || m.rollNo;
+        if (!existingIds.has(k)) {
+            merged.push(JSON.parse(JSON.stringify(m)));
+            needsSave = true;
+        }
+    });
+
+    if (needsSave) {
+        try { localStorage.setItem('students', JSON.stringify(merged)); } catch (e) {}
+    }
+
+    return merged;
 }
 
-// Helper to save students
 function saveStudents(students) {
     localStorage.setItem('students', JSON.stringify(students));
 }
@@ -643,7 +1443,7 @@ if (document.getElementById('feesClassSelect')) {
             const tr = document.createElement('tr');
 
             let subjectsHtml = '';
-            student.subjects.forEach(sub => {
+            (Array.isArray(student.subjects) && student.subjects.length > 0 ? student.subjects : ['General']).forEach(sub => {
                 const feeKey = `${student.id}_${sub}_${selectedMonth}_${currentYear}`;
 
                 let status = fees[feeKey] === 'Paid' ? 'Paid' : 'Pending';
@@ -1417,6 +2217,7 @@ if (document.getElementById('timetableTableBody')) {
             }
         }
     };
+}
 
 // --- ATTENDANCE PAGE ---
 if (document.getElementById('attendanceClassSelect')) {
@@ -1702,7 +2503,7 @@ if (document.getElementById('studentListBody')) {
                 <td>${s.class}</td>
                 <td>₹${s.amount || '-'}</td>
                 <td>${s.phone}</td>
-                <td>${s.subjects.join(', ')}</td>
+                <td>${Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' ? s.subjects : 'General')}</td>
                 <td>
                     ${isCloud ? `<span class="badge badge-secondary">Read-only in Cloud View</span>` : `
                     <button class="btn btn-sm btn-info mb-1" onclick="editStudent('${s.id}')">Edit</button>

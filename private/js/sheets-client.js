@@ -231,17 +231,24 @@ window.sb_loadFromCloud = async function () {
         try {
             const { data: stuRows, error: sErr } = await sb.from('students').select('*');
             if (!sErr && stuRows && stuRows.length > 0) {
-                loadedStudents = stuRows.map(r => ({
-                    id: String(r.roll_no || r.id),
-                    rollNo: String(r.roll_no),
-                    name: r.name,
-                    class: String(r.class_name || '').replace('Class ', ''),
-                    school: r.school || 'EduHome Campus',
-                    phone: r.phone || '',
-                    joiningDate: r.joining_date || '',
-                    amount: '',
-                    subjects: []
-                }));
+                const localStudents = (typeof getStudents === 'function') ? getStudents() : (JSON.parse(localStorage.getItem('students')) || []);
+                const localMap = new Map((localStudents || []).map(l => [l.id || l.rollNo, l]));
+
+                loadedStudents = stuRows.map(r => {
+                    const roll = String(r.roll_no || r.id);
+                    const local = localMap.get(roll);
+                    return {
+                        id: roll,
+                        rollNo: roll,
+                        name: r.name || (local ? local.name : 'Student'),
+                        class: String(r.class_name || (local ? local.class : '10')).replace('Class ', ''),
+                        school: r.school || (local ? local.school : 'EduHome Campus'),
+                        phone: r.phone || (local ? local.phone : ''),
+                        joiningDate: r.joining_date || (local ? local.joiningDate : '2026-01-15'),
+                        amount: (local && local.amount) ? String(local.amount) : '',
+                        subjects: (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? local.subjects : []
+                    };
+                });
             }
 
             const { data: feeRows, error: fErr } = await sb.from('fees_records').select('*');
