@@ -66,6 +66,22 @@
                             <option value="Computer Science">Computer Science</option>
                             <option value="No Class">No Class</option>
                         </select>
+                    
+                    <!-- Teacher / Faculty Allotment -->
+                    <div class="form-group">
+                        <label><i class="fas fa-chalkboard-teacher text-primary mr-1"></i> Allot Faculty / Teacher</label>
+                        <select class="form-control font-weight-bold" id="timetableFaculty" style="border: 2px solid #0284C7; color: #0284C7;">
+                            <option value="auto">✨ Auto-Allot by Subject & Grade</option>
+                            <option value="fac-chem" data-name="Dr. Ramesh Nair">Dr. Ramesh Nair (Chemistry • Class 10-12)</option>
+                            <option value="fac-bio-lower" data-name="Mrs. Deepa Anoop">Mrs. Deepa Anoop (Biology Lower • Class 6-9)</option>
+                            <option value="fac-bio-upper" data-name="Dr. Suresh Kumar">Dr. Suresh Kumar (Biology Upper • Class 10-12)</option>
+                            <option value="fac-phy" data-name="Mr. Rajesh Menon">Mr. Rajesh Menon (Physics • Class 8-12)</option>
+                            <option value="fac-cs" data-name="Ms. Ananya Sharma">Ms. Ananya Sharma (Computer Science • Class 11-12)</option>
+                            <option value="fac-math" data-name="Mr. Arun K. Varma">Mr. Arun K. Varma (Maths • Class 6-9 Temp)</option>
+                        </select>
+                        <small class="form-text text-muted" id="facultyHint">Select specific faculty or leave auto-allot.</small>
+                    </div>
+
                     </div>
 
                     <!-- Session Type -->
@@ -107,13 +123,14 @@
                                     <th>Class</th>
                                     <th>Board</th>
                                     <th>Subject</th>
+                                    <th>Faculty Allotted</th>
                                     <th>Type</th>
                                     <th class="no-capture" style="width: 50px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="timetableTableBody">
                                 <tr>
-                                    <td colspan="7" class="text-center">No entries added yet.</td>
+                                    <td colspan="8" class="text-center">No entries added yet.</td>
                                 </tr>
                             </tbody>
                         </table>
