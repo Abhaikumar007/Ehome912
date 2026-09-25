@@ -6,53 +6,50 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
+import { useAuth } from '../../lib/authContext';
 
-const categories = [
+const pipelineFeatures = [
   {
-    id: 'study',
+    id: 'notes',
     icon: 'document-text-outline',
-    iconBg: '#EBF3FF',
-    iconColor: Colors.primary,
-    borderColor: Colors.primaryLight,
-    title: 'Study Materials',
-    desc: 'Notes, summaries, important questions and solved examples.',
-    tags: ['Notes', 'Important Qs'],
-    tagColors: [Colors.primaryLight, '#F5F3FF'],
-    tagTextColors: [Colors.primary, Colors.purple],
-    route: '/(student)/study-materials',
+    iconColor: '#2563EB',
+    iconBg: '#EFF6FF',
+    title: 'Curated Notes & Formula Sheets',
+    desc: 'Comprehensive chapter summaries, formula reference guides, and key derivation sheets prepared by faculty.',
+    tag: 'Board & Entrance',
+  },
+  {
+    id: 'pyq',
+    icon: 'clipboard-outline',
+    iconColor: '#059669',
+    iconBg: '#ECFDF5',
+    title: 'Previous Years’ Questions (PYQ)',
+    desc: 'Solved past question papers with step-by-step solutions, marking breakdowns, and tips.',
+    tag: 'Question Bank',
   },
   {
     id: 'practical',
     icon: 'flask-outline',
-    iconBg: '#FFF7ED',
-    iconColor: Colors.orange,
-    borderColor: '#FDDCAB',
-    title: 'Practical Classes',
-    desc: 'Watch experiments, live sessions and lab demonstrations either Virtually',
-    tags: ['Videos', 'Experiments'],
-    tagColors: ['#FEF3F2', '#FFF7ED'],
-    tagTextColors: [Colors.red, Colors.orange],
-    route: '/(student)/practical-classes',
-    comingSoon: true,
+    iconColor: '#D97706',
+    iconBg: '#FFFBEB',
+    title: 'Practical Lab Demonstrations',
+    desc: 'Virtual experiment walk-throughs, apparatus guides, and observation manuals.',
+    tag: 'Lab Modules',
   },
   {
     id: 'mock',
-    icon: 'clipboard-outline',
-    iconBg: Colors.greenLight,
-    iconColor: Colors.green,
-    borderColor: '#A6F4C5',
-    title: 'Mock Test & PYQ',
-    desc: 'Practice chapter tests, full syllabus tests and previous year questions.',
-    tags: ['Mock Tests', 'Previous Year Questions'],
-    tagColors: [Colors.greenLight, Colors.greenLight],
-    tagTextColors: [Colors.teal, Colors.teal],
-    route: '/(student)/mock-tests',
-    comingSoon: false,
+    icon: 'timer-outline',
+    iconColor: '#7C3AED',
+    iconBg: '#F5F3FF',
+    title: 'Chapter Tests & Practice Sets',
+    desc: 'Interactive test modules and chapter practice questions for self-assessment.',
+    tag: 'Self Evaluation',
   },
 ];
 
 export default function MaterialsScreen() {
   const router = useRouter();
+  const { student } = useAuth();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -70,53 +67,90 @@ export default function MaterialsScreen() {
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.classPill}>
-            <Text style={styles.classPillText}>Class 12</Text>
-            <Ionicons name="chevron-down" size={13} color={Colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity>
+          <View style={styles.classPill}>
+            <Text style={styles.classPillText}>{student?.class || 'All Classes'}</Text>
+          </View>
+          <TouchableOpacity onPress={() => router.push('/(student)/notifications' as any)}>
             <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
           </TouchableOpacity>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>AS</Text>
-          </View>
+          <TouchableOpacity onPress={() => router.push('/(student)/profile')}>
+            {student?.photoUrl ? (
+              <Image source={{ uri: student.photoUrl }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{student?.avatar || 'ST'}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <Text style={styles.pageTitle}>Materials</Text>
-        <Text style={styles.pageSub}>Learn your way. One step closer to your goals.</Text>
+        <Text style={styles.pageTitle}>Study Materials</Text>
+        <Text style={styles.pageSub}>Curated syllabus notes, question banks, and learning resources.</Text>
 
-        {categories.map((cat) => (
-          <TouchableOpacity
-            key={cat.id}
-            style={[styles.card, { borderColor: cat.borderColor }]}
-            activeOpacity={cat.route ? 0.85 : 1}
-            onPress={() => cat.route && router.push(cat.route as any)}
-          >
-            <View style={styles.cardTop}>
-              <View style={[styles.cardIcon, { backgroundColor: cat.iconBg }]}>
-                <Ionicons name={cat.icon as any} size={26} color={cat.iconColor} />
-              </View>
-              <View style={styles.cardContent}>
-                <Text style={styles.cardTitle}>{cat.title}</Text>
-                <Text style={styles.cardDesc}>{cat.desc}</Text>
-                <View style={styles.tagRow}>
-                  {cat.tags.map((tag, i) => (
-                    <View key={tag} style={[styles.tag, { backgroundColor: cat.tagColors[i] }]}>
-                      <Text style={[styles.tagText, { color: cat.tagTextColors[i] }]}>{tag}</Text>
-                    </View>
-                  ))}
-                </View>
-                {cat.comingSoon && (
-                  <View style={styles.comingSoonBadge}>
-                    <Text style={styles.comingSoonText}>Coming Soon</Text>
-                  </View>
-                )}
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textMuted} />
+        {/* Feature Temporarily Locked Hero Card */}
+        <View style={styles.lockedHeroCard}>
+          <View style={styles.lockBadge}>
+            <Ionicons name="lock-closed" size={14} color="#D97706" />
+            <Text style={styles.lockBadgeText}>Temporarily Locked</Text>
+          </View>
+
+          <View style={styles.lockIconCircle}>
+            <Ionicons name="book" size={32} color={Colors.primary} />
+            <View style={styles.lockMiniBadge}>
+              <Ionicons name="lock-closed" size={14} color="#fff" />
             </View>
-          </TouchableOpacity>
+          </View>
+
+          <Text style={styles.lockedHeading}>Materials Coming Soon</Text>
+          <Text style={styles.lockedSub}>
+            Course materials, handwritten revision notes, formula sheets, and practical lab modules for{' '}
+            <Text style={{ fontFamily: 'Inter_700Bold', color: Colors.primary }}>{student?.class || 'your enrolled classes'}</Text>{' '}
+            are currently being curated and vetted by our faculty team. This section will unlock soon!
+          </Text>
+
+          <View style={styles.pillRow}>
+            <View style={styles.statusPill}>
+              <Ionicons name="sparkles" size={12} color={Colors.primary} />
+              <Text style={styles.statusPillText}>Faculty Vetted</Text>
+            </View>
+            <View style={styles.statusPill}>
+              <Ionicons name="shield-checkmark-outline" size={12} color={Colors.green} />
+              <Text style={styles.statusPillText}>Full Curriculum</Text>
+            </View>
+            <View style={styles.statusPill}>
+              <Ionicons name="time-outline" size={12} color={Colors.orange} />
+              <Text style={styles.statusPillText}>In Preparation</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* What's Coming Section */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionHeaderTitle}>What Will Be Available</Text>
+          <Text style={styles.sectionHeaderSub}>Upcoming Features</Text>
+        </View>
+
+        {pipelineFeatures.map((item) => (
+          <View key={item.id} style={styles.previewCard}>
+            <View style={[styles.previewIconBox, { backgroundColor: item.iconBg }]}>
+              <Ionicons name={item.icon as any} size={22} color={item.iconColor} />
+            </View>
+            <View style={styles.previewContent}>
+              <View style={styles.previewTitleRow}>
+                <Text style={styles.previewTitle}>{item.title}</Text>
+                <View style={styles.previewTag}>
+                  <Text style={styles.previewTagText}>{item.tag}</Text>
+                </View>
+              </View>
+              <Text style={styles.previewDesc}>{item.desc}</Text>
+              <View style={styles.lockedFootRow}>
+                <Ionicons name="lock-closed-outline" size={12} color={Colors.textMuted} />
+                <Text style={styles.lockedFootText}>Unlocks with next academic update</Text>
+              </View>
+            </View>
+          </View>
         ))}
 
         {/* Inspiration Banner */}
@@ -132,7 +166,7 @@ export default function MaterialsScreen() {
           <Text style={styles.inspiSubText}>Smaller{'\n'}Steps{'\n'}Bigger You!</Text>
         </View>
 
-        <View style={{ height: 20 }} />
+        <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -147,7 +181,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.background,
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  logoBox: { width: 34, height: 34, borderRadius: 8, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   headerTitle: { fontSize: 13, fontFamily: 'Inter_700Bold', color: Colors.primary, letterSpacing: 0.5 },
   headerSub: { fontSize: 9, fontFamily: 'Inter_500Medium', color: Colors.textSecondary, letterSpacing: 0.3 },
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
@@ -156,36 +189,198 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cardBg, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5,
     borderWidth: 1, borderColor: Colors.border,
   },
-  classPillText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  classPillText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: Colors.primary },
   avatar: { width: 34, height: 34, borderRadius: 17, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 12, color: '#fff', fontFamily: 'Inter_700Bold' },
 
   pageTitle: { fontSize: 26, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginTop: 8 },
-  pageSub: { fontSize: 13, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', marginBottom: 20, marginTop: 2 },
+  pageSub: { fontSize: 13, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', marginBottom: 16, marginTop: 2 },
 
-  card: {
-    backgroundColor: Colors.cardBg, borderRadius: 16, padding: 16,
-    marginBottom: 14, borderWidth: 1.5,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 6, elevation: 2,
+  // Locked Hero Card
+  lockedHeroCard: {
+    backgroundColor: '#FAF5FF',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: '#E9D5FF',
+    shadowColor: '#7C3AED',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 2,
   },
-  cardTop: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  cardIcon: { width: 56, height: 56, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  cardContent: { flex: 1 },
-  cardTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary, marginBottom: 4 },
-  cardDesc: { fontSize: 12, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', lineHeight: 17, marginBottom: 10 },
-  tagRow: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
-  tag: { borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  tagText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
-  comingSoonBadge: {
-    marginTop: 6, alignSelf: 'flex-start',
-    backgroundColor: Colors.amberLight, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 3,
+  lockBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    marginBottom: 14,
   },
-  comingSoonText: { fontSize: 10, color: Colors.amber, fontFamily: 'Inter_600SemiBold' },
+  lockBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#B45309',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  lockIconCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: '#EDE9FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+    position: 'relative',
+  },
+  lockMiniBadge: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#D97706',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FAF5FF',
+  },
+  lockedHeading: {
+    fontSize: 18,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  lockedSub: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 19,
+    paddingHorizontal: 8,
+    marginBottom: 16,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    gap: 8,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#fff',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  statusPillText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+  },
 
+  // Section Header
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  sectionHeaderTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  sectionHeaderSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textMuted,
+  },
+
+  // Preview Cards
+  previewCard: {
+    flexDirection: 'row',
+    backgroundColor: Colors.cardBg,
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    gap: 12,
+  },
+  previewIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewContent: {
+    flex: 1,
+  },
+  previewTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  previewTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  previewTag: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginLeft: 6,
+  },
+  previewTagText: {
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  previewDesc: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    lineHeight: 17,
+    marginBottom: 6,
+  },
+  lockedFootRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  lockedFootText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textMuted,
+  },
+
+  // Inspiration Banner
   inspirationBanner: {
-    backgroundColor: Colors.primary, borderRadius: 16, padding: 20,
-    marginTop: 4, flexDirection: 'row', alignItems: 'flex-end',
-    overflow: 'hidden', minHeight: 110,
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    padding: 20,
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    overflow: 'hidden',
+    minHeight: 110,
   },
   mountainWrap: { position: 'absolute', right: 60, bottom: 0 },
   mountain1: {

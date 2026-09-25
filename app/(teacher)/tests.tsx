@@ -8,6 +8,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService, AcademicAlert } from '../../lib/dataService';
+import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
+import DatePickerModal from '../../components/DatePickerModal';
 
 interface TestStudent {
   id: string;
@@ -18,10 +20,12 @@ interface TestStudent {
   color: string;
 }
 
+export type FacultySubject = 'Physics' | 'Chemistry' | 'Mathematics' | 'Biology' | 'Computer Science';
+
 interface ExamItem {
   id: string;
   title: string;
-  subject: 'Physics' | 'Chemistry' | 'Mathematics';
+  subject: FacultySubject;
   classTag: string;
   dateStr: string;
   timeStr: string;
@@ -32,80 +36,8 @@ interface ExamItem {
   students: TestStudent[];
 }
 
-const INITIAL_STUDENTS_OPTICS: TestStudent[] = [
-  { id: 'ts1', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts2', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts4', name: 'Priya S', roll: '#2026-1008', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts5', name: 'Dev P', roll: '#2026-1004', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts6', name: 'Riya M', roll: '#2026-1006', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts7', name: 'Karan V', roll: '#2026-1007', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'ts8', name: 'Ananya R', roll: '#2026-1003', marks: 0, grade: 'Pending', color: '#94A3B8' },
-];
-
-const INITIAL_STUDENTS_CHEM: TestStudent[] = [
-  { id: 'tc1', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'tc2', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'tc3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'tc4', name: 'Dev P', roll: '#2026-1004', marks: 0, grade: 'Pending', color: '#94A3B8' },
-  { id: 'tc5', name: 'Priya S', roll: '#2026-1008', marks: 0, grade: 'Pending', color: '#94A3B8' },
-];
-
-const INITIAL_TESTS: ExamItem[] = [
-  {
-    id: 'test-8',
-    title: 'Test 8: Optics & Light Refraction',
-    subject: 'Physics',
-    classTag: 'Class 10-A',
-    dateStr: 'Mon, 22 Sep 2026',
-    timeStr: '04:30 PM - 06:00 PM',
-    roomStr: 'Room 204 (Hall A)',
-    maxMarks: 100,
-    syllabus: [
-      'Ch 9: Reflection of Light & Spherical Mirrors',
-      'Ch 10: Refraction & Snell\'s Law with Ray Diagrams',
-      'Ch 11: Human Eye and Colorful World (Numerical Section)',
-    ],
-    isEvaluated: false,
-    students: INITIAL_STUDENTS_OPTICS,
-  },
-  {
-    id: 'test-9',
-    title: 'Test 9: Chemical Reactions & Equations',
-    subject: 'Chemistry',
-    classTag: 'Class 10-A',
-    dateStr: 'Thu, 25 Sep 2026',
-    timeStr: '04:00 PM - 05:30 PM',
-    roomStr: 'Lab 2',
-    maxMarks: 50,
-    syllabus: [
-      'Ch 1: Types of Chemical Reactions & Oxidation',
-      'Ch 2: Balancing Complex Chemical Equations',
-      'Pre-board Board Sample Questions Q1-Q15',
-    ],
-    isEvaluated: false,
-    students: INITIAL_STUDENTS_CHEM,
-  },
-  {
-    id: 'test-10',
-    title: 'Test 10: Trigonometric Identities & Heights',
-    subject: 'Mathematics',
-    classTag: 'Class 10-B',
-    dateStr: 'Sat, 27 Sep 2026',
-    timeStr: '03:30 PM - 05:00 PM',
-    roomStr: 'Room 105',
-    maxMarks: 100,
-    syllabus: [
-      'Ch 8: Introduction to Trigonometry',
-      'Ch 9: Some Applications of Trigonometry (Heights & Distances)',
-    ],
-    isEvaluated: false,
-    students: INITIAL_STUDENTS_OPTICS.slice(0, 5),
-  },
-];
-
-const AUTHORIZED_CLASSES = ['Class 10-A', 'Class 10-B', 'Class 11-A', 'Class 12-JEE'];
-const SUBJECTS: Array<'Physics' | 'Chemistry' | 'Mathematics'> = ['Physics', 'Chemistry', 'Mathematics'];
+const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10-A', 'Class 10-B', 'Class 11-A', 'Class 12-JEE'];
+const SUBJECTS: FacultySubject[] = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'];
 
 export default function TeacherTestsScreen() {
   const router = useRouter();
@@ -144,7 +76,7 @@ export default function TeacherTestsScreen() {
   // New test modal state
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newSubject, setNewSubject] = useState<'Physics' | 'Chemistry' | 'Mathematics'>('Physics');
+  const [newSubject, setNewSubject] = useState<FacultySubject>('Physics');
   const [newClass, setNewClass] = useState('Class 10-A');
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('04:30 PM - 06:00 PM');
@@ -153,6 +85,8 @@ export default function TeacherTestsScreen() {
   const [newSyllabus, setNewSyllabus] = useState('');
   const [publishAsAlert, setPublishAsAlert] = useState(true);
   const [showUntilDate, setShowUntilDate] = useState('');
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'examDate' | 'expiryDate'>('examDate');
 
   // Active test
   const activeTest = tests.find((t) => t.id === activeTestId) || tests[0];
@@ -264,7 +198,14 @@ export default function TeacherTestsScreen() {
       maxMarks: maxVal,
       syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
       isEvaluated: false,
-      students: INITIAL_STUDENTS_OPTICS.map((s) => ({ ...s, marks: 0, grade: 'Pending', color: '#94A3B8' })),
+      students: EDUSYNC_STUDENTS.slice(0, 8).map((s, idx) => ({
+        id: `stu-${idx}-${Date.now()}`,
+        name: s.name,
+        roll: s.rollNo,
+        marks: 0,
+        grade: 'Pending',
+        color: '#94A3B8',
+      })),
     };
 
     setTests([newTestObj, ...tests]);
@@ -613,16 +554,23 @@ export default function TeacherTestsScreen() {
               placeholderTextColor={Colors.textMuted}
             />
 
-            {/* Date & Time */}
+            {/* Date & Time with Interactive DatePicker & Time Chips */}
             <View style={styles.twoCol}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Date</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newDate}
-                  onChangeText={setNewDate}
-                  placeholder="Mon, 29 Sep 2026"
-                />
+                <Text style={styles.formLabel}>Exam Date</Text>
+                <TouchableOpacity
+                  style={styles.datePickerBtn}
+                  onPress={() => {
+                    setDatePickerTarget('examDate');
+                    setDatePickerVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="calendar" size={16} color="#0284C7" />
+                  <Text style={[styles.datePickerText, !newDate && styles.placeholderText]}>
+                    {newDate || 'Select Exam Date'}
+                  </Text>
+                </TouchableOpacity>
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.formLabel}>Time</Text>
@@ -633,6 +581,21 @@ export default function TeacherTestsScreen() {
                   placeholder="04:30 PM - 06:00 PM"
                 />
               </View>
+            </View>
+
+            {/* Quick Time Selection Chips */}
+            <View style={styles.quickTimeRow}>
+              {['04:30 PM - 06:00 PM', '06:00 PM - 07:30 PM', '09:30 AM - 12:30 PM', '02:00 PM - 05:00 PM'].map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.quickTimeChip, newTime === t && styles.quickTimeChipActive]}
+                  onPress={() => setNewTime(t)}
+                >
+                  <Text style={[styles.quickTimeChipText, newTime === t && styles.quickTimeChipTextActive]}>
+                    {t.split(' - ')[0]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
             </View>
 
             {/* Room & Max Marks */}
@@ -687,14 +650,20 @@ export default function TeacherTestsScreen() {
             {publishAsAlert && (
               <View>
                 <Text style={styles.formLabel}>Hide Alert After (Date) — Optional</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={showUntilDate}
-                  onChangeText={setShowUntilDate}
-                  placeholder="e.g. 2026-09-23 (YYYY-MM-DD)"
-                  placeholderTextColor={Colors.textMuted}
-                />
-                <Text style={{ fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular', marginTop: 2, marginBottom: 6 }}>
+                <TouchableOpacity
+                  style={styles.datePickerBtn}
+                  onPress={() => {
+                    setDatePickerTarget('expiryDate');
+                    setDatePickerVisible(true);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="calendar-outline" size={16} color="#0284C7" />
+                  <Text style={[styles.datePickerText, !showUntilDate && styles.placeholderText]}>
+                    {showUntilDate || 'Select Expiry Date (YYYY-MM-DD)'}
+                  </Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular', marginTop: 3, marginBottom: 6 }}>
                   Alert will automatically disappear from student home screen after this date.
                 </Text>
               </View>
@@ -707,6 +676,24 @@ export default function TeacherTestsScreen() {
           </ScrollView>
         </View>
       </Modal>
+
+      {/* DatePicker Modal for Exam and Expiry Dates */}
+      <DatePickerModal
+        visible={datePickerVisible}
+        onClose={() => setDatePickerVisible(false)}
+        title={datePickerTarget === 'examDate' ? 'Select Exam Date' : 'Select Alert Expiry Date'}
+        initialDate={new Date()}
+        onSelectDate={(displayDate, isoDate) => {
+          if (datePickerTarget === 'examDate') {
+            setNewDate(displayDate);
+            if (!showUntilDate) {
+              setShowUntilDate(isoDate);
+            }
+          } else {
+            setShowUntilDate(isoDate);
+          }
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -1053,4 +1040,53 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   submitTestBtnText: { color: '#fff', fontSize: 14, fontFamily: 'Inter_700Bold' },
+
+  datePickerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    paddingHorizontal: 12,
+    height: 42,
+  },
+  datePickerText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+    flex: 1,
+  },
+  placeholderText: {
+    color: Colors.textMuted,
+    fontFamily: 'Inter_400Regular',
+  },
+  quickTimeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  quickTimeChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  quickTimeChipActive: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#0284C7',
+  },
+  quickTimeChipText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  quickTimeChipTextActive: {
+    color: '#0284C7',
+  },
 });

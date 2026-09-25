@@ -39,17 +39,17 @@ const HOME_TEACHER_OPINIONS = [
   {
     teacher: 'Mr. R Madhusudanan',
     subject: 'Physics (Senior Faculty)',
-    remark: 'Arjun demonstrates disciplined attendance in Physics. Excellent grasp of ray diagrams and formulas.',
+    remark: 'Welcome to EduHome! Academic sessions and daily attendance will commence as per your schedule.',
   },
   {
     teacher: 'Dr. Sunita Rao',
     subject: 'Chemistry',
-    remark: 'Consistent presence in chemical reactions & lab demonstrations. Punctuality is commendable!',
+    remark: 'Lab experiments, concept clarifications, and chapter discussions will begin soon. Stay focused!',
   },
   {
     teacher: 'Prof. K V Nair',
     subject: 'Mathematics',
-    remark: 'Attended 100% of calculus & integration classes this term. Solid preparation for entrance exams!',
+    remark: 'Daily attendance and continuous evaluation will be updated here as regular sessions begin.',
   },
 ];
 
@@ -84,10 +84,10 @@ export default function DashboardScreen() {
         DataService.getNotifications(rollNo),
       ]);
       if (cls) setClasses(cls);
-      if (anns) setAnnouncementsList(anns);
+      setAnnouncementsList(anns || []);
       if (att) setAttSummary(att);
       if (fees) setFeesSummary(fees);
-      if (alert) setAcademicAlert(alert);
+      setAcademicAlert(alert || null);
       if (opinions && opinions.length > 0) setTeacherOpinions(opinions);
       if (notifs) {
         setHasUnreadNotifs(notifs.some((n: any) => n.unread));
@@ -106,12 +106,10 @@ export default function DashboardScreen() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
         console.log('[Realtime] Announcement change detected:', payload);
         DataService.getAnnouncements(true).then((anns) => {
-          if (anns && anns.length > 0) {
-            setAnnouncementsList(anns);
-          }
+          setAnnouncementsList(anns || []);
         });
         DataService.getAcademicAlert().then((alt) => {
-          if (alt) setAcademicAlert(alt);
+          setAcademicAlert(alt || null);
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records', filter: `roll_no=eq.${rollNo}` }, () => {
@@ -503,38 +501,48 @@ export default function DashboardScreen() {
               </View>
               <Text style={styles.cardTitle}>Community</Text>
             </View>
-            <TouchableOpacity onPress={() => setCommunityModalVisible(true)}>
-              <Text style={styles.viewAllText}>View All ({announcementsList.length}) →</Text>
-            </TouchableOpacity>
+            {announcementsList.length > 0 && (
+              <TouchableOpacity onPress={() => setCommunityModalVisible(true)}>
+                <Text style={styles.viewAllText}>View All ({announcementsList.length}) →</Text>
+              </TouchableOpacity>
+            )}
           </View>
 
-          {announcementsList.slice(0, 3).map((ann, i) => (
-            <TouchableOpacity
-              key={ann.id}
-              style={[styles.annRow, i < Math.min(announcementsList.length, 3) - 1 && styles.annRowBorder]}
-              onPress={() => {
-                setSelectedAnnouncement(ann);
-                setCommunityModalVisible(true);
-              }}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.annIcon, { backgroundColor: ann.iconBg }]}>
-                <Ionicons name={ann.icon as any} size={16} color={ann.iconColor} />
-              </View>
-              <View style={styles.annContent}>
-                <View style={styles.annTitleRow}>
-                  <Text style={styles.annTitle} numberOfLines={1}>{ann.title}</Text>
-                  {ann.important && (
-                    <View style={styles.importantBadge}>
-                      <Text style={styles.importantText}>Important</Text>
-                    </View>
-                  )}
+          {announcementsList.length > 0 ? (
+            announcementsList.slice(0, 3).map((ann, i) => (
+              <TouchableOpacity
+                key={ann.id}
+                style={[styles.annRow, i < Math.min(announcementsList.length, 3) - 1 && styles.annRowBorder]}
+                onPress={() => {
+                  setSelectedAnnouncement(ann);
+                  setCommunityModalVisible(true);
+                }}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.annIcon, { backgroundColor: ann.iconBg }]}>
+                  <Ionicons name={ann.icon as any} size={16} color={ann.iconColor} />
                 </View>
-                <Text style={styles.annDesc} numberOfLines={2}>{ann.desc}</Text>
-                <Text style={styles.annTime}>{ann.time} • Tap to view full</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
+                <View style={styles.annContent}>
+                  <View style={styles.annTitleRow}>
+                    <Text style={styles.annTitle} numberOfLines={1}>{ann.title}</Text>
+                    {ann.important && (
+                      <View style={styles.importantBadge}>
+                        <Text style={styles.importantText}>Important</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.annDesc} numberOfLines={2}>{ann.desc}</Text>
+                  <Text style={styles.annTime}>{ann.time} • Tap to view full</Text>
+                </View>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <View style={styles.emptyAnnBox}>
+              <Ionicons name="notifications-outline" size={22} color={Colors.textMuted} />
+              <Text style={styles.emptyAnnTitle}>No Active Announcements</Text>
+              <Text style={styles.emptyAnnSub}>There are no community broadcasts posted right now.</Text>
+            </View>
+          )}
         </View>
 
         <View style={{ height: 20 }} />
@@ -633,25 +641,33 @@ export default function DashboardScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-              {announcementsList.map((ann) => (
-                <View key={ann.id} style={styles.fullAnnCard}>
-                  <View style={styles.fullAnnTop}>
-                    <View style={[styles.annIcon, { backgroundColor: ann.iconBg }]}>
-                      <Ionicons name={ann.icon as any} size={16} color={ann.iconColor} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.fullAnnTitle}>{ann.title}</Text>
-                      <Text style={styles.fullAnnTime}>{ann.time} • Faculty Broadcast</Text>
-                    </View>
-                    {ann.important && (
-                      <View style={styles.importantBadge}>
-                        <Text style={styles.importantText}>Important</Text>
+              {announcementsList.length > 0 ? (
+                announcementsList.map((ann) => (
+                  <View key={ann.id} style={styles.fullAnnCard}>
+                    <View style={styles.fullAnnTop}>
+                      <View style={[styles.annIcon, { backgroundColor: ann.iconBg }]}>
+                        <Ionicons name={ann.icon as any} size={16} color={ann.iconColor} />
                       </View>
-                    )}
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.fullAnnTitle}>{ann.title}</Text>
+                        <Text style={styles.fullAnnTime}>{ann.time} • Faculty Broadcast</Text>
+                      </View>
+                      {ann.important && (
+                        <View style={styles.importantBadge}>
+                          <Text style={styles.importantText}>Important</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.fullAnnDesc}>{ann.desc}</Text>
                   </View>
-                  <Text style={styles.fullAnnDesc}>{ann.desc}</Text>
+                ))
+              ) : (
+                <View style={styles.emptyAnnBox}>
+                  <Ionicons name="notifications-outline" size={24} color={Colors.textMuted} />
+                  <Text style={styles.emptyAnnTitle}>No Broadcasts Available</Text>
+                  <Text style={styles.emptyAnnSub}>There are currently no active announcements or notifications from the faculty.</Text>
                 </View>
-              ))}
+              )}
             </ScrollView>
           </View>
         </View>
@@ -837,6 +853,9 @@ const styles = StyleSheet.create({
   importantText: { fontSize: 9, color: Colors.red, fontFamily: 'Inter_700Bold' },
   annDesc: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', lineHeight: 16, marginBottom: 3 },
   annTime: { fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular' },
+  emptyAnnBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 24, paddingHorizontal: 16 },
+  emptyAnnTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, marginTop: 8 },
+  emptyAnnSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, textAlign: 'center', marginTop: 4 },
 
   // Improvement Badge
   improvementNumber: {

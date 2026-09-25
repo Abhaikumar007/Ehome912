@@ -42,7 +42,7 @@ export default function PracticalClassesScreen() {
 
         <Text style={styles.title}>Practical Classes are{'\n'}Coming Soon!</Text>
         <Text style={styles.desc}>
-          We are actively filming hands-on lab experiments, high-yield viva voce guides, and interactive apparatus walk-throughs for Class 12.
+          We are actively filming hands-on lab experiments, high-yield viva voce guides, and interactive apparatus walk-throughs for all student batches.
         </Text>
 
         <TouchableOpacity

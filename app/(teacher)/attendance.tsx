@@ -23,14 +23,22 @@ interface StudentRoster {
 }
 
 const INITIAL_CLASSES = [
-  { id: 'c1', label: 'Class 10-A (Physics)', batch: 'Batch A • Optics & Lenses', studentsCount: 42 },
-  { id: 'c2', label: 'Class 10-B (Chemistry)', batch: 'Batch B • Chemical Reactions', studentsCount: 38 },
-  { id: 'c3', label: 'Class 11-A (Maths)', batch: 'Batch A • Quadratic Calculus', studentsCount: 35 },
-  { id: 'c4', label: 'Class 12-JEE (Physics & Chem)', batch: 'Target JEE • Advanced Batch', studentsCount: 40 },
+  { id: 'c6', label: 'Class 6 (General Science & Maths)', batch: 'Middle School • Batch A', studentsCount: 30 },
+  { id: 'c7', label: 'Class 7 (General Science & Maths)', batch: 'Middle School • Batch A', studentsCount: 32 },
+  { id: 'c8', label: 'Class 8 (Physics, Bio & Maths)', batch: 'Secondary Foundation • Batch A', studentsCount: 35 },
+  { id: 'c9', label: 'Class 9 (Physics, Bio & Maths)', batch: 'Secondary Foundation • Batch A', studentsCount: 38 },
+  { id: 'c1', label: 'Class 10-A (Physics & Chemistry)', batch: 'Batch A • Board Prep', studentsCount: 42 },
+  { id: 'c2', label: 'Class 10-B (Biology & Chemistry)', batch: 'Batch B • Board Prep', studentsCount: 38 },
+  { id: 'c3', label: 'Class 11-A (Physics, Chem & CS)', batch: 'Senior Secondary • Batch A', studentsCount: 35 },
+  { id: 'c4', label: 'Class 12-JEE (Physics, Chem & CS)', batch: 'Target JEE • Advanced Batch', studentsCount: 40 },
 ];
 
 // Map class label to EDUSYNC class name for filtering
 const CLASS_MAP: Record<string, string> = {
+  'c6': 'Class 6',
+  'c7': 'Class 7',
+  'c8': 'Class 8',
+  'c9': 'Class 9',
   'c1': 'Class 10',
   'c2': 'Class 10',
   'c3': 'Class 11',

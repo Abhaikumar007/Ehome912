@@ -23,13 +23,13 @@ const TEACHER_OPINIONS = [
   {
     id: '1',
     teacher: 'Mr. R Madhusudanan',
-    role: 'Super Admin',
+    role: 'Super Admin & Physics',
     subject: 'Physics',
     avatar: 'RM',
     color: '#0284C7',
     bg: '#F0F9FF',
-    attendanceScore: '94% Present',
-    remark: 'Arjun demonstrates disciplined attendance in Physics. Excellent grasp of ray diagrams and formulas. Keep participating actively in problem-solving sessions!',
+    attendanceScore: 'Pending',
+    remark: 'Welcome to EduHome! Attend lectures punctually and participate actively in problem-solving sessions.',
   },
   {
     id: '2',
@@ -39,8 +39,8 @@ const TEACHER_OPINIONS = [
     avatar: 'SR',
     color: '#10B981',
     bg: '#ECFDF3',
-    attendanceScore: '92% Present',
-    remark: 'Consistent presence in chemical equation balancing & lab demonstrations. Punctuality and homework submissions are commendable!',
+    attendanceScore: 'Pending',
+    remark: 'Regular attendance and continuous lab session participation will ensure strong mastery of concepts.',
   },
   {
     id: '3',
@@ -50,8 +50,8 @@ const TEACHER_OPINIONS = [
     avatar: 'KN',
     color: '#8B5CF6',
     bg: '#F5F3FF',
-    attendanceScore: '100% Full Att.',
-    remark: 'Attended 100% of calculus & integration classes this term. This dedication will ensure a top percentile in upcoming entrance tests.',
+    attendanceScore: 'Pending',
+    remark: 'Daily attendance logs and evaluation records will appear here as regular sessions commence.',
   },
 ];
 
@@ -60,8 +60,8 @@ export default function AttendanceScreen() {
   const { student } = useAuth();
   const [dateOffset, setDateOffset] = useState(0);
   const [attendance, setAttendance] = useState(defaultAtt);
-  const [opinionIndex, setOpinionIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [opinionIndex, setOpinionIndex] = useState(0);
 
   const rollNo = student?.rollNo || '2024-JEE-0842';
 
@@ -86,7 +86,7 @@ export default function AttendanceScreen() {
     setRefreshing(false);
   };
 
-  const base = new Date(2026, 8, 9);
+  const base = new Date();
   base.setDate(base.getDate() + dateOffset);
   const dateLabel = base.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -103,67 +103,11 @@ export default function AttendanceScreen() {
         statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : 'Attendance pending',
         isHoliday: false,
       };
-    } else if (offset === -1) {
-      // Tue, 8 Sep
-      return {
-        subjects: [
-          { id: '1', subject: 'Physics', time: '09:00 AM – 10:30 AM', status: 'present' },
-          { id: '2', subject: 'Mathematics', time: '11:00 AM – 12:30 PM', status: 'present' },
-          { id: '3', subject: 'Chemistry', time: '02:00 PM – 03:30 PM', status: 'present' },
-          { id: '4', subject: 'Biology', time: '04:00 PM – 05:30 PM', status: 'present' },
-        ],
-        sessionCount: '4 of 4 Sessions Attended (100% Full Attendance)',
-        statusSummary: '4 Present, 0 Absent',
-        isHoliday: false,
-      };
-    } else if (offset === -2) {
-      // Mon, 7 Sep
-      return {
-        subjects: [
-          { id: '1', subject: 'Physics', time: '09:00 AM – 10:30 AM', status: 'present' },
-          { id: '2', subject: 'Mathematics', time: '11:00 AM – 12:30 PM', status: 'present' },
-          { id: '3', subject: 'Biology', time: '04:00 PM – 05:30 PM', status: 'present' },
-        ],
-        sessionCount: '3 of 3 Sessions Attended (100% Full Attendance)',
-        statusSummary: '3 Present, 0 Absent',
-        isHoliday: false,
-      };
-    } else if (offset === -3) {
-      // Sun, 6 Sep
-      return {
-        subjects: [],
-        sessionCount: 'Sunday — Tuition Holiday (No Sessions)',
-        statusSummary: 'Weekly Off',
-        isHoliday: true,
-      };
-    } else if (offset === -4) {
-      // Sat, 5 Sep
-      return {
-        subjects: [
-          { id: '1', subject: 'Chemistry', time: '02:00 PM – 03:30 PM', status: 'present' },
-          { id: '2', subject: 'Biology', time: '04:00 PM – 05:30 PM', status: 'absent' },
-        ],
-        sessionCount: '1 of 2 Sessions Attended (Partial)',
-        statusSummary: '1 Present, 1 Absent',
-        isHoliday: false,
-      };
-    } else if (offset > 0) {
-      return {
-        subjects: [],
-        sessionCount: 'Upcoming Date — No Sessions Recorded Yet',
-        statusSummary: 'Not Yet Held',
-        isHoliday: false,
-      };
     } else {
       return {
-        subjects: [
-          { id: '1', subject: 'Physics', time: '09:00 AM – 10:30 AM', status: 'present' },
-          { id: '2', subject: 'Mathematics', time: '11:00 AM – 12:30 PM', status: 'present' },
-          { id: '3', subject: 'Chemistry', time: '02:00 PM – 03:30 PM', status: 'present' },
-          { id: '4', subject: 'Biology', time: '04:00 PM – 05:30 PM', status: 'present' },
-        ],
-        sessionCount: '4 of 4 Sessions Attended (100%)',
-        statusSummary: '4 Present, 0 Absent',
+        subjects: [],
+        sessionCount: 'No sessions recorded for this date',
+        statusSummary: 'No Records',
         isHoliday: false,
       };
     }
@@ -356,24 +300,34 @@ export default function AttendanceScreen() {
           <TouchableOpacity><Text style={styles.pastRecords}>Past Records</Text></TouchableOpacity>
         </View>
 
-        {attendance.history.map((h, i) => (
-          <View key={i} style={[styles.historyRow, i < attendance.history.length - 1 && styles.historyBorder]}>
-            <View style={styles.historyLeft}>
-              <Text style={styles.historyDate}>{h.date}</Text>
-              <Text style={styles.historySubjects}>{h.subjects}</Text>
+        {attendance.history.length > 0 ? (
+          attendance.history.map((h, i) => (
+            <View key={i} style={[styles.historyRow, i < attendance.history.length - 1 && styles.historyBorder]}>
+              <View style={styles.historyLeft}>
+                <Text style={styles.historyDate}>{h.date}</Text>
+                <Text style={styles.historySubjects}>{h.subjects}</Text>
+              </View>
+              <View style={[styles.historyBadge, { backgroundColor: h.status === 'full' ? Colors.greenLight : Colors.redLight }]}>
+                <Ionicons
+                  name={h.status === 'full' ? 'checkmark' : 'close'}
+                  size={12}
+                  color={h.status === 'full' ? Colors.green : Colors.red}
+                />
+                <Text style={[styles.historyScore, { color: h.status === 'full' ? Colors.green : Colors.red }]}>
+                  {h.score} Present
+                </Text>
+              </View>
             </View>
-            <View style={[styles.historyBadge, { backgroundColor: h.status === 'full' ? Colors.greenLight : Colors.redLight }]}>
-              <Ionicons
-                name={h.status === 'full' ? 'checkmark' : 'close'}
-                size={12}
-                color={h.status === 'full' ? Colors.green : Colors.red}
-              />
-              <Text style={[styles.historyScore, { color: h.status === 'full' ? Colors.green : Colors.red }]}>
-                {h.score} Present
-              </Text>
-            </View>
+          ))
+        ) : (
+          <View style={styles.emptyHistoryBox}>
+            <Ionicons name="calendar-outline" size={24} color={Colors.textMuted} />
+            <Text style={styles.emptyHistoryTitle}>No Attendance Records Yet</Text>
+            <Text style={styles.emptyHistorySub}>
+              Attendance tracking has not started yet. Once teachers mark attendance during sessions, daily records will appear here.
+            </Text>
           </View>
-        ))}
+        )}
 
         <View style={{ height: 20 }} />
       </ScrollView>
@@ -570,5 +524,29 @@ const styles = StyleSheet.create({
   dotActive: {
     width: 14,
     backgroundColor: Colors.primary,
+  },
+  emptyHistoryBox: {
+    backgroundColor: Colors.cardBg,
+    borderRadius: 14,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  emptyHistoryTitle: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    marginTop: 8,
+  },
+  emptyHistorySub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    marginTop: 4,
+    lineHeight: 18,
   },
 });

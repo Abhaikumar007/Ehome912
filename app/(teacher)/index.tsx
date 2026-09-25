@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, Modal, TextInput, Image,
+  Alert, Modal, TextInput, Image, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,42 +10,13 @@ import { Colors } from '../../constants/colors';
 import { DataService } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import { supabase } from '../../lib/supabase';
-
-const TODAY_CLASSES = [
-  {
-    id: 'tc1',
-    time: '5:00 PM – 6:00 PM',
-    subject: 'Physics',
-    class: 'Class 10-A',
-    topic: 'Optics – Spherical Mirrors & Ray Diagrams',
-    room: 'Room 2A',
-    status: 'Upcoming',
-    color: '#0284C7',
-    bg: '#F0F9FF',
-  },
-  {
-    id: 'tc2',
-    time: '6:00 PM – 7:00 PM',
-    subject: 'Chemistry',
-    class: 'Class 10-B',
-    topic: 'Chemical Reactions – Balancing & Precipitates',
-    room: 'Room 1B',
-    status: 'Upcoming',
-    color: '#10B981',
-    bg: '#ECFDF3',
-  },
-  {
-    id: 'tc3',
-    time: '7:00 PM – 8:00 PM',
-    subject: 'Physics',
-    class: 'Class 11-A',
-    topic: 'Laws of Motion – Friction & Inclined Planes',
-    room: 'Room 3C',
-    status: 'Scheduled',
-    color: '#8B5CF6',
-    bg: '#F5F3FF',
-  },
-];
+import {
+  TEACHER_ROSTER,
+  TeacherProfile,
+  getActiveTeacher,
+  setActiveTeacherId,
+  isTeacherAssignedToClass,
+} from '../../lib/teacherRoster';
 
 const ASSIGNED_STUDENTS = [
   {
@@ -68,6 +39,11 @@ const ASSIGNED_STUDENTS = [
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
+  const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
+  const [adminClasses, setAdminClasses] = useState<any[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
@@ -98,6 +74,23 @@ export default function TeacherHomeScreen() {
     },
   ]);
 
+  const loadActiveFaculty = async () => {
+    const teacher = await getActiveTeacher();
+    setActiveTeacher(teacher);
+  };
+
+  const loadTimetable = async () => {
+    setLoadingClasses(true);
+    try {
+      const cls = await DataService.getAdminTimetableClasses();
+      setAdminClasses(cls || []);
+    } catch (e) {
+      console.warn('Error fetching timetable classes:', e);
+    } finally {
+      setLoadingClasses(false);
+    }
+  };
+
   const loadAnnouncements = async () => {
     try {
       const list = await DataService.getAnnouncements();
@@ -123,10 +116,20 @@ export default function TeacherHomeScreen() {
   };
 
   useEffect(() => {
+    loadActiveFaculty();
     loadAnnouncements();
     loadPendingOpinions();
+    loadTimetable();
 
-    // Supabase Realtime: updates instantly when admin broadcasts from PC
+    // Supabase Realtime: updates instantly when admin broadcasts from PC or edits classes
+    const classChannel = supabase
+      .channel('teacher_classes_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
+        console.log('[Realtime] Classes timetable updated from Supabase!');
+        loadTimetable();
+      })
+      .subscribe();
+
     const channel = supabase
       .channel('teacher_announcements_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
@@ -136,9 +139,24 @@ export default function TeacherHomeScreen() {
       .subscribe();
 
     return () => {
+      supabase.removeChannel(classChannel);
       supabase.removeChannel(channel);
     };
   }, []);
+
+  const getInitials = (name: string) => {
+    return name
+      .replace(/Dr\.|Mr\.|Mrs\.|Ms\./g, '')
+      .trim()
+      .split(' ')
+      .map((n) => n[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  };
+
+  // Filter admin timetable specifically for this active teacher's subject & grades
+  const assignedTodayClasses = adminClasses.filter((c) => isTeacherAssignedToClass(activeTeacher, c));
 
   const handlePostAnnouncement = async () => {
     if (!announcementTitle.trim()) {
@@ -238,17 +256,17 @@ export default function TeacherHomeScreen() {
 
         <View style={styles.headerRight}>
           <TouchableOpacity
-            style={styles.switchPill}
-            onPress={() => router.replace('/(student)')}
+            style={styles.facultyPill}
+            onPress={() => setFacultyPickerVisible(true)}
             activeOpacity={0.8}
           >
-            <Ionicons name="swap-horizontal" size={13} color={Colors.primary} />
-            <Text style={styles.switchPillText}>Student View</Text>
+            <Ionicons name="school" size={13} color="#0284C7" />
+            <Text style={styles.facultyPillText}>{activeTeacher.subject.split(' ')[0]} ▾</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.bellBtn}
-            onPress={() => Alert.alert('Faculty Notifications', 'All class notes and attendance are synchronized.')}
+            onPress={() => Alert.alert('Faculty Notifications', 'All class notes and attendance are synchronized with admin timetable.')}
           >
             <Ionicons name="notifications" size={20} color={Colors.primary} />
             <View style={styles.bellDot} />
@@ -256,7 +274,7 @@ export default function TeacherHomeScreen() {
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>RM</Text>
+              <Text style={styles.avatarText}>{getInitials(activeTeacher.name)}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -267,15 +285,19 @@ export default function TeacherHomeScreen() {
         <View style={styles.welcomeCard}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingSmall}>Welcome back,</Text>
-            <Text style={styles.teacherName}>Mr. R Madhusudanan</Text>
-            <Text style={styles.roleBadgeText}>Senior Faculty • Physics & Chemistry</Text>
-            <Text style={styles.dateText}>📅 Tue, 9 Sep 2026</Text>
+            <Text style={styles.teacherName}>{activeTeacher.name}</Text>
+            <Text style={styles.roleBadgeText}>{activeTeacher.subject} • {activeTeacher.gradeDescription}</Text>
+            <Text style={styles.dateText}>📅 {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</Text>
           </View>
-          <View style={styles.adminBadge}>
+          <TouchableOpacity
+            style={styles.adminBadge}
+            onPress={() => setFacultyPickerVisible(true)}
+            activeOpacity={0.8}
+          >
             <Ionicons name="school" size={20} color="#0284C7" />
             <Text style={styles.adminBadgeTitle}>Staff ID</Text>
-            <Text style={styles.adminBadgeSub}>FAC-042</Text>
-          </View>
+            <Text style={styles.adminBadgeSub}>{activeTeacher.id.replace('fac-', '').toUpperCase()}</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Quick Launch Cards */}
@@ -332,42 +354,70 @@ export default function TeacherHomeScreen() {
         {/* Today's Teaching Schedule */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Today's Assigned Classes</Text>
-          <Text style={styles.sectionCount}>3 Sessions</Text>
+          <Text style={styles.sectionCount}>
+            {assignedTodayClasses.length > 0 ? `${assignedTodayClasses.length} Sessions` : 'None'}
+          </Text>
         </View>
 
-        {TODAY_CLASSES.map((c) => (
-          <View key={c.id} style={styles.classCard}>
-            <View style={[styles.classColorBar, { backgroundColor: c.color }]} />
-            <View style={styles.classCardBody}>
-              <View style={styles.classCardTop}>
-                <View style={styles.classBadgeWrap}>
-                  <Text style={[styles.classBadgeName, { color: c.color }]}>{c.class}</Text>
-                  <Text style={styles.subjectDot}>•</Text>
-                  <Text style={styles.subjectText}>{c.subject}</Text>
-                </View>
-                <View style={styles.roomPill}>
-                  <Ionicons name="location-outline" size={11} color={Colors.textSecondary} />
-                  <Text style={styles.roomText}>{c.room}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.topicText}>{c.topic}</Text>
-
-              <View style={styles.classCardFooter}>
-                <View style={styles.timeWrap}>
-                  <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
-                  <Text style={styles.timeText}>{c.time}</Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.markAttendanceLink}
-                  onPress={() => router.push('/(teacher)/attendance')}
-                >
-                  <Text style={styles.markAttendanceLinkText}>Attendance &gt;</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
+        {loadingClasses ? (
+          <View style={styles.emptySessionBox}>
+            <ActivityIndicator size="small" color="#0284C7" />
+            <Text style={styles.emptySessionSub}>Loading today's assigned sessions...</Text>
           </View>
-        ))}
+        ) : assignedTodayClasses.length === 0 ? (
+          <View style={styles.emptySessionBox}>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons name="calendar-outline" size={24} color="#94A3B8" />
+            </View>
+            <Text style={styles.emptySessionTitle}>No sessions scheduled today</Text>
+            <Text style={styles.emptySessionSub}>
+              None / No classes currently assigned for {activeTeacher.name} ({activeTeacher.subject}) in today's admin timetable.
+            </Text>
+          </View>
+        ) : (
+          assignedTodayClasses.map((c) => {
+            const classTitle = c.class_grade || c.roll_no || 'Assigned Class';
+            const subjectTitle = c.subject || activeTeacher.subject;
+            return (
+              <View key={c.id} style={styles.classCard}>
+                <View style={[styles.classColorBar, { backgroundColor: '#0284C7' }]} />
+                <View style={styles.classCardBody}>
+                  <View style={styles.classCardTop}>
+                    <View style={styles.classBadgeWrap}>
+                      <Text style={[styles.classBadgeName, { color: '#0284C7' }]}>{classTitle}</Text>
+                      <Text style={styles.subjectDot}>•</Text>
+                      <Text style={styles.subjectText}>{subjectTitle}</Text>
+                    </View>
+                    <View style={styles.roomPill}>
+                      <Ionicons name="location-outline" size={11} color={Colors.textSecondary} />
+                      <Text style={styles.roomText}>{c.room || 'Classroom Hall'}</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.topicText}>{c.topic || `${subjectTitle} Scheduled Session`}</Text>
+
+                  <View style={styles.classCardFooter}>
+                    <View style={styles.timeWrap}>
+                      <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
+                      <Text style={styles.timeText}>{(c.time || 'Today').split('•')[0].trim()}</Text>
+                      {c.status?.includes('fac-') && (
+                        <View style={styles.allottedPill}>
+                          <Text style={styles.allottedPillText}>Admin Allotted ✓</Text>
+                        </View>
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      style={styles.markAttendanceLink}
+                      onPress={() => router.push('/(teacher)/attendance')}
+                    >
+                      <Text style={styles.markAttendanceLinkText}>Attendance &gt;</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            );
+          })
+        )}
 
         {/* Batch Attendance Summary Card */}
         <View style={styles.batchSummaryCard}>
@@ -380,38 +430,16 @@ export default function TeacherHomeScreen() {
               <Text style={styles.batchSummarySub}>Live tracking across active sections</Text>
             </View>
             <TouchableOpacity onPress={() => router.push('/(teacher)/attendance')}>
-              <Text style={styles.viewRosterText}>Full Roster &gt;</Text>
+              <Text style={styles.viewRosterText}>Take Attendance &gt;</Text>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.progressRow}>
-            <View style={styles.progressLabelWrap}>
-              <Text style={styles.progressLabel}>Class 10-A (Physics)</Text>
-              <Text style={styles.progressPct}>38/42 (90.5%)</Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '90.5%', backgroundColor: '#10B981' }]} />
-            </View>
-          </View>
-
-          <View style={styles.progressRow}>
-            <View style={styles.progressLabelWrap}>
-              <Text style={styles.progressLabel}>Class 10-B (Chemistry)</Text>
-              <Text style={styles.progressPct}>35/38 (92.1%)</Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '92.1%', backgroundColor: '#0284C7' }]} />
-            </View>
-          </View>
-
-          <View style={styles.progressRow}>
-            <View style={styles.progressLabelWrap}>
-              <Text style={styles.progressLabel}>Class 11-A (Maths)</Text>
-              <Text style={styles.progressPct}>31/35 (88.6%)</Text>
-            </View>
-            <View style={styles.progressBarBg}>
-              <View style={[styles.progressBarFill, { width: '88.6%', backgroundColor: '#8B5CF6' }]} />
-            </View>
+          <View style={styles.batchEmptyBox}>
+            <Ionicons name="clipboard-outline" size={24} color="#94A3B8" />
+            <Text style={styles.batchEmptyTitle}>No sessions recorded yet</Text>
+            <Text style={styles.batchEmptySub}>
+              Batch attendance percentages will update live once attendance registers are submitted for today's batches.
+            </Text>
           </View>
         </View>
 
@@ -667,6 +695,65 @@ export default function TeacherHomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Switch Faculty Member Modal */}
+      <Modal visible={facultyPickerVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>Select Faculty Member</Text>
+              <TouchableOpacity onPress={() => setFacultyPickerVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSub}>
+              Switch active teacher account to view assigned schedule and batches.
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
+              {TEACHER_ROSTER.map((teacher) => {
+                const isSelected = teacher.id === activeTeacher.id;
+                return (
+                  <TouchableOpacity
+                    key={teacher.id}
+                    style={[styles.facultyPickItem, isSelected && styles.facultyPickItemActive]}
+                    onPress={async () => {
+                      await setActiveTeacherId(teacher.id);
+                      setActiveTeacher(teacher);
+                      setFacultyPickerVisible(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.teacherAvatarBox, isSelected && { backgroundColor: '#0284C7' }]}>
+                      <Text style={[styles.teacherAvatarText, isSelected && { color: '#fff' }]}>
+                        {getInitials(teacher.name)}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.teacherNameText, isSelected && { color: '#0284C7', fontFamily: 'Inter_700Bold' }]}>
+                          {teacher.name}
+                        </Text>
+                        {teacher.isTemporary && (
+                          <View style={styles.tempBadge}>
+                            <Text style={styles.tempBadgeText}>TEMP</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.teacherSubjectText}>
+                        {teacher.subject} • {teacher.gradeDescription}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={20} color="#0284C7" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -698,7 +785,7 @@ const styles = StyleSheet.create({
   logoSub: { fontSize: 9, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
 
   headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  switchPill: {
+  facultyPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -709,7 +796,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#BAE6FD',
   },
-  switchPillText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
+  facultyPillText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
   bellBtn: { position: 'relative', padding: 4 },
   bellDot: {
     position: 'absolute',
@@ -833,6 +920,20 @@ const styles = StyleSheet.create({
   },
   timeWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   timeText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
+  allottedPill: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+    marginLeft: 4,
+  },
+  allottedPillText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: '#059669',
+  },
   markAttendanceLink: { paddingHorizontal: 4, paddingVertical: 2 },
   markAttendanceLinkText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
 
@@ -849,7 +950,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginBottom: 14,
+    marginBottom: 10,
   },
   summaryIconBox: {
     width: 32,
@@ -863,12 +964,108 @@ const styles = StyleSheet.create({
   batchSummarySub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
   viewRosterText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
 
-  progressRow: { marginBottom: 10 },
-  progressLabelWrap: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-  progressLabel: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textPrimary },
-  progressPct: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
-  progressBarBg: { height: 6, backgroundColor: '#F1F5F9', borderRadius: 3, overflow: 'hidden' },
-  progressBarFill: { height: '100%', borderRadius: 3 },
+  batchEmptyBox: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  batchEmptyTitle: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  batchEmptySub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 17,
+  },
+
+  emptySessionBox: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: 14,
+  },
+  emptyIconCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emptySessionTitle: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  emptySessionSub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
+    paddingHorizontal: 16,
+  },
+
+  facultyPickItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    gap: 12,
+  },
+  facultyPickItemActive: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+  },
+  teacherAvatarBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  teacherAvatarText: {
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
+    color: '#475569',
+  },
+  teacherNameText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+  },
+  teacherSubjectText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  tempBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+  },
+  tempBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: '#D97706',
+  },
 
   noticeCard: {
     backgroundColor: '#fff',

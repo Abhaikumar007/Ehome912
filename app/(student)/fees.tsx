@@ -604,34 +604,44 @@ export default function FeesScreen() {
             <View style={styles.cardTitleRow}>
               <Ionicons name="calendar-outline" size={18} color={Colors.primary} />
               <Text style={styles.sectionTitle}>Recent Payments</Text>
-              <Text style={styles.sectionSub}>(Last 3 Months)</Text>
+              <Text style={styles.sectionSub}>(Verified)</Text>
             </View>
             <TouchableOpacity onPress={() => setAllPaymentsModalVisible(true)} activeOpacity={0.7}>
               <Text style={styles.viewAll}>View All ({allPaymentsHistory.length}) →</Text>
             </TouchableOpacity>
           </View>
 
-          {(fees.recentPayments || []).map((p: any, i: number) => (
-            <View key={i} style={[styles.paymentRow, i < fees.recentPayments.length - 1 && styles.paymentRowBorder]}>
-              <View style={styles.monthBadge}>
-                <Text style={styles.monthBadgeText}>{p.month}</Text>
-                <Ionicons name="calendar-outline" size={13} color={Colors.primary} />
-              </View>
-              <View style={styles.paymentInfo}>
-                <Text style={styles.paymentMonth}>{p.fullMonth}</Text>
-                <Text style={styles.paymentDate}>Paid on {p.paidOn}</Text>
-              </View>
-              <View style={styles.paymentRightCol}>
-                <Text style={styles.paymentAmount}>₹ {p.amount.toLocaleString('en-IN')}</Text>
-                <View style={[styles.onTimeBadge, { backgroundColor: p.onTime ? Colors.greenLight : Colors.redLight }]}>
-                  <Ionicons name={p.onTime ? 'checkmark-circle' : 'time-outline'} size={11} color={p.onTime ? Colors.green : Colors.red} />
-                  <Text style={[styles.onTimeText, { color: p.onTime ? Colors.green : Colors.red }]}>
-                    {p.onTime ? 'On Time' : 'Late'}
-                  </Text>
+          {(!fees.recentPayments || fees.recentPayments.length === 0) ? (
+            <View style={styles.emptyPaymentsBox}>
+              <Ionicons name="receipt-outline" size={28} color={Colors.textMuted} />
+              <Text style={styles.emptyPaymentsText}>No payments recorded yet</Text>
+              <Text style={styles.emptyPaymentsSub}>
+                Payments will appear here once verified and approved by Center Admin.
+              </Text>
+            </View>
+          ) : (
+            fees.recentPayments.map((p: any, i: number) => (
+              <View key={i} style={[styles.paymentRow, i < fees.recentPayments.length - 1 && styles.paymentRowBorder]}>
+                <View style={styles.monthBadge}>
+                  <Text style={styles.monthBadgeText}>{p.month}</Text>
+                  <Ionicons name="calendar-outline" size={13} color={Colors.primary} />
+                </View>
+                <View style={styles.paymentInfo}>
+                  <Text style={styles.paymentMonth}>{p.fullMonth}</Text>
+                  <Text style={styles.paymentDate}>Paid on {p.paidOn}</Text>
+                </View>
+                <View style={styles.paymentRightCol}>
+                  <Text style={styles.paymentAmount}>₹ {p.amount.toLocaleString('en-IN')}</Text>
+                  <View style={[styles.onTimeBadge, { backgroundColor: p.onTime ? Colors.greenLight : Colors.redLight }]}>
+                    <Ionicons name={p.onTime ? 'checkmark-circle' : 'time-outline'} size={11} color={p.onTime ? Colors.green : Colors.red} />
+                    <Text style={[styles.onTimeText, { color: p.onTime ? Colors.green : Colors.red }]}>
+                      {p.onTime ? 'On Time' : 'Late'}
+                    </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
 
         <View style={{ height: 20 }} />
@@ -730,33 +740,43 @@ export default function FeesScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
-              {allPaymentsHistory.map((item, idx) => (
-                <View key={idx} style={styles.historyCard}>
-                  <View style={styles.historyCardTop}>
-                    <View style={styles.historyMonthBadge}>
-                      <Text style={styles.historyMonthBadgeText}>{item.month}</Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.historyCardTitle}>{item.category || item.fullMonth}</Text>
-                      <Text style={styles.historyCardDate}>{item.paidOn}</Text>
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <Text style={styles.historyAmountText}>₹ {item.amount.toLocaleString('en-IN')}</Text>
-                      <View style={styles.historyVerifiedBadge}>
-                        <Ionicons name="checkmark-circle" size={11} color={Colors.green} />
-                        <Text style={styles.historyVerifiedText}>Verified</Text>
+              {allPaymentsHistory.length === 0 ? (
+                <View style={[styles.emptyPaymentsBox, { marginVertical: 30 }]}>
+                  <Ionicons name="receipt-outline" size={36} color={Colors.textMuted} />
+                  <Text style={styles.emptyPaymentsText}>No payment receipts yet</Text>
+                  <Text style={styles.emptyPaymentsSub}>
+                    Verified tuition receipts will appear here once payment is confirmed and approved by Center Admin.
+                  </Text>
+                </View>
+              ) : (
+                allPaymentsHistory.map((item, idx) => (
+                  <View key={idx} style={styles.historyCard}>
+                    <View style={styles.historyCardTop}>
+                      <View style={styles.historyMonthBadge}>
+                        <Text style={styles.historyMonthBadgeText}>{item.month}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.historyCardTitle}>{item.category || item.fullMonth}</Text>
+                        <Text style={styles.historyCardDate}>{item.paidOn}</Text>
+                      </View>
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={styles.historyAmountText}>₹ {item.amount.toLocaleString('en-IN')}</Text>
+                        <View style={styles.historyVerifiedBadge}>
+                          <Ionicons name="checkmark-circle" size={11} color={Colors.green} />
+                          <Text style={styles.historyVerifiedText}>Verified</Text>
+                        </View>
                       </View>
                     </View>
-                  </View>
 
-                  <View style={styles.historyDivider} />
+                    <View style={styles.historyDivider} />
 
-                  <View style={styles.historyDetailsRow}>
-                    <Text style={styles.historyReceiptNo}>Receipt #{item.receiptNo}</Text>
-                    <Text style={styles.historyMode}>{item.mode}</Text>
+                    <View style={styles.historyDetailsRow}>
+                      <Text style={styles.historyReceiptNo}>Receipt #{item.receiptNo}</Text>
+                      <Text style={styles.historyMode}>{item.mode}</Text>
+                    </View>
                   </View>
-                </View>
-              ))}
+                ))
+              )}
             </ScrollView>
           </View>
         </View>
@@ -1405,5 +1425,26 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: Colors.textMuted,
     marginTop: -2,
+  },
+  emptyPaymentsBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    gap: 6,
+  },
+  emptyPaymentsText: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    marginTop: 4,
+  },
+  emptyPaymentsSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 16,
+    maxWidth: 260,
   },
 });

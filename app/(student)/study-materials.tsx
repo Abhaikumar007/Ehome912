@@ -65,9 +65,9 @@ export default function StudyMaterialsScreen() {
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.classPill}>
-            <Text style={styles.classPillText}>{student?.class || 'Class 12'} ▾</Text>
-          </TouchableOpacity>
+          <View style={styles.classPill}>
+            <Text style={styles.classPillText}>{student?.class || 'All Classes'}</Text>
+          </View>
           <TouchableOpacity onPress={() => router.push('/(student)/notifications' as any)}>
             <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
           </TouchableOpacity>
@@ -102,9 +102,32 @@ export default function StudyMaterialsScreen() {
           />
         }
       >
+        {/* Temporarily Locked Notice */}
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 10,
+          backgroundColor: '#FEF3C7',
+          borderRadius: 12,
+          padding: 12,
+          marginBottom: 14,
+          borderWidth: 1,
+          borderColor: '#FDE68A',
+        }}>
+          <Ionicons name="lock-closed" size={20} color="#D97706" />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontFamily: 'Inter_700Bold', color: '#B45309' }}>
+              Feature Temporarily Locked — Coming Soon
+            </Text>
+            <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#92400E', marginTop: 2 }}>
+              Curated notes and formula sheets for {student?.class || 'your class'} are being reviewed by faculty and will be unlocked soon.
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.titleRow}>
           <Text style={styles.pageTitle}>Study Materials</Text>
-          <View style={styles.cbseBadge}><Text style={styles.cbseText}>Class 12 CBSE</Text></View>
+          <View style={styles.cbseBadge}><Text style={styles.cbseText}>{student?.class || 'All Classes'}</Text></View>
         </View>
         <Text style={styles.pageSub}>Comprehensive handpicked notes, formula cheat-sheets & high-yield PYQs.</Text>
 

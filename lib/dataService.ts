@@ -391,83 +391,36 @@ export const DataService = {
         .order('created_at', { ascending: false });
 
       const { data, error } = (await withTimeout(query, 3000)) as any;
-      if (data && data.length > 0 && !error) {
-        const mapped = data.map((a: any) => ({
-          id: a.id,
-          icon: a.icon || 'megaphone',
-          iconBg: a.icon_bg || '#FEF3F2',
-          iconColor: a.icon_color || '#F04438',
-          title: a.title,
-          desc: a.description,
-          time: a.time_label || 'Recently',
-          important: a.important || false,
-          tag: a.tag || (a.important ? 'Urgent Alert' : 'Notice'),
-          author: a.author || 'EduHome Administration',
-          createdAt: a.created_at,
-        }));
-        await setCached(cacheKey, mapped);
-        return mapped;
+      if (!error) {
+        if (data && data.length > 0) {
+          const mapped = data.map((a: any) => ({
+            id: a.id,
+            icon: a.icon || 'megaphone',
+            iconBg: a.icon_bg || '#FEF3F2',
+            iconColor: a.icon_color || '#F04438',
+            title: a.title,
+            desc: a.description,
+            time: a.time_label || 'Recently',
+            important: a.important || false,
+            tag: a.tag || (a.important ? 'Urgent Alert' : 'Notice'),
+            author: a.author || 'EduHome Administration',
+            createdAt: a.created_at,
+          }));
+          await setCached(cacheKey, mapped);
+          return mapped;
+        } else {
+          // Genuinely 0 announcements in DB (admin deleted or cleared them)
+          await setCached(cacheKey, []);
+          return [];
+        }
       }
     } catch (e) {
       console.warn('Network fetch for announcements failed, falling back to cache', e);
     }
 
-    // 2. Offline / timeout fallback to cached announcements
-    if (cached && cached.length > 0) return cached;
-
-    const defaultAnnouncements = [
-      {
-        id: 'ann-1',
-        title: 'Parent-Teacher Meeting on 20th Sep',
-        desc: 'All students must inform their parents. Timing: 10 AM – 1 PM in Main Hall A.',
-        icon: 'megaphone',
-        iconBg: '#FEF3F2',
-        iconColor: '#F04438',
-        time: '2 hours ago',
-        important: true,
-        tag: 'Admin Notice',
-        author: 'Mr. R Madhusudanan (Main Admin)',
-      },
-      {
-        id: 'ann-2',
-        title: 'Weekly Test #9 – This Saturday',
-        desc: 'Syllabus: Physics Ch-10, Chemistry Ch-1, Maths Ch-4. Arrive 15 mins prior.',
-        icon: 'calendar',
-        iconBg: '#EBF3FF',
-        iconColor: '#1A56DB',
-        time: '5 hours ago',
-        important: false,
-        tag: 'Exam Dept',
-        author: 'Examination Controller',
-      },
-      {
-        id: 'ann-3',
-        title: '🎉 Arjun S scored Top 8% this month!',
-        desc: 'Congratulations! Keep up the excellent board & entrance examination performance.',
-        icon: 'trophy',
-        iconBg: '#FFFAEB',
-        iconColor: '#F79009',
-        time: 'Yesterday',
-        important: false,
-        tag: 'Achievement',
-        author: 'Academic Council',
-      },
-      {
-        id: 'ann-4',
-        title: 'New Chemistry Reference Guide Uploaded',
-        desc: 'Chapter 1 & 2 notes annotated by Dr. Sunita Rao available in Study Materials.',
-        icon: 'document-text',
-        iconBg: '#F5F3FF',
-        iconColor: '#8B5CF6',
-        time: '3 days ago',
-        important: false,
-        tag: 'Study Material',
-        author: 'Faculty Team',
-      },
-    ];
-
-    await setCached(cacheKey, defaultAnnouncements);
-    return defaultAnnouncements;
+    // 2. Offline fallback ONLY if network error occurred
+    if (cached) return cached;
+    return [];
   },
 
   // Fetch Attendance with Cache & 2.5s Timeout
@@ -553,20 +506,6 @@ export const DataService = {
     // Calculate dynamic due date and days left based on student's joining date
     const dueInfo = this.calculateDueInfo(studentFeeInfo.joiningDate || studentFeeInfo.dueDate || 25);
 
-    if (cached) {
-      return {
-        ...cached,
-        monthlyFee: cached.monthlyFee || studentFeeInfo.monthlyFee,
-        subjects: cached.subjects || studentFeeInfo.subjects,
-        joiningDate: cached.joiningDate || studentFeeInfo.joiningDate,
-        currentDue: cached.isPaid ? 0 : (cached.monthlyFee || studentFeeInfo.monthlyFee),
-        actualDue: cached.isPaid ? 0 : (cached.monthlyFee || studentFeeInfo.monthlyFee),
-        daysLeft: cached.isPaid ? 0 : dueInfo.daysLeft,
-        dueDate: dueInfo.dueDate,
-        monthsPaidOnTime: cached.monthsPaidOnTime ?? studentFeeInfo.monthsPaidOnTime,
-      };
-    }
-
     try {
       const query = supabase
         .from('fees_records')
@@ -578,8 +517,11 @@ export const DataService = {
       if (data && !error) {
         const studentDueInfo = this.calculateDueInfo(data.joining_date || data.due_date || studentFeeInfo.joiningDate || 25);
         const payments = Array.isArray(data.recent_payments) ? data.recent_payments : [];
+        const approvedPayments = payments.filter((p: any) => p.status !== 'pending_verification');
         const hasPendingVerification = payments.some((p: any) => p.status === 'pending_verification');
-        const isPaid = Number(data.current_due) === 0;
+
+        // Only paid if current_due is 0 AND at least one payment was verified/approved by admin
+        const isPaid = Number(data.current_due) === 0 && approvedPayments.length > 0;
         const computedStatus = isPaid ? 'paid' : (hasPendingVerification ? 'pending_verification' : 'due');
 
         const mapped = {
@@ -588,21 +530,39 @@ export const DataService = {
           actualDue: isPaid ? 0 : studentFeeInfo.monthlyFee,
           dueDate: data.due_date || studentDueInfo.dueDate,
           joiningDate: data.joining_date || studentFeeInfo.joiningDate || studentDueInfo.dueDate,
-          daysLeft: studentDueInfo.daysLeft,
+          daysLeft: isPaid ? 0 : studentDueInfo.daysLeft,
           isPaid,
           status: computedStatus as 'due' | 'pending_verification' | 'paid',
           subjects: studentFeeInfo.subjects,
           upiId: 'devitintu12345@oksbi',
           payeeName: 'EduHome Tuition Center',
           loyaltyMonths: data.loyalty_months || mockFees.loyaltyMonths,
-          monthsPaidOnTime: data.months_paid_on_time ?? studentFeeInfo.monthsPaidOnTime,
-          recentPayments: payments,
+          monthsPaidOnTime: isPaid ? (data.months_paid_on_time ?? studentFeeInfo.monthsPaidOnTime) : 0,
+          recentPayments: approvedPayments,
         };
         await setCached(cacheKey, mapped);
         return mapped;
       }
     } catch (e) {
       // Timeout or offline
+    }
+
+    if (cached) {
+      const isPaid = Boolean(cached.isPaid && cached.recentPayments && cached.recentPayments.length > 0);
+      return {
+        ...cached,
+        monthlyFee: cached.monthlyFee || studentFeeInfo.monthlyFee,
+        subjects: cached.subjects || studentFeeInfo.subjects,
+        joiningDate: cached.joiningDate || studentFeeInfo.joiningDate,
+        currentDue: isPaid ? 0 : (cached.monthlyFee || studentFeeInfo.monthlyFee),
+        actualDue: isPaid ? 0 : (cached.monthlyFee || studentFeeInfo.monthlyFee),
+        daysLeft: isPaid ? 0 : dueInfo.daysLeft,
+        dueDate: dueInfo.dueDate,
+        isPaid,
+        status: isPaid ? 'paid' : (cached.status === 'pending_verification' ? 'pending_verification' : 'due'),
+        monthsPaidOnTime: isPaid ? (cached.monthsPaidOnTime ?? studentFeeInfo.monthsPaidOnTime) : 0,
+        recentPayments: Array.isArray(cached.recentPayments) ? cached.recentPayments.filter((p: any) => p.status !== 'pending_verification') : [],
+      };
     }
 
     const initial = {
@@ -998,61 +958,138 @@ export const DataService = {
   async getAcademicAlert() {
     const key = 'academic_alert_active';
 
-    // 1. Try to fetch latest active exam alert from Supabase announcements
+    // 1. First, check dedicated academic_alerts table (guaranteed test papers from admin & faculty)
     try {
-      const { data, error } = (await withTimeout(
+      const { data: acData, error: acErr } = (await withTimeout(
         supabase
-          .from('announcements')
+          .from('academic_alerts')
           .select('*')
-          .or('icon.eq.calendar,title.ilike.%Exam Alert%,title.ilike.%Test Alert%')
           .order('created_at', { ascending: false })
           .limit(1),
         2500
       )) as any;
 
-      if (data && data.length > 0 && !error) {
-        const top = data[0];
-        // Parse syllabus and date from description if formatted by master hub
-        const desc = top.description || '';
+      if (acData && acData.length > 0 && !acErr) {
+        const top = acData[0];
         const now = new Date();
-
-        // Check if there is an expiry in description
         let isExpired = false;
-        const expiryMatch = desc.match(/Valid Until:\s*([^\n|]+)/i) || desc.match(/Expiry:\s*([^\n|]+)/i);
-        if (expiryMatch) {
-          const expDate = new Date(expiryMatch[1].trim());
+        if (top.expiry_date) {
+          const expDate = new Date(top.expiry_date);
           if (!isNaN(expDate.getTime()) && now > expDate) {
             isExpired = true;
           }
         }
 
         if (!isExpired) {
-          const dateMatch = desc.match(/Exam Date:\s*([^\n|]+)/i);
-          const syllabusMatch = desc.match(/Syllabus:\s*([^\n]+)/i);
           const alertObj = {
             id: top.id,
-            type: 'exam',
-            title: top.title.replace(/^\[(Exam Alert|Test Alert)[^\]]*\]\s*/i, ''),
-            shortDesc: desc,
-            date: dateMatch ? dateMatch[1].trim() : (top.time_label || 'Upcoming Exam'),
-            time: '09:30 AM - 12:30 PM',
-            room: 'Exam Hall 1',
-            maxMarks: 100,
-            syllabus: syllabusMatch ? syllabusMatch[1].split(',').map((s: string) => s.trim()) : ['Full Chapters'],
-            instructions: ['Arrive 15 minutes before the exam starts.', 'Carry blue/black ballpoint pens.', 'Calculator not permitted.'],
-            updatedBy: 'Examination Controller',
-            expiryDate: expiryMatch ? expiryMatch[1].trim() : undefined,
+            type: 'test_paper',
+            title: top.title,
+            shortDesc: top.short_desc || (Array.isArray(top.syllabus) ? top.syllabus.join(' • ') : top.syllabus) || 'Test Paper Alert',
+            date: top.date || 'Upcoming Test',
+            time: top.time || '04:30 PM - 06:00 PM',
+            room: top.room || 'Room 204',
+            maxMarks: top.max_marks || 100,
+            syllabus: Array.isArray(top.syllabus) ? top.syllabus : (top.syllabus ? [top.syllabus] : ['Full Chapters Revision']),
+            instructions: top.instructions || [
+              'Reporting time is strictly 15 minutes before test commencement.',
+              'Bring geometry box and scientific calculator if required.',
+              'Syllabus verified by Super Admin Mr. R Madhusudanan.',
+            ],
+            updatedBy: top.updated_by || 'Faculty / Admin',
+            expiryDate: top.expiry_date,
           };
           await setCached(key, alertObj);
           return alertObj;
         }
       }
+    } catch (e) {}
+
+    // 2. Fetch latest active exam alert from announcements table ONLY if strictly a test paper or exam alert
+    // NEVER match generic announcements or holidays with icon: 'calendar'
+    try {
+      const { data, error } = (await withTimeout(
+        supabase
+          .from('announcements')
+          .select('*')
+          .or('title.ilike.%[Exam Alert]%,title.ilike.%[Test Alert]%,title.ilike.%[Test Paper]%')
+          .order('created_at', { ascending: false })
+          .limit(5),
+        2500
+      )) as any;
+
+      if (!error) {
+        if (data && data.length > 0) {
+          // Filter out any holiday or generic notice
+          const validTestAnnouncements = data.filter((item: any) => {
+            const t = (item.title || '').toLowerCase();
+            const d = (item.description || '').toLowerCase();
+            // Exclude holidays, attendance, schedule or no class notices
+            if (t.includes('holiday') || d.includes('holiday') || t.includes('no class') || d.includes('no class')) {
+              return false;
+            }
+            return t.includes('[exam alert') || t.includes('[test alert') || t.includes('[test paper');
+          });
+
+          if (validTestAnnouncements.length > 0) {
+            const top = validTestAnnouncements[0];
+            const desc = top.description || '';
+            const now = new Date();
+
+            let isExpired = false;
+            const expiryMatch = desc.match(/Valid Until:\s*([^\n|]+)/i) || desc.match(/Expiry:\s*([^\n|]+)/i);
+            if (expiryMatch) {
+              const expDate = new Date(expiryMatch[1].trim());
+              if (!isNaN(expDate.getTime()) && now > expDate) {
+                isExpired = true;
+              }
+            }
+
+            if (!isExpired) {
+              const dateMatch = desc.match(/Exam Date:\s*([^\n|]+)/i);
+              const syllabusMatch = desc.match(/Syllabus:\s*([^\n]+)/i);
+              const alertObj = {
+                id: top.id,
+                type: 'test_paper',
+                title: top.title.replace(/^\[(Exam Alert|Test Alert|Test Paper)[^\]]*\]\s*/i, ''),
+                shortDesc: desc,
+                date: dateMatch ? dateMatch[1].trim() : (top.time_label || 'Upcoming Exam'),
+                time: '04:30 PM - 06:00 PM',
+                room: 'Exam Hall 1',
+                maxMarks: 100,
+                syllabus: syllabusMatch ? syllabusMatch[1].split(',').map((s: string) => s.trim()) : ['Full Chapters'],
+                instructions: ['Arrive 15 minutes before the exam starts.', 'Carry blue/black ballpoint pens.', 'Calculator not permitted.'],
+                updatedBy: 'Examination Controller',
+                expiryDate: expiryMatch ? expiryMatch[1].trim() : undefined,
+              };
+              await setCached(key, alertObj);
+              return alertObj;
+            }
+          }
+        }
+        // If DB returned successfully and no active alerts exist (admin deleted/cancelled it), CLEAR cache & return null!
+        await setCached(key, null);
+        return null;
+      }
     } catch (e) {
-      // fallback to cached
+      // only if network request threw an exception (offline)
     }
 
     const cached = await getCached<any>(key);
     if (!cached) return null;
+
+    // Discard any cached holiday or no-class notice that was incorrectly stored as a test paper alert
+    const cachedTitle = (cached.title || '').toLowerCase();
+    const cachedDesc = (cached.shortDesc || '').toLowerCase();
+    if (
+      cachedTitle.includes('holiday') ||
+      cachedDesc.includes('holiday') ||
+      cachedTitle.includes('no class') ||
+      cachedDesc.includes('no class')
+    ) {
+      await setCached(key, null);
+      return null;
+    }
 
     // If alert has expiryDate and it has passed, auto-remove it
     if (cached.expiryDate) {
@@ -1221,79 +1258,49 @@ export const DataService = {
       }
       return cached;
     }
+    // Return none/empty when no test papers exist (no mock data)
+    return [];
+  },
 
-    // Initial default test papers
-    const initialTests = [
-      {
-        id: 'test-8',
-        title: 'Test 8: Optics & Light Refraction',
-        subject: 'Physics',
-        classTag: 'Class 10-A',
-        dateStr: 'Mon, 22 Sep 2026',
-        timeStr: '04:30 PM - 06:00 PM',
-        roomStr: 'Room 204 (Hall A)',
-        maxMarks: 100,
-        syllabus: [
-          'Ch 9: Reflection of Light & Spherical Mirrors',
-          'Ch 10: Refraction & Snell\'s Law with Ray Diagrams',
-          'Ch 11: Human Eye and Colorful World (Numerical Section)',
-        ],
-        isEvaluated: false,
-        students: [
-          { id: 'ts1', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'ts2', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'ts3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'ts4', name: 'Priya S', roll: '#2026-1008', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'ts5', name: 'Dev P', roll: '#2026-1004', marks: 0, grade: 'Pending', color: '#94A3B8' },
-        ],
-      },
-      {
-        id: 'test-9',
-        title: 'Test 9: Chemical Reactions & Equations',
-        subject: 'Chemistry',
-        classTag: 'Class 10-A',
-        dateStr: 'Thu, 25 Sep 2026',
-        timeStr: '04:00 PM - 05:30 PM',
-        roomStr: 'Lab 2',
-        maxMarks: 50,
-        syllabus: [
-          'Ch 1: Types of Chemical Reactions & Oxidation',
-          'Ch 2: Balancing Complex Chemical Equations',
-          'Pre-board Board Sample Questions Q1-Q15',
-        ],
-        isEvaluated: false,
-        students: [
-          { id: 'tc1', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'tc2', name: 'Meera K', roll: '#2026-1005', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'tc3', name: 'Akhil S', roll: '#2026-1002', marks: 0, grade: 'Pending', color: '#94A3B8' },
-        ],
-      },
-      {
-        id: 'test-10',
-        title: 'Test 10: Trigonometric Identities & Heights',
-        subject: 'Mathematics',
-        classTag: 'Class 10-B',
-        dateStr: 'Sat, 27 Sep 2026',
-        timeStr: '03:30 PM - 05:00 PM',
-        roomStr: 'Room 105',
-        maxMarks: 100,
-        syllabus: [
-          'Ch 8: Introduction to Trigonometry',
-          'Ch 9: Some Applications of Trigonometry (Heights & Distances)',
-        ],
-        isEvaluated: false,
-        students: [
-          { id: 'tm1', name: 'Arjun S', roll: '2024-JEE-0842', marks: 0, grade: 'Pending', color: '#94A3B8' },
-          { id: 'tm2', name: 'Karan V', roll: '#2026-1007', marks: 0, grade: 'Pending', color: '#94A3B8' },
-        ],
-      },
-    ];
+  // Fetch all scheduled classes from Supabase admin timetable
+  async getAdminTimetableClasses(): Promise<any[]> {
+    try {
+      const { data, error } = await withTimeout(
+        supabase
+          .from('classes')
+          .select('*')
+          .order('created_at', { ascending: true }),
+        3000
+      ) as any;
 
-    await setCached(key, initialTests);
-    if (classTag) {
-      return initialTests.filter((t) => t.classTag === classTag);
+      if (!error && Array.isArray(data) && data.length > 0) {
+        return data;
+      }
+    } catch (e) {
+      console.warn('Error fetching timetable from Supabase:', e);
     }
-    return initialTests;
+    return [];
+  },
+
+  // Fetch teacher uploaded study materials (no mock data)
+  async getTeacherMaterials(subject?: string): Promise<any[]> {
+    const key = 'teacher_study_materials';
+    const cached = await getCached<any[]>(key);
+    if (cached && Array.isArray(cached)) {
+      if (subject && subject !== 'All') {
+        return cached.filter((m) => m.subject?.toLowerCase() === subject.toLowerCase());
+      }
+      return cached;
+    }
+    return [];
+  },
+
+  async saveTeacherMaterial(material: any): Promise<any[]> {
+    const key = 'teacher_study_materials';
+    const existing = (await getCached<any[]>(key)) || [];
+    const updated = [material, ...existing];
+    await setCached(key, updated);
+    return updated;
   },
 
   // Save new test or update existing test paper
@@ -1588,79 +1595,27 @@ export const DataService = {
 
   // Full Historical Payment Records (For "View All" in Fees)
   async getFullPaymentHistory(rollNo: string = '2024-JEE-0842') {
-    return [
-      {
-        receiptNo: 'REC-2026-SEP-0842',
-        month: 'SEP',
-        fullMonth: 'September 2026',
-        paidOn: '19 Sep 2026, 06:14 PM',
-        amount: 1,
-        mode: 'UPI (GPay / devitintu12345@oksbi)',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Monthly Tuition Fee (Demo)',
-      },
-      {
-        receiptNo: 'REC-2026-AUG-0842',
-        month: 'AUG',
-        fullMonth: 'August 2026',
-        paidOn: '08 Aug 2026, 07:03 PM',
-        amount: 6000,
-        mode: 'UPI (devitintu12345@oksbi)',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Regular Monthly Tuition Fee',
-      },
-      {
-        receiptNo: 'REC-2026-JUL-0842',
-        month: 'JUL',
-        fullMonth: 'July 2026',
-        paidOn: '09 Jul 2026, 05:56 PM',
-        amount: 6000,
-        mode: 'UPI (devitintu12345@oksbi)',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Regular Monthly Tuition Fee',
-      },
-      {
-        receiptNo: 'REC-2026-JUN-0842',
-        month: 'JUN',
-        fullMonth: 'June 2026',
-        paidOn: '10 Jun 2026, 04:30 PM',
-        amount: 6000,
-        mode: 'Online Transfer',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Regular Monthly Tuition Fee',
-      },
-      {
-        receiptNo: 'REC-2026-MAY-0842',
-        month: 'MAY',
-        fullMonth: 'May 2026',
-        paidOn: '14 May 2026, 02:15 PM',
-        amount: 4500,
-        mode: 'UPI (devitintu12345@oksbi)',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Entrance Coaching Intensive Batch',
-      },
-      {
-        receiptNo: 'REC-2026-APR-0842',
-        month: 'APR',
-        fullMonth: 'April 2026',
-        paidOn: '05 Apr 2026, 11:00 AM',
-        amount: 1500,
-        mode: 'Cash Receipt at Center Desk',
-        status: 'Verified ✓',
-        verifiedBy: 'Mr. R Madhusudanan (Main Admin)',
-        onTime: true,
-        category: 'Annual Registration & Lab Modules Kit',
-      },
-    ];
+    try {
+      const { data, error } = await supabase
+        .from('fees_records')
+        .select('recent_payments')
+        .eq('roll_no', rollNo)
+        .maybeSingle();
+
+      if (data && Array.isArray(data.recent_payments)) {
+        // Return only admin-approved/verified payments
+        return data.recent_payments.filter((p: any) => p.status !== 'pending_verification');
+      }
+    } catch (e) {
+      console.warn('Error fetching payment history:', e);
+    }
+    return [];
+  },
+
+  // Invalidate Academic Alert & Announcements Cache
+  async clearAcademicAlertCache() {
+    await setCached('academic_alert_active', null);
+    await setCached('eduhome_announcements', []);
   },
 };
+
