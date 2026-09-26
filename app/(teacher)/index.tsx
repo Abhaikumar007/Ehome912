@@ -18,6 +18,7 @@ import {
   subscribeToActiveTeacher,
   getTeacherRoster,
   isTeacherAssignedToClass,
+  isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
 
 const ASSIGNED_STUDENTS = EDUSYNC_STUDENTS;
@@ -177,16 +178,7 @@ export default function TeacherHomeScreen() {
   };
 
   const isStudentMatchingSubject = (stu: any, subjectFilter: string) => {
-    if (!subjectFilter || subjectFilter === 'All' || subjectFilter === 'All Subjects' || subjectFilter.toLowerCase().includes('head')) return true;
-    const subs = ((stu && stu.subjects) || '').toLowerCase();
-    const filter = subjectFilter.toLowerCase();
-    if (filter.includes('comp') || filter.includes('cs')) return subs.includes('comp') || subs.includes('cs');
-    if (filter.includes('math')) return subs.includes('math');
-    if (filter.includes('phys')) return subs.includes('phys');
-    if (filter.includes('chem')) return subs.includes('chem');
-    if (filter.includes('bio')) return subs.includes('bio');
-    if (filter.includes('science')) return subs.includes('science') || subs.includes('phys') || subs.includes('chem') || subs.includes('bio');
-    return subs.includes(filter);
+    return isStudentEnrolledInSubject(stu?.subjects, subjectFilter);
   };
 
   const teacherAssignedGrades = React.useMemo(() => {

@@ -19,22 +19,22 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   {
     id: 'FAC-2024-042',
     name: 'Mr. Abhai Kumar',
-    subject: 'Academic Head & Physics',
-    department: 'Senior Science & Administration',
-    qualification: 'M.Sc. Physics, B.Ed.',
+    subject: 'Computer Science',
+    department: 'Computer Applications & IT',
+    qualification: 'M.Tech Computer Science, B.Ed.',
     email: 'abhai.kumar@eduhome.ac.in',
-    phone: '+91 91234 56780',
+    phone: '+91 75111 72864',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-    allowedGrades: ['*'],
-    gradeDescription: 'All Grades (Academic Head / Super Admin)',
+    allowedGrades: ['11', '12'],
+    gradeDescription: 'Grades 11th & 12th (Computer Science)',
   },
   {
     id: 'fac-chem',
-    name: 'Dr. Ramesh Nair',
+    name: 'Ms. Renju',
     subject: 'Chemistry',
     department: 'Senior Science Department',
-    qualification: 'M.Sc., Ph.D. in Chemistry',
-    email: 'ramesh.nair@eduhome.ac.in',
+    qualification: 'M.Sc., B.Ed. in Chemistry',
+    email: 'renju@eduhome.ac.in',
     phone: '+91 98470 12345',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     allowedGrades: ['10', '11', '12'],
@@ -42,11 +42,11 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
   {
     id: 'fac-bio-lower',
-    name: 'Mrs. Deepa Anoop',
+    name: 'Mr. Madhusudanan',
     subject: 'Biology (Lower)',
     department: 'Secondary Science Department',
     qualification: 'M.Sc. Botany, B.Ed.',
-    email: 'deepa.anoop@eduhome.ac.in',
+    email: 'madhusudanan@eduhome.ac.in',
     phone: '+91 98470 23456',
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
     allowedGrades: ['6', '7', '8', '9'],
@@ -54,11 +54,11 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
   {
     id: 'fac-bio-upper',
-    name: 'Dr. Suresh Kumar',
+    name: 'Mr. Gokul Krishnan',
     subject: 'Biology (Upper)',
     department: 'Senior Science Department',
     qualification: 'M.Sc. Zoology, Ph.D., B.Ed.',
-    email: 'suresh.kumar@eduhome.ac.in',
+    email: 'gokul.krishnan@eduhome.ac.in',
     phone: '+91 98470 34567',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     allowedGrades: ['10', '11', '12'],
@@ -66,11 +66,11 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
   {
     id: 'fac-phy',
-    name: 'Mr. Rajesh Menon',
+    name: 'Mr. Akshay Kumar M',
     subject: 'Physics',
     department: 'Science Department',
     qualification: 'M.Sc. Physics, M.Phil',
-    email: 'rajesh.menon@eduhome.ac.in',
+    email: 'akshay.kumar@eduhome.ac.in',
     phone: '+91 98470 45678',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
     allowedGrades: ['8', '9', '10', '11', '12'],
@@ -78,12 +78,12 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
   {
     id: 'fac-cs',
-    name: 'Ms. Ananya Sharma',
+    name: 'Mr. Abhai Kumar',
     subject: 'Computer Science',
     department: 'Computer Applications & IT',
     qualification: 'M.Tech Computer Science',
-    email: 'ananya.sharma@eduhome.ac.in',
-    phone: '+91 98470 56789',
+    email: 'abhai.kumar.cs@eduhome.ac.in',
+    phone: '+91 75111 72864',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
     allowedGrades: ['11', '12'],
     gradeDescription: 'Grades 11th & 12th',
@@ -104,19 +104,22 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
 ];
 
 const ACTIVE_TEACHER_KEY = 'eduhome_active_faculty_id';
-const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v2';
+const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v3';
 
 export function parseAllowedGrades(subjectsStr?: string): string[] {
-  if (!subjectsStr) return ['*'];
+  if (!subjectsStr) return ['11', '12'];
   const s = subjectsStr.toLowerCase();
-  if (s.includes('all') || s.includes('head') || s.includes('*')) {
-    return ['*'];
-  }
   const matches = subjectsStr.match(/\b(1[0-2]|[6-9])\b/g);
   if (matches && matches.length > 0) {
     return Array.from(new Set(matches)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
   }
-  return ['*'];
+  if (s.includes('comp') || s.includes('cs')) {
+    return ['11', '12'];
+  }
+  if (s.includes('all') || s.includes('*')) {
+    return ['6', '7', '8', '9', '10', '11', '12'];
+  }
+  return ['10', '11', '12'];
 }
 
 export function getInitials(name: string): string {
@@ -208,6 +211,50 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
   }
 
   return [...TEACHER_ROSTER];
+}
+
+/**
+ * Accurately determines if a student's enrolled subjects list matches a target subject.
+ * Note: Must NEVER use substring 'cs' because words like 'physics' and 'mathematics' end in 'cs'!
+ */
+export function isStudentEnrolledInSubject(studentSubjectsStr?: string, targetSubject?: string): boolean {
+  if (!targetSubject || targetSubject === 'All' || targetSubject === 'All Subjects' || targetSubject === 'All Students') {
+    return true;
+  }
+  const stu = (studentSubjectsStr || '').toLowerCase();
+  const tgt = targetSubject.toLowerCase().trim();
+
+  // 1. Computer Science (Do NOT use substring 'cs' because 'physics' ends in 'cs'!)
+  if (tgt.includes('comp') || /\bcs\b/i.test(tgt)) {
+    return stu.includes('computer') || /\bcs\b/i.test(stu);
+  }
+
+  // 2. Mathematics
+  if (tgt.includes('math')) {
+    return stu.includes('math');
+  }
+
+  // 3. Physics
+  if (tgt.includes('phys')) {
+    return stu.includes('phys');
+  }
+
+  // 4. Chemistry
+  if (tgt.includes('chem')) {
+    return stu.includes('chem');
+  }
+
+  // 5. Biology
+  if (tgt.includes('bio')) {
+    return stu.includes('bio');
+  }
+
+  // 6. General Science (Grades 6-9)
+  if (tgt === 'science' || tgt.startsWith('science')) {
+    return stu.includes('science') || stu.includes('phys') || stu.includes('chem') || stu.includes('bio');
+  }
+
+  return stu.includes(tgt);
 }
 
 /**

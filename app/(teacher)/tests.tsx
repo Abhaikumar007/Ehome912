@@ -9,7 +9,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService, AcademicAlert } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
-import { getActiveTeacher, subscribeToActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
+import { getActiveTeacher, subscribeToActiveTeacher, TeacherProfile, getInitials, isStudentEnrolledInSubject } from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 import DatePickerModal from '../../components/DatePickerModal';
 
@@ -51,18 +51,7 @@ export function getEnrolledStudentsForClassAndSubject(classGrade: string, subjec
         return false;
       }
       // 2. Allotted subject match
-      if (subject && subject !== 'All' && subject !== 'All Subjects') {
-        const stuSubs = (stu.subjects || '').toLowerCase();
-        const target = subject.toLowerCase();
-        if (target.includes('math')) return stuSubs.includes('math');
-        if (target.includes('phys')) return stuSubs.includes('phys');
-        if (target.includes('chem')) return stuSubs.includes('chem');
-        if (target.includes('bio')) return stuSubs.includes('bio');
-        if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp');
-        if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('phys') || stuSubs.includes('chem') || stuSubs.includes('bio');
-        return stuSubs.includes(target);
-      }
-      return true;
+      return isStudentEnrolledInSubject(stu.subjects, subject);
     })
     .map((s, idx) => ({
       id: `stu-${s.rollNo}`,

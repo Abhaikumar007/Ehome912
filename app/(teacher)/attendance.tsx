@@ -17,6 +17,7 @@ import {
   subscribeToActiveTeacher,
   TeacherProfile,
   getInitials,
+  isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 
@@ -69,15 +70,14 @@ const CLASS_SUBJECTS: Record<string, string[]> = {
 };
 
 function getTeacherDefaultSubject(t: TeacherProfile | null): string {
-  if (!t) return 'All Subjects';
-  if (t.allowedGrades.includes('*')) return 'All Subjects';
+  if (!t) return 'Computer Science';
   const subLower = (t.subject || '').toLowerCase();
+  if (subLower.includes('comp') || subLower.includes('cs')) return 'Computer Science';
+  if (subLower.includes('math')) return 'Mathematics';
   if (subLower.includes('chem')) return 'Chemistry';
   if (subLower.includes('phys')) return 'Physics';
-  if (subLower.includes('math')) return 'Mathematics';
-  if (subLower.includes('comp') || subLower.includes('cs')) return 'Computer Science';
   if (subLower.includes('bio')) return 'Biology';
-  return t.subject.split(' ')[0] || 'General';
+  return t.subject.split('(')[0].trim() || 'Computer Science';
 }
 
 export default function FacultyAttendanceScreen() {
@@ -85,8 +85,8 @@ export default function FacultyAttendanceScreen() {
   const params = useLocalSearchParams<{ classGrade?: string; subject?: string }>();
   const [roster, setRoster] = useState<TeacherProfile[]>([]);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
-  const [selectedClassId, setSelectedClassId] = useState('c10');
-  const [selectedSubject, setSelectedSubject] = useState<string>('All Subjects');
+  const [selectedClassId, setSelectedClassId] = useState('c11');
+  const [selectedSubject, setSelectedSubject] = useState<string>('Computer Science');
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [students, setStudents] = useState<StudentRoster[]>([]);
@@ -100,7 +100,7 @@ export default function FacultyAttendanceScreen() {
       setSelectedSubject(params.subject);
     } else {
       const defSub = getTeacherDefaultSubject(t);
-      setSelectedSubject(defSub && defSub !== 'All Subjects' ? defSub : 'All Students');
+      setSelectedSubject(defSub);
     }
   }, [params.subject]);
 
@@ -167,12 +167,19 @@ export default function FacultyAttendanceScreen() {
 
   // Filter only classes assigned to this active faculty member's allowed grades
   const teacherAssignedClasses = useMemo(() => {
-    if (!activeTeacher || !activeTeacher.allowedGrades || activeTeacher.allowedGrades.includes('*')) {
+    if (!activeTeacher) return INITIAL_CLASSES;
+    const grades = activeTeacher.allowedGrades || [];
+    // Computer Science is specifically assigned to Class 11 and Class 12
+    const subLower = (activeTeacher.subject || '').toLowerCase();
+    if (subLower.includes('comp') || subLower.includes('cs')) {
+      return INITIAL_CLASSES.filter((c) => c.grade === '11' || c.grade === '12');
+    }
+    if (grades.includes('*')) {
       return INITIAL_CLASSES;
     }
     return INITIAL_CLASSES.filter((c) => {
       const gradeNum = c.grade || c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
-      return gradeNum && activeTeacher.allowedGrades.includes(gradeNum);
+      return gradeNum && grades.includes(gradeNum);
     });
   }, [activeTeacher]);
 
@@ -186,24 +193,20 @@ export default function FacultyAttendanceScreen() {
   const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
   const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
 
-  // Available subjects for this teacher in this class
+  // Available subjects strictly assigned to this teacher
   const availableSubjects = useMemo(() => {
-    if (!activeTeacher) return ['All Students'];
-    const isSuperAdmin = activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head');
-    if (isSuperAdmin) {
-      return ['All Students', ...(CLASS_SUBJECTS[currentClassPrefix] || ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'])];
-    }
+    if (!activeTeacher) return ['Computer Science'];
     const defSub = getTeacherDefaultSubject(activeTeacher);
     const gradeNum = parseInt(currentClass.grade || '10', 10);
     const list: string[] = [];
-    if (defSub && defSub !== 'All Subjects') {
+    if (defSub) {
       list.push(defSub);
     }
     if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
       if (!list.includes('Science')) list.push('Science');
     }
-    return list.length > 0 ? list : ['General'];
-  }, [activeTeacher, currentClassPrefix, currentClass.grade]);
+    return list.length > 0 ? list : ['Computer Science'];
+  }, [activeTeacher, currentClass.grade]);
 
   // Auto-adjust subject if current selection is not valid for this teacher & class
   useEffect(() => {
@@ -217,32 +220,17 @@ export default function FacultyAttendanceScreen() {
     const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
     const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
 
-    const isSuperAdmin = !activeTeacher || activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head');
-    const isAll = isSuperAdmin && (!selectedSubject || selectedSubject === 'All' || selectedSubject === 'All Subjects' || selectedSubject === 'All Students');
+    // Determine target subject strictly for this active faculty member
+    const targetSubject = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
+      ? selectedSubject
+      : getTeacherDefaultSubject(activeTeacher);
 
-    const effectiveTargetSubject = (!isSuperAdmin && activeTeacher)
-      ? (selectedSubject && selectedSubject !== 'All Students' ? selectedSubject : getTeacherDefaultSubject(activeTeacher))
-      : selectedSubject;
+    // Filter students strictly by allotted subject - ONLY students who opted for this faculty's subject!
+    const subjectFiltered = classStudents.filter((s) =>
+      isStudentEnrolledInSubject(s.subjects, targetSubject)
+    );
 
-    // Filter students strictly by allotted subject when a specific subject is selected
-    const subjectFiltered = classStudents.filter((s) => {
-      if (isAll) return true;
-      const stuSubs = (s.subjects || '').toLowerCase();
-      const target = (effectiveTargetSubject || '').toLowerCase();
-
-      if (target.includes('math')) return stuSubs.includes('math');
-      if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
-      if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp') || stuSubs.includes('cs');
-      if (target.includes('bio')) return stuSubs.includes('bio');
-      if (target.includes('phys')) return stuSubs.includes('phys');
-      if (target.includes('chem')) return stuSubs.includes('chem');
-      return stuSubs.includes(target);
-    });
-
-    // Strictly show subject-filtered students; do NOT fall back to all students from other streams
-    const effectiveStudents = isAll ? classStudents : subjectFiltered;
-
-    const rosterStudents: StudentRoster[] = effectiveStudents.map((s, idx) => ({
+    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => ({
       id: s.rollNo,
       no: String(idx + 1).padStart(2, '0'),
       name: s.name,
