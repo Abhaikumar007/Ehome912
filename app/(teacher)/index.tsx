@@ -19,24 +19,7 @@ import {
   isTeacherAssignedToClass,
 } from '../../lib/teacherRoster';
 
-const ASSIGNED_STUDENTS = [
-  {
-    rollNo: '2024-JEE-0842',
-    name: 'Arjun S',
-    class: 'Class 12',
-    batch: 'JEE Target (Batch A)',
-    school: 'EduHome Campus',
-    joiningDate: '15 Jan 2026',
-    dueDate: '15 Sep 2026',
-    daysLeft: -5,
-    recentScore: '92%',
-    avatarColor: '#0284C7',
-    avatar: 'AS',
-    monthlyFee: 4000,
-    subjects: 'Physics, Chemistry, Maths',
-  },
-  ...EDUSYNC_STUDENTS,
-];
+const ASSIGNED_STUDENTS = EDUSYNC_STUDENTS;
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
@@ -490,46 +473,49 @@ export default function TeacherHomeScreen() {
 
         {ASSIGNED_STUDENTS.filter((stu) => {
           if (rosterClassFilter === 'All') return true;
-          return stu.class.toLowerCase().includes(rosterClassFilter.toLowerCase());
-        }).map((stu) => (
-          <View key={stu.rollNo} style={styles.studentCard}>
-            <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
-              <Text style={styles.studentAvatarText}>{stu.avatar || stu.name.slice(0, 2).toUpperCase()}</Text>
-            </View>
-            <View style={styles.studentInfoWrap}>
-              <View style={styles.studentNameRow}>
-                <Text style={styles.studentNameText}>{stu.name}</Text>
-                <View style={styles.syncBadge}>
-                  <Ionicons name="sync-circle" size={11} color="#0284C7" />
-                  <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
+          return (stu.class || '').toLowerCase().includes(rosterClassFilter.toLowerCase());
+        }).map((stu, idx) => {
+          const avatarText = stu.avatar || (stu.name ? stu.name.trim().slice(0, 2).toUpperCase() : 'ST');
+          return (
+            <View key={stu.rollNo ? `${stu.rollNo}_${idx}` : `stu-${idx}`} style={styles.studentCard}>
+              <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
+                <Text style={styles.studentAvatarText}>{avatarText}</Text>
+              </View>
+              <View style={styles.studentInfoWrap}>
+                <View style={styles.studentNameRow}>
+                  <Text style={styles.studentNameText}>{stu.name || 'Student'}</Text>
+                  <View style={styles.syncBadge}>
+                    <Ionicons name="sync-circle" size={11} color="#0284C7" />
+                    <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
+                  </View>
+                </View>
+                <Text style={styles.studentClassText}>
+                  {stu.class || 'Class 12'} • Roll No: {stu.rollNo || '-'}
+                </Text>
+                <Text style={styles.studentMetaSubText} numberOfLines={1}>
+                  Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
+                </Text>
+                {(stu as any).subjects && (
+                  <Text style={styles.studentSubjectsText} numberOfLines={1}>
+                    📚 {(stu as any).subjects}
+                  </Text>
+                )}
+                <View style={styles.scoreRow}>
+                  <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
+                  <Text style={styles.scoreVal}>{stu.recentScore || '90%'}</Text>
                 </View>
               </View>
-              <Text style={styles.studentClassText}>
-                {stu.class} • Roll No: {stu.rollNo}
-              </Text>
-              <Text style={styles.studentMetaSubText} numberOfLines={1}>
-                Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
-              </Text>
-              {(stu as any).subjects && (
-                <Text style={styles.studentSubjectsText} numberOfLines={1}>
-                  📚 {(stu as any).subjects}
-                </Text>
-              )}
-              <View style={styles.scoreRow}>
-                <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
-                <Text style={styles.scoreVal}>{stu.recentScore}</Text>
-              </View>
+              <TouchableOpacity
+                style={styles.addOpinionBtn}
+                onPress={() => handleOpenOpinionModal(stu)}
+                activeOpacity={0.85}
+              >
+                <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
+                <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              style={styles.addOpinionBtn}
-              onPress={() => handleOpenOpinionModal(stu)}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
-              <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
+          );
+        })}
 
         {/* Main Admin Opinion Monitoring & Review Queue */}
         {pendingOpinions.length > 0 && (

@@ -91,8 +91,8 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
 ];
 
-const ACTIVE_TEACHER_KEY = '@active_faculty_id';
-const ROSTER_CACHE_KEY = '@teacher_roster_cache_v2';
+const ACTIVE_TEACHER_KEY = 'eduhome_active_faculty_id';
+const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v2';
 
 export function getInitials(name: string): string {
   if (!name) return 'FA';
