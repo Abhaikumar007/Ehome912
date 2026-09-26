@@ -1851,33 +1851,7 @@ if (document.getElementById('timetableTableBody')) {
 
     // ── Add Entry ─────────────────────────────────────────────────────
     
-    // Auto-suggest faculty when Subject or Class changes in Timetable
-    function autoUpdateFacultySelection() {
-        const classEl = document.getElementById('timetableClass');
-        const subjectEl = document.getElementById('timetableSubject');
-        const facultyEl = document.getElementById('timetableFaculty');
-        if (!classEl || !subjectEl || !facultyEl) return;
-
-        const numClass = parseInt(classEl.value, 10) || 10;
-        const sub = (subjectEl.value || '').toLowerCase();
-
-        if (sub.includes('chem')) {
-            facultyEl.value = 'fac-chem';
-        } else if (sub.includes('bio')) {
-            facultyEl.value = numClass <= 9 ? 'fac-bio-lower' : 'fac-bio-upper';
-        } else if (sub.includes('phys')) {
-            facultyEl.value = 'fac-phy';
-        } else if (sub.includes('comp')) {
-            facultyEl.value = 'fac-cs';
-        } else if (sub.includes('math')) {
-            facultyEl.value = 'fac-math';
-        }
-    }
-
-    const classInput = document.getElementById('timetableClass');
-    const subjectInput = document.getElementById('timetableSubject');
-    if (classInput) classInput.addEventListener('change', autoUpdateFacultySelection);
-    if (subjectInput) subjectInput.addEventListener('change', autoUpdateFacultySelection);
+    
 
     document.getElementById('addTimetableEntryBtn').addEventListener('click', function () {
         const date = document.getElementById('timetableDate').value;
@@ -1934,8 +1908,43 @@ if (document.getElementById('timetableTableBody')) {
             }
         }
 
+        // Map teacher automatically from allotment rules without cluttering form
+        let facultyId = '';
+        let facultyName = '';
+        const numClass = parseInt(studentClass, 10) || 10;
+        const subLower = (subject || '').toLowerCase();
+        if (subLower.includes('chem')) {
+            facultyId = 'fac-chem';
+            facultyName = 'Dr. Ramesh Nair';
+        } else if (subLower.includes('bio')) {
+            if (numClass <= 9) {
+                facultyId = 'fac-bio-lower';
+                facultyName = 'Mrs. Deepa Anoop';
+            } else {
+                facultyId = 'fac-bio-upper';
+                facultyName = 'Dr. Suresh Kumar';
+            }
+        } else if (subLower.includes('phys')) {
+            facultyId = 'fac-phy';
+            facultyName = 'Mr. Rajesh Menon';
+        } else if (subLower.includes('comp')) {
+            facultyId = 'fac-cs';
+            facultyName = 'Ms. Ananya Sharma';
+        } else if (subLower.includes('math')) {
+            facultyId = 'fac-math';
+            facultyName = 'Mr. Arun K. Varma';
+        }
+
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType, facultyId, facultyName };
-        const existingIdx = timetableEntries.findIndex(e => e.class === studentClass && e.date === date && (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim());
+
+        // FIX BUG: Only replace if it is the EXACT same time slot! Different slots on the same day are ADDED cleanly.
+        const existingIdx = timetableEntries.findIndex(e =>
+            e.class === studentClass &&
+            e.date === date &&
+            e.startTime === startTime &&
+            e.endTime === endTime &&
+            (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim()
+        );
         if (existingIdx !== -1) {
             timetableEntries[existingIdx] = entry;
         } else {
@@ -2227,7 +2236,8 @@ if (document.getElementById('timetableTableBody')) {
                 const rawCls = String(e.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
                 const normSub = (e.subject || '').trim().toLowerCase();
-                const key = gradeStr + '_' + normSub + '_' + e.date;
+                // FIX BUG: Key must include start and end times so multiple sessions on the same day are NEVER dropped
+                const key = gradeStr + '_' + normSub + '_' + e.date + '_' + (e.startTime || '') + '_' + (e.endTime || '');
                 entriesMap.set(key, e);
             });
             const deduplicatedEntries = Array.from(entriesMap.values());
@@ -2248,19 +2258,20 @@ if (document.getElementById('timetableTableBody')) {
                 const rawCls = String(entry.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
 
-                // 1. Delete previous entries for this grade, date, and subject from Supabase
+                // 1. Delete only matching slot if already present with same time to prevent duplicates
                 await sb.from('classes')
                     .delete()
                     .eq('class_grade', gradeStr)
                     .eq('class_date', entry.date)
-                    .eq('subject', entry.subject);
+                    .eq('subject', entry.subject)
+                    .ilike('time', timeStr + '%');
 
-                // Also delete if stored with roll_no = gradeStr
                 await sb.from('classes')
                     .delete()
                     .eq('roll_no', gradeStr)
                     .eq('class_date', entry.date)
-                    .eq('subject', entry.subject);
+                    .eq('subject', entry.subject)
+                    .ilike('time', timeStr + '%');
 
                 // 2. Insert exactly 1 clean class session
                 rowsToInsert.push({

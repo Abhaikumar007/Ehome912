@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assign Teachers for Subjects - Edu Home Admin</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <style>
+        .allotment-card {
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.06);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+        .allotment-header {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+            padding: 16px 20px;
+        }
+        .stat-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .teacher-row:hover {
+            background-color: #f8fafc;
+        }
+        .badge-temp {
+            background-color: #fef3c7;
+            color: #d97706;
+            border: 1px solid #fde68a;
+            font-weight: 600;
+        }
+        .badge-perm {
+            background-color: #ecfdf5;
+            color: #059669;
+            border: 1px solid #a7f3d0;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="js/security.js"></script>
+
+    <div class="container mt-4">
+        <!-- Header -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2>
+                    <a href="timetable.html" class="text-dark mr-2"><i class="fas fa-arrow-left"></i></a>
+                    Assign Teachers for Subjects
+                </h2>
+                <p class="text-muted mb-0">Manage faculty subject allotments, grade bounds, and timetable assignment rules.</p>
+            </div>
+            <div>
+                <a href="timetable.html" class="btn btn-outline-secondary mr-2">
+                    <i class="fas fa-calendar-alt mr-1"></i> Timetable
+                </a>
+                <a href="master_hub.html" class="btn btn-outline-info">
+                    <i class="fas fa-satellite-dish mr-1"></i> Master Hub
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Overview Banner -->
+        <div class="row mb-4">
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <span class="text-muted small">Active Faculty</span>
+                    <h3 class="font-weight-bold text-primary mb-0" id="totalFacultyCount">6</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <span class="text-muted small">Covered Subjects</span>
+                    <h3 class="font-weight-bold text-success mb-0">5 Subjects</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <span class="text-muted small">Grade Scope</span>
+                    <h3 class="font-weight-bold text-info mb-0">Class 6 to 12</h3>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6 mb-2">
+                <div class="p-3 bg-white border rounded shadow-sm text-center">
+                    <span class="text-muted small">Mobile App Sync</span>
+                    <h3 class="font-weight-bold text-success mb-0"><i class="fas fa-check-circle"></i> Live</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Assignment Table Card -->
+        <div class="allotment-card">
+            <div class="allotment-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 font-weight-bold">
+                    <i class="fas fa-users-cog mr-2"></i> Current Faculty Subject Allotments
+                </h5>
+                <button class="btn btn-sm btn-light font-weight-bold" onclick="openAddTeacherModal()">
+                    <i class="fas fa-user-plus mr-1 text-primary"></i> Add / Assign New Teacher
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" style="font-size: 0.95rem;">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Teacher Name</th>
+                            <th>Subject</th>
+                            <th>Allotted Classes / Grades</th>
+                            <th>Department</th>
+                            <th>Assignment Type</th>
+                            <th class="text-center" style="width: 140px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="allotmentTableBody">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Rules Note Box -->
+        <div class="alert alert-info border-info shadow-sm" style="border-radius: 10px;">
+            <h6 class="font-weight-bold"><i class="fas fa-info-circle mr-1"></i> How Subject Allotment Works with Timetable:</h6>
+            <ul class="mb-0 small">
+                <li>When classes are scheduled in <strong>Create Timetable</strong>, sessions are automatically assigned to the designated faculty member based on this matrix.</li>
+                <li><strong>Biology Lower</strong> only receives sessions up to Class 9 (Classes 6–9), while <strong>Biology Upper</strong> receives sessions for Class 10 and above.</li>
+                <li><strong>Mathematics</strong> is currently assigned temporarily to Class 6, 7, 8, and 9.</li>
+                <li>You can reassign any teacher or add newly joining teachers using the <strong>Add / Assign New Teacher</strong> button above.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Add/Edit Teacher Modal -->
+    <div class="modal fade" id="teacherModal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content" style="border-radius: 12px; overflow: hidden;">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title font-weight-bold" id="teacherModalTitle">Assign Teacher for Subject</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="teacherForm">
+                        <input type="hidden" id="editTeacherId" value="">
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">Teacher Name</label>
+                            <input type="text" class="form-control" id="formTeacherName" placeholder="e.g. Dr. Ramesh Nair" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">Subject</label>
+                            <select class="form-control" id="formTeacherSubject">
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Mathematics">Mathematics</option>
+                                <option value="Biology (Lower)">Biology (Lower: up to 9th)</option>
+                                <option value="Biology (Upper)">Biology (Upper: 10th and above)</option>
+                                <option value="Computer Science">Computer Science</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">Allotted Classes / Grades</label>
+                            <input type="text" class="form-control" id="formTeacherGrades" placeholder="e.g. 10, 11, 12 or 6, 7, 8, 9" required>
+                            <small class="form-text text-muted">Comma-separated class numbers (e.g. 6, 7, 8, 9 or 10, 11, 12)</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">Department</label>
+                            <input type="text" class="form-control" id="formTeacherDept" placeholder="e.g. Senior Science Department">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">Assignment Status</label>
+                            <select class="form-control" id="formTeacherType">
+                                <option value="Permanent">Permanent Faculty</option>
+                                <option value="Temporary">Temporary Assignment</option>
+                            </select>
+                        </div>
+
+                        <button type="button" class="btn btn-primary btn-block font-weight-bold py-2" onclick="saveTeacherAllotment()">
+                            <i class="fas fa-save mr-1"></i> Save Allotment
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script>
+        const DEFAULT_TEACHERS = [
+            {
+                id: 'fac-chem',
+                name: 'Dr. Ramesh Nair',
+                subject: 'Chemistry',
+                grades: '10, 11, 12',
+                dept: 'Senior Science Department',
+                type: 'Permanent'
+            },
+            {
+                id: 'fac-bio-lower',
+                name: 'Mrs. Deepa Anoop',
+                subject: 'Biology (Lower)',
+                grades: '6, 7, 8, 9',
+                dept: 'Secondary Science Department',
+                type: 'Permanent'
+            },
+            {
+                id: 'fac-bio-upper',
+                name: 'Dr. Suresh Kumar',
+                subject: 'Biology (Upper)',
+                grades: '10, 11, 12',
+                dept: 'Senior Science Department',
+                type: 'Permanent'
+            },
+            {
+                id: 'fac-phy',
+                name: 'Mr. Rajesh Menon',
+                subject: 'Physics',
+                grades: '8, 9, 10, 11, 12',
+                dept: 'Science Department',
+                type: 'Permanent'
+            },
+            {
+                id: 'fac-cs',
+                name: 'Ms. Ananya Sharma',
+                subject: 'Computer Science',
+                grades: '11, 12',
+                dept: 'Computer Applications & IT',
+                type: 'Permanent'
+            },
+            {
+                id: 'fac-math',
+                name: 'Mr. Arun K. Varma',
+                subject: 'Mathematics',
+                grades: '6, 7, 8, 9',
+                dept: 'Secondary Mathematics',
+                type: 'Temporary'
+            }
+        ];
+
+        function getTeachers() {
+            try {
+                const stored = localStorage.getItem('eduhome_faculty_allotments');
+                if (stored) return JSON.parse(stored);
+            } catch (e) {}
+            return DEFAULT_TEACHERS;
+        }
+
+        function saveTeachers(list) {
+            try {
+                localStorage.setItem('eduhome_faculty_allotments', JSON.stringify(list));
+            } catch (e) {}
+        }
+
+        function renderTeachers() {
+            const list = getTeachers();
+            const tbody = document.getElementById('allotmentTableBody');
+            if (!tbody) return;
+
+            document.getElementById('totalFacultyCount').innerText = list.length;
+            tbody.innerHTML = '';
+
+            list.forEach((t, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = 'teacher-row';
+                tr.innerHTML = `
+                    <td>
+                        <strong class="text-dark">${t.name}</strong>
+                    </td>
+                    <td>
+                        <span class="badge badge-primary px-2 py-1 font-weight-bold">${t.subject}</span>
+                    </td>
+                    <td>
+                        <span class="font-weight-bold text-secondary">Class ${t.grades}</span>
+                    </td>
+                    <td>${t.dept || 'Academic Faculty'}</td>
+                    <td>
+                        <span class="badge ${t.type === 'Temporary' ? 'badge-temp' : 'badge-perm'} px-2 py-1">
+                            ${t.type}
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary mr-1" onclick="openEditTeacherModal(${idx})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTeacher(${idx})">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function openAddTeacherModal() {
+            document.getElementById('teacherModalTitle').innerText = 'Assign New Teacher for Subject';
+            document.getElementById('editTeacherId').value = '';
+            document.getElementById('formTeacherName').value = '';
+            document.getElementById('formTeacherSubject').value = 'Physics';
+            document.getElementById('formTeacherGrades').value = '';
+            document.getElementById('formTeacherDept').value = '';
+            document.getElementById('formTeacherType').value = 'Permanent';
+            $('#teacherModal').modal('show');
+        }
+
+        function openEditTeacherModal(idx) {
+            const list = getTeachers();
+            const t = list[idx];
+            if (!t) return;
+
+            document.getElementById('teacherModalTitle').innerText = 'Edit Allotment: ' + t.name;
+            document.getElementById('editTeacherId').value = idx;
+            document.getElementById('formTeacherName').value = t.name;
+            document.getElementById('formTeacherSubject').value = t.subject;
+            document.getElementById('formTeacherGrades').value = t.grades;
+            document.getElementById('formTeacherDept').value = t.dept || '';
+            document.getElementById('formTeacherType').value = t.type || 'Permanent';
+            $('#teacherModal').modal('show');
+        }
+
+        function saveTeacherAllotment() {
+            const name = document.getElementById('formTeacherName').value.trim();
+            const subject = document.getElementById('formTeacherSubject').value;
+            const grades = document.getElementById('formTeacherGrades').value.trim();
+            const dept = document.getElementById('formTeacherDept').value.trim();
+            const type = document.getElementById('formTeacherType').value;
+            const editIdx = document.getElementById('editTeacherId').value;
+
+            if (!name || !grades) {
+                alert('Please enter Teacher Name and Allotted Grades.');
+                return;
+            }
+
+            const list = getTeachers();
+            const entry = {
+                id: editIdx !== '' && list[editIdx] ? list[editIdx].id : ('fac-' + Date.now()),
+                name,
+                subject,
+                grades,
+                dept: dept || (subject + ' Faculty'),
+                type
+            };
+
+            if (editIdx !== '') {
+                list[editIdx] = entry;
+            } else {
+                list.push(entry);
+            }
+
+            saveTeachers(list);
+            renderTeachers();
+            $('#teacherModal').modal('hide');
+            alert('✓ Teacher allotment saved successfully!');
+        }
+
+        function deleteTeacher(idx) {
+            const list = getTeachers();
+            if (!list[idx]) return;
+            if (confirm('Remove assignment for ' + list[idx].name + '?')) {
+                list.splice(idx, 1);
+                saveTeachers(list);
+                renderTeachers();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTeachers();
+        });
+    </script>
+</body>
+
+</html>
