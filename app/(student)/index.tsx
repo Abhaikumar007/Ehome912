@@ -14,21 +14,25 @@ import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
 
-type ClassStatus = 'present' | 'absent' | 'upcoming';
-
-function StatusBadge({ status }: { status: ClassStatus }) {
-  if (status === 'upcoming') return <Text style={{ color: Colors.textMuted, fontSize: 16 }}>—</Text>;
-  const cfg: Record<string, { label: string; bg: string; color: string; icon: string }> = {
-    present: { label: 'Present', bg: Colors.greenLight, color: Colors.green, icon: 'checkmark-circle' },
-    absent:  { label: 'Absent',  bg: Colors.redLight,   color: Colors.red,   icon: 'close-circle-outline' },
-  };
-  const c = cfg[status] || cfg.upcoming;
-  return (
-    <View style={[badgeStyles.wrap, { backgroundColor: c.bg }]}>  
-      <Ionicons name={c.icon as any} size={13} color={c.color} />
-      <Text style={[badgeStyles.text, { color: c.color }]}>{c.label}</Text>
-    </View>
-  );
+function StatusBadge({ status }: { status?: string }) {
+  const norm = (status || '').toLowerCase().trim();
+  if (norm === 'present' || norm === 'p') {
+    return (
+      <View style={[badgeStyles.wrap, { backgroundColor: Colors.greenLight }]}>
+        <Ionicons name="checkmark-circle" size={13} color={Colors.green} />
+        <Text style={[badgeStyles.text, { color: Colors.green }]}>Present</Text>
+      </View>
+    );
+  }
+  if (norm === 'absent' || norm === 'a') {
+    return (
+      <View style={[badgeStyles.wrap, { backgroundColor: Colors.redLight }]}>
+        <Ionicons name="close-circle-outline" size={13} color={Colors.red} />
+        <Text style={[badgeStyles.text, { color: Colors.red }]}>Absent</Text>
+      </View>
+    );
+  }
+  return <Text style={{ color: Colors.textMuted, fontSize: 16 }}>—</Text>;
 }
 const badgeStyles = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
@@ -323,7 +327,7 @@ export default function DashboardScreen() {
               const subAtt = attSummary?.todaySubjects?.find(
                 (s: any) => s.subject && cls.subject && s.subject.trim().toLowerCase() === cls.subject.trim().toLowerCase()
               );
-              const effectiveStatus = (subAtt?.status || cls.status || 'upcoming') as ClassStatus;
+              const effectiveStatus = subAtt?.status || cls.status || 'upcoming';
               return (
                 <View key={cls.id || `${cls.subject}_${i}`} style={[styles.classRow, i < displayedClasses.length - 1 && styles.classRowBorder]}>
                   <Text style={styles.classTime}>{cls.time}</Text>
