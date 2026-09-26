@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, Modal, TextInput, Image, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
@@ -15,6 +15,7 @@ import {
   TeacherProfile,
   getActiveTeacher,
   setActiveTeacherId,
+  subscribeToActiveTeacher,
   getTeacherRoster,
   isTeacherAssignedToClass,
 } from '../../lib/teacherRoster';
@@ -92,11 +93,21 @@ export default function TeacherHomeScreen() {
     } catch {}
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      loadActiveFaculty();
+    }, [])
+  );
+
   useEffect(() => {
     loadActiveFaculty();
     loadAnnouncements();
     loadPendingOpinions();
     loadTimetable();
+
+    const unsub = subscribeToActiveTeacher((updated) => {
+      setActiveTeacher({ ...updated });
+    });
 
     // Supabase Realtime: updates instantly when admin broadcasts from PC or edits classes
     const classChannel = supabase
@@ -124,6 +135,7 @@ export default function TeacherHomeScreen() {
       .subscribe();
 
     return () => {
+      unsub();
       supabase.removeChannel(classChannel);
       supabase.removeChannel(channel);
       supabase.removeChannel(teacherChannel);

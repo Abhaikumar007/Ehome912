@@ -5,11 +5,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService, AcademicAlert } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
-import { getActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
+import { getActiveTeacher, subscribeToActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 import DatePickerModal from '../../components/DatePickerModal';
 
@@ -80,29 +80,51 @@ export default function TeacherTestsScreen() {
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
   const [activeTestId, setActiveTestId] = useState<string>('');
 
-  // Load active teacher profile & subscribe to changes
-  useEffect(() => {
-    const loadTeacher = async () => {
-      const t = await getActiveTeacher();
-      setActiveTeacher(t);
-      if (t?.subject) {
-        const sub = t.subject.split(' ')[0] as FacultySubject;
-        if (SUBJECTS.includes(sub)) setNewSubject(sub);
-      }
-    };
-    loadTeacher();
+  const applyTeacher = React.useCallback((t: TeacherProfile) => {
+    setActiveTeacher(t);
+    if (t?.subject) {
+      const sub = t.subject.split(' ')[0] as FacultySubject;
+      if (SUBJECTS.includes(sub)) setNewSubject(sub);
+    }
+  }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
+      const load = async () => {
+        const t = await getActiveTeacher();
+        if (isMounted) {
+          applyTeacher(t);
+        }
+      };
+      load();
+      return () => {
+        isMounted = false;
+      };
+    }, [applyTeacher])
+  );
+
+  useEffect(() => {
+    const unsub = subscribeToActiveTeacher((updatedTeacher) => {
+      applyTeacher(updatedTeacher);
+    });
+    return () => unsub();
+  }, [applyTeacher]);
+
+  // Realtime Supabase updates
+  useEffect(() => {
     const channel = supabase
       .channel('tests_teacher_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
-        loadTeacher();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, async () => {
+        const t = await getActiveTeacher();
+        applyTeacher(t);
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [applyTeacher]);
 
   // Filter only classes assigned to this active faculty
   const teacherClasses = React.useMemo(() => {
@@ -396,7 +418,7 @@ export default function TeacherTestsScreen() {
           </View>
           <View style={styles.adminAuthInfo}>
             <View style={styles.adminBadgeRow}>
-              <Text style={styles.adminAuthTitle}>{activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
+              <Text style={styles.adminAuthTitle}>{activeTeacher?.name || 'Faculty Member'}</Text>
               <View style={[styles.superBadge, { backgroundColor: '#0284C7' }]}>
                 <Ionicons name="school" size={10} color="#fff" />
                 <Text style={styles.superBadgeText}>FACULTY</Text>
@@ -664,7 +686,7 @@ export default function TeacherTestsScreen() {
             <View style={styles.modalHeaderRow}>
               <View>
                 <Text style={styles.modalTitle}>Schedule New Test</Text>
-                <Text style={styles.createModalSub}>Authorized by Academic Head {activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
+                <Text style={styles.createModalSub}>Authorized by Academic Head {activeTeacher?.name || 'Faculty Member'}</Text>
               </View>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
                 <Ionicons name="close" size={22} color={Colors.textPrimary} />

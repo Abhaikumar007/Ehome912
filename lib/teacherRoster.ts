@@ -264,23 +264,47 @@ export function isTeacherAssignedToClass(
   return teacher.allowedGrades.includes('*') || teacher.allowedGrades.includes(grade);
 }
 
+let inMemoryActiveId: string | null = null;
+
+type TeacherChangeListener = (teacher: TeacherProfile) => void;
+const teacherListeners = new Set<TeacherChangeListener>();
+
+export function subscribeToActiveTeacher(callback: TeacherChangeListener): () => void {
+  teacherListeners.add(callback);
+  return () => {
+    teacherListeners.delete(callback);
+  };
+}
+
 export async function getActiveTeacher(): Promise<TeacherProfile> {
   // Ensure roster is initialized with latest names
   await getTeacherRoster();
 
   try {
-    const savedId = await SecureStore.getItemAsync(ACTIVE_TEACHER_KEY);
+    const savedId = inMemoryActiveId || (await SecureStore.getItemAsync(ACTIVE_TEACHER_KEY));
     if (savedId) {
+      inMemoryActiveId = savedId;
       const found = TEACHER_ROSTER.find((t) => t.id === savedId);
       if (found) return { ...found };
     }
   } catch (e) {
     console.warn('Error reading active faculty:', e);
   }
-  return { ...TEACHER_ROSTER[0] }; // Default to Dr. Ramesh Nair (Chemistry)
+  return { ...TEACHER_ROSTER[0] };
 }
 
 export async function setActiveTeacherId(teacherId: string): Promise<void> {
+  inMemoryActiveId = teacherId;
+  const match = TEACHER_ROSTER.find((t) => t.id === teacherId);
+  if (match) {
+    teacherListeners.forEach((fn) => {
+      try {
+        fn({ ...match });
+      } catch (e) {
+        console.warn('Listener notification error:', e);
+      }
+    });
+  }
   try {
     await SecureStore.setItemAsync(ACTIVE_TEACHER_KEY, teacherId);
   } catch (e) {

@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
 import {
@@ -13,6 +13,7 @@ import {
   TeacherProfile,
   getActiveTeacher,
   setActiveTeacherId,
+  subscribeToActiveTeacher,
   getTeacherRoster,
   updateFacultySelfProfile,
   getInitials,
@@ -33,8 +34,18 @@ export default function TeacherProfileScreen() {
   const [editQual, setEditQual] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      loadActiveTeacher();
+    }, [])
+  );
+
   useEffect(() => {
     loadActiveTeacher();
+
+    const unsub = subscribeToActiveTeacher((updated) => {
+      setActiveTeacher({ ...updated });
+    });
 
     // Supabase Realtime: updates live if admin renames faculty from the admin web portal
     const channel = supabase
@@ -46,6 +57,7 @@ export default function TeacherProfileScreen() {
       .subscribe();
 
     return () => {
+      unsub();
       supabase.removeChannel(channel);
     };
   }, []);

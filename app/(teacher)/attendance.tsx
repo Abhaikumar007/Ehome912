@@ -1,16 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Modal, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { teacherData } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
-import { getActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
+import {
+  getActiveTeacher,
+  getTeacherRoster,
+  setActiveTeacherId,
+  subscribeToActiveTeacher,
+  TeacherProfile,
+  getInitials,
+} from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 
 interface StudentRoster {
@@ -61,9 +68,22 @@ const CLASS_SUBJECTS: Record<string, string[]> = {
   'Class 12': ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'],
 };
 
+function getTeacherDefaultSubject(t: TeacherProfile | null): string {
+  if (!t) return 'All Subjects';
+  if (t.allowedGrades.includes('*')) return 'All Subjects';
+  const subLower = (t.subject || '').toLowerCase();
+  if (subLower.includes('chem')) return 'Chemistry';
+  if (subLower.includes('phys')) return 'Physics';
+  if (subLower.includes('math')) return 'Mathematics';
+  if (subLower.includes('comp') || subLower.includes('cs')) return 'Computer Science';
+  if (subLower.includes('bio')) return 'Biology';
+  return t.subject.split(' ')[0] || 'General';
+}
+
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ classGrade?: string; subject?: string }>();
+  const [roster, setRoster] = useState<TeacherProfile[]>([]);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [selectedClassId, setSelectedClassId] = useState('c10');
   const [selectedSubject, setSelectedSubject] = useState<string>('All Subjects');
@@ -72,6 +92,60 @@ export default function FacultyAttendanceScreen() {
   const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(0);
   const [classModalVisible, setClassModalVisible] = useState(false);
+  const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
+
+  const applyTeacher = useCallback((t: TeacherProfile) => {
+    setActiveTeacher(t);
+    if (params.subject) {
+      setSelectedSubject(params.subject);
+    } else {
+      setSelectedSubject(getTeacherDefaultSubject(t));
+    }
+  }, [params.subject]);
+
+  // Focus effect: refreshes active teacher & roster every time this tab is focused
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      const load = async () => {
+        const fullRoster = await getTeacherRoster();
+        const currentTeacher = await getActiveTeacher();
+        if (isMounted) {
+          setRoster(fullRoster);
+          applyTeacher(currentTeacher);
+        }
+      };
+      load();
+      return () => {
+        isMounted = false;
+      };
+    }, [applyTeacher])
+  );
+
+  // Cross-screen live subscription: updates immediately if faculty changes elsewhere
+  useEffect(() => {
+    const unsub = subscribeToActiveTeacher((updatedTeacher) => {
+      applyTeacher(updatedTeacher);
+    });
+    return () => unsub();
+  }, [applyTeacher]);
+
+  // Realtime Supabase updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('attendance_teacher_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, async () => {
+        const fullRoster = await getTeacherRoster();
+        setRoster(fullRoster);
+        const t = await getActiveTeacher();
+        applyTeacher(t);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [applyTeacher]);
 
   // Set class & subject if passed from navigation (e.g. today's assigned class click)
   useEffect(() => {
@@ -90,37 +164,8 @@ export default function FacultyAttendanceScreen() {
     }
   }, [params.classGrade, params.subject]);
 
-  // Load active teacher profile dynamically & subscribe to changes
-  useEffect(() => {
-    const loadTeacher = async () => {
-      const t = await getActiveTeacher();
-      setActiveTeacher(t);
-      // Auto-set default subject filter matching teacher's domain
-      if (t?.subject) {
-        const subLower = t.subject.toLowerCase();
-        if (subLower.includes('chem')) setSelectedSubject('Chemistry');
-        else if (subLower.includes('phys')) setSelectedSubject('Physics');
-        else if (subLower.includes('math')) setSelectedSubject('Mathematics');
-        else if (subLower.includes('comp') || subLower.includes('cs')) setSelectedSubject('Computer Science');
-        else if (subLower.includes('bio')) setSelectedSubject('Biology');
-      }
-    };
-    loadTeacher();
-
-    const channel = supabase
-      .channel('attendance_teacher_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
-        loadTeacher();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // Filter only classes assigned to this active faculty member
-  const teacherAssignedClasses = React.useMemo(() => {
+  // Filter only classes assigned to this active faculty member's allowed grades
+  const teacherAssignedClasses = useMemo(() => {
     if (!activeTeacher || !activeTeacher.allowedGrades || activeTeacher.allowedGrades.includes('*')) {
       return INITIAL_CLASSES;
     }
@@ -130,22 +175,57 @@ export default function FacultyAttendanceScreen() {
     });
   }, [activeTeacher]);
 
+  // Auto-switch class if currently selected class is outside active teacher's assignment
   useEffect(() => {
     if (teacherAssignedClasses.length > 0 && !teacherAssignedClasses.some((c) => c.id === selectedClassId)) {
       setSelectedClassId(teacherAssignedClasses[0].id);
     }
-  }, [teacherAssignedClasses]);
+  }, [teacherAssignedClasses, selectedClassId]);
 
-  // Load students accurately filtered by class AND allotted subjects from cloud
+  const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
+  const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+
+  // Available subjects for this teacher in this class
+  const availableSubjects = useMemo(() => {
+    if (!activeTeacher) return ['All Subjects'];
+    if (activeTeacher.allowedGrades.includes('*')) {
+      return CLASS_SUBJECTS[currentClassPrefix] || ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology'];
+    }
+    const defSub = getTeacherDefaultSubject(activeTeacher);
+    const gradeNum = parseInt(currentClass.grade || '10', 10);
+    if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
+      return [defSub, 'Science'];
+    }
+    return [defSub];
+  }, [activeTeacher, currentClassPrefix, currentClass.grade]);
+
+  // Auto-adjust subject if current selection is not valid for this teacher & class
+  useEffect(() => {
+    if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
+      setSelectedSubject(availableSubjects[0]);
+    }
+  }, [availableSubjects, selectedSubject]);
+
+  // Load students accurately filtered by class AND allotted subjects for this logged-in teacher
   useEffect(() => {
     const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
     const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
 
-    // Filter students by allotted subject
+    // Determine target subject filter
+    // If the active teacher is a specific subject teacher (not Super Admin),
+    // they MUST only take attendance of students allocated to their subject!
+    let targetSubject = selectedSubject;
+    if (activeTeacher && !activeTeacher.allowedGrades.includes('*')) {
+      if (targetSubject === 'All' || targetSubject === 'All Subjects') {
+        targetSubject = getTeacherDefaultSubject(activeTeacher);
+      }
+    }
+
+    // Filter students strictly by allotted subject
     const subjectFiltered = classStudents.filter((s) => {
-      if (selectedSubject === 'All' || selectedSubject === 'All Subjects') return true;
+      if (targetSubject === 'All' || targetSubject === 'All Subjects') return true;
       const stuSubs = (s.subjects || '').toLowerCase();
-      const target = selectedSubject.toLowerCase();
+      const target = targetSubject.toLowerCase();
 
       if (target.includes('math')) return stuSubs.includes('math');
       if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
@@ -170,7 +250,7 @@ export default function FacultyAttendanceScreen() {
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject]);
+  }, [selectedClassId, selectedSubject, activeTeacher]);
 
   // Format date display
   const getDateLabel = () => {
@@ -178,10 +258,6 @@ export default function FacultyAttendanceScreen() {
     d.setDate(d.getDate() + dateOffset);
     return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   };
-
-  const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
-  const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
-  const availableSubjects = CLASS_SUBJECTS[currentClassPrefix] || ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology'];
 
   // Filter students by search
   const filteredStudents = students.filter(
@@ -215,6 +291,7 @@ export default function FacultyAttendanceScreen() {
 
   const handleSaveSubmit = async () => {
     const dateLabel = getDateLabel();
+    const teacherName = activeTeacher?.name || 'Faculty Member';
     const subjectName = selectedSubject !== 'All' && selectedSubject !== 'All Subjects'
       ? selectedSubject
       : (activeTeacher?.subject?.split(' ')[0] || 'General');
@@ -232,7 +309,7 @@ export default function FacultyAttendanceScreen() {
     }
     Alert.alert(
       'Attendance Submitted Successfully',
-      `Class: ${currentClass.label}\nSubject: ${subjectName}\nDate: ${dateLabel}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded for ${totalCount} enrolled students and synced with student portals.`,
+      `Class: ${currentClass.label}\nSubject: ${subjectName}\nTeacher: ${teacherName}\nDate: ${dateLabel}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded by ${teacherName} for ${totalCount} enrolled students and synced with student portals.`,
       [{ text: 'OK' }]
     );
   };
@@ -255,6 +332,17 @@ export default function FacultyAttendanceScreen() {
 
         <View style={styles.headerRight}>
           <TouchableOpacity
+            style={styles.facultyPill}
+            onPress={() => setFacultyPickerVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="school" size={13} color="#0284C7" />
+            <Text style={styles.facultyPillText} numberOfLines={1}>
+              {activeTeacher ? activeTeacher.name.split(' ')[0] + ' ' + (activeTeacher.name.split(' ')[1] || '') : 'Faculty'} ▾
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.batchSelector}
             onPress={() => setClassModalVisible(true)}
             activeOpacity={0.8}
@@ -275,7 +363,7 @@ export default function FacultyAttendanceScreen() {
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{activeTeacher ? getInitials(activeTeacher.name) : 'AK'}</Text>
+              <Text style={styles.avatarText}>{activeTeacher ? getInitials(activeTeacher.name) : 'FA'}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -286,9 +374,9 @@ export default function FacultyAttendanceScreen() {
         <View style={styles.greetingRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingSmall}>Good Afternoon,</Text>
-            <Text style={styles.teacherName}>{activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
+            <Text style={styles.teacherName}>{activeTeacher?.name || 'Faculty Member'}</Text>
             <Text style={styles.teacherSub}>
-              {activeTeacher ? `${activeTeacher.subject} • ${activeTeacher.department}` : 'Academic Head & Super Admin'}
+              {activeTeacher ? `${activeTeacher.subject} • ${activeTeacher.department}` : 'Academic Faculty'}
             </Text>
           </View>
 
@@ -547,6 +635,65 @@ export default function FacultyAttendanceScreen() {
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Switch Faculty Member Modal */}
+      <Modal visible={facultyPickerVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <Text style={styles.modalTitle}>Select Faculty Member</Text>
+              <TouchableOpacity onPress={() => setFacultyPickerVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSub}>
+              Switch active teacher account to take attendance for their allocated classes and students.
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
+              {roster.map((teacher) => {
+                const isSelected = teacher.id === activeTeacher?.id;
+                return (
+                  <TouchableOpacity
+                    key={teacher.id}
+                    style={[styles.facultyPickItem, isSelected && styles.facultyPickItemActive]}
+                    onPress={async () => {
+                      await setActiveTeacherId(teacher.id);
+                      applyTeacher(teacher);
+                      setFacultyPickerVisible(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View style={[styles.teacherAvatarBox, isSelected && { backgroundColor: '#0284C7' }]}>
+                      <Text style={[styles.teacherAvatarText, isSelected && { color: '#fff' }]}>
+                        {getInitials(teacher.name)}
+                      </Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Text style={[styles.teacherNameText, isSelected && { color: '#0284C7', fontFamily: 'Inter_700Bold' }]}>
+                          {teacher.name}
+                        </Text>
+                        {teacher.isTemporary && (
+                          <View style={styles.tempBadge}>
+                            <Text style={styles.tempBadgeText}>TEMP</Text>
+                          </View>
+                        )}
+                      </View>
+                      <Text style={styles.teacherSubjectText}>
+                        {teacher.subject} • {teacher.gradeDescription}
+                      </Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={20} color="#0284C7" />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
@@ -916,4 +1063,85 @@ const styles = StyleSheet.create({
   modalItemTitle: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   modalItemTitleActive: { color: '#0284C7' },
   modalItemSub: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
+
+  facultyPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 16,
+    paddingHorizontal: 9,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    maxWidth: 130,
+  },
+  facultyPillText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  closeBtn: { padding: 4 },
+  modalSub: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginBottom: 14,
+  },
+  facultyPickItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 10,
+    borderRadius: 12,
+    marginBottom: 6,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  facultyPickItemActive: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#0284C7',
+  },
+  teacherAvatarBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  teacherAvatarText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: '#1E293B',
+  },
+  teacherNameText: {
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+  },
+  teacherSubjectText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  tempBadge: {
+    backgroundColor: '#FEF3C7',
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  tempBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: '#D97706',
+  },
 });
