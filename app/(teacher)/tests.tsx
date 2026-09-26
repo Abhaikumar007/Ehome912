@@ -38,7 +38,7 @@ interface ExamItem {
   students: TestStudent[];
 }
 
-const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10-A', 'Class 10-B', 'Class 11-A', 'Class 12-JEE'];
+const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
 const SUBJECTS: FacultySubject[] = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'];
 
 export default function TeacherTestsScreen() {

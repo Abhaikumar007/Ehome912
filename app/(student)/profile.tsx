@@ -234,7 +234,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{studentName}</Text>
-              <Text style={styles.profileClass}>{studentClass} • {student?.batch || 'JEE Batch'}</Text>
+              <Text style={styles.profileClass}>{studentClass} • {student?.batch || 'Class 12'}</Text>
               <Text style={styles.profileMotivation} numberOfLines={1}>
                 🎯 {student?.goals || '"Consistent steps, bigger..."'}
               </Text>
@@ -525,7 +525,7 @@ export default function ProfileScreen() {
                   style={styles.modalInput}
                   value={goalsInput}
                   onChangeText={setGoalsInput}
-                  placeholder="e.g. JEE Advanced 2027"
+                  placeholder="e.g. Board Exam 2027"
                   placeholderTextColor={Colors.textMuted}
                 />
               </View>

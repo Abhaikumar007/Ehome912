@@ -21,18 +21,19 @@ interface StudentRoster {
   overall: string;
   online: boolean;
   attendance: 'P' | 'A';
+  subjects: string;
+  school?: string;
   note?: string;
 }
 
 const INITIAL_CLASSES = [
-  { id: 'c6', label: 'Class 6 (General Science & Maths)', batch: 'Middle School • Batch A', studentsCount: 30 },
-  { id: 'c7', label: 'Class 7 (General Science & Maths)', batch: 'Middle School • Batch A', studentsCount: 32 },
-  { id: 'c8', label: 'Class 8 (Physics, Bio & Maths)', batch: 'Secondary Foundation • Batch A', studentsCount: 35 },
-  { id: 'c9', label: 'Class 9 (Physics, Bio & Maths)', batch: 'Secondary Foundation • Batch A', studentsCount: 38 },
-  { id: 'c1', label: 'Class 10-A (Physics & Chemistry)', batch: 'Batch A • Board Prep', studentsCount: 42 },
-  { id: 'c2', label: 'Class 10-B (Biology & Chemistry)', batch: 'Batch B • Board Prep', studentsCount: 38 },
-  { id: 'c3', label: 'Class 11-A (Physics, Chem & CS)', batch: 'Senior Secondary • Batch A', studentsCount: 35 },
-  { id: 'c4', label: 'Class 12-JEE (Physics, Chem & CS)', batch: 'Target JEE • Advanced Batch', studentsCount: 40 },
+  { id: 'c6', label: 'Class 6', batch: 'Middle School • Class 6', grade: '6' },
+  { id: 'c7', label: 'Class 7', batch: 'Middle School • Class 7', grade: '7' },
+  { id: 'c8', label: 'Class 8', batch: 'Secondary Foundation • Class 8', grade: '8' },
+  { id: 'c9', label: 'Class 9', batch: 'Secondary Foundation • Class 9', grade: '9' },
+  { id: 'c10', label: 'Class 10', batch: 'Secondary • Class 10', grade: '10' },
+  { id: 'c11', label: 'Class 11', batch: 'Senior Secondary • Class 11', grade: '11' },
+  { id: 'c12', label: 'Class 12', batch: 'Senior Secondary • Class 12', grade: '12' },
 ];
 
 // Map class label to EDUSYNC class name for filtering
@@ -41,19 +42,33 @@ const CLASS_MAP: Record<string, string> = {
   'c7': 'Class 7',
   'c8': 'Class 8',
   'c9': 'Class 9',
+  'c10': 'Class 10',
+  'c11': 'Class 11',
+  'c12': 'Class 12',
   'c1': 'Class 10',
   'c2': 'Class 10',
   'c3': 'Class 11',
   'c4': 'Class 12',
 };
 
+const CLASS_SUBJECTS: Record<string, string[]> = {
+  'Class 6': ['All Subjects', 'Mathematics', 'Science'],
+  'Class 7': ['All Subjects', 'Mathematics', 'Science'],
+  'Class 8': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics', 'Science'],
+  'Class 9': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics', 'Science'],
+  'Class 10': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
+  'Class 11': ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'],
+  'Class 12': ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'],
+};
+
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
-  const [selectedClassId, setSelectedClassId] = useState('c1');
+  const [selectedClassId, setSelectedClassId] = useState('c10');
+  const [selectedSubject, setSelectedSubject] = useState<string>('All Subjects');
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [students, setStudents] = useState<StudentRoster[]>(teacherData.students as StudentRoster[]);
+  const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(0);
   const [classModalVisible, setClassModalVisible] = useState(false);
 
@@ -62,6 +77,15 @@ export default function FacultyAttendanceScreen() {
     const loadTeacher = async () => {
       const t = await getActiveTeacher();
       setActiveTeacher(t);
+      // Auto-set default subject filter matching teacher's domain
+      if (t?.subject) {
+        const subLower = t.subject.toLowerCase();
+        if (subLower.includes('chem')) setSelectedSubject('Chemistry');
+        else if (subLower.includes('phys')) setSelectedSubject('Physics');
+        else if (subLower.includes('math')) setSelectedSubject('Mathematics');
+        else if (subLower.includes('comp') || subLower.includes('cs')) setSelectedSubject('Computer Science');
+        else if (subLower.includes('bio')) setSelectedSubject('Biology');
+      }
     };
     loadTeacher();
 
@@ -83,7 +107,7 @@ export default function FacultyAttendanceScreen() {
       return INITIAL_CLASSES;
     }
     return INITIAL_CLASSES.filter((c) => {
-      const gradeNum = c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      const gradeNum = c.grade || c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
       return gradeNum && activeTeacher.allowedGrades.includes(gradeNum);
     });
   }, [activeTeacher]);
@@ -94,24 +118,41 @@ export default function FacultyAttendanceScreen() {
     }
   }, [teacherAssignedClasses]);
 
-  // Load students from shared EDUSYNC roster when class changes
+  // Load students accurately filtered by class AND allotted subjects from cloud
   useEffect(() => {
     const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
-    const rosterStudents = EDUSYNC_STUDENTS
-      .filter((s) => s.class.startsWith(classPrefix))
-      .map((s, idx) => ({
-        id: s.rollNo,
-        no: String(idx + 1).padStart(2, '0'),
-        name: s.name,
-        roll: s.rollNo,
-        overall: '—',
-        online: true,
-        attendance: 'P' as 'P' | 'A',
-      }));
-    // Fall back to teacherData if no matching EDUSYNC students
-    setStudents(rosterStudents.length > 0 ? rosterStudents : (teacherData.students as StudentRoster[]));
+    const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
+
+    // Filter students by allotted subject
+    const subjectFiltered = classStudents.filter((s) => {
+      if (selectedSubject === 'All' || selectedSubject === 'All Subjects') return true;
+      const stuSubs = (s.subjects || '').toLowerCase();
+      const target = selectedSubject.toLowerCase();
+
+      if (target.includes('math')) return stuSubs.includes('math');
+      if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
+      if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp');
+      if (target.includes('bio')) return stuSubs.includes('bio');
+      if (target.includes('phys')) return stuSubs.includes('phys');
+      if (target.includes('chem')) return stuSubs.includes('chem');
+      return stuSubs.includes(target);
+    });
+
+    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => ({
+      id: s.rollNo,
+      no: String(idx + 1).padStart(2, '0'),
+      name: s.name,
+      roll: s.rollNo,
+      overall: `${s.accuracy || 85}%`,
+      online: true,
+      attendance: 'P' as 'P' | 'A',
+      subjects: s.subjects || 'General',
+      school: s.school,
+    }));
+
+    setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId]);
+  }, [selectedClassId, selectedSubject]);
 
   // Format date display
   const getDateLabel = () => {
@@ -121,12 +162,15 @@ export default function FacultyAttendanceScreen() {
   };
 
   const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
+  const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+  const availableSubjects = CLASS_SUBJECTS[currentClassPrefix] || ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology'];
 
   // Filter students by search
   const filteredStudents = students.filter(
     (s) =>
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.roll.toLowerCase().includes(searchQuery.toLowerCase())
+      s.roll.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (s.subjects && s.subjects.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   // Recalculate summary metrics
@@ -153,14 +197,16 @@ export default function FacultyAttendanceScreen() {
 
   const handleSaveSubmit = async () => {
     const dateLabel = getDateLabel();
-    const subject = currentClass.label.replace(/.*\((.*)\)/, '$1') || 'General';
+    const subjectName = selectedSubject !== 'All' && selectedSubject !== 'All Subjects'
+      ? selectedSubject
+      : (activeTeacher?.subject?.split(' ')[0] || 'General');
     setSubmitted(true);
     // Save to DataService so it syncs to each student's portal
     try {
       await DataService.saveBatchAttendance(
         students.map((s) => ({ rollNo: s.roll, name: s.name, status: s.attendance })),
         dateLabel,
-        subject,
+        subjectName,
         currentClass.label
       );
     } catch {
@@ -168,7 +214,7 @@ export default function FacultyAttendanceScreen() {
     }
     Alert.alert(
       'Attendance Submitted Successfully',
-      `Class: ${currentClass.label}\nDate: ${dateLabel}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been saved and will reflect in each student's portal.`,
+      `Class: ${currentClass.label}\nSubject: ${subjectName}\nDate: ${dateLabel}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded for ${totalCount} enrolled students and synced with student portals.`,
       [{ text: 'OK' }]
     );
   };
@@ -262,6 +308,40 @@ export default function FacultyAttendanceScreen() {
           })}
         </ScrollView>
 
+        {/* Allotted Subject Filter Pills */}
+        <View style={styles.subjectFilterSection}>
+          <View style={styles.subjectFilterHeader}>
+            <Text style={styles.subjectFilterLabel}>
+              <Ionicons name="funnel" size={11} color="#0284C7" /> Allotted Subject Filter:
+            </Text>
+            <Text style={styles.subjectFilterCount}>
+              {totalCount} student{totalCount !== 1 ? 's' : ''} taking {selectedSubject}
+            </Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subjectsScroll}>
+            {availableSubjects.map((sub) => {
+              const isSelected = selectedSubject === sub;
+              return (
+                <TouchableOpacity
+                  key={sub}
+                  style={[styles.subjectChip, isSelected && styles.subjectChipActive]}
+                  onPress={() => setSelectedSubject(sub)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={isSelected ? "checkmark-circle" : "book-outline"}
+                    size={13}
+                    color={isSelected ? "#fff" : "#0284C7"}
+                  />
+                  <Text style={[styles.subjectChipText, isSelected && styles.subjectChipTextActive]}>
+                    {sub}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* Attendance Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryTopRow}>
@@ -271,7 +351,7 @@ export default function FacultyAttendanceScreen() {
               </View>
               <View>
                 <Text style={styles.summaryTitle}>Attendance Summary</Text>
-                <Text style={styles.summarySub}>{currentClass.batch}</Text>
+                <Text style={styles.summarySub}>{currentClass.batch} • {selectedSubject}</Text>
               </View>
             </View>
 
@@ -333,58 +413,77 @@ export default function FacultyAttendanceScreen() {
 
         {/* Students Roster */}
         <View style={styles.rosterContainer}>
-          {filteredStudents.map((item) => {
-            const isPresent = item.attendance === 'P';
-            return (
-              <View key={item.id} style={styles.studentCard}>
-                {/* Roll Index */}
-                <View style={[styles.noCircle, isPresent ? styles.noCirclePresent : styles.noCircleAbsent]}>
-                  <Text style={[styles.noText, isPresent ? styles.noTextPresent : styles.noTextAbsent]}>
-                    {item.no}
-                  </Text>
-                </View>
-
-                {/* Info */}
-                <View style={styles.studentInfo}>
-                  <View style={styles.nameRow}>
-                    <Text style={styles.studentName}>{item.name}</Text>
-                    {item.online && <View style={styles.onlineDot} />}
-                    {!isPresent && (
-                      <View style={styles.absentBadge}>
-                        <Text style={styles.absentBadgeText}>Absent</Text>
-                      </View>
-                    )}
+          {filteredStudents.length === 0 ? (
+            <View style={{ padding: 24, alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.border }}>
+              <Ionicons name="person-remove-outline" size={32} color={Colors.textMuted} style={{ marginBottom: 8 }} />
+              <Text style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+                No students enrolled in {selectedSubject}
+              </Text>
+              <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, textAlign: 'center', marginTop: 4 }}>
+                Switch subject filter to "All Subjects" or select another class.
+              </Text>
+            </View>
+          ) : (
+            filteredStudents.map((item) => {
+              const isPresent = item.attendance === 'P';
+              return (
+                <View key={item.id} style={styles.studentCard}>
+                  {/* Roll Index */}
+                  <View style={[styles.noCircle, isPresent ? styles.noCirclePresent : styles.noCircleAbsent]}>
+                    <Text style={[styles.noText, isPresent ? styles.noTextPresent : styles.noTextAbsent]}>
+                      {item.no}
+                    </Text>
                   </View>
-                  <Text style={styles.studentSub}>
-                    {item.roll} • {item.note ? item.note : `${item.overall} Overall`}
-                  </Text>
-                </View>
 
-                {/* P / A Action Switcher */}
-                <View style={styles.paToggleWrap}>
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, isPresent && styles.togglePresentActive]}
-                    onPress={() => toggleAttendance(item.id, 'P')}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.toggleBtnText, isPresent && styles.togglePresentTextActive]}>
-                      P
+                  {/* Info */}
+                  <View style={styles.studentInfo}>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.studentName}>{item.name}</Text>
+                      {item.online && <View style={styles.onlineDot} />}
+                      {!isPresent && (
+                        <View style={styles.absentBadge}>
+                          <Text style={styles.absentBadgeText}>Absent</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text style={styles.studentSub}>
+                      {item.roll} • {item.school || 'EduHome'}
                     </Text>
-                  </TouchableOpacity>
+                    {item.subjects ? (
+                      <View style={styles.studentSubsBadge}>
+                        <Text style={styles.studentSubsBadgeText} numberOfLines={1}>
+                          📚 {item.subjects}
+                        </Text>
+                      </View>
+                    ) : null}
+                  </View>
 
-                  <TouchableOpacity
-                    style={[styles.toggleBtn, !isPresent && styles.toggleAbsentActive]}
-                    onPress={() => toggleAttendance(item.id, 'A')}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={[styles.toggleBtnText, !isPresent && styles.toggleAbsentTextActive]}>
-                      A
-                    </Text>
-                  </TouchableOpacity>
+                  {/* P / A Action Switcher */}
+                  <View style={styles.paToggleWrap}>
+                    <TouchableOpacity
+                      style={[styles.toggleBtn, isPresent && styles.togglePresentActive]}
+                      onPress={() => toggleAttendance(item.id, 'P')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.toggleBtnText, isPresent && styles.togglePresentTextActive]}>
+                        P
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[styles.toggleBtn, !isPresent && styles.toggleAbsentActive]}
+                      onPress={() => toggleAttendance(item.id, 'A')}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={[styles.toggleBtnText, !isPresent && styles.toggleAbsentTextActive]}>
+                        A
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
+              );
+            })
+          )}
         </View>
 
         {/* Bottom Submit Button */}
@@ -539,6 +638,73 @@ const styles = StyleSheet.create({
   activeChipDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#fff' },
   classChipText: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },
   classChipTextActive: { color: '#fff' },
+
+  subjectFilterSection: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  subjectFilterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  subjectFilterLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+  subjectFilterCount: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  subjectsScroll: {
+    gap: 6,
+  },
+  subjectChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  subjectChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  subjectChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  subjectChipTextActive: {
+    color: '#fff',
+  },
+
+  studentSubsBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#F0F9FF',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginTop: 3,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  studentSubsBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0369A1',
+  },
 
   summaryCard: {
     backgroundColor: '#fff',

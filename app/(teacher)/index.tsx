@@ -33,6 +33,7 @@ export default function TeacherHomeScreen() {
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
   const [rosterClassFilter, setRosterClassFilter] = useState('All');
+  const [rosterSubjectFilter, setRosterSubjectFilter] = useState('All');
 
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
@@ -153,6 +154,19 @@ export default function TeacherHomeScreen() {
 
   // Filter admin timetable specifically for this active teacher's subject & grades
   const assignedTodayClasses = adminClasses.filter((c) => isTeacherAssignedToClass(activeTeacher, c));
+
+  const isStudentMatchingSubject = (stu: any, subjectFilter: string) => {
+    if (!subjectFilter || subjectFilter === 'All' || subjectFilter === 'All Subjects') return true;
+    const subs = ((stu && stu.subjects) || '').toLowerCase();
+    const filter = subjectFilter.toLowerCase();
+    if (filter.startsWith('math')) return subs.includes('math');
+    if (filter.startsWith('phys')) return subs.includes('phys');
+    if (filter.startsWith('chem')) return subs.includes('chem');
+    if (filter.startsWith('bio')) return subs.includes('bio');
+    if (filter.includes('comp')) return subs.includes('comp');
+    if (filter === 'science') return subs.includes('science') || subs.includes('phys') || subs.includes('chem') || subs.includes('bio');
+    return subs.includes(filter);
+  };
 
   const handlePostAnnouncement = async () => {
     if (!announcementTitle.trim()) {
@@ -440,82 +454,127 @@ export default function TeacherHomeScreen() {
         </View>
 
         {/* Student Academic Opinions & Faculty Remarks Workflow */}
-        <View style={[styles.sectionHeader, { marginTop: 16 }]}>
-          <View>
-            <Text style={styles.sectionTitle}>Student Roster & Faculty Remarks</Text>
-            <Text style={styles.sectionSubHint}>
-              {ASSIGNED_STUDENTS.length} Students Assigned by Main Admin • Synced with Portals
-            </Text>
-          </View>
-        </View>
+        {(() => {
+          const filteredRosterStudents = ASSIGNED_STUDENTS.filter((stu) => {
+            if (rosterClassFilter !== 'All' && !(stu.class || '').toLowerCase().includes(rosterClassFilter.toLowerCase())) {
+              return false;
+            }
+            return isStudentMatchingSubject(stu, rosterSubjectFilter);
+          });
 
-        {/* Class Filter Chips */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-          {['All', 'Class 12', 'Class 11', 'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6'].map((cls) => {
-            const isSelected = rosterClassFilter === cls;
-            return (
-              <TouchableOpacity
-                key={cls}
-                style={[
-                  styles.opinionSubChip,
-                  isSelected && styles.opinionSubChipActive,
-                  { marginRight: 8, paddingHorizontal: 12, paddingVertical: 6 },
-                ]}
-                onPress={() => setRosterClassFilter(cls)}
-              >
-                <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive]}>
-                  {cls}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        {ASSIGNED_STUDENTS.filter((stu) => {
-          if (rosterClassFilter === 'All') return true;
-          return (stu.class || '').toLowerCase().includes(rosterClassFilter.toLowerCase());
-        }).map((stu, idx) => {
-          const avatarText = stu.avatar || (stu.name ? stu.name.trim().slice(0, 2).toUpperCase() : 'ST');
           return (
-            <View key={stu.rollNo ? `${stu.rollNo}_${idx}` : `stu-${idx}`} style={styles.studentCard}>
-              <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
-                <Text style={styles.studentAvatarText}>{avatarText}</Text>
-              </View>
-              <View style={styles.studentInfoWrap}>
-                <View style={styles.studentNameRow}>
-                  <Text style={styles.studentNameText}>{stu.name || 'Student'}</Text>
-                  <View style={styles.syncBadge}>
-                    <Ionicons name="sync-circle" size={11} color="#0284C7" />
-                    <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
-                  </View>
-                </View>
-                <Text style={styles.studentClassText}>
-                  {stu.class || 'Class 12'} • Roll No: {stu.rollNo || '-'}
-                </Text>
-                <Text style={styles.studentMetaSubText} numberOfLines={1}>
-                  Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
-                </Text>
-                {(stu as any).subjects && (
-                  <Text style={styles.studentSubjectsText} numberOfLines={1}>
-                    📚 {(stu as any).subjects}
+            <>
+              <View style={[styles.sectionHeader, { marginTop: 16 }]}>
+                <View>
+                  <Text style={styles.sectionTitle}>Student Roster & Faculty Remarks</Text>
+                  <Text style={styles.sectionSubHint}>
+                    {filteredRosterStudents.length} Students {rosterClassFilter !== 'All' ? `• ${rosterClassFilter}` : ''} {rosterSubjectFilter !== 'All' ? `• ${rosterSubjectFilter}` : ''}
                   </Text>
-                )}
-                <View style={styles.scoreRow}>
-                  <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
-                  <Text style={styles.scoreVal}>{stu.recentScore || '90%'}</Text>
                 </View>
               </View>
-              <TouchableOpacity
-                style={styles.addOpinionBtn}
-                onPress={() => handleOpenOpinionModal(stu)}
-                activeOpacity={0.85}
-              >
-                <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
-                <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
-              </TouchableOpacity>
-            </View>
+
+              {/* Class Filter Chips */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+                {['All', 'Class 12', 'Class 11', 'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6'].map((cls) => {
+                  const isSelected = rosterClassFilter === cls;
+                  return (
+                    <TouchableOpacity
+                      key={cls}
+                      style={[
+                        styles.opinionSubChip,
+                        isSelected && styles.opinionSubChipActive,
+                        { marginRight: 8, paddingHorizontal: 12, paddingVertical: 6 },
+                      ]}
+                      onPress={() => setRosterClassFilter(cls)}
+                    >
+                      <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive]}>
+                        {cls}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Subject Filter Chips */}
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'].map((sub) => {
+                  const key = sub === 'All Subjects' ? 'All' : sub;
+                  const isSelected = rosterSubjectFilter === key;
+                  return (
+                    <TouchableOpacity
+                      key={sub}
+                      style={[
+                        styles.opinionSubChip,
+                        isSelected && styles.opinionSubChipActive,
+                        { marginRight: 8, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: isSelected ? '#0284C7' : '#F1F5F9' },
+                      ]}
+                      onPress={() => setRosterSubjectFilter(key)}
+                    >
+                      <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive, { fontSize: 11 }]}>
+                        {sub}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              {filteredRosterStudents.length === 0 ? (
+                <View style={{ padding: 20, backgroundColor: '#fff', borderRadius: 14, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: Colors.borderLight }}>
+                  <Ionicons name="people-outline" size={28} color="#94A3B8" style={{ marginBottom: 6 }} />
+                  <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+                    No students found
+                  </Text>
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 }}>
+                    No students match the chosen class & subject allotment filter.
+                  </Text>
+                </View>
+              ) : (
+                filteredRosterStudents.map((stu, idx) => {
+                  const avatarText = stu.avatar || (stu.name ? stu.name.trim().slice(0, 2).toUpperCase() : 'ST');
+                  return (
+                    <View key={stu.rollNo ? `${stu.rollNo}_${idx}` : `stu-${idx}`} style={styles.studentCard}>
+                      <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
+                        <Text style={styles.studentAvatarText}>{avatarText}</Text>
+                      </View>
+                      <View style={styles.studentInfoWrap}>
+                        <View style={styles.studentNameRow}>
+                          <Text style={styles.studentNameText}>{stu.name || 'Student'}</Text>
+                          <View style={styles.syncBadge}>
+                            <Ionicons name="sync-circle" size={11} color="#0284C7" />
+                            <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
+                          </View>
+                        </View>
+                        <Text style={styles.studentClassText}>
+                          {stu.class || 'Class 12'} • Roll No: {stu.rollNo || '-'}
+                        </Text>
+                        <Text style={styles.studentMetaSubText} numberOfLines={1}>
+                          Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
+                        </Text>
+                        {(stu as any).subjects && (
+                          <Text style={styles.studentSubjectsText} numberOfLines={1}>
+                            📚 {(stu as any).subjects}
+                          </Text>
+                        )}
+                        <View style={styles.scoreRow}>
+                          <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
+                          <Text style={styles.scoreVal}>{stu.recentScore || '90%'}</Text>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.addOpinionBtn}
+                        onPress={() => handleOpenOpinionModal(stu)}
+                        activeOpacity={0.85}
+                      >
+                        <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
+                        <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })
+              )}
+            </>
           );
-        })}
+        })()}
 
         {/* Main Admin Opinion Monitoring & Review Queue */}
         {pendingOpinions.length > 0 && (
