@@ -799,3 +799,121 @@ async function forcePullAllFromClouds() {
         testCloudHealth();
     }
 }
+
+
+// ==============================================================================
+//  STUDY MATERIALS MANAGEMENT (SUPER ADMIN DELETE & VIEW)
+// ==============================================================================
+let allStudyMaterials = [];
+
+async function loadStudyMaterials() {
+    const tbody = document.getElementById('materialsTableBody');
+    if (!tbody) return;
+
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin mr-2"></i>Loading study materials from cloud...</td></tr>';
+
+    const sb = _getMasterHubSupabase();
+    if (!sb) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle mr-2"></i>Supabase not connected.</td></tr>';
+        return;
+    }
+
+    try {
+        const { data, error } = await sb
+            .from('study_materials')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching study materials:', error);
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Failed to load materials: ' + error.message + '</td></tr>';
+            return;
+        }
+
+        allStudyMaterials = data || [];
+        renderMaterialsTable(allStudyMaterials);
+    } catch (e) {
+        console.error('Error loading study materials:', e);
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-danger">Unexpected error loading materials.</td></tr>';
+    }
+}
+
+function renderMaterialsTable(materials) {
+    const tbody = document.getElementById('materialsTableBody');
+    if (!tbody) return;
+
+    if (!materials || materials.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted"><i class="fas fa-folder-open mr-2"></i>No study materials found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = materials.map((m, idx) => {
+        const subBadgeColor = (m.subject || '').toLowerCase().includes('chem') ? 'success'
+            : (m.subject || '').toLowerCase().includes('phys') ? 'primary'
+            : (m.subject || '').toLowerCase().includes('math') ? 'warning'
+            : (m.subject || '').toLowerCase().includes('comp') ? 'info' : 'secondary';
+
+        const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+        const safeTitle = (m.title || 'Untitled').replace(/"/g, '&quot;');
+
+        return '<tr>' +
+            '<td><strong>#' + (idx + 1) + '</strong></td>' +
+            '<td><span class="badge badge-' + subBadgeColor + ' px-2 py-1">' + (m.subject || 'General') + '</span></td>' +
+            '<td>' + (m.chapter || '—') + '</td>' +
+            '<td><strong>' + (m.title || 'Untitled') + '</strong>' + (m.file_url ? ' <a href="' + m.file_url + '" target="_blank" class="badge badge-light border ml-1"><i class="fas fa-paperclip mr-1"></i>File</a>' : '') + '</td>' +
+            '<td><small class="text-muted">' + (m.size || '1.5 MB') + '</small></td>' +
+            '<td><small class="text-muted">' + dateStr + '</small></td>' +
+            '<td class="text-center">' +
+                '<button class="btn btn-outline-danger btn-sm py-1 px-2" onclick="deleteStudyMaterial(\'' + m.id + '\', \'' + safeTitle + '\')" title="Delete Material">' +
+                    '<i class="fas fa-trash-alt mr-1"></i>Delete' +
+                '</button>' +
+            '</td>' +
+        '</tr>';
+    }).join('');
+}
+
+function filterMaterialsTable() {
+    const sel = document.getElementById('materialSubjectFilter');
+    const val = sel ? sel.value.toLowerCase() : '';
+    if (!val) {
+        renderMaterialsTable(allStudyMaterials);
+        return;
+    }
+    const filtered = allStudyMaterials.filter(m => (m.subject || '').toLowerCase().includes(val));
+    renderMaterialsTable(filtered);
+}
+
+async function deleteStudyMaterial(id, title) {
+    if (!confirm('Are you sure you want to permanently delete "' + title + '" from the cloud and mobile app?')) {
+        return;
+    }
+
+    const sb = _getMasterHubSupabase();
+    if (!sb) {
+        alert('Supabase client not connected.');
+        return;
+    }
+
+    try {
+        const { error } = await sb.from('study_materials').delete().eq('id', id);
+        if (error) {
+            alert('Failed to delete material: ' + error.message);
+            return;
+        }
+        alert('Study Material "' + title + '" has been permanently deleted from both cloud and mobile apps.');
+        await loadStudyMaterials();
+    } catch (e) {
+        console.error('Delete error:', e);
+        alert('Failed to delete material: ' + e.message);
+    }
+}
+
+// Hook into tab activation
+document.addEventListener('DOMContentLoaded', function () {
+    const materialsTabLink = document.getElementById('tab-materials-link');
+    if (materialsTabLink) {
+        materialsTabLink.addEventListener('shown.bs.tab', function () {
+            loadStudyMaterials();
+        });
+    }
+});
