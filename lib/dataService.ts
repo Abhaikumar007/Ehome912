@@ -333,7 +333,8 @@ export const DataService = {
         for (const c of reversed) {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
-          const key = `${normSubject}_${normDate}`;
+          const normTime = (c.time || '').trim().toLowerCase();
+          const key = `${normSubject}_${normDate}_${normTime}`;
           if (!seen.has(key)) {
             seen.add(key);
             deduplicated.push(c);
@@ -366,7 +367,8 @@ export const DataService = {
         const list = [...cached].reverse().filter((c: any) => {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
-          const key = `${normSubject}_${normDate}`;
+          const normTime = (c.time || '').trim().toLowerCase();
+          const key = `${normSubject}_${normDate}_${normTime}`;
           if (seen.has(key)) return false;
           seen.add(key);
           return true;
