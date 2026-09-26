@@ -587,7 +587,8 @@ const MASTER_STUDENTS_ROSTER = [
         "amount": "2500",
         "subjects": [
             "Physics",
-            "Maths"
+            "Maths",
+            "Computer Science"
         ]
     },
     {
@@ -601,7 +602,8 @@ const MASTER_STUDENTS_ROSTER = [
         "amount": "2000",
         "subjects": [
             "Physics",
-            "Chemistry"
+            "Chemistry",
+            "Computer Science"
         ]
     },
     {
@@ -704,7 +706,7 @@ const MASTER_STUDENTS_ROSTER = [
             "Physics",
             "Chemistry",
             "Maths",
-            "Biology"
+            "Computer Science"
         ]
     },
     {
