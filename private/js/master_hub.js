@@ -439,8 +439,44 @@ async function loadActiveBroadcasts() {
             }
 
             if (anns && anns.length > 0) {
-                const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')));
-                const regularAnns = anns.filter(a => !a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert')));
+                const pendingAnns = anns.filter(a => a.title && (a.title.includes('[PENDING APPROVAL') || a.time_label === 'Pending Approval'));
+                const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval');
+                const regularAnns = anns.filter(a => (!a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert'))) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval');
+
+                if (pendingAnns.length > 0) {
+                    html += '<div class="alert alert-warning mb-4 border-warning shadow-sm p-3 rounded" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">'
+                        + '<div class="d-flex justify-content-between align-items-center mb-2">'
+                        + '<h6 class="font-weight-bold text-dark mb-0"><i class="fas fa-clock mr-2 text-warning"></i>Faculty Announcements Awaiting Admin Approval (' + pendingAnns.length + ')</h6>'
+                        + '<span class="badge badge-warning text-dark font-weight-bold">Requires Action</span>'
+                        + '</div>'
+                        + '<p class="small text-muted mb-3">Submitted by faculty members via mobile app. Review and approve to broadcast instantly to student devices.</p>';
+
+                    pendingAnns.forEach(a => {
+                        const rawTitle = a.title || '';
+                        const cleanTitle = rawTitle.replace(/^\[PENDING APPROVAL\s*-\s*/i, '[');
+                        const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : 'Just now';
+
+                        html += '<div class="mb-2 p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center" id="pendingAnn_' + a.id + '">'
+                            + '<div style="flex: 1; min-width: 0; margin-right: 14px;">'
+                            + '<div class="d-flex align-items-center mb-1">'
+                            + '<span class="badge badge-warning mr-2 text-dark font-weight-bold">Pending Approval</span>'
+                            + '<strong class="text-dark">' + cleanTitle + '</strong>'
+                            + '</div>'
+                            + '<p class="mb-1 text-muted small text-break" style="white-space: pre-line;">' + (a.description || '') + '</p>'
+                            + '<span class="badge badge-light border text-secondary"><i class="far fa-clock mr-1"></i>' + dateStr + '</span>'
+                            + '</div>'
+                            + '<div class="d-flex align-items-center flex-shrink-0" style="gap: 8px;">'
+                            + '<button type="button" class="btn btn-sm btn-success px-3 py-2 font-weight-bold" onclick="window.requestApproveAnnouncement(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
+                            + '<i class="fas fa-check-circle mr-1"></i> Approve'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Reject & Delete" style="cursor: pointer;">'
+                            + '<i class="fas fa-times mr-1"></i> Reject'
+                            + '</button>'
+                            + '</div>'
+                            + '</div>';
+                    });
+                    html += '</div>';
+                }
 
                 if (regularAnns.length > 0) {
                     html += '<h6 class="font-weight-bold text-muted mb-2"><i class="fas fa-bullhorn mr-1 text-primary"></i>Live Community Announcements (' + regularAnns.length + ')</h6>';
@@ -500,6 +536,47 @@ async function loadActiveBroadcasts() {
 
 // ─── Direct Global Delete Functions with 2-Step In-Place Confirmation ─────────
 // This eliminates browser confirm() popup blocking entirely!
+
+window.requestApproveAnnouncement = async function (id, btn, e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (!id) return;
+    if (!confirm('Approve this announcement and broadcast it to all student apps now?')) return;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Approving...';
+    }
+
+    try {
+        const sb = _getMasterHubSupabase();
+        if (!sb) throw new Error('Supabase client not initialized');
+
+        const { data: item } = await sb.from('announcements').select('*').eq('id', id).single();
+        if (item) {
+            const approvedTitle = (item.title || '').replace(/^\[PENDING APPROVAL\s*-\s*/i, '[');
+            await sb.from('announcements').update({
+                title: approvedTitle,
+                time_label: 'Just now',
+                icon: 'megaphone',
+                icon_bg: '#EBF3FF',
+                icon_color: '#1A56DB',
+                important: true
+            }).eq('id', id);
+        }
+
+        showBroadcastStatus('✅ Faculty announcement approved and broadcasted to student apps!');
+        await loadActiveBroadcasts();
+    } catch (err) {
+        alert('Failed to approve announcement: ' + (err.message || err));
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Approve';
+        }
+    }
+};
 
 window.requestDeleteAnnouncement = function (id, btnElement, evt) {
     if (evt) {
