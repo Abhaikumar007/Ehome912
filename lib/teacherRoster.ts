@@ -210,6 +210,9 @@ export function extractGrade(str: string): string | null {
 export function isTeacherAssignedToClass(
   teacher: TeacherProfile,
   classItem: {
+    id?: string;
+    class_grade?: string;
+    roll_no?: string;
     subject?: string;
     title?: string;
     class?: string;
@@ -218,37 +221,44 @@ export function isTeacherAssignedToClass(
     time?: string;
   }
 ): boolean {
-  // 1. Direct Allotment ID match in status (e.g. 'upcoming:fac-chem')
-  if (classItem.status && classItem.status.includes(teacher.id)) {
+  if (!teacher || !classItem) return false;
+
+  // 1. Direct Allotment ID match in status (e.g. 'upcoming:fac-cs')
+  if (classItem.status && classItem.status.includes('fac-')) {
+    return classItem.status.includes(teacher.id);
+  }
+
+  // 2. Direct Allotment Name match in time string (e.g. '• Ms. Ananya Sharma')
+  if (classItem.time && teacher.name && classItem.time.toLowerCase().includes(teacher.name.toLowerCase())) {
     return true;
   }
 
-  // 2. Direct Allotment Name match in time string (e.g. '4:00 PM - 6:00 PM • Dr. Ramesh Nair')
-  if (classItem.time && classItem.time.toLowerCase().includes(teacher.name.toLowerCase())) {
-    return true;
+  // If another faculty member's name is in the time string, do NOT match
+  if (classItem.time) {
+    const hasOtherTeacher = TEACHER_ROSTER.some(
+      (other) => other.id !== teacher.id && other.name && classItem.time?.toLowerCase().includes(other.name.toLowerCase())
+    );
+    if (hasOtherTeacher) {
+      return false;
+    }
   }
 
-  // If another faculty member's id is explicitly assigned, don't show to other teachers
-  if (classItem.status && classItem.status.startsWith('upcoming:fac-') && !classItem.status.includes(teacher.id)) {
-    return false;
-  }
-
-  // 3. Fallback rule-based matching based on teacher's subject & allowed grades
-  const itemSubject = (classItem.subject || classItem.title || '').toLowerCase();
+  // 3. Subject match: Class subject must match this active teacher's subject domain
+  const itemSubject = (classItem.subject || classItem.title || '').toLowerCase().trim();
   const teacherSubNorm = normalizeSubject(teacher.subject);
   const itemSubNorm = normalizeSubject(itemSubject);
 
-  // Subject match check
+  if (!itemSubNorm || !teacherSubNorm) return false;
   const subjectMatches = itemSubNorm.includes(teacherSubNorm) || teacherSubNorm.includes(itemSubNorm);
   if (!subjectMatches) {
     return false;
   }
 
-  // Grade match check
-  const classText = `${classItem.class || ''} ${classItem.batch || ''} ${classItem.title || ''}`;
+  // 4. Grade match check
+  const classText = `${classItem.class_grade || ''} ${classItem.roll_no || ''} ${classItem.class || ''} ${classItem.batch || ''} ${classItem.title || ''}`;
   const grade = extractGrade(classText);
   if (!grade) {
-    return true;
+    return false;
   }
 
   return teacher.allowedGrades.includes('*') || teacher.allowedGrades.includes(grade);

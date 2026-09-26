@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { teacherData } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
@@ -63,6 +63,7 @@ const CLASS_SUBJECTS: Record<string, string[]> = {
 
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ classGrade?: string; subject?: string }>();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [selectedClassId, setSelectedClassId] = useState('c10');
   const [selectedSubject, setSelectedSubject] = useState<string>('All Subjects');
@@ -71,6 +72,23 @@ export default function FacultyAttendanceScreen() {
   const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(0);
   const [classModalVisible, setClassModalVisible] = useState(false);
+
+  // Set class & subject if passed from navigation (e.g. today's assigned class click)
+  useEffect(() => {
+    if (params.classGrade) {
+      const gradeNum = params.classGrade.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      const match = INITIAL_CLASSES.find((c) => {
+        if (gradeNum && c.label.includes(gradeNum)) return true;
+        return c.label.toLowerCase().includes(params.classGrade!.toLowerCase());
+      });
+      if (match) {
+        setSelectedClassId(match.id);
+      }
+    }
+    if (params.subject) {
+      setSelectedSubject(params.subject);
+    }
+  }, [params.classGrade, params.subject]);
 
   // Load active teacher profile dynamically & subscribe to changes
   useEffect(() => {

@@ -1274,6 +1274,24 @@ export const DataService = {
     await setCached('academic_alert_active', null);
   },
 
+  async deleteTest(testId: string): Promise<any[]> {
+    const key = 'teacher_tests';
+    const all = (await getCached<any[]>(key)) || [];
+    const updated = all.filter((t) => t.id !== testId);
+    await setCached(key, updated);
+
+    // Clear alert banner if it was published
+    try {
+      const alertKey = 'academic_alert_active';
+      const activeAlert = await getCached<any>(alertKey);
+      if (activeAlert && (activeAlert.id === 'alert-' + testId || activeAlert.id === testId)) {
+        await setCached(alertKey, null);
+      }
+    } catch {}
+
+    return updated;
+  },
+
   // Fetch all scheduled classes from Supabase admin timetable
   async getAdminTimetableClasses(): Promise<any[]> {
     try {
@@ -1294,9 +1312,42 @@ export const DataService = {
     return [];
   },
 
-  // Fetch teacher uploaded study materials (no mock data)
+  // Fetch teacher uploaded study materials (synced with Supabase & cache)
   async getTeacherMaterials(subject?: string): Promise<any[]> {
     const key = 'teacher_study_materials';
+    try {
+      const { data, error } = await supabase
+        .from('study_materials')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const mapped = data.map((d: any) => ({
+          id: d.id,
+          subject: d.subject,
+          chapter: d.chapter,
+          title: d.title,
+          fileName: d.description?.replace('Published ', '') || d.title,
+          fileUri: d.file_url || '',
+          desc: d.description || '',
+          tag: d.tag || "Teacher's Uploaded Notes",
+          tagColor: d.tag_color || '#EBF3FF',
+          size: d.size || '1.5 MB',
+          icon: d.icon || 'document-text-outline',
+          iconBg: d.icon_bg || '#EBF3FF',
+          iconColor: d.icon_color || '#0284C7',
+          uploadedAt: d.created_at ? new Date(d.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Published',
+        }));
+        await setCached(key, mapped);
+        if (subject && subject !== 'All') {
+          return mapped.filter((m) => m.subject?.toLowerCase() === subject.toLowerCase());
+        }
+        return mapped;
+      }
+    } catch (e) {
+      console.warn('Error fetching materials from Supabase:', e);
+    }
+
     const cached = await getCached<any[]>(key);
     if (cached && Array.isArray(cached)) {
       if (subject && subject !== 'All') {
@@ -1312,6 +1363,42 @@ export const DataService = {
     const existing = (await getCached<any[]>(key)) || [];
     const updated = [material, ...existing];
     await setCached(key, updated);
+
+    // Also persist to Supabase study_materials
+    try {
+      await supabase.from('study_materials').insert({
+        subject: material.subject,
+        chapter: material.chapter,
+        title: material.title,
+        description: material.desc || `Published ${material.fileName || material.title}`,
+        tag: material.tag || "Teacher's Uploaded Notes",
+        tag_color: material.tagColor || '#EBF3FF',
+        size: material.size || '1.5 MB',
+        icon: material.icon || 'document-text-outline',
+        icon_bg: material.iconBg || '#EBF3FF',
+        icon_color: material.iconColor || '#0284C7',
+        file_url: material.fileUri || null,
+      });
+    } catch (e) {
+      console.warn('Supabase study_materials insert warning:', e);
+    }
+
+    return updated;
+  },
+
+  async deleteTeacherMaterial(materialId: string): Promise<any[]> {
+    const key = 'teacher_study_materials';
+    const existing = (await getCached<any[]>(key)) || [];
+    const updated = existing.filter((m) => m.id !== materialId);
+    await setCached(key, updated);
+
+    // Delete from Supabase study_materials
+    try {
+      await supabase.from('study_materials').delete().eq('id', materialId);
+    } catch (e) {
+      console.warn('Supabase study_materials delete warning:', e);
+    }
+
     return updated;
   },
 

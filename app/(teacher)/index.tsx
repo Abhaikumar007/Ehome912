@@ -43,22 +43,7 @@ export default function TeacherHomeScreen() {
   const [opinionRating, setOpinionRating] = useState('Outstanding');
   const [pendingOpinions, setPendingOpinions] = useState<any[]>([]);
 
-  const [announcements, setAnnouncements] = useState<any[]>([
-    {
-      id: 'a1',
-      title: 'Parent-Teacher Meeting on 20th Sep',
-      desc: 'All faculty members must keep monthly attendance registers and marks ready. Timings: 10:00 AM - 1:00 PM.',
-      time: '2 hours ago',
-      badge: 'Admin Notice',
-    },
-    {
-      id: 'a2',
-      title: 'Class 10 Physics Optics Test Scheduled',
-      desc: 'Test 9 syllabus announced. Please ensure ray diagram practice worksheets are distributed today.',
-      time: 'Yesterday',
-      badge: 'Academic',
-    },
-  ]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const loadActiveFaculty = async () => {
     const list = await getTeacherRoster();
@@ -92,8 +77,12 @@ export default function TeacherHomeScreen() {
             badge: a.tag || 'Broadcast',
           }))
         );
+      } else {
+        setAnnouncements([]);
       }
-    } catch {}
+    } catch {
+      setAnnouncements([]);
+    }
   };
 
   const loadPendingOpinions = async () => {
@@ -418,7 +407,15 @@ export default function TeacherHomeScreen() {
                     </View>
                     <TouchableOpacity
                       style={styles.markAttendanceLink}
-                      onPress={() => router.push('/(teacher)/attendance')}
+                      onPress={() =>
+                        router.push({
+                          pathname: '/(teacher)/attendance',
+                          params: {
+                            classGrade: classTitle,
+                            subject: subjectTitle,
+                          },
+                        })
+                      }
                     >
                       <Text style={styles.markAttendanceLinkText}>Attendance &gt;</Text>
                     </TouchableOpacity>
@@ -455,11 +452,25 @@ export default function TeacherHomeScreen() {
 
         {/* Student Academic Opinions & Faculty Remarks Workflow */}
         {(() => {
-          const filteredRosterStudents = ASSIGNED_STUDENTS.filter((stu) => {
+          // Strictly filter students assigned to this active teacher's subject & grades
+          const teacherAllottedStudents = ASSIGNED_STUDENTS.filter((stu) => {
+            // Grade check
+            if (activeTeacher?.allowedGrades && !activeTeacher.allowedGrades.includes('*')) {
+              const gradeNum = (stu.class || '').match(/\b(1[0-2]|[6-9])\b/)?.[1];
+              if (gradeNum && !activeTeacher.allowedGrades.includes(gradeNum)) {
+                return false;
+              }
+            }
+            // Subject check: Student MUST be taking the subject this faculty teaches
+            return isStudentMatchingSubject(stu, activeTeacher.subject);
+          });
+
+          // Secondary class filter
+          const filteredRosterStudents = teacherAllottedStudents.filter((stu) => {
             if (rosterClassFilter !== 'All' && !(stu.class || '').toLowerCase().includes(rosterClassFilter.toLowerCase())) {
               return false;
             }
-            return isStudentMatchingSubject(stu, rosterSubjectFilter);
+            return true;
           });
 
           return (
@@ -468,13 +479,13 @@ export default function TeacherHomeScreen() {
                 <View>
                   <Text style={styles.sectionTitle}>Student Roster & Faculty Remarks</Text>
                   <Text style={styles.sectionSubHint}>
-                    {filteredRosterStudents.length} Students {rosterClassFilter !== 'All' ? `• ${rosterClassFilter}` : ''} {rosterSubjectFilter !== 'All' ? `• ${rosterSubjectFilter}` : ''}
+                    {filteredRosterStudents.length} Students Allotted to {activeTeacher.name} ({activeTeacher.subject}) {rosterClassFilter !== 'All' ? `• ${rosterClassFilter}` : ''}
                   </Text>
                 </View>
               </View>
 
               {/* Class Filter Chips */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 8 }}>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
                 {['All', 'Class 12', 'Class 11', 'Class 10', 'Class 9', 'Class 8', 'Class 7', 'Class 6'].map((cls) => {
                   const isSelected = rosterClassFilter === cls;
                   return (
@@ -495,37 +506,14 @@ export default function TeacherHomeScreen() {
                 })}
               </ScrollView>
 
-              {/* Subject Filter Chips */}
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'].map((sub) => {
-                  const key = sub === 'All Subjects' ? 'All' : sub;
-                  const isSelected = rosterSubjectFilter === key;
-                  return (
-                    <TouchableOpacity
-                      key={sub}
-                      style={[
-                        styles.opinionSubChip,
-                        isSelected && styles.opinionSubChipActive,
-                        { marginRight: 8, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: isSelected ? '#0284C7' : '#F1F5F9' },
-                      ]}
-                      onPress={() => setRosterSubjectFilter(key)}
-                    >
-                      <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive, { fontSize: 11 }]}>
-                        {sub}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-
               {filteredRosterStudents.length === 0 ? (
                 <View style={{ padding: 20, backgroundColor: '#fff', borderRadius: 14, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: Colors.borderLight }}>
                   <Ionicons name="people-outline" size={28} color="#94A3B8" style={{ marginBottom: 6 }} />
                   <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
-                    No students found
+                    No students allotted for {activeTeacher.subject}
                   </Text>
-                  <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 }}>
-                    No students match the chosen class & subject allotment filter.
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2, textAlign: 'center' }}>
+                    Only students with {activeTeacher.subject} in their cloud subject allotment appear in this faculty list.
                   </Text>
                 </View>
               ) : (
@@ -622,18 +610,30 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {announcements.map((a) => (
-          <View key={a.id} style={styles.noticeCard}>
-            <View style={styles.noticeTopRow}>
-              <View style={styles.noticeBadge}>
-                <Text style={styles.noticeBadgeText}>{a.badge}</Text>
-              </View>
-              <Text style={styles.noticeTime}>{a.time}</Text>
-            </View>
-            <Text style={styles.noticeTitle}>{a.title}</Text>
-            <Text style={styles.noticeDesc}>{a.desc}</Text>
+        {announcements.length === 0 ? (
+          <View style={{ padding: 22, backgroundColor: '#fff', borderRadius: 14, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: Colors.borderLight }}>
+            <Ionicons name="notifications-outline" size={28} color="#94A3B8" style={{ marginBottom: 6 }} />
+            <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+              No Active Broadcasts
+            </Text>
+            <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 3, textAlign: 'center' }}>
+              Factual broadcast announcements from the Admin portal or faculty broadcasts will appear here live.
+            </Text>
           </View>
-        ))}
+        ) : (
+          announcements.map((a) => (
+            <View key={a.id} style={styles.noticeCard}>
+              <View style={styles.noticeTopRow}>
+                <View style={styles.noticeBadge}>
+                  <Text style={styles.noticeBadgeText}>{a.badge}</Text>
+                </View>
+                <Text style={styles.noticeTime}>{a.time}</Text>
+              </View>
+              <Text style={styles.noticeTitle}>{a.title}</Text>
+              <Text style={styles.noticeDesc}>{a.desc}</Text>
+            </View>
+          ))
+        )}
 
         <View style={{ height: 30 }} />
       </ScrollView>

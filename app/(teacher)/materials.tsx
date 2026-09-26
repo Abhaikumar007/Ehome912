@@ -149,6 +149,29 @@ export default function TeacherMaterialsScreen() {
     }
   };
 
+  const handleDeleteMaterial = (item: any) => {
+    Alert.alert(
+      'Delete Study Material',
+      `Are you sure you want to delete "${item.title}"? This will permanently remove it from the student repository.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updated = await DataService.deleteTeacherMaterial(item.id);
+              setMaterials(updated);
+              Alert.alert('Deleted', `"${item.title}" has been deleted.`);
+            } catch (e) {
+              Alert.alert('Error', 'Failed to delete material.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       {/* Header */}
@@ -241,7 +264,16 @@ export default function TeacherMaterialsScreen() {
                 <Ionicons name={item.icon || 'document-text-outline'} size={22} color={item.iconColor || '#0284C7'} />
               </View>
               <View style={styles.matInfo}>
-                <Text style={styles.matChapter}>{item.subject} • {item.chapter}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Text style={styles.matChapter}>{item.subject} • {item.chapter}</Text>
+                  <TouchableOpacity
+                    onPress={() => handleDeleteMaterial(item)}
+                    style={styles.deleteMatBtn}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                  </TouchableOpacity>
+                </View>
                 <Text style={styles.matTitle}>{item.title}</Text>
                 {item.fileName ? (
                   <Text style={styles.matFileName} numberOfLines={1}>
@@ -497,6 +529,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.03,
     shadowOffset: { width: 0, height: 2 },
     elevation: 1,
+  },
+  deleteMatBtn: {
+    padding: 4,
+    borderRadius: 6,
+    backgroundColor: '#FEF2F2',
   },
   matIconWrap: {
     width: 44,

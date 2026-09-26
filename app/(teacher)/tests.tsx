@@ -41,6 +41,38 @@ interface ExamItem {
 const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
 const SUBJECTS: FacultySubject[] = ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'];
 
+export function getEnrolledStudentsForClassAndSubject(classGrade: string, subject: string): TestStudent[] {
+  const gradeMatch = classGrade.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+  return EDUSYNC_STUDENTS
+    .filter((stu) => {
+      // 1. Grade match
+      if (gradeMatch && !stu.class.includes(gradeMatch)) {
+        return false;
+      }
+      // 2. Allotted subject match
+      if (subject && subject !== 'All' && subject !== 'All Subjects') {
+        const stuSubs = (stu.subjects || '').toLowerCase();
+        const target = subject.toLowerCase();
+        if (target.includes('math')) return stuSubs.includes('math');
+        if (target.includes('phys')) return stuSubs.includes('phys');
+        if (target.includes('chem')) return stuSubs.includes('chem');
+        if (target.includes('bio')) return stuSubs.includes('bio');
+        if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp');
+        if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('phys') || stuSubs.includes('chem') || stuSubs.includes('bio');
+        return stuSubs.includes(target);
+      }
+      return true;
+    })
+    .map((s, idx) => ({
+      id: `stu-${s.rollNo}`,
+      name: s.name,
+      roll: s.rollNo,
+      marks: 0,
+      grade: 'Pending',
+      color: '#94A3B8',
+    }));
+}
+
 export default function TeacherTestsScreen() {
   const router = useRouter();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
@@ -132,14 +164,55 @@ export default function TeacherTestsScreen() {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'examDate' | 'expiryDate'>('examDate');
 
-  // Active test
-  const activeTest = tests.find((t) => t.id === activeTestId) || tests[0];
+  // Filter tests strictly belonging to this active teacher's subject domain
+  const teacherTests = React.useMemo(() => {
+    if (!activeTeacher?.subject) return tests;
+    const tSub = activeTeacher.subject.toLowerCase();
+    return tests.filter((t) => {
+      const itemSub = (t.subject || '').toLowerCase();
+      if (tSub.includes('comp') || tSub.includes('cs')) return itemSub.includes('comp') || itemSub.includes('cs');
+      if (tSub.includes('chem')) return itemSub.includes('chem');
+      if (tSub.includes('phys')) return itemSub.includes('phys');
+      if (tSub.includes('math')) return itemSub.includes('math');
+      if (tSub.includes('bio')) return itemSub.includes('bio');
+      return itemSub.includes(tSub);
+    });
+  }, [tests, activeTeacher]);
 
-  const avgMarks = activeTest?.students.length
-    ? Math.round(activeTest.students.reduce((acc, s) => acc + s.marks, 0) / activeTest.students.length)
+  const classTests = React.useMemo(() => {
+    return teacherTests.filter((t) => t.classTag === selectedClass);
+  }, [teacherTests, selectedClass]);
+
+  const activeTest = React.useMemo(() => {
+    return classTests.find((t) => t.id === activeTestId) || classTests[0] || teacherTests[0] || null;
+  }, [classTests, teacherTests, activeTestId]);
+
+  // Ensure evaluation roster strictly contains REAL students enrolled in this class & subject
+  const evaluatedStudents = React.useMemo(() => {
+    if (!activeTest) return [];
+    const genuineRoster = getEnrolledStudentsForClassAndSubject(activeTest.classTag, activeTest.subject);
+
+    return genuineRoster.map((genuine) => {
+      const existing = (activeTest.students || []).find(
+        (s) => s.roll === genuine.roll || s.id === genuine.id || s.name.toLowerCase() === genuine.name.toLowerCase()
+      );
+      if (existing && typeof existing.marks === 'number' && existing.marks > 0) {
+        return {
+          ...genuine,
+          marks: existing.marks,
+          grade: existing.grade || (existing.marks >= 90 ? 'A+' : existing.marks >= 80 ? 'A' : 'B'),
+          color: existing.color || (existing.marks >= 80 ? '#10B981' : '#0284C7'),
+        };
+      }
+      return genuine;
+    });
+  }, [activeTest]);
+
+  const avgMarks = evaluatedStudents.length
+    ? Math.round(evaluatedStudents.reduce((acc, s) => acc + s.marks, 0) / evaluatedStudents.length)
     : 0;
-  const highestMarks = activeTest?.students.length
-    ? Math.max(...activeTest.students.map((s) => s.marks))
+  const highestMarks = evaluatedStudents.length
+    ? Math.max(...evaluatedStudents.map((s) => s.marks))
     : 0;
 
   const openEditMarks = (s: TestStudent) => {
@@ -161,13 +234,14 @@ export default function TeacherTestsScreen() {
     const grade = pct >= 90 ? 'A+' : pct >= 80 ? 'A' : pct >= 70 ? 'B' : 'C';
     const color = pct >= 85 ? '#10B981' : pct >= 75 ? '#0284C7' : '#F59E0B';
 
+    const updatedStudentsList = evaluatedStudents.map((s) =>
+      s.id === selectedStudent.id || s.roll === selectedStudent.roll ? { ...s, marks: val, grade, color } : s
+    );
+
     setTests((prev) =>
       prev.map((t) => {
         if (t.id === activeTest.id) {
-          const updatedStudents = t.students.map((s) =>
-            s.id === selectedStudent.id ? { ...s, marks: val, grade, color } : s
-          );
-          return { ...t, students: updatedStudents, isEvaluated: true };
+          return { ...t, students: updatedStudentsList, isEvaluated: true };
         }
         return t;
       })
@@ -188,6 +262,32 @@ export default function TeacherTestsScreen() {
     Alert.alert('Marks Saved & Synced', `Updated marks for ${selectedStudent.name} (${val}/${max}) and synced to student report!`);
   };
 
+  const handleDeleteTest = (testItem: ExamItem) => {
+    Alert.alert(
+      'Delete Test Paper',
+      `Are you sure you want to delete "${testItem.title}"? This will permanently remove the test paper and all evaluation records.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const updated = await DataService.deleteTest(testItem.id);
+              setTests(updated);
+              if (activeTestId === testItem.id) {
+                setActiveTestId('');
+              }
+              Alert.alert('Test Deleted', `"${testItem.title}" has been deleted.`);
+            } catch (e) {
+              Alert.alert('Error', 'Failed to delete test.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Publish Active Test as Academic Alert to Student Dashboard
   const handlePublishAlert = async (testItem: ExamItem) => {
     const alertData: AcademicAlert = {
@@ -204,9 +304,9 @@ export default function TeacherTestsScreen() {
       instructions: [
         'Reporting time is strictly 15 minutes before test commencement.',
         'Bring geometry box and scientific calculator if required.',
-        `Syllabus verified by Academic Head ${activeTeacher?.name || 'Mr. Abhai Kumar'}.`,
+        `Syllabus verified by Academic Head ${activeTeacher?.name || 'Faculty'}.`,
       ],
-      updatedBy: `${activeTeacher?.name || 'Mr. Abhai Kumar'} (Faculty)`,
+      updatedBy: `${activeTeacher?.name || 'Faculty'} (${testItem.subject})`,
       updatedAt: 'Just now',
       expiryDate: showUntilDate || undefined,
     };
@@ -230,6 +330,7 @@ export default function TeacherTestsScreen() {
       .filter((s) => s.length > 0);
 
     const maxVal = parseInt(newMaxMarks, 10) || 100;
+    const genuineStudents = getEnrolledStudentsForClassAndSubject(newClass, newSubject);
 
     const newTestObj: ExamItem = {
       id: 'test-' + Date.now(),
@@ -242,14 +343,7 @@ export default function TeacherTestsScreen() {
       maxMarks: maxVal,
       syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
       isEvaluated: false,
-      students: EDUSYNC_STUDENTS.slice(0, 8).map((s, idx) => ({
-        id: `stu-${idx}-${Date.now()}`,
-        name: s.name,
-        roll: s.rollNo,
-        marks: 0,
-        grade: 'Pending',
-        color: '#94A3B8',
-      })),
+      students: genuineStudents,
     };
 
     setTests([newTestObj, ...tests]);
@@ -267,9 +361,6 @@ export default function TeacherTestsScreen() {
     setNewTitle('');
     Alert.alert('Success', `New test "${newTestObj.title}" assigned to ${newClass} successfully.`);
   };
-
-  // Filter tests matching selected class
-  const classTests = tests.filter((t) => t.classTag === selectedClass);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -425,10 +516,20 @@ export default function TeacherTestsScreen() {
                 </Text>
                 <Text style={styles.testMax}>Maximum Marks: {activeTest.maxMarks}</Text>
               </View>
-              <View style={[styles.evalPill, { backgroundColor: activeTest.isEvaluated ? '#ECFDF3' : '#FFFBEB' }]}>
-                <Text style={[styles.evalText, { color: activeTest.isEvaluated ? Colors.green : '#D97706' }]}>
-                  {activeTest.isEvaluated ? 'Evaluated ✓' : 'Pending'}
-                </Text>
+              <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                <View style={[styles.evalPill, { backgroundColor: activeTest.isEvaluated ? '#ECFDF3' : '#FFFBEB' }]}>
+                  <Text style={[styles.evalText, { color: activeTest.isEvaluated ? Colors.green : '#D97706' }]}>
+                    {activeTest.isEvaluated ? 'Evaluated ✓' : 'Pending'}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.deleteTestBtn}
+                  onPress={() => handleDeleteTest(activeTest)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={13} color="#EF4444" />
+                  <Text style={styles.deleteTestBtnText}>Delete Test</Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -445,7 +546,7 @@ export default function TeacherTestsScreen() {
               <View style={[styles.metricBox, { backgroundColor: '#FEF3F2' }]}>
                 <Text style={styles.metricLabel}>SUBMITTED</Text>
                 <Text style={[styles.metricVal, { color: Colors.red }]}>
-                  {activeTest.students.length}/{activeTest.students.length}
+                  {evaluatedStudents.length}/{evaluatedStudents.length}
                 </Text>
               </View>
             </View>
@@ -472,37 +573,51 @@ export default function TeacherTestsScreen() {
             <View style={styles.sectionHeader}>
               <View>
                 <Text style={styles.sectionTitle}>Student Marks Evaluation</Text>
-                <Text style={styles.sectionHint}>Tap any student row to modify or enter marks</Text>
+                <Text style={styles.sectionHint}>
+                  {evaluatedStudents.length} Enrolled Student{evaluatedStudents.length !== 1 ? 's' : ''} in {activeTest.classTag} • {activeTest.subject}
+                </Text>
               </View>
               <View style={styles.studentsCountBadge}>
-                <Text style={styles.studentsCountText}>{activeTest.students.length} Students</Text>
+                <Text style={styles.studentsCountText}>{evaluatedStudents.length} Students</Text>
               </View>
             </View>
 
-            {activeTest.students.map((item, i) => (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.markCard}
-                onPress={() => openEditMarks(item)}
-                activeOpacity={0.8}
-              >
-                <View style={styles.rankBox}>
-                  <Text style={styles.rankText}>#{i + 1}</Text>
-                </View>
-                <View style={styles.studentInfo}>
-                  <Text style={styles.studentName}>{item.name}</Text>
-                  <Text style={styles.studentRoll}>{item.roll}</Text>
-                </View>
-                <View style={styles.scoreWrap}>
-                  <Text style={[styles.scoreValue, { color: item.color }]}>{item.marks}</Text>
-                  <Text style={styles.scoreTotal}>/{activeTest.maxMarks}</Text>
-                  <View style={[styles.gradeBadge, { backgroundColor: item.color + '15' }]}>
-                    <Text style={[styles.gradeText, { color: item.color }]}>{item.grade}</Text>
+            {evaluatedStudents.length === 0 ? (
+              <View style={{ padding: 20, backgroundColor: '#fff', borderRadius: 14, alignItems: 'center', marginBottom: 12, borderWidth: 1, borderColor: Colors.borderLight }}>
+                <Ionicons name="people-outline" size={24} color="#94A3B8" style={{ marginBottom: 6 }} />
+                <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+                  No students enrolled in {activeTest.subject} for {activeTest.classTag}
+                </Text>
+                <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 }}>
+                  Only students with {activeTest.subject} in their cloud subject allotment can be evaluated.
+                </Text>
+              </View>
+            ) : (
+              evaluatedStudents.map((item, i) => (
+                <TouchableOpacity
+                  key={item.id}
+                  style={styles.markCard}
+                  onPress={() => openEditMarks(item)}
+                  activeOpacity={0.8}
+                >
+                  <View style={styles.rankBox}>
+                    <Text style={styles.rankText}>#{i + 1}</Text>
                   </View>
-                </View>
-                <Ionicons name="pencil" size={14} color={Colors.textMuted} style={{ marginLeft: 8 }} />
-              </TouchableOpacity>
-            ))}
+                  <View style={styles.studentInfo}>
+                    <Text style={styles.studentName}>{item.name}</Text>
+                    <Text style={styles.studentRoll}>{item.roll}</Text>
+                  </View>
+                  <View style={styles.scoreWrap}>
+                    <Text style={[styles.scoreValue, { color: item.color }]}>{item.marks}</Text>
+                    <Text style={styles.scoreTotal}>/{activeTest.maxMarks}</Text>
+                    <View style={[styles.gradeBadge, { backgroundColor: item.color + '15' }]}>
+                      <Text style={[styles.gradeText, { color: item.color }]}>{item.grade}</Text>
+                    </View>
+                  </View>
+                  <Ionicons name="pencil" size={14} color={Colors.textMuted} style={{ marginLeft: 8 }} />
+                </TouchableOpacity>
+              ))
+            )}
           </>
         )}
 
@@ -575,7 +690,17 @@ export default function TeacherTestsScreen() {
             {/* Subject Selector */}
             <Text style={styles.formLabel}>Subject</Text>
             <View style={styles.selectorRow}>
-              {SUBJECTS.map((sub) => (
+              {SUBJECTS.filter((sub) => {
+                if (!activeTeacher?.subject) return true;
+                const tSub = activeTeacher.subject.toLowerCase();
+                const itemSub = sub.toLowerCase();
+                if (tSub.includes('comp') || tSub.includes('cs')) return itemSub.includes('comp');
+                if (tSub.includes('chem')) return itemSub.includes('chem');
+                if (tSub.includes('phys')) return itemSub.includes('phys');
+                if (tSub.includes('math')) return itemSub.includes('math');
+                if (tSub.includes('bio')) return itemSub.includes('bio');
+                return true;
+              }).map((sub) => (
                 <TouchableOpacity
                   key={sub}
                   style={[styles.smallChip, newSubject === sub && styles.smallChipActive]}
@@ -594,7 +719,7 @@ export default function TeacherTestsScreen() {
               style={styles.textInput}
               value={newTitle}
               onChangeText={setNewTitle}
-              placeholder="e.g. Test 10: Thermodynamics & Heat"
+              placeholder="e.g. Unit Test 1: Chapter Evaluation"
               placeholderTextColor={Colors.textMuted}
             />
 
@@ -942,6 +1067,22 @@ const styles = StyleSheet.create({
   testMax: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   evalPill: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
   evalText: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
+  deleteTestBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  deleteTestBtnText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#EF4444',
+  },
 
   metricGrid: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   metricBox: { flex: 1, borderRadius: 12, paddingVertical: 10, alignItems: 'center' },
