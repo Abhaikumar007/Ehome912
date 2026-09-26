@@ -170,9 +170,16 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="font-weight-bold">Allotted Classes / Grades</label>
-                            <input type="text" class="form-control" id="formTeacherGrades" placeholder="e.g. 10, 11, 12 or 6, 7, 8, 9" required>
-                            <small class="form-text text-muted">Comma-separated class numbers (e.g. 6, 7, 8, 9 or 10, 11, 12)</small>
+                            <label class="font-weight-bold d-flex justify-content-between align-items-center">
+                                <span>Allotted Classes / Grades</span>
+                                <span>
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0" style="font-size: 11px;" onclick="selectAllGrades(true)">All (6-12)</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary py-0 ml-1" style="font-size: 11px;" onclick="selectAllGrades(false)">Clear</button>
+                                </span>
+                            </label>
+                            <div class="d-flex flex-wrap mb-2" id="classCheckboxPills" style="gap: 6px;"></div>
+                            <input type="text" class="form-control" id="formTeacherGrades" placeholder="e.g. 6, 7, 8, 9, 10, 11, 12" oninput="syncPillsFromInput()" required>
+                            <small class="form-text text-muted">Click class buttons above or enter comma-separated numbers (6, 7, 8, 9, 10, 11, 12)</small>
                         </div>
 
                         <div class="form-group">
@@ -252,11 +259,11 @@
             },
             {
                 id: 'fac-math',
-                name: 'Mr. Arun K. Varma',
+                name: 'Ms. Devi',
                 subject: 'Mathematics',
-                grades: '6, 7, 8, 9',
-                dept: 'Secondary Mathematics',
-                type: 'Temporary',
+                grades: '6, 7, 8, 9, 10, 11, 12',
+                dept: 'Secondary & Higher Secondary Mathematics',
+                type: 'Permanent',
                 phone: '9847067890'
             }
         ];
@@ -280,6 +287,49 @@
             return name.replace(/Dr.|Mr.|Mrs.|Ms./g, '').trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'FA';
         }
 
+        function renderClassPills(selectedStr = '') {
+            const grades = (selectedStr || '').match(/\b(1[0-2]|[6-9])\b/g) || [];
+            const container = document.getElementById('classCheckboxPills');
+            if (!container) return;
+            const allClasses = ['6', '7', '8', '9', '10', '11', '12'];
+            container.innerHTML = allClasses.map(c => {
+                const isChecked = grades.includes(c);
+                return `
+                    <button type="button" class="btn btn-sm ${isChecked ? 'btn-primary text-white' : 'btn-outline-secondary'} grade-pill-btn" data-grade="${c}" onclick="toggleClassPill('${c}')" style="font-weight: 600; border-radius: 20px; padding: 3px 10px; font-size: 12px; cursor: pointer;">
+                        <i class="fas ${isChecked ? 'fa-check-circle' : 'fa-circle'} mr-1"></i> Class ${c}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function toggleClassPill(grade) {
+            const input = document.getElementById('formTeacherGrades');
+            let current = (input.value || '').match(/\b(1[0-2]|[6-9])\b/g) || [];
+            if (current.includes(grade)) {
+                current = current.filter(c => c !== grade);
+            } else {
+                current.push(grade);
+            }
+            current = Array.from(new Set(current)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+            input.value = current.join(', ');
+            renderClassPills(input.value);
+        }
+
+        function selectAllGrades(all) {
+            const input = document.getElementById('formTeacherGrades');
+            if (all) {
+                input.value = '6, 7, 8, 9, 10, 11, 12';
+            } else {
+                input.value = '';
+            }
+            renderClassPills(input.value);
+        }
+
+        function syncPillsFromInput() {
+            const input = document.getElementById('formTeacherGrades');
+            renderClassPills(input.value);
+        }
+
         async function syncFromSupabase() {
             if (!sb) return;
             try {
@@ -292,12 +342,21 @@
                         if (match) {
                             if (remote.name) match.name = remote.name;
                             if (remote.phone) match.phone = remote.phone;
-                        } else if (remote.faculty_id.startsWith('fac-')) {
+                            if (remote.subjects) {
+                                const gradeMatches = remote.subjects.match(/\b(1[0-2]|[6-9])\b/g);
+                                if (gradeMatches && gradeMatches.length > 0) {
+                                    match.grades = Array.from(new Set(gradeMatches)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(', ');
+                                }
+                                const sub = remote.subjects.split('(')[0].trim();
+                                if (sub) match.subject = sub;
+                            }
+                        } else if (remote.faculty_id.startsWith('fac-') || remote.faculty_id.startsWith('FAC-')) {
+                            const gradeMatches = (remote.subjects || '').match(/\b(1[0-2]|[6-9])\b/g);
                             localList.push({
                                 id: remote.faculty_id,
-                                name: remote.name,
+                                name: remote.name || 'Faculty Member',
                                 subject: remote.subjects ? remote.subjects.split('(')[0].trim() : 'General',
-                                grades: remote.subjects && remote.subjects.includes('Class') ? remote.subjects.replace(/.*Class\s*/, '').replace(')', '').trim() : 'All',
+                                grades: gradeMatches ? Array.from(new Set(gradeMatches)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)).join(', ') : 'All',
                                 dept: 'Academic Faculty',
                                 type: 'Permanent',
                                 phone: remote.phone || ''
