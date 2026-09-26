@@ -13,6 +13,7 @@ DROP TABLE IF EXISTS announcements CASCADE;
 DROP TABLE IF EXISTS classes CASCADE;
 DROP TABLE IF EXISTS teachers CASCADE;
 DROP TABLE IF EXISTS students CASCADE;
+DROP TABLE IF EXISTS subjects CASCADE;
 
 -- ==============================================================================
 -- 2. CREATE TABLES
@@ -43,9 +44,9 @@ CREATE TABLE teachers (
   faculty_id TEXT UNIQUE NOT NULL,
   pin TEXT NOT NULL DEFAULT '123456',
   name TEXT NOT NULL,
-  role TEXT DEFAULT 'Super Admin',
+  role TEXT DEFAULT 'Super Admin & Academic Head',
   subjects TEXT DEFAULT 'Physics & Chemistry',
-  avatar TEXT DEFAULT 'RK',
+  avatar TEXT DEFAULT 'AK',
   phone TEXT DEFAULT '9123456780',
   created_at TIMESTAMPTZ DEFAULT now()
 );
@@ -153,6 +154,21 @@ CREATE TABLE notifications (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
+-- 2.10 Subjects Master Table
+CREATE TABLE subjects (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  code TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  category TEXT DEFAULT 'Science', -- 'Science', 'Maths', 'Technology', 'General'
+  classes TEXT[] DEFAULT '{"6", "7", "8", "9", "10", "11", "12"}',
+  faculty_id TEXT,
+  faculty_name TEXT,
+  monthly_fee_unit NUMERIC DEFAULT 1000,
+  icon TEXT DEFAULT 'book-outline',
+  color TEXT DEFAULT '#1A56DB',
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
 -- ==============================================================================
 -- 3. ENABLE ROW LEVEL SECURITY & PUBLIC ANON ACCESS POLICIES
 -- ==============================================================================
@@ -165,6 +181,7 @@ ALTER TABLE fees_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE progress_records ENABLE ROW LEVEL SECURITY;
 ALTER TABLE study_materials ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;
 
 -- Allow anon full access for all tables for app usage
 CREATE POLICY "Public students access" ON students FOR ALL USING (true) WITH CHECK (true);
@@ -176,6 +193,7 @@ CREATE POLICY "Public fees_records access" ON fees_records FOR ALL USING (true) 
 CREATE POLICY "Public progress_records access" ON progress_records FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public study_materials access" ON study_materials FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Public notifications access" ON notifications FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public subjects access" ON subjects FOR ALL USING (true) WITH CHECK (true);
 
 -- ==============================================================================
 -- 4. SEED SAMPLE DATA
@@ -246,7 +264,7 @@ SET
 -- 4.2 Seed Teachers
 INSERT INTO teachers (faculty_id, pin, name, role, subjects, avatar, phone)
 VALUES
-('FAC-2024-042', '123456', 'Mr. R Madhusudanan', 'Super Admin', 'Physics & Chemistry', 'RM', '9123456780');
+('FAC-2024-042', '123456', 'Mr. Abhai Kumar', 'Super Admin & Academic Head', 'Physics & Chemistry', 'AK', '9123456780');
 
 -- 4.3 Seed Today's Classes for Arjun
 INSERT INTO classes (roll_no, class_grade, subject, time, status, published, class_date)
@@ -414,4 +432,24 @@ VALUES
 ('2024-JEE-0842', 'Class Timetable Updated', 'Tomorrow Physics class rescheduled to 5:30 PM.', '10m ago', false, 'schedule'),
 ('2024-JEE-0842', 'Fee Reminder', 'Monthly tuition fee of ₹4,000 is due on 15 Sep 2026.', '1h ago', false, 'fee'),
 ('2024-JEE-0842', 'Test Result Published', 'Weekly Test #8 results are out. You scored 92/100!', '1d ago', true, 'result'),
-('2024-JEE-0842', 'New Study Material', 'Notes for Chemistry Chapter 1 uploaded by Mr. R Madhusudanan.', '2d ago', true, 'material');
+('2024-JEE-0842', 'New Study Material', 'Notes for Chemistry Chapter 1 uploaded by Mr. Abhai Kumar.', '2d ago', true, 'material');
+
+-- 4.10 Seed Master Subjects
+INSERT INTO subjects (code, name, category, classes, faculty_id, faculty_name, monthly_fee_unit, icon, color)
+VALUES
+  ('PHY',  'Physics',          'Science',    '{"8", "9", "10", "11", "12"}', 'fac-phy',       'Mr. Rajesh Menon',    1000, 'flash-outline',       '#1A56DB'),
+  ('CHEM', 'Chemistry',        'Science',    '{"8", "9", "10", "11", "12"}', 'fac-chem',      'Dr. Ramesh Nair',     1000, 'flask-outline',       '#12B76A'),
+  ('MATH', 'Mathematics',      'Maths',      '{"6", "7", "8", "9", "10", "11", "12"}', 'fac-math', 'Mr. Arun K. Varma', 1000, 'calculator-outline',  '#F79009'),
+  ('BIO',  'Biology',          'Science',    '{"6", "7", "8", "9", "10", "11", "12"}', 'fac-bio-lower', 'Mrs. Deepa Anoop / Dr. Suresh Kumar', 1000, 'leaf-outline', '#0284C7'),
+  ('CS',   'Computer Science', 'Technology', '{"11", "12"}',                 'fac-cs',        'Ms. Ananya Sharma',   1000, 'code-slash-outline',  '#7C3AED'),
+  ('SCI',  'Science',          'Science',    '{"6", "7", "8", "9"}',         'fac-bio-lower', 'Mrs. Deepa Anoop',    1000, 'planet-outline',      '#059669')
+ON CONFLICT (code) DO UPDATE SET
+  name = EXCLUDED.name,
+  category = EXCLUDED.category,
+  classes = EXCLUDED.classes,
+  faculty_id = EXCLUDED.faculty_id,
+  faculty_name = EXCLUDED.faculty_name,
+  monthly_fee_unit = EXCLUDED.monthly_fee_unit,
+  icon = EXCLUDED.icon,
+  color = EXCLUDED.color;
+
