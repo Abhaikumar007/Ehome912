@@ -131,12 +131,77 @@
             margin-right: 14px;
         }
 
-        .broadcast-item {
-            border-left: 4px solid #0284c7;
-            padding: 12px 16px;
-            background: #f8fafc;
-            border-radius: 0 8px 8px 0;
-            margin-bottom: 12px;
+        #activeBroadcastsContainer {
+            width: 100% !important;
+            display: block !important;
+        }
+
+        .broadcast-item,
+        .broadcast-card-item {
+            display: flex !important;
+            flex-direction: row !important;
+            justify-content: space-between !important;
+            align-items: flex-start !important;
+            width: 100% !important;
+            background: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            border-left: 5px solid #0284c7 !important;
+            border-radius: 8px !important;
+            padding: 14px 18px !important;
+            margin-bottom: 12px !important;
+            box-sizing: border-box !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        .broadcast-card-item.exam-alert-item,
+        .broadcast-item.exam-alert-item {
+            border-left-color: #ef4444 !important;
+            background: #fffafa !important;
+        }
+
+        .broadcast-card-item.pending-approval-item {
+            border-left-color: #f59e0b !important;
+            background: #ffffff !important;
+        }
+
+        .broadcast-content-area {
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            padding-right: 18px !important;
+            overflow-wrap: break-word !important;
+            word-wrap: break-word !important;
+            word-break: normal !important;
+        }
+
+        .broadcast-content-title {
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            display: inline-block !important;
+            margin-bottom: 4px !important;
+            line-height: 1.4 !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+        }
+
+        .broadcast-content-text {
+            font-size: 0.9rem !important;
+            color: #475569 !important;
+            line-height: 1.5 !important;
+            margin-bottom: 6px !important;
+            white-space: pre-line !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
+        }
+
+        .broadcast-actions-area {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            gap: 8px !important;
+            flex-shrink: 0 !important;
+            margin-left: auto !important;
         }
     </style>
 </head>
@@ -570,7 +635,7 @@
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
     <script src="js/admin.js?v=20260921_fee"></script>
-    <script src="js/master_hub.js?v=20260921_3"></script>
+    <script src="js/master_hub.js?v=20260926_realtime"></script>
 </body>
 
 </html>

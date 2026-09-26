@@ -1,3 +1,26 @@
+function cleanApprovedTitle(rawTitle) {
+    if (!rawTitle) return 'Community Announcement';
+    let t = rawTitle;
+    if (/^\[PENDING APPROVAL\s*-\s*All Classes\]/i.test(t)) {
+        t = t.replace(/^\[PENDING APPROVAL\s*-\s*All Classes\]\s*/i, '');
+    } else if (/^\[PENDING APPROVAL\s*-\s*([^\]]+)\]/i.test(t)) {
+        t = t.replace(/^\[PENDING APPROVAL\s*-\s*([^\]]+)\]\s*/i, '[$1] ');
+    } else {
+        t = t.replace(/^\[PENDING APPROVAL\s*-\s*/i, '').replace(/^\[PENDING APPROVAL\]\s*/i, '');
+    }
+    return t.replace(/\s{2,}/g, ' ').trim();
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 
 function _getMasterHubSupabase() {
     if (typeof _getSupabaseClient === 'function') {
@@ -13,6 +36,44 @@ function _getMasterHubSupabase() {
     }
     return null;
 }
+let _realtimeChannel = null;
+
+function setupMasterHubRealtime() {
+    const sb = _getMasterHubSupabase();
+    if (!sb || typeof sb.channel !== 'function') {
+        console.warn('[MasterHub Realtime] Supabase channel API not available');
+        return;
+    }
+
+    if (_realtimeChannel) {
+        try { _realtimeChannel.unsubscribe(); } catch (e) {}
+    }
+
+    try {
+        _realtimeChannel = sb
+            .channel('public:master_hub_live_' + Date.now())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
+                console.log('[MasterHub Realtime] Announcements changed:', payload.eventType);
+                loadActiveBroadcasts();
+    setupMasterHubRealtime();
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, (payload) => {
+                console.log('[MasterHub Realtime] Students changed:', payload.eventType);
+                refreshMasterData(true);
+            })
+            .subscribe((status) => {
+                console.log('[MasterHub Realtime] Subscription status:', status);
+                const cloudBadge = document.getElementById('cloudStatusBadge');
+                if (cloudBadge && status === 'SUBSCRIBED') {
+                    cloudBadge.className = 'badge badge-cloud badge-cloud-green';
+                    cloudBadge.innerHTML = '<i class="fas fa-bolt mr-1"></i> Supabase Realtime Active';
+                }
+            });
+    } catch (err) {
+        console.warn('[MasterHub Realtime] Error setting up realtime:', err);
+    }
+}
+
 
 // ==============================================================================
 //  master_hub.js — Super Admin Master Control Hub Logic
@@ -62,18 +123,56 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 // ─── 1. SPREADSHEET GRID LOGIC ───────────────────────────────────────────────
 
-async function refreshMasterData() {
-    const tbody = document.getElementById('masterGridTbody');
-    if (tbody) {
-        tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading student records from storage...</td></tr>';
+async function refreshMasterData(isRealtime) {
+    const refreshBtn = document.querySelector('button[onclick="refreshMasterData()"]');
+    if (refreshBtn && !isRealtime) {
+        refreshBtn.disabled = true;
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Syncing...';
     }
 
-    // Always fetch deduplicated list
+    const tbody = document.getElementById('masterGridTbody');
+    if (tbody && !isRealtime) {
+        tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted py-4"><i class="fas fa-spinner fa-spin mr-2"></i>Loading live student records from database...</td></tr>';
+    }
+
     let students = [];
-    if (typeof getStudents === 'function') {
-        students = getStudents();
-    } else {
-        students = JSON.parse(localStorage.getItem('students')) || [];
+    const sb = _getMasterHubSupabase();
+
+    // 1. Fetch live students directly from Supabase
+    if (sb) {
+        try {
+            const { data: dbStudents, error } = await sb
+                .from('students')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (!error && Array.isArray(dbStudents) && dbStudents.length > 0) {
+                students = dbStudents.map(s => ({
+                    rollNo: s.roll_no || s.rollNo || s.id || '',
+                    name: s.name || '',
+                    class: s.class || '',
+                    phone: s.phone || '',
+                    fee: s.monthly_fee || s.amount || s.fee || 0,
+                    amount: s.monthly_fee || s.amount || s.fee || 0,
+                    subjects: Array.isArray(s.subjects) ? s.subjects : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()) : []),
+                    school: s.school || 'EduHome Campus',
+                    pin: s.pin || '1234',
+                    joiningDate: s.joining_date || s.joiningDate || '',
+                    status: s.status || 'Active'
+                }));
+            }
+        } catch (e) {
+            console.warn('[MasterHub] Error querying students from Supabase:', e);
+        }
+    }
+
+    // 2. Fallback to localStorage / getStudents if Supabase had no rows or offline
+    if (!students || students.length === 0) {
+        if (typeof getStudents === 'function') {
+            students = getStudents();
+        } else {
+            students = JSON.parse(localStorage.getItem('students')) || [];
+        }
     }
 
     // Extra deduplication safeguard to guarantee no duplicate rows
@@ -91,11 +190,27 @@ async function refreshMasterData() {
     currentStudents = JSON.parse(JSON.stringify(uniqueStudents));
     originalStudents = JSON.parse(JSON.stringify(uniqueStudents));
 
-    // Save cleaned list so localStorage is permanently de-duplicated
+    // Save cleaned list so localStorage is permanently up to date
     try { localStorage.setItem('students', JSON.stringify(uniqueStudents)); } catch (e) {}
 
     renderMasterGrid(currentStudents);
     updateFeeSummary();
+
+    // Also refresh active announcements and pending fee receipts
+    if (!isRealtime) {
+        loadActiveBroadcasts();
+        if (typeof window.loadPendingVerifications === 'function') {
+            window.loadPendingVerifications();
+        }
+    }
+
+    if (refreshBtn && !isRealtime) {
+        refreshBtn.innerHTML = '<i class="fas fa-check mr-1 text-success"></i> Synced ✓';
+        setTimeout(() => {
+            refreshBtn.disabled = false;
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Refresh Data';
+        }, 1500);
+    }
 }
 
 function renderMasterGrid(list) {
@@ -432,7 +547,7 @@ async function loadActiveBroadcasts() {
                 .from('announcements')
                 .select('*')
                 .order('created_at', { ascending: false })
-                .limit(30);
+                .limit(40);
 
             if (fetchErr) {
                 console.warn('[MasterHub] Error loading announcements:', fetchErr);
@@ -449,23 +564,23 @@ async function loadActiveBroadcasts() {
                         + '<h6 class="font-weight-bold text-dark mb-0"><i class="fas fa-clock mr-2 text-warning"></i>Faculty Announcements Awaiting Admin Approval (' + pendingAnns.length + ')</h6>'
                         + '<span class="badge badge-warning text-dark font-weight-bold">Requires Action</span>'
                         + '</div>'
-                        + '<p class="small text-muted mb-3">Submitted by faculty members via mobile app. Review and approve to broadcast instantly to student devices.</p>';
+                        + '<p class="small text-muted mb-3">Submitted by faculty members via mobile app. Review and approve to broadcast live to all student devices.</p>';
 
                     pendingAnns.forEach(a => {
                         const rawTitle = a.title || '';
-                        const cleanTitle = rawTitle.replace(/^\[PENDING APPROVAL\s*-\s*/i, '[');
+                        const cleanTitle = cleanApprovedTitle(rawTitle);
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : 'Just now';
 
-                        html += '<div class="mb-2 p-3 bg-white border rounded shadow-sm d-flex justify-content-between align-items-center" id="pendingAnn_' + a.id + '">'
-                            + '<div style="flex: 1; min-width: 0; margin-right: 14px;">'
-                            + '<div class="d-flex align-items-center mb-1">'
-                            + '<span class="badge badge-warning mr-2 text-dark font-weight-bold">Pending Approval</span>'
-                            + '<strong class="text-dark">' + cleanTitle + '</strong>'
+                        html += '<div class="broadcast-card-item pending-approval-item" id="pendingAnn_' + a.id + '">'
+                            + '<div class="broadcast-content-area">'
+                            + '<div class="d-flex align-items-center flex-wrap mb-1" style="gap: 6px;">'
+                            + '<span class="badge badge-warning text-dark font-weight-bold"><i class="fas fa-clock mr-1"></i>Pending Approval</span>'
+                            + '<strong class="broadcast-content-title text-dark">' + escapeHtml(cleanTitle) + '</strong>'
                             + '</div>'
-                            + '<p class="mb-1 text-muted small text-break" style="white-space: pre-line;">' + (a.description || '') + '</p>'
-                            + '<span class="badge badge-light border text-secondary"><i class="far fa-clock mr-1"></i>' + dateStr + '</span>'
+                            + '<p class="broadcast-content-text">' + escapeHtml(a.description || '') + '</p>'
+                            + '<span class="badge badge-light border text-secondary"><i class="far fa-clock mr-1"></i>' + escapeHtml(dateStr) + '</span>'
                             + '</div>'
-                            + '<div class="d-flex align-items-center flex-shrink-0" style="gap: 8px;">'
+                            + '<div class="broadcast-actions-area">'
                             + '<button type="button" class="btn btn-sm btn-success px-3 py-2 font-weight-bold" onclick="window.requestApproveAnnouncement(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
                             + '<i class="fas fa-check-circle mr-1"></i> Approve'
                             + '</button>'
@@ -482,15 +597,17 @@ async function loadActiveBroadcasts() {
                     html += '<h6 class="font-weight-bold text-muted mb-2"><i class="fas fa-bullhorn mr-1 text-primary"></i>Live Community Announcements (' + regularAnns.length + ')</h6>';
                     regularAnns.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm" id="annCard_' + a.id + '">'
-                            + '<div style="flex: 1; min-width: 0; margin-right: 12px;">'
-                            + '<strong class="text-dark">' + (a.title || '') + '</strong>'
-                            + '<p class="mb-1 text-muted small text-break">' + (a.description || '') + '</p>'
-                            + '<span class="badge badge-light border text-secondary">' + (a.time_label || dateStr || 'Active') + '</span>'
+                        html += '<div class="broadcast-card-item" id="annCard_' + a.id + '">'
+                            + '<div class="broadcast-content-area">'
+                            + '<strong class="broadcast-content-title text-dark">' + escapeHtml(a.title || '') + '</strong>'
+                            + '<p class="broadcast-content-text">' + escapeHtml(a.description || '') + '</p>'
+                            + '<span class="badge badge-light border text-secondary"><i class="far fa-clock mr-1"></i>' + escapeHtml(a.time_label || dateStr || 'Active') + '</span>'
                             + '</div>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement" style="cursor: pointer; z-index: 10; position: relative;">'
+                            + '<div class="broadcast-actions-area">'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement" style="cursor: pointer;">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
+                            + '</div>'
                             + '</div>';
                     });
                 }
@@ -499,15 +616,20 @@ async function loadActiveBroadcasts() {
                     html += '<h6 class="font-weight-bold text-muted mt-3 mb-2"><i class="fas fa-calendar-alt mr-1 text-danger"></i>Active Exam / Test Alerts (' + examAlerts.length + ')</h6>';
                     examAlerts.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
-                        html += '<div class="broadcast-item d-flex justify-content-between align-items-center mb-2 p-3 bg-white border rounded shadow-sm" style="border-left: 4px solid #ef4444 !important;" id="annCard_' + a.id + '">'
-                            + '<div style="flex: 1; min-width: 0; margin-right: 12px;">'
-                            + '<strong class="text-dark">' + (a.title || '') + '</strong>'
-                            + '<p class="mb-1 text-muted small text-break">' + (a.description || '') + '</p>'
-                            + '<span class="badge badge-danger mt-1">' + (a.time_label || dateStr || 'Active') + '</span>'
+                        html += '<div class="broadcast-card-item exam-alert-item" id="annCard_' + a.id + '">'
+                            + '<div class="broadcast-content-area">'
+                            + '<div class="d-flex align-items-center flex-wrap mb-1" style="gap: 6px;">'
+                            + '<span class="badge badge-danger font-weight-bold"><i class="fas fa-calendar-alt mr-1"></i>Exam Alert</span>'
+                            + '<strong class="broadcast-content-title text-dark">' + escapeHtml(a.title || '') + '</strong>'
                             + '</div>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 flex-shrink-0 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert" style="cursor: pointer; z-index: 10; position: relative;">'
+                            + '<p class="broadcast-content-text">' + escapeHtml(a.description || '') + '</p>'
+                            + '<span class="badge badge-danger"><i class="fas fa-bell mr-1"></i>' + escapeHtml(a.time_label || dateStr || 'Active') + '</span>'
+                            + '</div>'
+                            + '<div class="broadcast-actions-area">'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert" style="cursor: pointer;">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
+                            + '</div>'
                             + '</div>';
                     });
                 }
@@ -543,7 +665,6 @@ window.requestApproveAnnouncement = async function (id, btn, e) {
         e.stopPropagation();
     }
     if (!id) return;
-    if (!confirm('Approve this announcement and broadcast it to all student apps now?')) return;
 
     if (btn) {
         btn.disabled = true;
@@ -552,25 +673,32 @@ window.requestApproveAnnouncement = async function (id, btn, e) {
 
     try {
         const sb = _getMasterHubSupabase();
-        if (!sb) throw new Error('Supabase client not initialized');
+        if (!sb) throw new Error('Supabase client not initialized. Please refresh.');
 
-        const { data: item } = await sb.from('announcements').select('*').eq('id', id).single();
-        if (item) {
-            const approvedTitle = (item.title || '').replace(/^\[PENDING APPROVAL\s*-\s*/i, '[');
-            await sb.from('announcements').update({
-                title: approvedTitle,
-                time_label: 'Just now',
-                icon: 'megaphone',
-                icon_bg: '#EBF3FF',
-                icon_color: '#1A56DB',
-                important: true
-            }).eq('id', id);
+        const { data: item, error: fetchErr } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+        if (fetchErr) throw fetchErr;
+
+        let cleanTitle = 'Community Announcement';
+        if (item && item.title) {
+            cleanTitle = cleanApprovedTitle(item.title);
         }
 
-        showBroadcastStatus('✅ Faculty announcement approved and broadcasted to student apps!');
+        const { error: updateErr } = await sb.from('announcements').update({
+            title: cleanTitle,
+            time_label: 'Just now',
+            icon: 'megaphone',
+            icon_bg: '#EBF3FF',
+            icon_color: '#1A56DB',
+            important: true
+        }).eq('id', id);
+
+        if (updateErr) throw updateErr;
+
+        showBroadcastStatus('✅ Announcement "' + cleanTitle + '" approved and broadcasted to student & faculty apps!');
         await loadActiveBroadcasts();
     } catch (err) {
-        alert('Failed to approve announcement: ' + (err.message || err));
+        console.error('[MasterHub] Failed to approve announcement:', err);
+        showBroadcastStatus('Failed to approve announcement: ' + (err.message || err), true);
         if (btn) {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Approve';
