@@ -90,21 +90,34 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
   },
   {
     id: 'fac-math',
-    name: 'Mr. Arun K. Varma',
+    name: 'Ms. Devi',
     subject: 'Mathematics',
-    department: 'Secondary Mathematics',
+    department: 'Mathematics Department',
     qualification: 'M.Sc. Mathematics, B.Ed.',
-    email: 'arun.varma@eduhome.ac.in',
+    email: 'devi@eduhome.ac.in',
     phone: '+91 98470 67890',
-    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150',
-    allowedGrades: ['6', '7', '8', '9'],
-    gradeDescription: 'Temporarily Assigned: 6th, 7th, 8th & 9th',
-    isTemporary: true,
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+    allowedGrades: ['6', '7', '8', '9', '10', '11', '12'],
+    gradeDescription: 'Grades 6th to 12th (All Secondary & Higher Secondary)',
+    isTemporary: false,
   },
 ];
 
 const ACTIVE_TEACHER_KEY = 'eduhome_active_faculty_id';
 const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v2';
+
+export function parseAllowedGrades(subjectsStr?: string): string[] {
+  if (!subjectsStr) return ['*'];
+  const s = subjectsStr.toLowerCase();
+  if (s.includes('all') || s.includes('head') || s.includes('*')) {
+    return ['*'];
+  }
+  const matches = subjectsStr.match(/\b(1[0-2]|[6-9])\b/g);
+  if (matches && matches.length > 0) {
+    return Array.from(new Set(matches)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+  }
+  return ['*'];
+}
 
 export function getInitials(name: string): string {
   if (!name) return 'FA';
@@ -135,6 +148,15 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
             match.phone = saved.phone || match.phone;
             match.email = saved.email || match.email;
             match.qualification = saved.qualification || match.qualification;
+            if (saved.allowedGrades && saved.allowedGrades.length > 0) {
+              match.allowedGrades = saved.allowedGrades;
+            }
+            if (saved.gradeDescription) {
+              match.gradeDescription = saved.gradeDescription;
+            }
+            if (saved.subject) {
+              match.subject = saved.subject;
+            }
           } else {
             TEACHER_ROSTER.push(saved);
           }
@@ -155,7 +177,14 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
         if (match) {
           if (remote.name) match.name = remote.name;
           if (remote.phone) match.phone = remote.phone;
-        } else if (remote.faculty_id.startsWith('fac-')) {
+          if (remote.subjects) {
+            match.allowedGrades = parseAllowedGrades(remote.subjects);
+            match.gradeDescription = remote.subjects;
+            const parsedSubject = remote.subjects.split('(')[0].trim();
+            if (parsedSubject) match.subject = parsedSubject;
+          }
+        } else if (remote.faculty_id.startsWith('fac-') || remote.faculty_id.startsWith('FAC-')) {
+          const parsedGrades = parseAllowedGrades(remote.subjects);
           TEACHER_ROSTER.push({
             id: remote.faculty_id,
             name: remote.name || 'Faculty Member',
@@ -165,7 +194,7 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
             email: `${remote.faculty_id}@eduhome.ac.in`,
             phone: remote.phone || '+91 98470 00000',
             avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-            allowedGrades: ['*'],
+            allowedGrades: parsedGrades,
             gradeDescription: remote.subjects || 'Assigned Classes',
           });
         }

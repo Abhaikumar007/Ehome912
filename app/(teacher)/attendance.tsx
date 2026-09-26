@@ -99,7 +99,8 @@ export default function FacultyAttendanceScreen() {
     if (params.subject) {
       setSelectedSubject(params.subject);
     } else {
-      setSelectedSubject(getTeacherDefaultSubject(t));
+      const defSub = getTeacherDefaultSubject(t);
+      setSelectedSubject(defSub && defSub !== 'All Subjects' ? defSub : 'All Students');
     }
   }, [params.subject]);
 
@@ -187,22 +188,26 @@ export default function FacultyAttendanceScreen() {
 
   // Available subjects for this teacher in this class
   const availableSubjects = useMemo(() => {
-    if (!activeTeacher) return ['All Subjects'];
+    if (!activeTeacher) return ['All Students'];
     if (activeTeacher.allowedGrades.includes('*')) {
-      return CLASS_SUBJECTS[currentClassPrefix] || ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology'];
+      return ['All Students', ...(CLASS_SUBJECTS[currentClassPrefix] || ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'])];
     }
     const defSub = getTeacherDefaultSubject(activeTeacher);
     const gradeNum = parseInt(currentClass.grade || '10', 10);
-    if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
-      return [defSub, 'Science'];
+    const list = ['All Students'];
+    if (defSub && defSub !== 'All Subjects') {
+      list.push(defSub);
     }
-    return [defSub];
+    if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
+      if (!list.includes('Science')) list.push('Science');
+    }
+    return list;
   }, [activeTeacher, currentClassPrefix, currentClass.grade]);
 
   // Auto-adjust subject if current selection is not valid for this teacher & class
   useEffect(() => {
     if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
-      setSelectedSubject(availableSubjects[0]);
+      setSelectedSubject(availableSubjects[1] || availableSubjects[0]);
     }
   }, [availableSubjects, selectedSubject]);
 
@@ -212,20 +217,13 @@ export default function FacultyAttendanceScreen() {
     const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
 
     // Determine target subject filter
-    // If the active teacher is a specific subject teacher (not Super Admin),
-    // they MUST only take attendance of students allocated to their subject!
-    let targetSubject = selectedSubject;
-    if (activeTeacher && !activeTeacher.allowedGrades.includes('*')) {
-      if (targetSubject === 'All' || targetSubject === 'All Subjects') {
-        targetSubject = getTeacherDefaultSubject(activeTeacher);
-      }
-    }
+    const isAll = !selectedSubject || selectedSubject === 'All' || selectedSubject === 'All Subjects' || selectedSubject === 'All Students';
 
-    // Filter students strictly by allotted subject
+    // Filter students strictly by allotted subject when a specific subject is selected
     const subjectFiltered = classStudents.filter((s) => {
-      if (targetSubject === 'All' || targetSubject === 'All Subjects') return true;
+      if (isAll) return true;
       const stuSubs = (s.subjects || '').toLowerCase();
-      const target = targetSubject.toLowerCase();
+      const target = selectedSubject.toLowerCase();
 
       if (target.includes('math')) return stuSubs.includes('math');
       if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
@@ -250,7 +248,7 @@ export default function FacultyAttendanceScreen() {
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject, activeTeacher]);
+  }, [selectedClassId, selectedSubject]);
 
   // Format date display
   const getDateLabel = () => {
@@ -292,9 +290,9 @@ export default function FacultyAttendanceScreen() {
   const handleSaveSubmit = async () => {
     const dateLabel = getDateLabel();
     const teacherName = activeTeacher?.name || 'Faculty Member';
-    const subjectName = selectedSubject !== 'All' && selectedSubject !== 'All Subjects'
+    const subjectName = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
       ? selectedSubject
-      : (activeTeacher?.subject?.split(' ')[0] || 'General');
+      : (activeTeacher?.subject?.split('(')[0]?.trim() || 'General');
     setSubmitted(true);
     // Save to DataService so it syncs to each student's portal
     try {
@@ -421,7 +419,7 @@ export default function FacultyAttendanceScreen() {
               <Ionicons name="funnel" size={11} color="#0284C7" /> Allotted Subject Filter:
             </Text>
             <Text style={styles.subjectFilterCount}>
-              {totalCount} student{totalCount !== 1 ? 's' : ''} taking {selectedSubject}
+              {totalCount} student{totalCount !== 1 ? 's' : ''} {selectedSubject === 'All Students' ? 'enrolled' : `taking ${selectedSubject}`}
             </Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subjectsScroll}>
