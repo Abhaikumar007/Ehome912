@@ -33,13 +33,14 @@ export default function TeacherHomeScreen() {
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState('');
   const [announcementMsg, setAnnouncementMsg] = useState('');
+  const [announcementClasses, setAnnouncementClasses] = useState<string[]>(['All Assigned']);
   const [rosterClassFilter, setRosterClassFilter] = useState('All');
   const [rosterSubjectFilter, setRosterSubjectFilter] = useState('All');
 
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
   const [selectedStudentForOpinion, setSelectedStudentForOpinion] = useState<any>(null);
-  const [opinionSubject, setOpinionSubject] = useState<'Physics' | 'Chemistry' | 'Mathematics'>('Physics');
+  const [opinionSubject, setOpinionSubject] = useState<string>('Mathematics');
   const [opinionRemark, setOpinionRemark] = useState('');
   const [opinionRating, setOpinionRating] = useState('Outstanding');
   const [pendingOpinions, setPendingOpinions] = useState<any[]>([]);
@@ -156,52 +157,78 @@ export default function TeacherHomeScreen() {
   // Filter admin timetable specifically for this active teacher's subject & grades
   const assignedTodayClasses = adminClasses.filter((c) => isTeacherAssignedToClass(activeTeacher, c));
 
+  const getTeacherOpinionSubjects = (teacher: TeacherProfile): string[] => {
+    if (!teacher) return ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+    if (
+      teacher.allowedGrades?.includes('*') ||
+      (teacher.subject || '').toLowerCase().includes('head') ||
+      (teacher.department || '').toLowerCase().includes('administration')
+    ) {
+      return ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
+    }
+    const list: string[] = [];
+    const s = (teacher.subject || '').toLowerCase();
+    if (s.includes('math')) list.push('Mathematics');
+    if (s.includes('phys')) list.push('Physics');
+    if (s.includes('chem')) list.push('Chemistry');
+    if (s.includes('bio')) list.push('Biology');
+    if (s.includes('comp') || s.includes('cs')) list.push('Computer Science');
+    return list.length > 0 ? list : [teacher.subject.split('(')[0].trim() || 'General'];
+  };
+
   const isStudentMatchingSubject = (stu: any, subjectFilter: string) => {
-    if (!subjectFilter || subjectFilter === 'All' || subjectFilter === 'All Subjects') return true;
+    if (!subjectFilter || subjectFilter === 'All' || subjectFilter === 'All Subjects' || subjectFilter.toLowerCase().includes('head')) return true;
     const subs = ((stu && stu.subjects) || '').toLowerCase();
     const filter = subjectFilter.toLowerCase();
-    if (filter.startsWith('math')) return subs.includes('math');
-    if (filter.startsWith('phys')) return subs.includes('phys');
-    if (filter.startsWith('chem')) return subs.includes('chem');
-    if (filter.startsWith('bio')) return subs.includes('bio');
-    if (filter.includes('comp')) return subs.includes('comp');
-    if (filter === 'science') return subs.includes('science') || subs.includes('phys') || subs.includes('chem') || subs.includes('bio');
+    if (filter.includes('comp') || filter.includes('cs')) return subs.includes('comp') || subs.includes('cs');
+    if (filter.includes('math')) return subs.includes('math');
+    if (filter.includes('phys')) return subs.includes('phys');
+    if (filter.includes('chem')) return subs.includes('chem');
+    if (filter.includes('bio')) return subs.includes('bio');
+    if (filter.includes('science')) return subs.includes('science') || subs.includes('phys') || subs.includes('chem') || subs.includes('bio');
     return subs.includes(filter);
   };
+
+  const teacherAssignedGrades = React.useMemo(() => {
+    if (!activeTeacher || !activeTeacher.allowedGrades || activeTeacher.allowedGrades.includes('*')) {
+      return ['All Classes', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
+    }
+    const grades = activeTeacher.allowedGrades.map((g) => `Class ${g}`);
+    return ['All Assigned', ...grades];
+  }, [activeTeacher]);
 
   const handlePostAnnouncement = async () => {
     if (!announcementTitle.trim()) {
       Alert.alert('Error', 'Please enter an announcement title.');
       return;
     }
+
+    const classesStr = announcementClasses.includes('All Classes') || announcementClasses.includes('All Assigned')
+      ? (activeTeacher.allowedGrades?.includes('*') ? 'All Classes' : activeTeacher.allowedGrades.map((g) => `Class ${g}`).join(', '))
+      : announcementClasses.join(', ');
+
     try {
-      const updated = await DataService.addAnnouncement({
+      await DataService.addAnnouncement({
         title: announcementTitle.trim(),
         desc: announcementMsg.trim() || 'No additional details provided.',
-        author: 'Mr. Abhai Kumar (Senior Faculty • Physics & Chemistry)',
+        author: `${activeTeacher.name} (${activeTeacher.subject})`,
+        targetClasses: classesStr,
         tag: 'Faculty Broadcast',
         important: true,
+        pendingApproval: true,
       });
-      if (updated) {
-        setAnnouncements(
-          updated.map((a: any) => ({
-            id: a.id,
-            title: a.title,
-            desc: a.desc || a.description || '',
-            time: a.time || 'Just now',
-            badge: a.tag || 'Faculty Broadcast',
-          }))
-        );
-      }
+
       setAnnouncementTitle('');
       setAnnouncementMsg('');
+      setAnnouncementClasses(['All Assigned']);
       setAnnouncementModalVisible(false);
+
       Alert.alert(
-        'Broadcast Published ✓',
-        'Announcement has been synchronized and dispatched to all Student Dashboards and Community Feeds.'
+        'Submitted for Admin Approval ✓',
+        `Your announcement for ${classesStr} has been submitted. It is now awaiting approval by the Admin in Master Hub before broadcasting to student devices.`
       );
     } catch {
-      Alert.alert('Error', 'Failed to post announcement.');
+      Alert.alert('Error', 'Failed to submit announcement.');
     }
   };
 
@@ -209,6 +236,8 @@ export default function TeacherHomeScreen() {
     setSelectedStudentForOpinion(student);
     setOpinionRemark('');
     setOpinionRating('Outstanding');
+    const teacherSubs = getTeacherOpinionSubjects(activeTeacher);
+    setOpinionSubject(teacherSubs[0] || 'Mathematics');
     setOpinionModalVisible(true);
   };
 
@@ -221,7 +250,7 @@ export default function TeacherHomeScreen() {
       await DataService.addTeacherOpinion({
         rollNo: selectedStudentForOpinion.rollNo,
         studentName: selectedStudentForOpinion.name,
-        teacher: 'Faculty Member',
+        teacher: activeTeacher.name || 'Faculty Member',
         subject: opinionSubject,
         remark: `[${opinionRating}] ${opinionRemark.trim()}`,
       });
@@ -229,7 +258,7 @@ export default function TeacherHomeScreen() {
       await loadPendingOpinions();
       Alert.alert(
         'Submitted for Main Admin Review ✓',
-        `Your remark for ${selectedStudentForOpinion.name} has been routed to Main Admin (Mr. Abhai Kumar). Once approved, it will automatically appear in the student's carousel!`
+        `Your remark for ${selectedStudentForOpinion.name} in ${opinionSubject} has been routed to Main Admin (Mr. Abhai Kumar). Once approved, it will automatically appear in the student's carousel!`
       );
     } catch {
       Alert.alert('Error', 'Failed to submit opinion.');
@@ -661,13 +690,48 @@ export default function TeacherHomeScreen() {
               </TouchableOpacity>
             </View>
             <Text style={styles.modalSub}>
-              This announcement will instantly appear on the Student Home page community board and parent feeds.
+              Select the classes you teach. Announcements require Admin approval in Master Hub before reaching student dashboards.
             </Text>
 
-            <Text style={styles.inputLabel}>Title</Text>
+            {/* Target Classes Selector */}
+            <Text style={styles.inputLabel}>Target Class(es) Allotted to You</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+              {teacherAssignedGrades.map((cls) => {
+                const isSelected = announcementClasses.includes(cls);
+                return (
+                  <TouchableOpacity
+                    key={cls}
+                    style={[
+                      styles.opinionSubChip,
+                      isSelected && styles.opinionSubChipActive,
+                      { marginRight: 8, paddingHorizontal: 12, paddingVertical: 6 },
+                    ]}
+                    onPress={() => {
+                      if (cls === 'All Classes' || cls === 'All Assigned') {
+                        setAnnouncementClasses([cls]);
+                      } else {
+                        const filtered = announcementClasses.filter((c) => c !== 'All Classes' && c !== 'All Assigned');
+                        if (isSelected) {
+                          const next = filtered.filter((c) => c !== cls);
+                          setAnnouncementClasses(next.length > 0 ? next : [teacherAssignedGrades[0]]);
+                        } else {
+                          setAnnouncementClasses([...filtered, cls]);
+                        }
+                      }
+                    }}
+                  >
+                    <Text style={[styles.opinionSubChipText, isSelected && styles.opinionSubChipTextActive]}>
+                      {cls}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            <Text style={styles.inputLabel}>Announcement Title</Text>
             <TextInput
               style={styles.modalInput}
-              placeholder="e.g. Extra Physics Revision Class"
+              placeholder="e.g. Extra Revision Class & Doubts Clearing"
               placeholderTextColor={Colors.textMuted}
               value={announcementTitle}
               onChangeText={setAnnouncementTitle}
@@ -683,9 +747,16 @@ export default function TeacherHomeScreen() {
               multiline
             />
 
+            <View style={[styles.opinionDisclaimerBox, { marginBottom: 16 }]}>
+              <Ionicons name="shield-checkmark-outline" size={14} color="#0284C7" />
+              <Text style={styles.opinionDisclaimerText}>
+                Submitted announcements are queued for Master Hub Admin approval to ensure quality before live push.
+              </Text>
+            </View>
+
             <TouchableOpacity style={styles.publishBtn} onPress={handlePostAnnouncement} activeOpacity={0.85}>
-              <Ionicons name="send" size={16} color="#fff" style={{ marginRight: 6 }} />
-              <Text style={styles.publishBtnText}>Publish Announcement</Text>
+              <Ionicons name="paper-plane" size={16} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.publishBtnText}>Submit for Admin Approval</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -711,9 +782,9 @@ export default function TeacherHomeScreen() {
               </View>
             )}
 
-            <Text style={styles.inputLabel}>Select Subject</Text>
+            <Text style={styles.inputLabel}>Select Subject (Assigned to {activeTeacher.name})</Text>
             <View style={styles.opinionSubjectRow}>
-              {(['Physics', 'Chemistry', 'Mathematics'] as const).map((sub) => (
+              {getTeacherOpinionSubjects(activeTeacher).map((sub) => (
                 <TouchableOpacity
                   key={sub}
                   style={[styles.opinionSubChip, opinionSubject === sub && styles.opinionSubChipActive]}

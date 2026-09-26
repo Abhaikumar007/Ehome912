@@ -395,7 +395,10 @@ export const DataService = {
       const { data, error } = (await withTimeout(query, 3000)) as any;
       if (!error) {
         if (data && data.length > 0) {
-          const mapped = data.map((a: any) => ({
+          const approvedOnly = data.filter(
+            (a: any) => !a.title?.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval'
+          );
+          const mapped = approvedOnly.map((a: any) => ({
             id: a.id,
             icon: a.icon || 'megaphone',
             iconBg: a.icon_bg || '#FEF3F2',
@@ -1559,37 +1562,66 @@ export const DataService = {
 
 
 
-  async addAnnouncement(ann: { title: string; desc: string; tag?: string; author?: string; important?: boolean }) {
-    const key = 'eduhome_announcements';
-    const existing = await this.getAnnouncements();
-    const newAnn = {
-      id: 'ann-' + Date.now(),
-      title: ann.title,
-      desc: ann.desc,
-      icon: 'megaphone',
-      iconBg: '#EBF3FF',
-      iconColor: '#1A56DB',
-      time: 'Just now',
-      important: ann.important || false,
-      tag: ann.tag || 'Faculty Broadcast',
-      author: ann.author || 'Faculty Member (Approved by Main Admin)',
-    };
-    const updated = [newAnn, ...existing];
-    await setCached(key, updated);
+  async addAnnouncement(ann: {
+    title: string;
+    desc: string;
+    tag?: string;
+    author?: string;
+    important?: boolean;
+    targetClasses?: string;
+    pendingApproval?: boolean;
+  }) {
+    const isPending = ann.pendingApproval ?? true;
+    const classPrefix = ann.targetClasses && ann.targetClasses !== 'All' ? `[${ann.targetClasses}] ` : '';
+    const dbTitle = isPending ? `[PENDING APPROVAL - ${ann.targetClasses || 'All Classes'}] ${ann.title}` : `${classPrefix}${ann.title}`;
+    const authorLine = ann.author ? `\n\nSubmitted by: ${ann.author}` : '';
 
     try {
       await supabase.from('announcements').insert({
-        title: ann.title,
-        description: ann.desc,
+        title: dbTitle,
+        description: (ann.desc || '') + authorLine,
         icon: 'megaphone',
         icon_bg: '#EBF3FF',
         icon_color: '#1A56DB',
-        time_label: 'Just now',
+        time_label: isPending ? 'Pending Approval' : 'Just now',
         important: ann.important || false,
       });
-    } catch {}
 
-    return updated;
+      if (isPending) {
+        // Also notify admin in notifications table
+        await supabase.from('notifications').insert({
+          roll_no: 'ADMIN',
+          title: `Faculty Announcement for Approval: ${ann.title}`,
+          message: `Submitted by ${ann.author || 'Faculty'} for ${ann.targetClasses || 'All Classes'}.`,
+          time_label: 'Just now',
+          type: 'approval_request',
+        });
+      }
+    } catch (e) {
+      console.warn('Error inserting announcement to Supabase:', e);
+    }
+
+    if (!isPending) {
+      const key = 'eduhome_announcements';
+      const existing = await this.getAnnouncements();
+      const newAnn = {
+        id: 'ann-' + Date.now(),
+        title: `${classPrefix}${ann.title}`,
+        desc: ann.desc,
+        icon: 'megaphone',
+        iconBg: '#EBF3FF',
+        iconColor: '#1A56DB',
+        time: 'Just now',
+        important: ann.important || false,
+        tag: ann.tag || 'Faculty Broadcast',
+        author: ann.author || 'Faculty Member',
+      };
+      const updated = [newAnn, ...existing];
+      await setCached(key, updated);
+      return updated;
+    }
+
+    return [];
   },
 
   // Student Teacher Opinions (Monitored & Approved by Main Admin)

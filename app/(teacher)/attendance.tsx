@@ -227,14 +227,17 @@ export default function FacultyAttendanceScreen() {
 
       if (target.includes('math')) return stuSubs.includes('math');
       if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
-      if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp');
+      if (target.includes('comp') || target.includes('cs')) return stuSubs.includes('comp') || stuSubs.includes('cs');
       if (target.includes('bio')) return stuSubs.includes('bio');
       if (target.includes('phys')) return stuSubs.includes('phys');
       if (target.includes('chem')) return stuSubs.includes('chem');
       return stuSubs.includes(target);
     });
 
-    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => ({
+    // If subject-filtered yields students, use them; if strictly empty, safely fallback to all class students
+    const effectiveStudents = subjectFiltered.length > 0 ? subjectFiltered : classStudents;
+
+    const rosterStudents: StudentRoster[] = effectiveStudents.map((s, idx) => ({
       id: s.rollNo,
       no: String(idx + 1).padStart(2, '0'),
       name: s.name,

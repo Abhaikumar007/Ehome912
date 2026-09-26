@@ -79,14 +79,35 @@ export default function TeacherTestsScreen() {
   const [tests, setTests] = useState<ExamItem[]>([]);
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
   const [activeTestId, setActiveTestId] = useState<string>('');
+  const [newSubject, setNewSubject] = useState<FacultySubject>('Physics');
+
+  const getTeacherAssignedSubjects = React.useCallback((teacher: TeacherProfile | null): FacultySubject[] => {
+    if (!teacher) return SUBJECTS;
+    if (
+      teacher.allowedGrades?.includes('*') ||
+      (teacher.subject || '').toLowerCase().includes('head') ||
+      (teacher.subject || '').toLowerCase().includes('admin') ||
+      (teacher.department || '').toLowerCase().includes('admin')
+    ) {
+      return SUBJECTS;
+    }
+    const tSub = (teacher.subject || '').toLowerCase();
+    const list: FacultySubject[] = [];
+    if (tSub.includes('comp') || tSub.includes('cs')) list.push('Computer Science');
+    if (tSub.includes('math')) list.push('Mathematics');
+    if (tSub.includes('phys')) list.push('Physics');
+    if (tSub.includes('chem')) list.push('Chemistry');
+    if (tSub.includes('bio')) list.push('Biology');
+    return list.length > 0 ? list : SUBJECTS;
+  }, []);
 
   const applyTeacher = React.useCallback((t: TeacherProfile) => {
     setActiveTeacher(t);
-    if (t?.subject) {
-      const sub = t.subject.split(' ')[0] as FacultySubject;
-      if (SUBJECTS.includes(sub)) setNewSubject(sub);
+    const assigned = getTeacherAssignedSubjects(t);
+    if (assigned.length > 0) {
+      setNewSubject(assigned[0]);
     }
-  }, []);
+  }, [getTeacherAssignedSubjects]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -174,7 +195,6 @@ export default function TeacherTestsScreen() {
   // New test modal state
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [newSubject, setNewSubject] = useState<FacultySubject>('Physics');
   const [newClass, setNewClass] = useState('Class 10-A');
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('04:30 PM - 06:00 PM');
@@ -343,6 +363,14 @@ export default function TeacherTestsScreen() {
   const handleCreateTest = async () => {
     if (!newTitle.trim()) {
       Alert.alert('Missing Field', 'Please enter a test title.');
+      return;
+    }
+
+    if (publishAsAlert && !showUntilDate.trim()) {
+      Alert.alert(
+        'Expiry Date Required',
+        'Please select a date for "Hide Alert After". This field is mandatory so test alerts automatically retire after completion.'
+      );
       return;
     }
 
@@ -710,19 +738,9 @@ export default function TeacherTestsScreen() {
             </View>
 
             {/* Subject Selector */}
-            <Text style={styles.formLabel}>Subject</Text>
+            <Text style={styles.formLabel}>Subject (Assigned to {activeTeacher?.name || 'Faculty'})</Text>
             <View style={styles.selectorRow}>
-              {SUBJECTS.filter((sub) => {
-                if (!activeTeacher?.subject) return true;
-                const tSub = activeTeacher.subject.toLowerCase();
-                const itemSub = sub.toLowerCase();
-                if (tSub.includes('comp') || tSub.includes('cs')) return itemSub.includes('comp');
-                if (tSub.includes('chem')) return itemSub.includes('chem');
-                if (tSub.includes('phys')) return itemSub.includes('phys');
-                if (tSub.includes('math')) return itemSub.includes('math');
-                if (tSub.includes('bio')) return itemSub.includes('bio');
-                return true;
-              }).map((sub) => (
+              {getTeacherAssignedSubjects(activeTeacher).map((sub) => (
                 <TouchableOpacity
                   key={sub}
                   style={[styles.smallChip, newSubject === sub && styles.smallChipActive]}
@@ -840,7 +858,7 @@ export default function TeacherTestsScreen() {
 
             {publishAsAlert && (
               <View>
-                <Text style={styles.formLabel}>Hide Alert After (Date) — Optional</Text>
+                <Text style={styles.formLabel}>Hide Alert After (Date) — Mandatory *</Text>
                 <TouchableOpacity
                   style={styles.datePickerBtn}
                   onPress={() => {
