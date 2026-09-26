@@ -163,7 +163,7 @@ export default function TeacherHomeScreen() {
       const updated = await DataService.addAnnouncement({
         title: announcementTitle.trim(),
         desc: announcementMsg.trim() || 'No additional details provided.',
-        author: 'Mr. R Madhusudanan (Senior Faculty • Physics & Chemistry)',
+        author: 'Mr. Abhai Kumar (Senior Faculty • Physics & Chemistry)',
         tag: 'Faculty Broadcast',
         important: true,
       });
@@ -214,7 +214,7 @@ export default function TeacherHomeScreen() {
       await loadPendingOpinions();
       Alert.alert(
         'Submitted for Main Admin Review ✓',
-        `Your remark for ${selectedStudentForOpinion.name} has been routed to Main Admin (Mr. R Madhusudanan). Once approved, it will automatically appear in the student's carousel!`
+        `Your remark for ${selectedStudentForOpinion.name} has been routed to Main Admin (Mr. Abhai Kumar). Once approved, it will automatically appear in the student's carousel!`
       );
     } catch {
       Alert.alert('Error', 'Failed to submit opinion.');
@@ -530,7 +530,7 @@ export default function TeacherHomeScreen() {
               </View>
             </View>
             <Text style={styles.opinionReviewSub}>
-              Monitored by Mr. R Madhusudanan. Once approved, the opinion is automatically pushed to the student's dashboard carousel.
+              Monitored by Mr. Abhai Kumar. Once approved, the opinion is automatically pushed to the student's dashboard carousel.
             </Text>
 
             {pendingOpinions.map((op: any) => (
@@ -683,7 +683,7 @@ export default function TeacherHomeScreen() {
             <View style={styles.opinionDisclaimerBox}>
               <Ionicons name="information-circle-outline" size={14} color="#0284C7" />
               <Text style={styles.opinionDisclaimerText}>
-                Remarks are monitored and verified by Main Admin (Mr. R Madhusudanan) before being delivered to the student dashboard.
+                Remarks are monitored and verified by Main Admin (Mr. Abhai Kumar) before being delivered to the student dashboard.
               </Text>
             </View>
 

@@ -17,6 +17,18 @@ export interface TeacherProfile {
 
 export const TEACHER_ROSTER: TeacherProfile[] = [
   {
+    id: 'FAC-2024-042',
+    name: 'Mr. Abhai Kumar',
+    subject: 'Academic Head & Physics',
+    department: 'Senior Science & Administration',
+    qualification: 'M.Sc. Physics, B.Ed.',
+    email: 'abhai.kumar@eduhome.ac.in',
+    phone: '+91 91234 56780',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    allowedGrades: ['*'],
+    gradeDescription: 'All Grades (Academic Head / Super Admin)',
+  },
+  {
     id: 'fac-chem',
     name: 'Dr. Ramesh Nair',
     subject: 'Chemistry',

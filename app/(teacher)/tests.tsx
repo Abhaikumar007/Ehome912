@@ -9,6 +9,8 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService, AcademicAlert } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
+import { getActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
+import { supabase } from '../../lib/supabase';
 import DatePickerModal from '../../components/DatePickerModal';
 
 interface TestStudent {
@@ -41,9 +43,51 @@ const SUBJECTS: FacultySubject[] = ['Physics', 'Chemistry', 'Mathematics', 'Biol
 
 export default function TeacherTestsScreen() {
   const router = useRouter();
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [tests, setTests] = useState<ExamItem[]>([]);
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
   const [activeTestId, setActiveTestId] = useState<string>('');
+
+  // Load active teacher profile & subscribe to changes
+  useEffect(() => {
+    const loadTeacher = async () => {
+      const t = await getActiveTeacher();
+      setActiveTeacher(t);
+      if (t?.subject) {
+        const sub = t.subject.split(' ')[0] as FacultySubject;
+        if (SUBJECTS.includes(sub)) setNewSubject(sub);
+      }
+    };
+    loadTeacher();
+
+    const channel = supabase
+      .channel('tests_teacher_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+        loadTeacher();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Filter only classes assigned to this active faculty
+  const teacherClasses = React.useMemo(() => {
+    if (!activeTeacher || !activeTeacher.allowedGrades || activeTeacher.allowedGrades.includes('*')) {
+      return AUTHORIZED_CLASSES;
+    }
+    return AUTHORIZED_CLASSES.filter((cls) => {
+      const gradeNum = cls.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      return gradeNum && activeTeacher.allowedGrades.includes(gradeNum);
+    });
+  }, [activeTeacher]);
+
+  useEffect(() => {
+    if (teacherClasses.length > 0 && !teacherClasses.includes(selectedClass)) {
+      setSelectedClass(teacherClasses[0]);
+    }
+  }, [teacherClasses]);
 
   // Load persisted tests from DataService
   useEffect(() => {
@@ -160,9 +204,9 @@ export default function TeacherTestsScreen() {
       instructions: [
         'Reporting time is strictly 15 minutes before test commencement.',
         'Bring geometry box and scientific calculator if required.',
-        'Syllabus verified by Super Admin Mr. R Madhusudanan.',
+        `Syllabus verified by Academic Head ${activeTeacher?.name || 'Mr. Abhai Kumar'}.`,
       ],
-      updatedBy: 'Mr. R Madhusudanan (Super Admin)',
+      updatedBy: `${activeTeacher?.name || 'Mr. Abhai Kumar'} (Faculty)`,
       updatedAt: 'Just now',
       expiryDate: showUntilDate || undefined,
     };
@@ -257,18 +301,18 @@ export default function TeacherTestsScreen() {
         {/* Super Admin Authorization Banner */}
         <View style={styles.adminAuthCard}>
           <View style={styles.adminAvatarBox}>
-            <Text style={styles.adminAvatarText}>RM</Text>
+            <Text style={styles.adminAvatarText}>{activeTeacher ? getInitials(activeTeacher.name) : 'AK'}</Text>
           </View>
           <View style={styles.adminAuthInfo}>
             <View style={styles.adminBadgeRow}>
-              <Text style={styles.adminAuthTitle}>Mr. R Madhusudanan</Text>
+              <Text style={styles.adminAuthTitle}>{activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
               <View style={[styles.superBadge, { backgroundColor: '#0284C7' }]}>
                 <Ionicons name="school" size={10} color="#fff" />
                 <Text style={styles.superBadgeText}>FACULTY</Text>
               </View>
             </View>
             <Text style={styles.adminAuthSub}>
-              Subjects, classes & student rosters assigned by Main Admin • Auto-sync active
+              {activeTeacher ? `${activeTeacher.subject} • ${activeTeacher.department}` : 'Academic Head & Super Admin • Auto-sync active'}
             </Text>
           </View>
         </View>
@@ -294,7 +338,7 @@ export default function TeacherTestsScreen() {
         {/* Class Selection Chips */}
         <Text style={styles.sectionLabel}>ASSIGNED CLASSES (SYNCED FROM MAIN ADMIN)</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsScroll}>
-          {AUTHORIZED_CLASSES.map((cls) => {
+          {teacherClasses.map((cls) => {
             const isSelected = selectedClass === cls;
             return (
               <TouchableOpacity
@@ -505,7 +549,7 @@ export default function TeacherTestsScreen() {
             <View style={styles.modalHeaderRow}>
               <View>
                 <Text style={styles.modalTitle}>Schedule New Test</Text>
-                <Text style={styles.createModalSub}>Authorized by Super Admin Mr. R Madhusudanan</Text>
+                <Text style={styles.createModalSub}>Authorized by Academic Head {activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
               </View>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
                 <Ionicons name="close" size={22} color={Colors.textPrimary} />
@@ -515,7 +559,7 @@ export default function TeacherTestsScreen() {
             {/* Class Selector */}
             <Text style={styles.formLabel}>Target Class</Text>
             <View style={styles.selectorRow}>
-              {AUTHORIZED_CLASSES.map((cls) => (
+              {teacherClasses.map((cls) => (
                 <TouchableOpacity
                   key={cls}
                   style={[styles.smallChip, newClass === cls && styles.smallChipActive]}

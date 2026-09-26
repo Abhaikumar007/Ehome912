@@ -22,7 +22,7 @@ const subjectIconMap: Record<string, string> = {
 const TEACHER_OPINIONS = [
   {
     id: '1',
-    teacher: 'Mr. R Madhusudanan',
+    teacher: 'Mr. Abhai Kumar',
     role: 'Super Admin & Physics',
     subject: 'Physics',
     avatar: 'RM',

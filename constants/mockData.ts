@@ -114,7 +114,7 @@ export const studyMaterials = [
 // ─── TEACHER DATA ─────────────────────────────────────────────────────────────
 
 export const teacherData = {
-  name: 'Mr. R Madhusudanan',
+  name: 'Mr. Abhai Kumar',
   role: 'Faculty',
   subjects: 'Physics & Chemistry',
   avatar: 'RM',

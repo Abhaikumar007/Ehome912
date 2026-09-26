@@ -37,7 +37,7 @@ const badgeStyles = StyleSheet.create({
 
 const HOME_TEACHER_OPINIONS = [
   {
-    teacher: 'Mr. R Madhusudanan',
+    teacher: 'Mr. Abhai Kumar',
     subject: 'Physics (Senior Faculty)',
     remark: 'Welcome to EduHome! Academic sessions and daily attendance will commence as per your schedule.',
   },

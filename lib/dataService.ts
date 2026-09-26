@@ -711,7 +711,7 @@ export const DataService = {
 
 
   // Super Admin marks fee paid via cash directly from student roster or admin app
-  async markFeeAsPaidCash(rollNo: string, amount: number, verifiedBy: string = 'Mr. R Madhusudanan (Super Admin)') {
+  async markFeeAsPaidCash(rollNo: string, amount: number, verifiedBy: string = 'Mr. Abhai Kumar (Super Admin)') {
     const cacheKey = `fees_${rollNo}`;
     const current = (await getCached<any>(cacheKey)) || mockFees;
     const now = new Date();
@@ -952,7 +952,7 @@ export const DataService = {
       { id: '1', title: 'Class Timetable Updated', desc: 'Tomorrow Physics class rescheduled to 5:30 PM.', time: '10m ago', unread: true, type: 'schedule' },
       { id: '2', title: 'Fee Reminder', desc: 'Monthly tuition fee test of ₹1 due on 25 Sep 2026.', time: '1h ago', unread: true, type: 'fee' },
       { id: '3', title: 'Test Result Published', desc: 'Weekly Test #8 results are out. You scored 92/100!', time: '1d ago', unread: false, type: 'result' },
-      { id: '4', title: 'New Study Material', desc: 'Notes for Chemistry Chapter 1 uploaded by Mr. R Madhusudanan.', time: '2d ago', unread: false, type: 'material' },
+      { id: '4', title: 'New Study Material', desc: 'Notes for Chemistry Chapter 1 uploaded by Mr. Abhai Kumar.', time: '2d ago', unread: false, type: 'material' },
     ];
   },
 
@@ -996,7 +996,7 @@ export const DataService = {
             instructions: top.instructions || [
               'Reporting time is strictly 15 minutes before test commencement.',
               'Bring geometry box and scientific calculator if required.',
-              'Syllabus verified by Super Admin Mr. R Madhusudanan.',
+              'Syllabus verified by Super Admin Mr. Abhai Kumar.',
             ],
             updatedBy: top.updated_by || 'Faculty / Admin',
             expiryDate: top.expiry_date,
@@ -1255,13 +1255,23 @@ export const DataService = {
     const key = 'teacher_tests';
     const cached = await getCached<any[]>(key);
     if (cached && Array.isArray(cached) && cached.length > 0) {
-      if (classTag) {
-        return cached.filter((t) => t.classTag === classTag);
+      // Purge any test items referencing Madhusudanan
+      const valid = cached.filter((t) => !JSON.stringify(t).includes('Madhusudanan'));
+      if (valid.length !== cached.length) {
+        await setCached(key, valid);
       }
-      return cached;
+      if (classTag) {
+        return valid.filter((t) => t.classTag === classTag);
+      }
+      return valid;
     }
-    // Return none/empty when no test papers exist (no mock data)
+    // Return empty when no test papers exist (no mock data)
     return [];
+  },
+
+  async clearAllTests(): Promise<void> {
+    await setCached('teacher_tests', []);
+    await setCached('academic_alert_active', null);
   },
 
   // Fetch all scheduled classes from Supabase admin timetable
@@ -1335,9 +1345,9 @@ export const DataService = {
         instructions: [
           'Reporting time is strictly 15 minutes before test commencement.',
           'Bring geometry box and scientific calculator if required.',
-          'Syllabus verified by Super Admin Mr. R Madhusudanan.',
+          'Syllabus verified by Super Admin Mr. Abhai Kumar.',
         ],
-        updatedBy: 'Mr. R Madhusudanan (Super Admin)',
+        updatedBy: 'Mr. Abhai Kumar (Super Admin)',
         updatedAt: 'Just now',
       });
     } catch {}
@@ -1506,13 +1516,13 @@ export const DataService = {
         id: 'to-1',
         rollNo,
         studentName: 'Arjun S',
-        teacher: 'Mr. R Madhusudanan',
+        teacher: 'Mr. Abhai Kumar',
         role: 'Super Admin & Physics Head',
         subject: 'Physics',
         remark: 'Arjun is showing remarkable consistency in Optics and Wave theory. Needs slight attention on numerical step derivations.',
         status: 'approved',
         submittedAt: '12 Sep 2026',
-        approvedBy: 'Mr. R Madhusudanan (Main Admin)',
+        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
       },
       {
         id: 'to-2',
@@ -1524,7 +1534,7 @@ export const DataService = {
         remark: 'Good progress in chemical kinetics and balancing complex equations. Keep practicing previous years’ board papers.',
         status: 'approved',
         submittedAt: '14 Sep 2026',
-        approvedBy: 'Mr. R Madhusudanan (Main Admin)',
+        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
       },
       {
         id: 'to-3',
@@ -1536,7 +1546,7 @@ export const DataService = {
         remark: 'Attended 100% of calculus & integration classes this term. Solid conceptual foundation for entrance examinations.',
         status: 'approved',
         submittedAt: '16 Sep 2026',
-        approvedBy: 'Mr. R Madhusudanan (Main Admin)',
+        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
       },
     ];
 
@@ -1586,7 +1596,7 @@ export const DataService = {
     const approvedItem = {
       ...target,
       status: 'approved',
-      approvedBy: 'Mr. R Madhusudanan (Main Admin)',
+      approvedBy: 'Mr. Abhai Kumar (Main Admin)',
       approvedAt: 'Just now',
     };
     const updatedStudentOpinions = [approvedItem, ...studentOpinions];

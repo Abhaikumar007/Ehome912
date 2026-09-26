@@ -239,7 +239,7 @@ export default function FeesScreen() {
       setFees(updated);
       Alert.alert(
         'Superadmin Approved ✓',
-        `Payment of ₹${targetFeeAmount.toLocaleString('en-IN')} has been verified and approved by Mr. R Madhusudanan.\n\nStudent dashboard, home alert banner, and profile status are now cleared and marked as Paid!`,
+        `Payment of ₹${targetFeeAmount.toLocaleString('en-IN')} has been verified and approved by Mr. Abhai Kumar.\n\nStudent dashboard, home alert banner, and profile status are now cleared and marked as Paid!`,
         [{ text: 'Awesome' }]
       );
     } catch {

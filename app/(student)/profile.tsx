@@ -501,7 +501,7 @@ export default function ProfileScreen() {
                   <Ionicons name="shield-checkmark" size={16} color={Colors.green} />
                 </View>
                 <Text style={styles.lockedFieldHint}>
-                  Official name & class are centrally synced from Main Admin (Mr. R Madhusudanan) and cannot be modified here.
+                  Official name & class are centrally synced from Main Admin (Mr. Abhai Kumar) and cannot be modified here.
                 </Text>
               </View>
 

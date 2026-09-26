@@ -10,6 +10,8 @@ import { Colors } from '../../constants/colors';
 import { teacherData } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
+import { getActiveTeacher, TeacherProfile, getInitials } from '../../lib/teacherRoster';
+import { supabase } from '../../lib/supabase';
 
 interface StudentRoster {
   id: string;
@@ -47,12 +49,50 @@ const CLASS_MAP: Record<string, string> = {
 
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [selectedClassId, setSelectedClassId] = useState('c1');
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [students, setStudents] = useState<StudentRoster[]>(teacherData.students as StudentRoster[]);
   const [dateOffset, setDateOffset] = useState(0);
   const [classModalVisible, setClassModalVisible] = useState(false);
+
+  // Load active teacher profile dynamically & subscribe to changes
+  useEffect(() => {
+    const loadTeacher = async () => {
+      const t = await getActiveTeacher();
+      setActiveTeacher(t);
+    };
+    loadTeacher();
+
+    const channel = supabase
+      .channel('attendance_teacher_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+        loadTeacher();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Filter only classes assigned to this active faculty member
+  const teacherAssignedClasses = React.useMemo(() => {
+    if (!activeTeacher || !activeTeacher.allowedGrades || activeTeacher.allowedGrades.includes('*')) {
+      return INITIAL_CLASSES;
+    }
+    return INITIAL_CLASSES.filter((c) => {
+      const gradeNum = c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      return gradeNum && activeTeacher.allowedGrades.includes(gradeNum);
+    });
+  }, [activeTeacher]);
+
+  useEffect(() => {
+    if (teacherAssignedClasses.length > 0 && !teacherAssignedClasses.some((c) => c.id === selectedClassId)) {
+      setSelectedClassId(teacherAssignedClasses[0].id);
+    }
+  }, [teacherAssignedClasses]);
 
   // Load students from shared EDUSYNC roster when class changes
   useEffect(() => {
@@ -80,7 +120,7 @@ export default function FacultyAttendanceScreen() {
     return d.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  const currentClass = INITIAL_CLASSES.find((c) => c.id === selectedClassId) || INITIAL_CLASSES[0];
+  const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
 
   // Filter students by search
   const filteredStudents = students.filter(
@@ -171,7 +211,7 @@ export default function FacultyAttendanceScreen() {
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
             <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>RM</Text>
+              <Text style={styles.avatarText}>{activeTeacher ? getInitials(activeTeacher.name) : 'AK'}</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -182,8 +222,10 @@ export default function FacultyAttendanceScreen() {
         <View style={styles.greetingRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greetingSmall}>Good Afternoon,</Text>
-            <Text style={styles.teacherName}>Mr. R Madhusudanan</Text>
-            <Text style={styles.teacherSub}>Senior Faculty • Physics & Chemistry</Text>
+            <Text style={styles.teacherName}>{activeTeacher?.name || 'Mr. Abhai Kumar'}</Text>
+            <Text style={styles.teacherSub}>
+              {activeTeacher ? `${activeTeacher.subject} • ${activeTeacher.department}` : 'Academic Head & Super Admin'}
+            </Text>
           </View>
 
           <View style={styles.dateNavPill}>
@@ -197,9 +239,9 @@ export default function FacultyAttendanceScreen() {
           </View>
         </View>
 
-        {/* Class Selection Tabs */}
+        {/* Class Selection Tabs (Only teacher's assigned classes) */}
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.classesScroll}>
-          {INITIAL_CLASSES.map((c) => {
+          {teacherAssignedClasses.map((c) => {
             const isActive = c.id === selectedClassId;
             return (
               <TouchableOpacity
@@ -368,7 +410,7 @@ export default function FacultyAttendanceScreen() {
         >
           <View style={styles.modalBox}>
             <Text style={styles.modalTitle}>Select Assigned Batch</Text>
-            {INITIAL_CLASSES.map((c) => (
+            {teacherAssignedClasses.map((c) => (
               <TouchableOpacity
                 key={c.id}
                 style={[styles.modalItem, c.id === selectedClassId && styles.modalItemActive]}
