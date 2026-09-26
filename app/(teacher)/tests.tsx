@@ -36,6 +36,7 @@ interface ExamItem {
   syllabus: string[];
   isEvaluated: boolean;
   students: TestStudent[];
+  author?: string;
 }
 
 const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
@@ -229,6 +230,36 @@ export default function TeacherTestsScreen() {
     return classTests.find((t) => t.id === activeTestId) || classTests[0] || teacherTests[0] || null;
   }, [classTests, teacherTests, activeTestId]);
 
+  // Only Super Admin or the allotted subject teacher who created this test can delete it
+  const canDeleteTest = React.useMemo(() => {
+    if (!activeTest || !activeTeacher) return false;
+    // Super Admin / Academic Head can delete
+    if (activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head')) {
+      return true;
+    }
+    // Check subject domain match
+    const tSub = (activeTeacher.subject || '').toLowerCase();
+    const itemSub = (activeTest.subject || '').toLowerCase();
+    const isSubjectMatch =
+      (tSub.includes('comp') || tSub.includes('cs')) ? (itemSub.includes('comp') || itemSub.includes('cs')) :
+      tSub.includes('chem') ? itemSub.includes('chem') :
+      tSub.includes('phys') ? itemSub.includes('phys') :
+      tSub.includes('math') ? itemSub.includes('math') :
+      tSub.includes('bio') ? itemSub.includes('bio') :
+      itemSub.includes(tSub);
+
+    if (!isSubjectMatch) return false;
+
+    // If author is attached to test, must match active teacher
+    if (activeTest.author && activeTeacher.name) {
+      return (
+        activeTest.author.toLowerCase().includes(activeTeacher.name.toLowerCase()) ||
+        activeTeacher.name.toLowerCase().includes(activeTest.author.toLowerCase())
+      );
+    }
+    return true;
+  }, [activeTest, activeTeacher]);
+
   // Ensure evaluation roster strictly contains REAL students enrolled in this class & subject
   const evaluatedStudents = React.useMemo(() => {
     if (!activeTest) return [];
@@ -305,6 +336,13 @@ export default function TeacherTestsScreen() {
   };
 
   const handleDeleteTest = (testItem: ExamItem) => {
+    if (!canDeleteTest) {
+      Alert.alert(
+        'Permission Denied',
+        `You are logged in as ${activeTeacher?.name} (${activeTeacher?.subject}). Only the subject teacher who created this test or the Super Admin can delete it.`
+      );
+      return;
+    }
     Alert.alert(
       'Delete Test Paper',
       `Are you sure you want to delete "${testItem.title}"? This will permanently remove the test paper and all evaluation records.`,
@@ -394,6 +432,7 @@ export default function TeacherTestsScreen() {
       syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
       isEvaluated: false,
       students: genuineStudents,
+      author: activeTeacher?.name || 'Faculty Member',
     };
 
     setTests([newTestObj, ...tests]);
@@ -572,14 +611,16 @@ export default function TeacherTestsScreen() {
                     {activeTest.isEvaluated ? 'Evaluated ✓' : 'Pending'}
                   </Text>
                 </View>
-                <TouchableOpacity
-                  style={styles.deleteTestBtn}
-                  onPress={() => handleDeleteTest(activeTest)}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="trash-outline" size={13} color="#EF4444" />
-                  <Text style={styles.deleteTestBtnText}>Delete Test</Text>
-                </TouchableOpacity>
+                {canDeleteTest && (
+                  <TouchableOpacity
+                    style={styles.deleteTestBtn}
+                    onPress={() => handleDeleteTest(activeTest)}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="trash-outline" size={13} color="#EF4444" />
+                    <Text style={styles.deleteTestBtnText}>Delete Test</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
 

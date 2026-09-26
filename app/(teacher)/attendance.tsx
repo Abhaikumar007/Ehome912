@@ -189,25 +189,26 @@ export default function FacultyAttendanceScreen() {
   // Available subjects for this teacher in this class
   const availableSubjects = useMemo(() => {
     if (!activeTeacher) return ['All Students'];
-    if (activeTeacher.allowedGrades.includes('*')) {
+    const isSuperAdmin = activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head');
+    if (isSuperAdmin) {
       return ['All Students', ...(CLASS_SUBJECTS[currentClassPrefix] || ['Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'])];
     }
     const defSub = getTeacherDefaultSubject(activeTeacher);
     const gradeNum = parseInt(currentClass.grade || '10', 10);
-    const list = ['All Students'];
+    const list: string[] = [];
     if (defSub && defSub !== 'All Subjects') {
       list.push(defSub);
     }
     if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
       if (!list.includes('Science')) list.push('Science');
     }
-    return list;
+    return list.length > 0 ? list : ['General'];
   }, [activeTeacher, currentClassPrefix, currentClass.grade]);
 
   // Auto-adjust subject if current selection is not valid for this teacher & class
   useEffect(() => {
     if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
-      setSelectedSubject(availableSubjects[1] || availableSubjects[0]);
+      setSelectedSubject(availableSubjects[0]);
     }
   }, [availableSubjects, selectedSubject]);
 
@@ -216,14 +217,18 @@ export default function FacultyAttendanceScreen() {
     const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
     const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
 
-    // Determine target subject filter
-    const isAll = !selectedSubject || selectedSubject === 'All' || selectedSubject === 'All Subjects' || selectedSubject === 'All Students';
+    const isSuperAdmin = !activeTeacher || activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head');
+    const isAll = isSuperAdmin && (!selectedSubject || selectedSubject === 'All' || selectedSubject === 'All Subjects' || selectedSubject === 'All Students');
+
+    const effectiveTargetSubject = (!isSuperAdmin && activeTeacher)
+      ? (selectedSubject && selectedSubject !== 'All Students' ? selectedSubject : getTeacherDefaultSubject(activeTeacher))
+      : selectedSubject;
 
     // Filter students strictly by allotted subject when a specific subject is selected
     const subjectFiltered = classStudents.filter((s) => {
       if (isAll) return true;
       const stuSubs = (s.subjects || '').toLowerCase();
-      const target = selectedSubject.toLowerCase();
+      const target = (effectiveTargetSubject || '').toLowerCase();
 
       if (target.includes('math')) return stuSubs.includes('math');
       if (target === 'science') return stuSubs.includes('science') || stuSubs.includes('bio') || stuSubs.includes('phys') || stuSubs.includes('chem');
@@ -234,8 +239,8 @@ export default function FacultyAttendanceScreen() {
       return stuSubs.includes(target);
     });
 
-    // If subject-filtered yields students, use them; if strictly empty, safely fallback to all class students
-    const effectiveStudents = subjectFiltered.length > 0 ? subjectFiltered : classStudents;
+    // Strictly show subject-filtered students; do NOT fall back to all students from other streams
+    const effectiveStudents = isAll ? classStudents : subjectFiltered;
 
     const rosterStudents: StudentRoster[] = effectiveStudents.map((s, idx) => ({
       id: s.rollNo,
@@ -251,7 +256,7 @@ export default function FacultyAttendanceScreen() {
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject]);
+  }, [selectedClassId, selectedSubject, activeTeacher]);
 
   // Format date display
   const getDateLabel = () => {
