@@ -15,6 +15,7 @@ import {
   TeacherProfile,
   getActiveTeacher,
   setActiveTeacherId,
+  getTeacherRoster,
   isTeacherAssignedToClass,
 } from '../../lib/teacherRoster';
 
@@ -40,6 +41,7 @@ const ASSIGNED_STUDENTS = [
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
+  const [roster, setRoster] = useState<TeacherProfile[]>(TEACHER_ROSTER);
   const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
   const [adminClasses, setAdminClasses] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
@@ -75,8 +77,10 @@ export default function TeacherHomeScreen() {
   ]);
 
   const loadActiveFaculty = async () => {
+    const list = await getTeacherRoster();
+    setRoster([...list]);
     const teacher = await getActiveTeacher();
-    setActiveTeacher(teacher);
+    setActiveTeacher({ ...teacher });
   };
 
   const loadTimetable = async () => {
@@ -138,9 +142,18 @@ export default function TeacherHomeScreen() {
       })
       .subscribe();
 
+    const teacherChannel = supabase
+      .channel('teacher_faculty_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+        console.log('[Realtime] Faculty updated from cloud in teacher home!');
+        loadActiveFaculty();
+      })
+      .subscribe();
+
     return () => {
       supabase.removeChannel(classChannel);
       supabase.removeChannel(channel);
+      supabase.removeChannel(teacherChannel);
     };
   }, []);
 
@@ -711,7 +724,7 @@ export default function TeacherHomeScreen() {
             </Text>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
-              {TEACHER_ROSTER.map((teacher) => {
+              {roster.map((teacher) => {
                 const isSelected = teacher.id === activeTeacher.id;
                 return (
                   <TouchableOpacity
@@ -719,7 +732,7 @@ export default function TeacherHomeScreen() {
                     style={[styles.facultyPickItem, isSelected && styles.facultyPickItemActive]}
                     onPress={async () => {
                       await setActiveTeacherId(teacher.id);
-                      setActiveTeacher(teacher);
+                      setActiveTeacher({ ...teacher });
                       setFacultyPickerVisible(false);
                     }}
                     activeOpacity={0.8}

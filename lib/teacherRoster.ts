@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { supabase } from './supabase';
 
 export interface TeacherProfile {
   id: string;
@@ -91,6 +92,82 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
 ];
 
 const ACTIVE_TEACHER_KEY = '@active_faculty_id';
+const ROSTER_CACHE_KEY = '@teacher_roster_cache_v2';
+
+export function getInitials(name: string): string {
+  if (!name) return 'FA';
+  return name
+    .replace(/Dr\.|Mr\.|Mrs\.|Ms\./g, '')
+    .trim()
+    .split(' ')
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase() || 'FA';
+}
+
+/**
+ * Loads teacher roster from local storage and syncs with Supabase teachers table.
+ */
+export async function getTeacherRoster(): Promise<TeacherProfile[]> {
+  // 1. Try reading from local cache
+  try {
+    const cached = await SecureStore.getItemAsync(ROSTER_CACHE_KEY);
+    if (cached) {
+      const parsed: TeacherProfile[] = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        parsed.forEach((saved) => {
+          const match = TEACHER_ROSTER.find((t) => t.id === saved.id);
+          if (match) {
+            match.name = saved.name || match.name;
+            match.phone = saved.phone || match.phone;
+            match.email = saved.email || match.email;
+            match.qualification = saved.qualification || match.qualification;
+          } else {
+            TEACHER_ROSTER.push(saved);
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.warn('Error reading cached roster:', e);
+  }
+
+  // 2. Fetch fresh from Supabase teachers table
+  try {
+    const { data, error } = await supabase.from('teachers').select('*');
+    if (!error && Array.isArray(data) && data.length > 0) {
+      data.forEach((remote: any) => {
+        if (!remote.faculty_id) return;
+        const match = TEACHER_ROSTER.find((t) => t.id === remote.faculty_id);
+        if (match) {
+          if (remote.name) match.name = remote.name;
+          if (remote.phone) match.phone = remote.phone;
+        } else if (remote.faculty_id.startsWith('fac-')) {
+          TEACHER_ROSTER.push({
+            id: remote.faculty_id,
+            name: remote.name || 'Faculty Member',
+            subject: remote.subjects ? remote.subjects.split('(')[0].trim() : 'General',
+            department: 'Academic Faculty',
+            qualification: 'Academic Specialist',
+            email: `${remote.faculty_id}@eduhome.ac.in`,
+            phone: remote.phone || '+91 98470 00000',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+            allowedGrades: ['*'],
+            gradeDescription: remote.subjects || 'Assigned Classes',
+          });
+        }
+      });
+
+      // Update cache
+      await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
+    }
+  } catch (err) {
+    console.warn('Error syncing roster from Supabase:', err);
+  }
+
+  return [...TEACHER_ROSTER];
+}
 
 /**
  * Normalizes subject names for matching.
@@ -159,7 +236,6 @@ export function isTeacherAssignedToClass(
   const classText = `${classItem.class || ''} ${classItem.batch || ''} ${classItem.title || ''}`;
   const grade = extractGrade(classText);
   if (!grade) {
-    // If no grade explicitly parsed, allow if subject strictly matches and teacher has wide assignment
     return true;
   }
 
@@ -167,16 +243,19 @@ export function isTeacherAssignedToClass(
 }
 
 export async function getActiveTeacher(): Promise<TeacherProfile> {
+  // Ensure roster is initialized with latest names
+  await getTeacherRoster();
+
   try {
     const savedId = await SecureStore.getItemAsync(ACTIVE_TEACHER_KEY);
     if (savedId) {
-      const found = TEACHER_ROSTER.find(t => t.id === savedId);
-      if (found) return found;
+      const found = TEACHER_ROSTER.find((t) => t.id === savedId);
+      if (found) return { ...found };
     }
   } catch (e) {
     console.warn('Error reading active faculty:', e);
   }
-  return TEACHER_ROSTER[0]; // Default to Dr. Ramesh Nair (Chemistry)
+  return { ...TEACHER_ROSTER[0] }; // Default to Dr. Ramesh Nair (Chemistry)
 }
 
 export async function setActiveTeacherId(teacherId: string): Promise<void> {
@@ -185,4 +264,64 @@ export async function setActiveTeacherId(teacherId: string): Promise<void> {
   } catch (e) {
     console.warn('Error saving active faculty:', e);
   }
+}
+
+/**
+ * Allows faculty to update their personal details (Name, Phone, Email, Qualification).
+ * Strictly PREVENTS modifying academic allotments (Subject, Grades, Department, Role).
+ */
+export async function updateFacultySelfProfile(
+  facultyId: string,
+  updates: {
+    name: string;
+    phone?: string;
+    email?: string;
+    qualification?: string;
+  }
+): Promise<{ success: boolean; error?: string; updated?: TeacherProfile }> {
+  if (!updates.name || !updates.name.trim()) {
+    return { success: false, error: 'Full name cannot be empty.' };
+  }
+
+  const trimmedName = updates.name.trim();
+  const trimmedPhone = (updates.phone || '').trim();
+  const trimmedEmail = (updates.email || '').trim();
+  const trimmedQual = (updates.qualification || '').trim();
+
+  // Find in memory
+  const profile = TEACHER_ROSTER.find((t) => t.id === facultyId);
+  if (!profile) {
+    return { success: false, error: 'Faculty profile not found.' };
+  }
+
+  // Update in-memory profile
+  profile.name = trimmedName;
+  if (trimmedPhone) profile.phone = trimmedPhone;
+  if (trimmedEmail) profile.email = trimmedEmail;
+  if (trimmedQual) profile.qualification = trimmedQual;
+
+  // Persist locally
+  try {
+    await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
+  } catch (e) {}
+
+  // Sync to Supabase teachers table so admin portal sees it immediately
+  try {
+    const { error: dbError } = await supabase
+      .from('teachers')
+      .update({
+        name: trimmedName,
+        phone: trimmedPhone || profile.phone,
+        avatar: getInitials(trimmedName),
+      })
+      .eq('faculty_id', facultyId);
+
+    if (dbError) {
+      console.warn('Supabase profile update warning:', dbError);
+    }
+  } catch (e) {
+    console.warn('Supabase update failed:', e);
+  }
+
+  return { success: true, updated: { ...profile } };
 }

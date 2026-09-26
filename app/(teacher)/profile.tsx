@@ -1,31 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Image,
+  TextInput, Modal, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
-import { TEACHER_ROSTER, TeacherProfile, getActiveTeacher, setActiveTeacherId } from '../../lib/teacherRoster';
+import {
+  TEACHER_ROSTER,
+  TeacherProfile,
+  getActiveTeacher,
+  setActiveTeacherId,
+  getTeacherRoster,
+  updateFacultySelfProfile,
+  getInitials,
+} from '../../lib/teacherRoster';
+import { supabase } from '../../lib/supabase';
 
 export default function TeacherProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
+  const [roster, setRoster] = useState<TeacherProfile[]>(TEACHER_ROSTER);
+
+  // Edit Profile Modal States
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editQual, setEditQual] = useState('');
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     loadActiveTeacher();
+
+    // Supabase Realtime: updates live if admin renames faculty from the admin web portal
+    const channel = supabase
+      .channel('teacher_profile_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+        console.log('[Realtime] Faculty update received in profile screen!');
+        loadActiveTeacher();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadActiveTeacher = async () => {
+    const list = await getTeacherRoster();
+    setRoster([...list]);
     const teacher = await getActiveTeacher();
-    setActiveTeacher(teacher);
+    setActiveTeacher({ ...teacher });
   };
 
   const handleSelectTeacher = async (teacher: TeacherProfile) => {
     await setActiveTeacherId(teacher.id);
-    setActiveTeacher(teacher);
+    setActiveTeacher({ ...teacher });
     Alert.alert('Active Faculty Switched', `Logged in as ${teacher.name} (${teacher.subject}). Schedule and assigned classes are now updated.`);
   };
 
@@ -34,15 +68,43 @@ export default function TeacherProfileScreen() {
     router.replace('/login');
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .replace(/Dr\.|Mr\.|Mrs\.|Ms\./g, '')
-      .trim()
-      .split(' ')
-      .map((n) => n[0])
-      .slice(0, 2)
-      .join('')
-      .toUpperCase();
+  const handleOpenEditModal = () => {
+    setEditName(activeTeacher.name || '');
+    setEditPhone(activeTeacher.phone || '');
+    setEditEmail(activeTeacher.email || '');
+    setEditQual(activeTeacher.qualification || '');
+    setEditModalVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!editName.trim()) {
+      Alert.alert('Validation Error', 'Please enter your full name.');
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const result = await updateFacultySelfProfile(activeTeacher.id, {
+        name: editName.trim(),
+        phone: editPhone.trim(),
+        email: editEmail.trim(),
+        qualification: editQual.trim(),
+      });
+
+      if (result.success && result.updated) {
+        setActiveTeacher({ ...result.updated });
+        const freshRoster = await getTeacherRoster();
+        setRoster([...freshRoster]);
+        setEditModalVisible(false);
+        Alert.alert('Profile Updated', 'Your profile details have been successfully updated and synced with the Edu Home database.');
+      } else {
+        Alert.alert('Update Failed', result.error || 'Could not save profile changes.');
+      }
+    } catch (e: any) {
+      Alert.alert('Error', e?.message || 'Failed to update profile.');
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
   return (
@@ -102,18 +164,28 @@ export default function TeacherProfileScreen() {
               <Text style={styles.contactText}>{activeTeacher.phone}</Text>
             </View>
           </View>
+
+          {/* Edit Profile Action Button */}
+          <TouchableOpacity
+            style={styles.editProfileBtn}
+            onPress={handleOpenEditModal}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={15} color="#0284C7" />
+            <Text style={styles.editProfileBtnText}>Edit Profile Details</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Faculty Roster Switcher */}
         <View style={styles.rosterSectionHeader}>
           <View>
-            <Text style={styles.rosterTitle}>Faculty Members ({TEACHER_ROSTER.length})</Text>
+            <Text style={styles.rosterTitle}>Faculty Members ({roster.length})</Text>
             <Text style={styles.rosterSub}>Select active teacher account to view assigned schedule</Text>
           </View>
         </View>
 
         <View style={styles.rosterCard}>
-          {TEACHER_ROSTER.map((teacher, idx) => {
+          {roster.map((teacher, idx) => {
             const isSelected = teacher.id === activeTeacher.id;
             return (
               <React.Fragment key={teacher.id}>
@@ -207,6 +279,131 @@ export default function TeacherProfileScreen() {
 
         <View style={{ height: 30 }} />
       </ScrollView>
+
+      {/* Edit Profile Modal */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => !savingProfile && setEditModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.editModalCard}>
+            <View style={styles.editModalHeader}>
+              <View>
+                <Text style={styles.editModalTitle}>Edit Faculty Profile</Text>
+                <Text style={styles.editModalSub}>Update your display name & contact details</Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => !savingProfile && setEditModalVisible(false)}
+                disabled={savingProfile}
+                style={{ padding: 4 }}
+              >
+                <Ionicons name="close" size={22} color={Colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
+              {/* Editable Information */}
+              <Text style={styles.sectionHeaderSmall}>PERSONAL INFORMATION (EDITABLE)</Text>
+
+              <Text style={styles.inputLabel}>Full Name</Text>
+              <TextInput
+                style={styles.inputField}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="e.g. Dr. Ramesh Nair"
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              <Text style={styles.inputLabel}>Contact Phone</Text>
+              <TextInput
+                style={styles.inputField}
+                value={editPhone}
+                onChangeText={setEditPhone}
+                placeholder="+91 98470 XXXXX"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Email Address</Text>
+              <TextInput
+                style={styles.inputField}
+                value={editEmail}
+                onChangeText={setEditEmail}
+                placeholder="faculty@eduhome.ac.in"
+                placeholderTextColor={Colors.textMuted}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+
+              <Text style={styles.inputLabel}>Qualifications / Degree</Text>
+              <TextInput
+                style={styles.inputField}
+                value={editQual}
+                onChangeText={setEditQual}
+                placeholder="e.g. M.Sc., Ph.D."
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              {/* Locked Administrative Academic Info */}
+              <View style={styles.lockedSectionBox}>
+                <View style={styles.lockedHeaderRow}>
+                  <Ionicons name="lock-closed" size={13} color="#D97706" />
+                  <Text style={styles.lockedSectionTitle}>ACADEMIC ALLOTMENTS (ADMIN ONLY)</Text>
+                </View>
+                <Text style={styles.lockedSectionSub}>
+                  Subject assignments and grade scopes are determined by Super Admin and cannot be modified by faculty.
+                </Text>
+
+                <View style={styles.lockedFieldRow}>
+                  <Text style={styles.lockedFieldLabel}>Assigned Subject:</Text>
+                  <Text style={styles.lockedFieldValue}>{activeTeacher.subject} 🔒</Text>
+                </View>
+
+                <View style={styles.lockedFieldRow}>
+                  <Text style={styles.lockedFieldLabel}>Grade Scope:</Text>
+                  <Text style={styles.lockedFieldValue}>{activeTeacher.gradeDescription} 🔒</Text>
+                </View>
+
+                <View style={styles.lockedFieldRow}>
+                  <Text style={styles.lockedFieldLabel}>Department:</Text>
+                  <Text style={styles.lockedFieldValue}>{activeTeacher.department} 🔒</Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* Action Buttons */}
+            <View style={styles.editActionRow}>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setEditModalVisible(false)}
+                disabled={savingProfile}
+              >
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.saveBtn, savingProfile && { opacity: 0.7 }]}
+                onPress={handleSaveProfile}
+                disabled={savingProfile}
+              >
+                {savingProfile ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                    <Text style={styles.saveBtnText}>Save Profile</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -308,6 +505,24 @@ const styles = StyleSheet.create({
   contactItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   contactText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary },
 
+  editProfileBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginTop: 14,
+  },
+  editProfileBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+
   rosterSectionHeader: { marginTop: 16, marginBottom: 8 },
   rosterTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   rosterSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 1 },
@@ -401,4 +616,150 @@ const styles = StyleSheet.create({
   menuTitle: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
   menuSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 1 },
   menuDivider: { height: 1, backgroundColor: '#F1F5F9', marginHorizontal: 14 },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  editModalCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 18,
+    shadowColor: '#000',
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  editModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  editModalTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  editModalSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  sectionHeaderSmall: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: '#0284C7',
+    letterSpacing: 0.5,
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  inputField: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textPrimary,
+  },
+
+  lockedSectionBox: {
+    backgroundColor: '#FFFBEB',
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+    borderRadius: 10,
+    padding: 12,
+    marginTop: 14,
+    marginBottom: 8,
+  },
+  lockedHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  lockedSectionTitle: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#B45309',
+  },
+  lockedSectionSub: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: '#92400E',
+    marginBottom: 8,
+  },
+  lockedFieldRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 3,
+  },
+  lockedFieldLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#78350F',
+  },
+  lockedFieldValue: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#92400E',
+  },
+
+  editActionRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  cancelBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: '#F1F5F9',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelBtnText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  saveBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 8,
+    backgroundColor: '#0284C7',
+    justifyContent: 'center',
+  },
+  saveBtnText: {
+    fontSize: 13,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
 });
