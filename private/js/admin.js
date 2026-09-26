@@ -1057,6 +1057,31 @@ window.exportSupabaseSQL = async function () {
             );
         });
 
+        lines.push('-- Subjects Master Table & Allotments');
+        lines.push('CREATE TABLE IF NOT EXISTS subjects (');
+        lines.push('  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,');
+        lines.push('  code TEXT UNIQUE NOT NULL,');
+        lines.push('  name TEXT NOT NULL,');
+        lines.push('  category TEXT DEFAULT \'Science\',');
+        lines.push('  classes TEXT[] DEFAULT \'{"6", "7", "8", "9", "10", "11", "12"}\',');
+        lines.push('  faculty_id TEXT,');
+        lines.push('  faculty_name TEXT,');
+        lines.push('  monthly_fee_unit NUMERIC DEFAULT 1000,');
+        lines.push('  icon TEXT DEFAULT \'book-outline\',');
+        lines.push('  color TEXT DEFAULT \'#1A56DB\',');
+        lines.push('  created_at TIMESTAMPTZ DEFAULT now()');
+        lines.push(');');
+        lines.push('ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;');
+        lines.push('DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = \'subjects\' AND policyname = \'Public subjects access\') THEN CREATE POLICY "Public subjects access" ON subjects FOR ALL USING (true) WITH CHECK (true); END IF; END $$;');
+        lines.push('INSERT INTO subjects (code, name, category, classes, faculty_id, faculty_name, monthly_fee_unit, icon, color) VALUES');
+        lines.push('  (\'PHY\',  \'Physics\',          \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-phy\',       \'Mr. Rajesh Menon\',    1000, \'flash-outline\',       \'#1A56DB\'),');
+        lines.push('  (\'CHEM\', \'Chemistry\',        \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-chem\',      \'Dr. Ramesh Nair\',     1000, \'flask-outline\',       \'#12B76A\'),');
+        lines.push('  (\'MATH\', \'Mathematics\',      \'Maths\',      \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-math\', \'Mr. Arun K. Varma\', 1000, \'calculator-outline\',  \'#F79009\'),');
+        lines.push('  (\'BIO\',  \'Biology\',          \'Science\',    \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-bio-lower\', \'Mrs. Deepa Anoop / Dr. Suresh Kumar\', 1000, \'leaf-outline\', \'#0284C7\'),');
+        lines.push('  (\'CS\',   \'Computer Science\', \'Technology\', \'{"11", "12"}\',                 \'fac-cs\',        \'Ms. Ananya Sharma\',   1000, \'code-slash-outline\',  \'#7C3AED\'),');
+        lines.push('  (\'SCI\',  \'Science\',          \'Science\',    \'{"6", "7", "8", "9"}\',         \'fac-bio-lower\', \'Mrs. Deepa Anoop\',    1000, \'planet-outline\',      \'#059669\')');
+        lines.push('ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, category = EXCLUDED.category, classes = EXCLUDED.classes, faculty_id = EXCLUDED.faculty_id, faculty_name = EXCLUDED.faculty_name, monthly_fee_unit = EXCLUDED.monthly_fee_unit, icon = EXCLUDED.icon, color = EXCLUDED.color;');
+        lines.push('');
         lines.push('COMMIT;');
         var sqlStr = lines.join('\n');
 
@@ -1871,21 +1896,24 @@ if (document.getElementById('timetableTableBody')) {
         }
 
         
-        const facultySelect = document.getElementById('timetableFaculty');
-        let facultyId = facultySelect ? facultySelect.value : 'auto';
+        let facultyId = '';
         let facultyName = '';
-        if (facultySelect && facultySelect.selectedOptions && facultySelect.selectedOptions[0]) {
-            facultyName = facultySelect.selectedOptions[0].getAttribute('data-name') || '';
+        const facultySelect = document.getElementById('timetableFaculty');
+        if (facultySelect && facultySelect.value && facultySelect.value !== 'auto') {
+            facultyId = facultySelect.value;
+            if (facultySelect.selectedOptions && facultySelect.selectedOptions[0]) {
+                facultyName = facultySelect.selectedOptions[0].getAttribute('data-name') || '';
+            }
         }
 
-        // Auto-assign based on subject and grade rules if 'auto'
-        if (facultyId === 'auto' || !facultyName) {
+        // Auto-assign based on subject and grade rules if not manually picked
+        if (!facultyId || facultyId === 'auto' || !facultyName) {
             const numClass = parseInt(studentClass, 10) || 10;
-            const sub = (subject || '').toLowerCase();
-            if (sub.includes('chem')) {
+            const subLower = (subject || '').toLowerCase();
+            if (subLower.includes('chem')) {
                 facultyId = 'fac-chem';
                 facultyName = 'Dr. Ramesh Nair';
-            } else if (sub.includes('bio')) {
+            } else if (subLower.includes('bio')) {
                 if (numClass <= 9) {
                     facultyId = 'fac-bio-lower';
                     facultyName = 'Mrs. Deepa Anoop';
@@ -1893,46 +1921,19 @@ if (document.getElementById('timetableTableBody')) {
                     facultyId = 'fac-bio-upper';
                     facultyName = 'Dr. Suresh Kumar';
                 }
-            } else if (sub.includes('phys')) {
+            } else if (subLower.includes('phys')) {
                 facultyId = 'fac-phy';
                 facultyName = 'Mr. Rajesh Menon';
-            } else if (sub.includes('comp')) {
+            } else if (subLower.includes('comp')) {
                 facultyId = 'fac-cs';
                 facultyName = 'Ms. Ananya Sharma';
-            } else if (sub.includes('math')) {
+            } else if (subLower.includes('math')) {
                 facultyId = 'fac-math';
                 facultyName = 'Mr. Arun K. Varma';
             } else {
                 facultyId = 'fac-phy';
                 facultyName = 'Mr. Rajesh Menon';
             }
-        }
-
-        // Map teacher automatically from allotment rules without cluttering form
-        let facultyId = '';
-        let facultyName = '';
-        const numClass = parseInt(studentClass, 10) || 10;
-        const subLower = (subject || '').toLowerCase();
-        if (subLower.includes('chem')) {
-            facultyId = 'fac-chem';
-            facultyName = 'Dr. Ramesh Nair';
-        } else if (subLower.includes('bio')) {
-            if (numClass <= 9) {
-                facultyId = 'fac-bio-lower';
-                facultyName = 'Mrs. Deepa Anoop';
-            } else {
-                facultyId = 'fac-bio-upper';
-                facultyName = 'Dr. Suresh Kumar';
-            }
-        } else if (subLower.includes('phys')) {
-            facultyId = 'fac-phy';
-            facultyName = 'Mr. Rajesh Menon';
-        } else if (subLower.includes('comp')) {
-            facultyId = 'fac-cs';
-            facultyName = 'Ms. Ananya Sharma';
-        } else if (subLower.includes('math')) {
-            facultyId = 'fac-math';
-            facultyName = 'Mr. Arun K. Varma';
         }
 
         // Dynamically resolve custom teacher name if updated in Assign Teachers
@@ -2558,7 +2559,7 @@ if (document.getElementById('attendanceClassSelect')) {
 
 // --- STUDENT MANAGEMENT LIST (ADD STUDENT PAGE) ---
 if (document.getElementById('studentListBody')) {
-    async function renderStudentManagementList() {
+    window.renderStudentManagementList = async function renderStudentManagementList() {
         const tbody = document.getElementById('studentListBody');
         const toggle = document.getElementById('sourceToggleSwitch');
         const isCloud = toggle ? toggle.checked : false;
@@ -2602,17 +2603,32 @@ if (document.getElementById('studentListBody')) {
             return a.name.localeCompare(b.name);
         });
 
-        students.forEach((s) => {
+                students.forEach((s) => {
             const tr = document.createElement('tr');
+            let joinText = '';
+            if (s.joiningDate || s.joining_date) {
+                const rawDate = s.joiningDate || s.joining_date;
+                try {
+                    const parsed = new Date(rawDate);
+                    joinText = isNaN(parsed.getTime()) ? rawDate : parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                } catch(e) {
+                    joinText = rawDate;
+                }
+            }
+            const feeVal = s.amount || s.monthly_fee || '-';
+            const subStr = Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' && s.subjects ? s.subjects : 'General');
+            const phoneVal = s.phone || '-';
+
             tr.innerHTML = `
                 <td>
-                    ${s.name}
-                    ${s.joiningDate ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${new Date(s.joiningDate).toLocaleDateString()}</small>` : ''}
+                    <span class="font-weight-bold" style="color:#003366;">${s.name || 'Student'}</span>
+                    ${s.rollNo ? `<br><small class="badge badge-light border text-muted" style="font-size:0.7rem;">${s.rollNo}</small>` : ''}
+                    ${joinText ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${joinText}</small>` : ''}
                 </td>
-                <td>${s.class}</td>
-                <td>₹${s.amount || '-'}</td>
-                <td>${s.phone}</td>
-                <td>${Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' ? s.subjects : 'General')}</td>
+                <td>Class ${s.class}</td>
+                <td class="font-weight-bold" style="color:#1a7a3c;">₹${feeVal}</td>
+                <td>${phoneVal}</td>
+                <td>${subStr}</td>
                 <td>
                     ${isCloud ? `<span class="badge badge-secondary">Read-only in Cloud View</span>` : `
                     <button class="btn btn-sm btn-info mb-1" onclick="editStudent('${s.id}')">Edit</button>

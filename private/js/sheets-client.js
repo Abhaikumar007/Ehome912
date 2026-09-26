@@ -272,6 +272,51 @@ window.sb_loadFromCloud = async function () {
         return { ok: false, msg: 'No remote student records found.' };
     }
 
+    // Deduplicate and consolidate loaded students by canonical rollNo or name
+    const masterMapByName = new Map();
+    const masterMapByRoll = new Map();
+    if (typeof MASTER_STUDENTS_ROSTER !== 'undefined' && Array.isArray(MASTER_STUDENTS_ROSTER)) {
+        MASTER_STUDENTS_ROSTER.forEach(m => {
+            if (m.name) masterMapByName.set(m.name.toLowerCase().trim(), m);
+            if (m.rollNo) masterMapByRoll.set(m.rollNo.toUpperCase().trim(), m);
+            if (m.id) masterMapByRoll.set(m.id.toUpperCase().trim(), m);
+        });
+    }
+
+    const dedupMap = new Map();
+    loadedStudents.forEach(st => {
+        const normName = (st.name || '').toLowerCase().trim();
+        const rawRoll = (st.rollNo || st.roll_no || st.id || '').toUpperCase().trim();
+        const master = masterMapByRoll.get(rawRoll) || masterMapByName.get(normName);
+
+        const canonicalRoll = master ? (master.rollNo || master.id) : (rawRoll && !rawRoll.match(/^\d{13}$/) ? rawRoll : normName);
+        if (!canonicalRoll) return;
+
+        if (!dedupMap.has(canonicalRoll)) {
+            dedupMap.set(canonicalRoll, {
+                id: master ? (master.rollNo || master.id) : (st.id || canonicalRoll),
+                rollNo: master ? master.rollNo : canonicalRoll,
+                name: master ? master.name : (st.name || 'Student').trim(),
+                class: String(master ? master.class : (st.class || '10')).replace('Class ', '').trim(),
+                school: master ? master.school : (st.school || 'EduHome Campus'),
+                phone: master ? master.phone : (st.phone || ''),
+                joiningDate: master ? master.joiningDate : (st.joiningDate || '2026-01-15'),
+                amount: (st.amount && st.amount !== '') ? String(st.amount) : (master ? String(master.amount) : '3000'),
+                subjects: (st.subjects && Array.isArray(st.subjects) && st.subjects.length > 0)
+                    ? st.subjects
+                    : (master && master.subjects ? master.subjects : ['General Tuition'])
+            });
+        } else {
+            // Merge complementary properties if duplicate
+            const existing = dedupMap.get(canonicalRoll);
+            if ((!existing.amount || existing.amount === '-') && st.amount) existing.amount = String(st.amount);
+            if ((!existing.subjects || existing.subjects.length === 0) && st.subjects && st.subjects.length > 0) existing.subjects = st.subjects;
+            if (!existing.phone && st.phone) existing.phone = st.phone;
+        }
+    });
+
+    loadedStudents = Array.from(dedupMap.values());
+
     // Save to LocalStorage
     localStorage.setItem('students', JSON.stringify(loadedStudents));
     if (loadedFees) {
