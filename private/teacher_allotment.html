@@ -202,6 +202,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script>
+        const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
         const DEFAULT_TEACHERS = [
             {
                 id: 'fac-chem',
@@ -209,7 +211,8 @@
                 subject: 'Chemistry',
                 grades: '10, 11, 12',
                 dept: 'Senior Science Department',
-                type: 'Permanent'
+                type: 'Permanent',
+                phone: '9847012345'
             },
             {
                 id: 'fac-bio-lower',
@@ -217,7 +220,8 @@
                 subject: 'Biology (Lower)',
                 grades: '6, 7, 8, 9',
                 dept: 'Secondary Science Department',
-                type: 'Permanent'
+                type: 'Permanent',
+                phone: '9847023456'
             },
             {
                 id: 'fac-bio-upper',
@@ -225,7 +229,8 @@
                 subject: 'Biology (Upper)',
                 grades: '10, 11, 12',
                 dept: 'Senior Science Department',
-                type: 'Permanent'
+                type: 'Permanent',
+                phone: '9847034567'
             },
             {
                 id: 'fac-phy',
@@ -233,7 +238,8 @@
                 subject: 'Physics',
                 grades: '8, 9, 10, 11, 12',
                 dept: 'Science Department',
-                type: 'Permanent'
+                type: 'Permanent',
+                phone: '9847045678'
             },
             {
                 id: 'fac-cs',
@@ -241,7 +247,8 @@
                 subject: 'Computer Science',
                 grades: '11, 12',
                 dept: 'Computer Applications & IT',
-                type: 'Permanent'
+                type: 'Permanent',
+                phone: '9847056789'
             },
             {
                 id: 'fac-math',
@@ -249,7 +256,8 @@
                 subject: 'Mathematics',
                 grades: '6, 7, 8, 9',
                 dept: 'Secondary Mathematics',
-                type: 'Temporary'
+                type: 'Temporary',
+                phone: '9847067890'
             }
         ];
 
@@ -265,6 +273,43 @@
             try {
                 localStorage.setItem('eduhome_faculty_allotments', JSON.stringify(list));
             } catch (e) {}
+        }
+
+        function getInitials(name) {
+            if (!name) return 'FA';
+            return name.replace(/Dr.|Mr.|Mrs.|Ms./g, '').trim().split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase() || 'FA';
+        }
+
+        async function syncFromSupabase() {
+            if (!sb) return;
+            try {
+                const { data, error } = await sb.from('teachers').select('*');
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    const localList = getTeachers();
+                    data.forEach(remote => {
+                        if (!remote.faculty_id) return;
+                        const match = localList.find(t => t.id === remote.faculty_id);
+                        if (match) {
+                            if (remote.name) match.name = remote.name;
+                            if (remote.phone) match.phone = remote.phone;
+                        } else if (remote.faculty_id.startsWith('fac-')) {
+                            localList.push({
+                                id: remote.faculty_id,
+                                name: remote.name,
+                                subject: remote.subjects ? remote.subjects.split('(')[0].trim() : 'General',
+                                grades: remote.subjects && remote.subjects.includes('Class') ? remote.subjects.replace(/.*Class\s*/, '').replace(')', '').trim() : 'All',
+                                dept: 'Academic Faculty',
+                                type: 'Permanent',
+                                phone: remote.phone || ''
+                            });
+                        }
+                    });
+                    saveTeachers(localList);
+                    renderTeachers();
+                }
+            } catch (err) {
+                console.warn('Sync from Supabase failed:', err);
+            }
         }
 
         function renderTeachers() {
@@ -333,7 +378,7 @@
             $('#teacherModal').modal('show');
         }
 
-        function saveTeacherAllotment() {
+        async function saveTeacherAllotment() {
             const name = document.getElementById('formTeacherName').value.trim();
             const subject = document.getElementById('formTeacherSubject').value;
             const grades = document.getElementById('formTeacherGrades').value.trim();
@@ -347,13 +392,15 @@
             }
 
             const list = getTeachers();
+            const facultyId = editIdx !== '' && list[editIdx] ? list[editIdx].id : ('fac-' + Date.now());
             const entry = {
-                id: editIdx !== '' && list[editIdx] ? list[editIdx].id : ('fac-' + Date.now()),
+                id: facultyId,
                 name,
                 subject,
                 grades,
                 dept: dept || (subject + ' Faculty'),
-                type
+                type,
+                phone: (editIdx !== '' && list[editIdx]?.phone) ? list[editIdx].phone : '9847000000'
             };
 
             if (editIdx !== '') {
@@ -365,23 +412,64 @@
             saveTeachers(list);
             renderTeachers();
             $('#teacherModal').modal('hide');
-            alert('✓ Teacher allotment saved successfully!');
+
+            // SYNC DIRECTLY TO SUPABASE DATABASE
+            if (sb) {
+                try {
+                    const initials = getInitials(name);
+                    const { error } = await sb.from('teachers').upsert({
+                        faculty_id: facultyId,
+                        name: name,
+                        subjects: `${subject} (Class ${grades})`,
+                        phone: entry.phone,
+                        role: 'Faculty',
+                        avatar: initials,
+                        pin: '654321'
+                    }, { onConflict: 'faculty_id' });
+
+                    if (error) {
+                        console.warn('Supabase upsert warning:', error);
+                        alert('✓ Saved locally. (Cloud sync: ' + error.message + ')');
+                    } else {
+                        alert('✓ Teacher allotment saved & synced live to Faculty Mobile App!');
+                    }
+                } catch (e) {
+                    console.warn('Supabase sync error:', e);
+                }
+            } else {
+                alert('✓ Teacher allotment saved successfully!');
+            }
         }
 
-        function deleteTeacher(idx) {
+        async function deleteTeacher(idx) {
             const list = getTeachers();
             if (!list[idx]) return;
-            if (confirm('Remove assignment for ' + list[idx].name + '?')) {
+            const target = list[idx];
+            if (confirm('Remove assignment for ' + target.name + '?')) {
                 list.splice(idx, 1);
                 saveTeachers(list);
                 renderTeachers();
+                if (sb && target.id) {
+                    try {
+                        await sb.from('teachers').delete().eq('faculty_id', target.id);
+                    } catch (e) {}
+                }
             }
         }
 
         document.addEventListener('DOMContentLoaded', function() {
             renderTeachers();
+            syncFromSupabase();
+
+            // Realtime listener: if teacher updates their name in the mobile app, admin updates live!
+            if (sb) {
+                sb.channel('faculty_realtime_admin')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+                      syncFromSupabase();
+                  })
+                  .subscribe();
+            }
         });
     </script>
 </body>
-
 </html>

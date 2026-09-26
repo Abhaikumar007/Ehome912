@@ -1935,6 +1935,15 @@ if (document.getElementById('timetableTableBody')) {
             facultyName = 'Mr. Arun K. Varma';
         }
 
+        // Dynamically resolve custom teacher name if updated in Assign Teachers
+        try {
+            const storedAllotments = JSON.parse(localStorage.getItem('eduhome_faculty_allotments') || '[]');
+            const matchedFaculty = storedAllotments.find(t => t.id === facultyId);
+            if (matchedFaculty && matchedFaculty.name) {
+                facultyName = matchedFaculty.name;
+            }
+        } catch (e) {}
+
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType, facultyId, facultyName };
 
         // FIX BUG: Only replace if it is the EXACT same time slot! Different slots on the same day are ADDED cleanly.
