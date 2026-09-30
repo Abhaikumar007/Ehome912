@@ -294,13 +294,13 @@ window.sb_loadFromCloud = async function () {
 
         if (!dedupMap.has(canonicalRoll)) {
             dedupMap.set(canonicalRoll, {
-                id: master ? (master.rollNo || master.id) : (st.id || canonicalRoll),
-                rollNo: master ? master.rollNo : canonicalRoll,
-                name: master ? master.name : (st.name || 'Student').trim(),
-                class: String(master ? master.class : (st.class || '10')).replace('Class ', '').trim(),
-                school: master ? master.school : (st.school || 'EduHome Campus'),
-                phone: master ? master.phone : (st.phone || ''),
-                joiningDate: master ? master.joiningDate : (st.joiningDate || '2026-01-15'),
+                id: st.id || (master ? (master.rollNo || master.id) : canonicalRoll),
+                rollNo: st.rollNo || st.roll_no || (master ? master.rollNo : canonicalRoll),
+                name: (st.name || (master ? master.name : 'Student')).trim(),
+                class: String(st.class || (master ? master.class : '10')).replace('Class ', '').trim(),
+                school: st.school || (master ? master.school : 'EduHome Campus'),
+                phone: st.phone || (master ? master.phone : ''),
+                joiningDate: st.joiningDate || (master ? master.joiningDate : '2026-01-15'),
                 amount: (st.amount && st.amount !== '') ? String(st.amount) : (master ? String(master.amount) : '3000'),
                 subjects: (st.subjects && Array.isArray(st.subjects) && st.subjects.length > 0)
                     ? st.subjects

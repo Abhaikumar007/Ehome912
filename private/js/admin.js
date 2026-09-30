@@ -773,17 +773,17 @@ function getStudents() {
 
             if (!finalMap.has(key)) {
                 finalMap.set(key, {
-                    id: master ? (master.rollNo || master.id) : (s.id || roll),
-                    rollNo: master ? master.rollNo : (s.rollNo || roll),
-                    name: master ? master.name : (s.name || 'Student'),
-                    class: String(master ? master.class : (s.class || '10')).replace('Class ', '').trim(),
-                    school: master ? master.school : (s.school || 'EduHome Campus'),
-                    phone: master ? master.phone : (s.phone || ''),
-                    joiningDate: master ? master.joiningDate : (s.joiningDate || '2026-01-15'),
-                    amount: master ? String(master.amount) : String(s.amount || 4000),
-                    subjects: (master && master.subjects && master.subjects.length > 0)
-                        ? master.subjects
-                        : (Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects : ['General Tuition'])
+                    id: s.id || (master ? (master.rollNo || master.id) : roll),
+                    rollNo: s.rollNo || s.roll_no || (master ? master.rollNo : roll),
+                    name: s.name || (master ? master.name : 'Student'),
+                    class: String(s.class || (master ? master.class : '10')).replace('Class ', '').trim(),
+                    school: s.school || (master ? master.school : 'EduHome Campus'),
+                    phone: s.phone || (master ? master.phone : ''),
+                    joiningDate: s.joiningDate || (master ? master.joiningDate : '2026-01-15'),
+                    amount: (s.amount !== undefined && s.amount !== null && s.amount !== '') ? String(s.amount) : (master ? String(master.amount) : '4000'),
+                    subjects: (Array.isArray(s.subjects) && s.subjects.length > 0)
+                        ? s.subjects
+                        : ((master && master.subjects && master.subjects.length > 0) ? master.subjects : ['General Tuition'])
                 });
             } else {
                 needsSave = true; // Consolidating a duplicate
@@ -1347,7 +1347,7 @@ if (document.getElementById('addStudentForm')) {
 
         if (id) {
             // EDIT MODE
-            const index = students.findIndex(s => s.id === id);
+            const index = students.findIndex(s => s.id === id || (s.rollNo && s.rollNo === id) || (s.roll_no && s.roll_no === id));
             if (index !== -1) {
                 students[index] = {
                     ...students[index],
