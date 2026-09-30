@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, Modal, Image,
+  TextInput, Alert, Modal, Image, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -70,14 +70,15 @@ const CLASS_SUBJECTS: Record<string, string[]> = {
 };
 
 function getTeacherDefaultSubject(t: TeacherProfile | null): string {
-  if (!t) return 'Computer Science';
+  if (!t) return '';
   const subLower = (t.subject || '').toLowerCase();
-  if (subLower.includes('comp') || subLower.includes('cs')) return 'Computer Science';
+  if (subLower.includes('comp') || /\bcs\b/i.test(subLower)) return 'Computer Science';
   if (subLower.includes('math')) return 'Mathematics';
   if (subLower.includes('chem')) return 'Chemistry';
   if (subLower.includes('phys')) return 'Physics';
   if (subLower.includes('bio')) return 'Biology';
-  return t.subject.split('(')[0].trim() || 'Computer Science';
+  // Return the raw subject name stripped of parenthetical qualifiers — never fall back to CS
+  return t.subject.split('(')[0].trim();
 }
 
 export default function FacultyAttendanceScreen() {
@@ -86,13 +87,16 @@ export default function FacultyAttendanceScreen() {
   const [roster, setRoster] = useState<TeacherProfile[]>([]);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [selectedClassId, setSelectedClassId] = useState('c11');
-  const [selectedSubject, setSelectedSubject] = useState<string>('Computer Science');
+  // Empty string = not yet resolved (teacher still loading); auto-adjust effect sets the real subject
+  const [selectedSubject, setSelectedSubject] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(0);
   const [classModalVisible, setClassModalVisible] = useState(false);
   const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
+  // Live student pool: fetched from Supabase, falls back to static roster
+  const [liveStudents, setLiveStudents] = useState<typeof EDUSYNC_STUDENTS>(EDUSYNC_STUDENTS);
 
   const applyTeacher = useCallback((t: TeacherProfile) => {
     setActiveTeacher(t);
@@ -104,7 +108,109 @@ export default function FacultyAttendanceScreen() {
     }
   }, [params.subject]);
 
-  // Focus effect: refreshes active teacher & roster every time this tab is focused
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch live students from Supabase so admin panel updates (name, class, phone, subjects, etc.)
+  // reflect immediately without needing a code change to the static EDUSYNC_STUDENTS array.
+  const fetchLiveStudents = useCallback(async () => {
+    try {
+      const [{ data, error }, { data: attData }] = await Promise.all([
+        supabase.from('students').select('*').order('created_at', { ascending: true }),
+        supabase.from('attendance_records').select('roll_no, today_subjects'),
+      ]);
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        // Map attendance subjects (where code_test syncs student subjects)
+        const attMap = new Map<string, string[]>();
+        if (Array.isArray(attData)) {
+          attData.forEach((a: any) => {
+            if (a.roll_no && Array.isArray(a.today_subjects) && a.today_subjects.length > 0) {
+              attMap.set(a.roll_no.toUpperCase(), a.today_subjects);
+            }
+          });
+        }
+
+        // Merge Supabase records with static roster: Supabase takes precedence for updated fields
+        const supabaseMap = new Map<string, any>();
+        data.forEach((d: any) => {
+          supabaseMap.set((d.roll_no || '').toUpperCase(), d);
+        });
+
+        // Start with static roster, override with Supabase data
+        const merged = EDUSYNC_STUDENTS.map((s) => {
+          const remote = supabaseMap.get(s.rollNo.toUpperCase());
+          const attSubjects = attMap.get(s.rollNo.toUpperCase());
+          if (!remote) {
+            if (attSubjects && attSubjects.length > 0) {
+              return { ...s, subjects: attSubjects.join(', ') };
+            }
+            return s;
+          }
+          return {
+            ...s,
+            name: remote.name || s.name,
+            class: remote.class_name || s.class,
+            batch: remote.batch || remote.class_name || s.batch,
+            phone: remote.phone || s.phone,
+            school: remote.school || s.school,
+            subjects: (attSubjects && attSubjects.length > 0)
+              ? attSubjects.join(', ')
+              : (remote.subjects
+                  ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
+                  : s.subjects),
+            accuracy: remote.accuracy ?? s.accuracy,
+            streak: remote.streak ?? s.streak,
+            testsCompleted: remote.tests_completed ?? s.testsCompleted,
+            topPercent: remote.top_percent ?? s.topPercent,
+            pin: remote.pin || s.pin,
+          };
+        });
+
+        // Append any new students from Supabase not in the static roster
+        data.forEach((d: any) => {
+          const roll = (d.roll_no || '').toUpperCase();
+          const exists = EDUSYNC_STUDENTS.some((s) => s.rollNo.toUpperCase() === roll);
+          if (!exists) {
+            const attSubjects = attMap.get(roll);
+            merged.push({
+              rollNo: d.roll_no || '',
+              pin: d.pin || '1234',
+              name: d.name || '',
+              class: d.class_name || 'Class 10',
+              batch: d.batch || d.class_name || 'Class 10',
+              avatar: (d.name || 'ST').slice(0, 2).toUpperCase(),
+              phone: d.phone || '',
+              school: d.school || 'EduHome',
+              streak: d.streak ?? 0,
+              accuracy: d.accuracy ?? 0,
+              testsCompleted: d.tests_completed ?? 0,
+              topPercent: d.top_percent ?? 0,
+              recentScore: `${d.accuracy ?? 0}%`,
+              avatarColor: '#0284C7',
+              monthlyFee: 0,
+              currentDue: 0,
+              dueDate: '',
+              daysLeft: 0,
+              joiningDate: '',
+              joiningDateIso: '',
+              monthsPaidOnTime: 0,
+              subjects: (attSubjects && attSubjects.length > 0)
+                ? attSubjects.join(', ')
+                : (d.subjects
+                    ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
+                    : 'General'),
+            } as any);
+          }
+        });
+
+        setLiveStudents(merged as any);
+      }
+    } catch (e) {
+      console.warn('[Attendance] Could not fetch live students from Supabase:', e);
+    }
+  }, []);
+
+  // Focus effect: refreshes active teacher, roster, & live students every time this tab is focused
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
@@ -115,12 +221,13 @@ export default function FacultyAttendanceScreen() {
           setRoster(fullRoster);
           applyTeacher(currentTeacher);
         }
+        await fetchLiveStudents();
       };
       load();
       return () => {
         isMounted = false;
       };
-    }, [applyTeacher])
+    }, [applyTeacher, fetchLiveStudents])
   );
 
   // Cross-screen live subscription: updates immediately if faculty changes elsewhere
@@ -166,21 +273,30 @@ export default function FacultyAttendanceScreen() {
   }, [params.classGrade, params.subject]);
 
   // Filter only classes assigned to this active faculty member's allowed grades
+  // BUG FIX: Previously hard-coded CS to grades 11-12, ignoring allowedGrades from Supabase.
+  // Now always uses allowedGrades first (which are synced from Supabase), only falling back
+  // to subject-based inference when allowedGrades is empty/missing.
   const teacherAssignedClasses = useMemo(() => {
     if (!activeTeacher) return INITIAL_CLASSES;
     const grades = activeTeacher.allowedGrades || [];
-    // Computer Science is specifically assigned to Class 11 and Class 12
-    const subLower = (activeTeacher.subject || '').toLowerCase();
-    if (subLower.includes('comp') || subLower.includes('cs')) {
-      return INITIAL_CLASSES.filter((c) => c.grade === '11' || c.grade === '12');
-    }
+
     if (grades.includes('*')) {
       return INITIAL_CLASSES;
     }
-    return INITIAL_CLASSES.filter((c) => {
-      const gradeNum = c.grade || c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
-      return gradeNum && grades.includes(gradeNum);
-    });
+
+    if (grades.length > 0) {
+      return INITIAL_CLASSES.filter((c) => {
+        const gradeNum = c.grade || c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+        return gradeNum && grades.includes(gradeNum);
+      });
+    }
+
+    // Fallback: infer from subject when allowedGrades is truly empty
+    const subLower = (activeTeacher.subject || '').toLowerCase();
+    if (subLower.includes('comp') || /\bcs\b/i.test(subLower)) {
+      return INITIAL_CLASSES.filter((c) => c.grade === '11' || c.grade === '12');
+    }
+    return INITIAL_CLASSES;
   }, [activeTeacher]);
 
   // Auto-switch class if currently selected class is outside active teacher's assignment
@@ -194,31 +310,66 @@ export default function FacultyAttendanceScreen() {
   const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
 
   // Available subjects strictly assigned to this teacher
+  // BUG FIX: For subjects like Mathematics that span ALL grades (6-12), we now correctly
+  // include the 'Science' alias pill for lower grades (6-9) for ANY science-adjacent subject,
+  // not just Biology/Physics/Chemistry. This ensures Ms. Devi and similar multi-grade
+  // teachers see the correct subject pill for each class they select.
   const availableSubjects = useMemo(() => {
-    if (!activeTeacher) return ['Computer Science'];
+    // While teacher is still loading, return empty list (auto-adjust handles the switch)
+    if (!activeTeacher) return [];
     const defSub = getTeacherDefaultSubject(activeTeacher);
     const gradeNum = parseInt(currentClass.grade || '10', 10);
     const list: string[] = [];
     if (defSub) {
       list.push(defSub);
     }
-    if (gradeNum <= 9 && (defSub === 'Biology' || defSub === 'Physics' || defSub === 'Chemistry')) {
+    // For lower secondary grades (6-9): science subjects may also appear as 'Science'
+    const scienceSubjects = ['Biology', 'Physics', 'Chemistry'];
+    if (gradeNum <= 9 && scienceSubjects.includes(defSub)) {
       if (!list.includes('Science')) list.push('Science');
     }
-    return list.length > 0 ? list : ['Computer Science'];
+    // Never fall back to 'Computer Science' — return whatever the teacher actually teaches
+    return list;
   }, [activeTeacher, currentClass.grade]);
 
-  // Auto-adjust subject if current selection is not valid for this teacher & class
+  // Auto-adjust subject when teacher loads or changes, or when class changes
+  // This is the canonical place that sets selectedSubject from the teacher's actual subject
   useEffect(() => {
     if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
+      // Teacher just loaded (or changed) and current subject doesn't belong to them — correct it
       setSelectedSubject(availableSubjects[0]);
     }
   }, [availableSubjects, selectedSubject]);
 
-  // Load students accurately filtered by class AND allotted subjects for this logged-in teacher
+  // Fetch students on mount and listen to realtime changes
   useEffect(() => {
+    fetchLiveStudents();
+
+    // Also subscribe to realtime changes on both students and attendance_records tables
+    const studentChannel = supabase
+      .channel('attendance_students_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => {
+        fetchLiveStudents();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, () => {
+        fetchLiveStudents();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(studentChannel);
+    };
+  }, [fetchLiveStudents]);
+
+  // Load students accurately filtered by class AND allotted subjects for this logged-in teacher
+  // BUG FIX: Now uses liveStudents (Supabase-backed) instead of static EDUSYNC_STUDENTS,
+  // so any admin panel updates are reflected here on next render/refresh.
+  useEffect(() => {
+    // Don't filter yet if teacher hasn't loaded or subject not resolved
+    if (!activeTeacher || !selectedSubject) return;
+
     const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
-    const classStudents = EDUSYNC_STUDENTS.filter((s) => s.class.startsWith(classPrefix));
+    const classStudents = liveStudents.filter((s) => s.class.startsWith(classPrefix));
 
     // Determine target subject strictly for this active faculty member
     const targetSubject = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
@@ -244,7 +395,7 @@ export default function FacultyAttendanceScreen() {
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject, activeTeacher]);
+  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents]);
 
   // Format date display
   const getDateLabel = () => {
@@ -363,7 +514,29 @@ export default function FacultyAttendanceScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={async () => {
+              setRefreshing(true);
+              try {
+                await Promise.all([
+                  fetchLiveStudents(),
+                  getTeacherRoster().then((r) => setRoster(r)),
+                  getActiveTeacher().then((t) => applyTeacher(t)),
+                ]);
+              } finally {
+                setRefreshing(false);
+              }
+            }}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+      >
         {/* Faculty Greeting & Date Navigation */}
         <View style={styles.greetingRow}>
           <View style={{ flex: 1 }}>

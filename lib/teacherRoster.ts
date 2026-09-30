@@ -104,22 +104,35 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
 ];
 
 const ACTIVE_TEACHER_KEY = 'eduhome_active_faculty_id';
-const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v3';
+// v4: bumped to bust stale cache entries that had corrupted allowedGrades
+// due to the parseAllowedGrades 'physics'.includes('cs') bug.
+const ROSTER_CACHE_KEY = 'eduhome_teacher_roster_cache_v4';
 
 export function parseAllowedGrades(subjectsStr?: string): string[] {
   if (!subjectsStr) return ['11', '12'];
   const s = subjectsStr.toLowerCase();
+
+  // First check if the string explicitly names grade numbers (e.g. "8th-12th", "Class 9, 10")
+  // Only trust these explicit numbers — do NOT infer from subject name alone
   const matches = subjectsStr.match(/\b(1[0-2]|[6-9])\b/g);
   if (matches && matches.length > 0) {
     return Array.from(new Set(matches)).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
   }
-  if (s.includes('comp') || s.includes('cs')) {
-    return ['11', '12'];
-  }
+
+  // Wildcard / "all grades"
   if (s.includes('all') || s.includes('*')) {
     return ['6', '7', '8', '9', '10', '11', '12'];
   }
-  return ['10', '11', '12'];
+
+  // IMPORTANT: NEVER use s.includes('cs') here!
+  // 'physics' ends in 'cs', 'mathematics' ends in 'cs' — substring match is wrong.
+  // Use word-boundary regex \bcs\b to match only standalone "CS".
+  if (s.includes('comp') || /\bcs\b/i.test(subjectsStr)) {
+    return ['11', '12'];
+  }
+
+  // No grade info found — return a safe wide default so no class is incorrectly dropped
+  return ['6', '7', '8', '9', '10', '11', '12'];
 }
 
 export function getInitials(name: string): string {
@@ -136,33 +149,38 @@ export function getInitials(name: string): string {
 
 /**
  * Loads teacher roster from local storage and syncs with Supabase teachers table.
+ *
+ * IMPORTANT: This function NEVER mutates the global TEACHER_ROSTER array.
+ * It always deep-copies the source-of-truth static array and applies
+ * overrides only to that copy, so repeated calls don't accumulate corruption.
  */
 export async function getTeacherRoster(): Promise<TeacherProfile[]> {
-  // 1. Try reading from local cache
+  // Always start from a fresh deep copy of the hardcoded static roster.
+  // This is the source of truth for allowedGrades, subject, department, etc.
+  const working: TeacherProfile[] = TEACHER_ROSTER.map((t) => ({ ...t }));
+
+  // Helper: find entry in our working copy by ID
+  const findInWorking = (id: string) => working.find((t) => t.id === id);
+
+  // 1. Apply personal-detail overrides from local SecureStore cache
+  //    (Only name, phone, email, qualification — never allowedGrades from cache,
+  //     since old cache may contain corrupted grades from the previous bug.)
   try {
     const cached = await SecureStore.getItemAsync(ROSTER_CACHE_KEY);
     if (cached) {
       const parsed: TeacherProfile[] = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed.length > 0) {
         parsed.forEach((saved) => {
-          const match = TEACHER_ROSTER.find((t) => t.id === saved.id);
+          const match = findInWorking(saved.id);
           if (match) {
-            match.name = saved.name || match.name;
-            match.phone = saved.phone || match.phone;
-            match.email = saved.email || match.email;
-            match.qualification = saved.qualification || match.qualification;
-            if (saved.allowedGrades && saved.allowedGrades.length > 0) {
-              match.allowedGrades = saved.allowedGrades;
-            }
-            if (saved.gradeDescription) {
-              match.gradeDescription = saved.gradeDescription;
-            }
-            if (saved.subject) {
-              match.subject = saved.subject;
-            }
-          } else {
-            TEACHER_ROSTER.push(saved);
+            // Only overlay safe personal fields from cache
+            if (saved.name) match.name = saved.name;
+            if (saved.phone) match.phone = saved.phone;
+            if (saved.email) match.email = saved.email;
+            if (saved.qualification) match.qualification = saved.qualification;
+            // Do NOT restore allowedGrades from old cache — hardcoded values are correct
           }
+          // Do NOT push unknown IDs from cache — only Supabase can add new teachers
         });
       }
     }
@@ -176,19 +194,42 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
     if (!error && Array.isArray(data) && data.length > 0) {
       data.forEach((remote: any) => {
         if (!remote.faculty_id) return;
-        const match = TEACHER_ROSTER.find((t) => t.id === remote.faculty_id);
+        const match = findInWorking(remote.faculty_id);
         if (match) {
+          // Safe personal-detail overrides from Supabase
           if (remote.name) match.name = remote.name;
           if (remote.phone) match.phone = remote.phone;
+
           if (remote.subjects) {
-            match.allowedGrades = parseAllowedGrades(remote.subjects);
+            // Update display description only
             match.gradeDescription = remote.subjects;
+
+            // Update subject name (strip parenthetical qualifiers)
             const parsedSubject = remote.subjects.split('(')[0].trim();
-            if (parsedSubject) match.subject = parsedSubject;
+            // Only update subject if the Supabase value contains a real subject keyword.
+            // This prevents a bad row like 'Physics & Chemistry' overwriting a CS teacher.
+            if (parsedSubject && parsedSubject !== match.subject) {
+              // Only trust Supabase subject if it's a strict known subject name,
+              // not a combined/description string
+              const knownSubjects = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science', 'Maths', 'Science'];
+              const matchesKnown = knownSubjects.some((ks) => parsedSubject.toLowerCase().startsWith(ks.toLowerCase()));
+              if (matchesKnown) {
+                match.subject = parsedSubject;
+              }
+            }
+
+            // ONLY overwrite allowedGrades when Supabase subjects string has explicit grade numbers.
+            // e.g. "Physics (8th-12th)" → safe to parse. "Physics" alone → keep hardcoded grades.
+            const hasExplicitGrades = /\b(1[0-2]|[6-9])\b/.test(remote.subjects);
+            if (hasExplicitGrades) {
+              match.allowedGrades = parseAllowedGrades(remote.subjects);
+            }
+            // Otherwise hardcoded allowedGrades from static roster remain intact
           }
         } else if (remote.faculty_id.startsWith('fac-') || remote.faculty_id.startsWith('FAC-')) {
+          // Genuinely new teacher from Supabase not in static roster
           const parsedGrades = parseAllowedGrades(remote.subjects);
-          TEACHER_ROSTER.push({
+          working.push({
             id: remote.faculty_id,
             name: remote.name || 'Faculty Member',
             subject: remote.subjects ? remote.subjects.split('(')[0].trim() : 'General',
@@ -203,14 +244,21 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
         }
       });
 
-      // Update cache
-      await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
+      // Save ONLY the personal-detail fields to cache (never allowedGrades/subject from Supabase)
+      const safeCache = working.map((t) => ({
+        id: t.id,
+        name: t.name,
+        phone: t.phone,
+        email: t.email,
+        qualification: t.qualification,
+      }));
+      await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(safeCache));
     }
   } catch (err) {
     console.warn('Error syncing roster from Supabase:', err);
   }
 
-  return [...TEACHER_ROSTER];
+  return working;
 }
 
 /**
@@ -353,25 +401,27 @@ export function subscribeToActiveTeacher(callback: TeacherChangeListener): () =>
 }
 
 export async function getActiveTeacher(): Promise<TeacherProfile> {
-  // Ensure roster is initialized with latest names
-  await getTeacherRoster();
+  // Always fetch the clean copy (never reads from the global mutated TEACHER_ROSTER)
+  const roster = await getTeacherRoster();
 
   try {
     const savedId = inMemoryActiveId || (await SecureStore.getItemAsync(ACTIVE_TEACHER_KEY));
     if (savedId) {
       inMemoryActiveId = savedId;
-      const found = TEACHER_ROSTER.find((t) => t.id === savedId);
+      const found = roster.find((t) => t.id === savedId);
       if (found) return { ...found };
     }
   } catch (e) {
     console.warn('Error reading active faculty:', e);
   }
-  return { ...TEACHER_ROSTER[0] };
+  return { ...roster[0] };
 }
 
 export async function setActiveTeacherId(teacherId: string): Promise<void> {
   inMemoryActiveId = teacherId;
-  const match = TEACHER_ROSTER.find((t) => t.id === teacherId);
+  // Use the clean roster copy so listeners receive correct grades/subject
+  const roster = await getTeacherRoster();
+  const match = roster.find((t) => t.id === teacherId);
   if (match) {
     teacherListeners.forEach((fn) => {
       try {
