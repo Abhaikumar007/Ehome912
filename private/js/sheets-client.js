@@ -381,13 +381,11 @@ window.sb_saveStudent = async function (student) {
                 batch: student.batch || className,
                 avatar: avatar,
                 phone: phone,
-                school: student.school || 'EduHome Campus',
-                joining_date: joiningDate,
                 pin: student.pin || '1234',
-                streak: 0,
-                accuracy: 0,
-                tests_completed: 0,
-                top_percent: 0
+                streak: student.streak || 0,
+                accuracy: student.accuracy || 0,
+                tests_completed: student.tests_completed || 0,
+                top_percent: student.top_percent || 0
             }, { onConflict: 'roll_no' });
 
             if (stuError) {
@@ -399,28 +397,27 @@ window.sb_saveStudent = async function (student) {
             // B. Upsert into fees_records
             const { error: feeError } = await sb.from('fees_records').upsert({
                 roll_no: rollNo,
-                monthly_fee: monthlyFee,
                 current_due: monthlyFee,
                 due_date: '25th of month',
                 days_left: 5,
                 months_paid_on_time: 0,
-                subjects: subjectsStr,
-                status: 'due',
                 loyalty_months: [],
                 recent_payments: []
             }, { onConflict: 'roll_no' });
 
             if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
 
-            // C. Blank attendance record
-            await sb.from('attendance_records').upsert({
+            // C. Attendance record with enrolled subjects
+            const { error: attError } = await sb.from('attendance_records').upsert({
                 roll_no: rollNo,
                 overall: 0,
                 attended: 0,
                 total: 0,
-                today_subjects: [],
+                today_subjects: subjectsList,
                 history: []
-            }, { onConflict: 'roll_no', ignoreDuplicates: true });
+            }, { onConflict: 'roll_no' });
+
+            if (attError) console.warn('[DualSync] Supabase attendance error:', attError.message);
 
             // D. Blank progress record
             await sb.from('progress_records').upsert({
@@ -434,8 +431,10 @@ window.sb_saveStudent = async function (student) {
                 incorrect: 0
             }, { onConflict: 'roll_no', ignoreDuplicates: true });
 
-            supabaseSuccess = true;
-            console.log('[DualSync] Student & companions synced to Supabase ✓');
+            if (!stuError) {
+                supabaseSuccess = true;
+                console.log('[DualSync] Student & companions synced to Supabase ✓');
+            }
         } catch (e) {
             console.warn('[DualSync] Supabase saveStudent error:', e);
         }
