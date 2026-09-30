@@ -26,6 +26,7 @@ function _getSupabaseClient() {
     }
     return _supabaseClient;
 }
+window._getSupabaseClient = _getSupabaseClient;
 
 /**
  * Helper: fetch with a timeout so the UI never hangs forever.

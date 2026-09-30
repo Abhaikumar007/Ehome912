@@ -2351,6 +2351,11 @@ if (document.getElementById('timetableTableBody')) {
             }
 
             alert('✅ Timetable Successfully Shared to Mobile App!\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
+            if (typeof switchTimetableMode === 'function') {
+                switchTimetableMode('live');
+            } else if (typeof window.initLiveAppTimetable === 'function') {
+                window.initLiveAppTimetable('liveTimetablePlatform');
+            }
         } catch (e) {
             console.error('Failed to share timetable:', e);
             alert("Failed to share timetable to mobile app: " + (e.message || e));

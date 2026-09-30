@@ -289,6 +289,11 @@
                     <i class="fas fa-heartbeat mr-2"></i>Cloud Health & Resync
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link" id="tab-timetable-link" data-toggle="tab" href="#tab-timetable" role="tab">
+                    <i class="fas fa-calendar-alt mr-2"></i>Live App Timetable <span class="badge badge-primary live-timetable-counter-badge ml-1" id="hubTimetableCountBadge">0</span>
+                </a>
+            </li>
         </ul>
 
         <!-- Tabs Content -->
@@ -625,6 +630,13 @@
                 </div>
             </div>
 
+            <!-- TAB 6: LIVE APP TIMETABLE MANAGER -->
+            <div class="tab-pane fade" id="tab-timetable" role="tabpanel">
+                <div class="hub-card p-0" style="border:none; background:transparent;">
+                    <div id="hubTimetablePlatform"></div>
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -636,6 +648,31 @@
     <script src="js/sheets-client.js"></script>
     <script src="js/admin.js?v=20260921_fee"></script>
     <script src="js/master_hub.js?v=20260926_realtime"></script>
+    <script src="js/live_timetable.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Check hash on load
+            if (window.location.hash === '#tab-timetable') {
+                $('#tab-timetable-link').tab('show');
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('hubTimetablePlatform');
+                }
+            } else {
+                // Silently preload live count
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('hubTimetablePlatform');
+                }
+            }
+
+            // Tab switch listener
+            $('#tab-timetable-link').on('shown.bs.tab', function() {
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('hubTimetablePlatform');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>

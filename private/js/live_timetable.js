@@ -1,0 +1,896 @@
+/**
+ * Live Mobile App Timetable Management Platform
+ * Provides real-time viewing, inline editing, toggling publication, and deleting
+ * of timetable class sessions published to the EduHome Mobile App (Supabase 'classes' table).
+ */
+
+(function () {
+    let _liveClasses = [];
+    let _realtimeChannel = null;
+    let _activeFilterClass = 'all';
+    let _activeFilterDate = 'all';
+    let _activeCustomDate = '';
+    let _searchQuery = '';
+    let _currentEditId = null;
+
+    // Standard subject emojis & badge colors
+    const SUBJECT_META = {
+        'Physics': { emoji: '⚛️', color: '#0284c7', bg: '#e0f2fe' },
+        'Chemistry': { emoji: '🧪', color: '#059669', bg: '#d1fae5' },
+        'Maths': { emoji: '📐', color: '#d97706', bg: '#fef3c7' },
+        'Biology': { emoji: '🧬', color: '#16a34a', bg: '#dcfce7' },
+        'Computer Science': { emoji: '💻', color: '#7c3aed', bg: '#ede9fe' },
+        'General': { emoji: '📖', color: '#475569', bg: '#f1f5f9' },
+        'No Class': { emoji: '☕', color: '#dc2626', bg: '#fee2e2' }
+    };
+
+    function _getSubjectMeta(sub) {
+        if (!sub) return SUBJECT_META['General'];
+        for (const [k, v] of Object.entries(SUBJECT_META)) {
+            if (sub.toLowerCase().includes(k.toLowerCase())) return v;
+        }
+        return SUBJECT_META['General'];
+    }
+
+    function _getSb() {
+        if (typeof _getSupabaseClient === 'function') return _getSupabaseClient();
+        if (typeof window._getSupabaseClient === 'function') return window._getSupabaseClient();
+        if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL) {
+            try {
+                return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            } catch (e) {
+                console.warn('[LiveTimetable] Error creating Supabase client:', e);
+            }
+        }
+        return null;
+    }
+
+    // Helper: show toast notification
+    function _showToast(message, isError) {
+        let toast = document.getElementById('_liveTimetableToast');
+        if (toast) toast.remove();
+
+        toast = document.createElement('div');
+        toast.id = '_liveTimetableToast';
+        toast.innerHTML = (isError ? '⚠️ ' : '✅ ') + message;
+        toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:999999;padding:12px 20px;border-radius:10px;font-weight:600;font-size:0.92rem;box-shadow:0 10px 25px rgba(0,0,0,0.18);transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);'
+            + (isError ? 'background:#fee2e2;color:#991b1b;border:1px solid #f87171;' : 'background:#ecfdf5;color:#065f46;border:1px solid #34d399;');
+
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(10px)';
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    }
+
+    // Format friendly date
+    function _friendlyDate(dateStr) {
+        if (!dateStr) return 'Unscheduled';
+        try {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                const year = parseInt(parts[0], 10);
+                const month = parseInt(parts[1], 10) - 1;
+                const day = parseInt(parts[2], 10);
+                const target = new Date(year, month, day);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const tomorrow = new Date(today);
+                tomorrow.setDate(today.getDate() + 1);
+                const yesterday = new Date(today);
+                yesterday.setDate(today.getDate() - 1);
+
+                const dayDiff = Math.round((target - today) / (1000 * 60 * 60 * 24));
+                const formatted = target.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+
+                if (dayDiff === 0) return `Today (${formatted})`;
+                if (dayDiff === 1) return `Tomorrow (${formatted})`;
+                if (dayDiff === -1) return `Yesterday (${formatted})`;
+                return formatted;
+            }
+        } catch (e) {}
+        return dateStr;
+    }
+
+    // Parse time and faculty name
+    function _parseTimeDetails(rawTime) {
+        if (!rawTime) return { time: 'Scheduled', faculty: '' };
+        if (rawTime.includes('•')) {
+            const parts = rawTime.split('•');
+            return { time: parts[0].trim(), faculty: parts[1].trim() };
+        }
+        return { time: rawTime.trim(), faculty: '' };
+    }
+
+    // Extract base status and faculty ID
+    function _parseStatus(rawStatus) {
+        if (!rawStatus) return { status: 'upcoming', facultyId: '' };
+        if (rawStatus.includes(':')) {
+            const parts = rawStatus.split(':');
+            return { status: parts[0].trim(), facultyId: parts[1].trim() };
+        }
+        return { status: rawStatus.trim(), facultyId: '' };
+    }
+
+    // ── Load classes from Supabase ──────────────────────────────────────
+    async function loadLiveClasses(containerId) {
+        const sb = _getSb();
+        const container = document.getElementById(containerId || 'liveTimetablePlatform');
+        if (!container) return;
+
+        if (!sb) {
+            container.innerHTML = `
+                <div class="alert alert-warning border-warning shadow-sm p-4 text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                    <h5>Database Connection Not Configured</h5>
+                    <p class="mb-0 text-muted">Please check your Supabase credentials in <code>js/config.js</code> to view and manage live timetable entries.</p>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const { data, error } = await sb
+                .from('classes')
+                .select('*')
+                .order('class_date', { ascending: false })
+                .order('created_at', { ascending: false })
+                .limit(150);
+
+            if (error) {
+                console.error('[LiveTimetable] Error fetching classes:', error);
+                throw error;
+            }
+
+            _liveClasses = data || [];
+            renderPlatform(containerId);
+            updateBadgeCounters();
+        } catch (err) {
+            console.error('[LiveTimetable] Fetch error:', err);
+            const body = document.getElementById('liveTableBody');
+            if (body) {
+                body.innerHTML = `<tr><td colspan="7" class="text-center text-danger py-4"><i class="fas fa-exclamation-circle mr-2"></i>Failed to load classes: ${err.message || err}</td></tr>`;
+            }
+        }
+    }
+
+    // Update count badges across UI
+    function updateBadgeCounters() {
+        const activeCount = _liveClasses.filter(c => c.published !== false).length;
+        document.querySelectorAll('.live-timetable-counter-badge').forEach(badge => {
+            badge.textContent = activeCount;
+        });
+        const badge1 = document.getElementById('liveAppCountBadge');
+        if (badge1) badge1.textContent = activeCount;
+        const badge2 = document.getElementById('liveCountBadge');
+        if (badge2) badge2.textContent = activeCount;
+    }
+
+    // ── Render Platform UI ──────────────────────────────────────────────
+    function renderPlatform(containerId) {
+        const container = document.getElementById(containerId || 'liveTimetablePlatform');
+        if (!container) return;
+
+        // Compute statistics
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const tomorrowDate = new Date();
+        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+        const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+
+        const totalPublished = _liveClasses.filter(c => c.published !== false).length;
+        const classesToday = _liveClasses.filter(c => c.class_date === todayStr && c.published !== false).length;
+        const classesTomorrow = _liveClasses.filter(c => c.class_date === tomorrowStr && c.published !== false).length;
+        const distinctGrades = new Set(_liveClasses.map(c => c.class_grade || c.roll_no)).size;
+
+        // Filter items
+        const filtered = _liveClasses.filter(item => {
+            // Class Filter
+            if (_activeFilterClass !== 'all') {
+                const itemGrade = String(item.class_grade || item.roll_no || '').replace('Class ', '').trim();
+                const filterGrade = _activeFilterClass.replace('Class ', '').trim();
+                if (itemGrade !== filterGrade) return false;
+            }
+
+            // Date Filter
+            if (_activeFilterDate === 'today' && item.class_date !== todayStr) return false;
+            if (_activeFilterDate === 'tomorrow' && item.class_date !== tomorrowStr) return false;
+            if (_activeFilterDate === 'upcoming' && item.class_date < todayStr) return false;
+            if (_activeFilterDate === 'custom' && _activeCustomDate && item.class_date !== _activeCustomDate) return false;
+
+            // Search Filter
+            if (_searchQuery) {
+                const q = _searchQuery.toLowerCase();
+                const sub = (item.subject || '').toLowerCase();
+                const cls = (item.class_grade || item.roll_no || '').toLowerCase();
+                const time = (item.time || '').toLowerCase();
+                const dt = (item.class_date || '').toLowerCase();
+                if (!sub.includes(q) && !cls.includes(q) && !time.includes(q) && !dt.includes(q)) {
+                    return false;
+                }
+            }
+
+            return true;
+        });
+
+        // Generate full template
+        container.innerHTML = `
+            <div class="live-platform-wrapper mb-5" style="background:#ffffff; border-radius:14px; border:1px solid #e2e8f0; box-shadow:0 4px 20px rgba(0,0,0,0.04); overflow:hidden;">
+                
+                <!-- Platform Top Header & Quick Stats -->
+                <div style="background:linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color:#ffffff; padding:22px 24px;">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                        <div>
+                            <h4 class="font-weight-bold mb-1 d-flex align-items-center" style="letter-spacing:-0.3px;">
+                                <i class="fas fa-satellite-dish text-primary mr-2"></i>
+                                Live Mobile App Timetable Manager
+                                <span class="badge badge-success ml-3 px-2 py-1" style="font-size:0.75rem; border-radius:20px; font-weight:700;">
+                                    <i class="fas fa-check-circle mr-1"></i>Supabase Live Sync
+                                </span>
+                            </h4>
+                            <p class="mb-0 text-white-50" style="font-size:0.88rem;">
+                                Edit, reschedule, toggle visibility, or delete class sessions currently posted on the EduHome student & faculty mobile apps.
+                            </p>
+                        </div>
+                        <div class="mt-2 mt-md-0 d-flex align-items-center" style="gap:10px;">
+                            <button class="btn btn-sm btn-outline-light" onclick="window.refreshLiveTimetable('${containerId}')" id="refreshLiveBtn">
+                                <i class="fas fa-sync-alt mr-1"></i> Refresh Live Data
+                            </button>
+                            <a href="#timetable-container" class="btn btn-sm btn-primary" style="font-weight:600; border-radius:8px;">
+                                <i class="fas fa-plus mr-1"></i> Post New Schedule
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 4 Live Stats Cards -->
+                    <div class="row pt-2" style="margin-right:-8px; margin-left:-8px;">
+                        <div class="col-6 col-md-3 px-2 mb-2 mb-md-0">
+                            <div style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 14px;">
+                                <div class="text-white-50 small font-weight-bold text-uppercase" style="font-size:0.7rem; letter-spacing:0.5px;">Published Sessions</div>
+                                <div class="h4 font-weight-bold text-white mb-0 mt-1">${totalPublished}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 px-2 mb-2 mb-md-0">
+                            <div style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 14px;">
+                                <div class="text-white-50 small font-weight-bold text-uppercase" style="font-size:0.7rem; letter-spacing:0.5px;">Classes Today</div>
+                                <div class="h4 font-weight-bold text-success mb-0 mt-1">${classesToday}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 px-2">
+                            <div style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 14px;">
+                                <div class="text-white-50 small font-weight-bold text-uppercase" style="font-size:0.7rem; letter-spacing:0.5px;">Classes Tomorrow</div>
+                                <div class="h4 font-weight-bold text-info mb-0 mt-1">${classesTomorrow}</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3 px-2">
+                            <div style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:12px 14px;">
+                                <div class="text-white-50 small font-weight-bold text-uppercase" style="font-size:0.7rem; letter-spacing:0.5px;">Active Grades</div>
+                                <div class="h4 font-weight-bold text-warning mb-0 mt-1">${distinctGrades}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters & Controls Bar -->
+                <div class="p-3 border-bottom" style="background:#f8fafc;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between" style="gap:12px;">
+                        
+                        <!-- Left: Class & Date Filters -->
+                        <div class="d-flex flex-wrap align-items-center" style="gap:10px;">
+                            <!-- Class Filter -->
+                            <div class="d-flex align-items-center">
+                                <label class="small text-muted font-weight-bold mr-2 mb-0" style="white-space:nowrap;"><i class="fas fa-layer-group mr-1"></i>Class:</label>
+                                <select class="form-control form-control-sm" id="liveFilterClass" style="width:130px; border-radius:6px;" onchange="window.filterLiveClass(this.value, '${containerId}')">
+                                    <option value="all" ${_activeFilterClass === 'all' ? 'selected' : ''}>All Classes</option>
+                                    <option value="6" ${_activeFilterClass === '6' ? 'selected' : ''}>Class 6</option>
+                                    <option value="7" ${_activeFilterClass === '7' ? 'selected' : ''}>Class 7</option>
+                                    <option value="8" ${_activeFilterClass === '8' ? 'selected' : ''}>Class 8</option>
+                                    <option value="9" ${_activeFilterClass === '9' ? 'selected' : ''}>Class 9</option>
+                                    <option value="10" ${_activeFilterClass === '10' ? 'selected' : ''}>Class 10</option>
+                                    <option value="11" ${_activeFilterClass === '11' ? 'selected' : ''}>Class 11</option>
+                                    <option value="12" ${_activeFilterClass === '12' ? 'selected' : ''}>Class 12</option>
+                                </select>
+                            </div>
+
+                            <!-- Date Filter Buttons -->
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn ${_activeFilterDate === 'all' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('all', '', '${containerId}')">All</button>
+                                <button type="button" class="btn ${_activeFilterDate === 'today' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('today', '', '${containerId}')">Today</button>
+                                <button type="button" class="btn ${_activeFilterDate === 'tomorrow' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('tomorrow', '', '${containerId}')">Tomorrow</button>
+                                <button type="button" class="btn ${_activeFilterDate === 'upcoming' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('upcoming', '', '${containerId}')">Upcoming</button>
+                            </div>
+
+                            <!-- Specific Date Picker -->
+                            <input type="date" class="form-control form-control-sm" id="liveCustomDatePicker" value="${_activeCustomDate}" style="width:145px; border-radius:6px;" title="Pick specific date" onchange="window.filterLiveDate('custom', this.value, '${containerId}')">
+                        </div>
+
+                        <!-- Right: Search Bar -->
+                        <div class="d-flex align-items-center" style="min-width:240px; flex:1; max-width:320px;">
+                            <div class="input-group input-group-sm">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white border-right-0" style="border-radius:6px 0 0 6px;"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" class="form-control border-left-0" id="liveSearchInput" placeholder="Search subject, teacher, time..." value="${_searchQuery}" style="border-radius:0 6px 6px 0;" oninput="window.filterLiveSearch(this.value, '${containerId}')">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Live Classes Table -->
+                <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                    <table class="table table-hover mb-0" style="font-size:0.9rem;">
+                        <thead style="background:#0f172a; color:#ffffff; position:sticky; top:0; z-index:10;">
+                            <tr>
+                                <th style="width:150px; font-weight:600; padding:12px 16px;">Date</th>
+                                <th style="width:110px; font-weight:600;">Grade</th>
+                                <th style="width:160px; font-weight:600;">Subject</th>
+                                <th style="min-width:200px; font-weight:600;">Time & Faculty</th>
+                                <th style="width:110px; font-weight:600; text-align:center;">Status</th>
+                                <th style="width:120px; font-weight:600; text-align:center;">App Visibility</th>
+                                <th style="width:140px; font-weight:600; text-align:center;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="liveTableBody">
+                            ${filtered.length === 0 ? `
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        <div class="py-3">
+                                            <i class="fas fa-calendar-times fa-3x mb-3 text-muted" style="opacity:0.4;"></i>
+                                            <h6 class="font-weight-bold">No Scheduled Classes Found</h6>
+                                            <p class="small text-muted mb-0">No classes match your current filter criteria or none have been published to the mobile app yet.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ` : filtered.map(item => {
+                                const meta = _getSubjectMeta(item.subject);
+                                const timeInfo = _parseTimeDetails(item.time);
+                                const statusInfo = _parseStatus(item.status);
+                                const dateFormatted = _friendlyDate(item.class_date);
+                                const isPublished = item.published !== false;
+
+                                let statusBadge = '<span class="badge badge-info px-2 py-1">Upcoming</span>';
+                                if (statusInfo.status === 'completed') {
+                                    statusBadge = '<span class="badge badge-success px-2 py-1">Completed</span>';
+                                } else if (statusInfo.status === 'cancelled') {
+                                    statusBadge = '<span class="badge badge-danger px-2 py-1">Cancelled</span>';
+                                }
+
+                                return `
+                                    <tr id="liveClassRow_${item.id}" style="${!isPublished ? 'opacity:0.65; background:#fafafa;' : ''}">
+                                        
+                                        <!-- Date -->
+                                        <td style="padding:12px 16px; vertical-align:middle;">
+                                            <div class="font-weight-bold text-dark">${dateFormatted}</div>
+                                            <small class="text-muted">${item.class_date || ''}</small>
+                                        </td>
+
+                                        <!-- Grade -->
+                                        <td style="vertical-align:middle;">
+                                            <span class="badge px-2 py-1" style="background:#e0f2fe; color:#0369a1; font-weight:700; border-radius:6px; font-size:0.8rem;">
+                                                ${item.class_grade || item.roll_no || 'Class'}
+                                            </span>
+                                        </td>
+
+                                        <!-- Subject -->
+                                        <td style="vertical-align:middle;">
+                                            <span class="badge px-2 py-1 font-weight-bold" style="background:${meta.bg}; color:${meta.color}; border-radius:6px; font-size:0.85rem;">
+                                                ${meta.emoji} ${item.subject || 'General'}
+                                            </span>
+                                        </td>
+
+                                        <!-- Time & Faculty -->
+                                        <td style="vertical-align:middle;">
+                                            <div class="font-weight-bold text-dark" style="font-size:0.92rem;">
+                                                <i class="far fa-clock text-muted mr-1"></i>${timeInfo.time}
+                                            </div>
+                                            ${timeInfo.faculty ? `
+                                                <div class="small text-muted mt-1">
+                                                    <i class="fas fa-chalkboard-teacher text-primary mr-1"></i>${timeInfo.faculty}
+                                                </div>
+                                            ` : ''}
+                                        </td>
+
+                                        <!-- Status Badge -->
+                                        <td style="vertical-align:middle; text-align:center;">
+                                            ${statusBadge}
+                                        </td>
+
+                                        <!-- Published Toggle -->
+                                        <td style="vertical-align:middle; text-align:center;">
+                                            <button class="btn btn-sm ${isPublished ? 'btn-outline-success' : 'btn-outline-secondary'}" style="font-size:0.75rem; border-radius:20px; padding:3px 10px; font-weight:600;" onclick="window.toggleLiveClassPublish('${item.id}', ${isPublished}, '${containerId}')" title="Click to ${isPublished ? 'Hide from Mobile App' : 'Publish to Mobile App'}">
+                                                <i class="fas ${isPublished ? 'fa-eye' : 'fa-eye-slash'} mr-1"></i>${isPublished ? 'Live on App' : 'Hidden'}
+                                            </button>
+                                        </td>
+
+                                        <!-- Actions -->
+                                        <td style="vertical-align:middle; text-align:center;">
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <button class="btn btn-outline-primary" onclick="window.openEditClassModal('${item.id}')" title="Edit this class session" style="border-radius:6px 0 0 6px; padding:4px 10px;">
+                                                    <i class="fas fa-edit mr-1"></i>Edit
+                                                </button>
+                                                <button class="btn btn-outline-danger" id="delBtn_${item.id}" onclick="window.deleteLiveClass('${item.id}', this, '${containerId}')" title="Delete from Supabase" style="border-radius:0 6px 6px 0; padding:4px 10px;">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer Summary Bar -->
+                <div class="p-3 border-top d-flex justify-content-between align-items-center" style="background:#f8fafc; font-size:0.85rem;">
+                    <div class="text-muted">
+                        Showing <strong>${filtered.length}</strong> of <strong>${_liveClasses.length}</strong> total class sessions in cloud database.
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-link text-danger font-weight-bold" onclick="window.clearPastClasses('${containerId}')">
+                            <i class="fas fa-broom mr-1"></i> Purge Past Completed Classes
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        `;
+
+        // Ensure Edit Modal DOM exists
+        _injectEditModalDOM();
+    }
+
+    // ── Inject Edit Modal DOM ───────────────────────────────────────────
+    function _injectEditModalDOM() {
+        if (document.getElementById('editLiveClassModal')) return;
+
+        const modalDiv = document.createElement('div');
+        modalDiv.id = 'editLiveClassModal';
+        modalDiv.style.cssText = 'display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); z-index:99999; backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:15px;';
+        modalDiv.innerHTML = `
+            <div style="background:#ffffff; border-radius:14px; width:100%; max-width:540px; box-shadow:0 25px 50px -12px rgba(0,0,0,0.25); overflow:hidden; animation:modalPopIn 0.25s ease-out;">
+                
+                <!-- Modal Header -->
+                <div style="background:linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color:#ffffff; padding:16px 20px; display:flex; justify-content:space-between; align-items:center;">
+                    <h5 class="mb-0 font-weight-bold" style="font-size:1.1rem;">
+                        <i class="fas fa-edit mr-2"></i>Edit Scheduled Class Session
+                    </h5>
+                    <button type="button" style="background:none; border:none; color:#ffffff; font-size:1.4rem; cursor:pointer; line-height:1;" onclick="window.closeEditClassModal()">&times;</button>
+                </div>
+
+                <!-- Modal Body Form -->
+                <div style="padding:22px 24px; max-height:80vh; overflow-y:auto;">
+                    <input type="hidden" id="editClassId">
+
+                    <!-- Class & Subject Row -->
+                    <div class="form-row mb-3">
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Class Grade *</label>
+                            <select class="form-control" id="editClassGrade" required>
+                                <option value="Class 6">Class 6</option>
+                                <option value="Class 7">Class 7</option>
+                                <option value="Class 8">Class 8</option>
+                                <option value="Class 9">Class 9</option>
+                                <option value="Class 10">Class 10</option>
+                                <option value="Class 11">Class 11</option>
+                                <option value="Class 12">Class 12</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Subject *</label>
+                            <select class="form-control" id="editClassSubject" required>
+                                <option value="Physics">Physics</option>
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Maths">Maths</option>
+                                <option value="Biology">Biology</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="No Class">No Class</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Date & Status Row -->
+                    <div class="form-row mb-3">
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Scheduled Date *</label>
+                            <input type="date" class="form-control" id="editClassDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Session Status</label>
+                            <select class="form-control" id="editClassStatus">
+                                <option value="upcoming">📖 Upcoming</option>
+                                <option value="completed">✅ Completed</option>
+                                <option value="cancelled">❌ Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Time Range Row -->
+                    <div class="form-row mb-3">
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Start Time (12-Hr)</label>
+                            <input type="text" class="form-control" id="editClassStartTime" placeholder="e.g. 03:00 PM">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">End Time (12-Hr)</label>
+                            <input type="text" class="form-control" id="editClassEndTime" placeholder="e.g. 04:00 PM">
+                        </div>
+                    </div>
+
+                    <!-- Assigned Faculty -->
+                    <div class="form-group mb-3">
+                        <label class="font-weight-bold text-dark small mb-1">Assigned Faculty Name</label>
+                        <input type="text" class="form-control" id="editClassFaculty" placeholder="e.g. Mr. Rajesh Menon">
+                        <small class="form-text text-muted">Displayed alongside the time slot in student app schedule tabs.</small>
+                    </div>
+
+                    <!-- Published Checkbox -->
+                    <div class="custom-control custom-checkbox mb-3 p-2 rounded" style="background:#f1f5f9;">
+                        <input type="checkbox" class="custom-control-input" id="editClassPublished" checked>
+                        <label class="custom-control-label font-weight-bold text-dark small" for="editClassPublished" style="cursor:pointer;">
+                            Publish to Mobile App (Students & Faculty see this)
+                        </label>
+                    </div>
+
+                    <!-- Broadcast Announcement Checkbox -->
+                    <div class="custom-control custom-checkbox mb-2">
+                        <input type="checkbox" class="custom-control-input" id="editClassBroadcast" checked>
+                        <label class="custom-control-label text-muted small" for="editClassBroadcast" style="cursor:pointer;">
+                            <i class="fas fa-bullhorn text-warning mr-1"></i> Send reschedule announcement alert to mobile app
+                        </label>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div style="background:#f8fafc; padding:14px 20px; border-top:1px solid #e2e8f0; display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" class="btn btn-secondary btn-sm px-3" onclick="window.closeEditClassModal()">Cancel</button>
+                    <button type="button" class="btn btn-primary btn-sm px-4 font-weight-bold" id="saveClassEditBtn" onclick="window.saveLiveClassEdit()">
+                        <i class="fas fa-save mr-1"></i> Save Changes
+                    </button>
+                </div>
+
+            </div>
+        `;
+
+        document.body.appendChild(modalDiv);
+    }
+
+    // ── Open Edit Modal ─────────────────────────────────────────────────
+    window.openEditClassModal = function (classId) {
+        _injectEditModalDOM();
+        const item = _liveClasses.find(c => c.id === classId);
+        if (!item) {
+            alert('Class record not found.');
+            return;
+        }
+
+        _currentEditId = classId;
+        document.getElementById('editClassId').value = classId;
+
+        // Populate fields
+        const rawGrade = String(item.class_grade || item.roll_no || 'Class 10');
+        const formattedGrade = rawGrade.startsWith('Class') ? rawGrade : 'Class ' + rawGrade;
+        document.getElementById('editClassGrade').value = formattedGrade;
+        document.getElementById('editClassSubject').value = item.subject || 'Physics';
+        document.getElementById('editClassDate').value = item.class_date || '';
+
+        const timeInfo = _parseTimeDetails(item.time);
+        let sTime = '';
+        let eTime = '';
+        if (timeInfo.time.includes('-')) {
+            const tParts = timeInfo.time.split('-');
+            sTime = tParts[0].trim();
+            eTime = tParts[1].trim();
+        } else {
+            sTime = timeInfo.time;
+        }
+        document.getElementById('editClassStartTime').value = sTime;
+        document.getElementById('editClassEndTime').value = eTime;
+        document.getElementById('editClassFaculty').value = timeInfo.faculty;
+
+        const statusInfo = _parseStatus(item.status);
+        document.getElementById('editClassStatus').value = statusInfo.status || 'upcoming';
+        document.getElementById('editClassPublished').checked = item.published !== false;
+
+        // Display modal
+        const modal = document.getElementById('editLiveClassModal');
+        modal.style.display = 'flex';
+    };
+
+    window.closeEditClassModal = function () {
+        const modal = document.getElementById('editLiveClassModal');
+        if (modal) modal.style.display = 'none';
+        _currentEditId = null;
+    };
+
+    // ── Save Class Edit to Supabase ─────────────────────────────────────
+    window.saveLiveClassEdit = async function () {
+        const classId = _currentEditId || document.getElementById('editClassId').value;
+        if (!classId) return;
+
+        const sb = _getSb();
+        if (!sb) {
+            alert('Supabase client not available.');
+            return;
+        }
+
+        const saveBtn = document.getElementById('saveClassEditBtn');
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
+        }
+
+        try {
+            const classGrade = document.getElementById('editClassGrade').value;
+            const subject = document.getElementById('editClassSubject').value;
+            const classDate = document.getElementById('editClassDate').value;
+            const startTime = document.getElementById('editClassStartTime').value.trim();
+            const endTime = document.getElementById('editClassEndTime').value.trim();
+            const faculty = document.getElementById('editClassFaculty').value.trim();
+            const status = document.getElementById('editClassStatus').value;
+            const published = document.getElementById('editClassPublished').checked;
+            const doBroadcast = document.getElementById('editClassBroadcast').checked;
+
+            let timeStr = startTime;
+            if (startTime && endTime) {
+                timeStr = `${startTime} - ${endTime}`;
+            }
+
+            const finalTime = faculty ? `${timeStr} • ${faculty}` : timeStr;
+            const finalStatus = faculty ? `${status}:fac` : status;
+
+            // 1. Update in Supabase classes table
+            const { error: updErr } = await sb.from('classes').update({
+                class_grade: classGrade,
+                roll_no: classGrade,
+                subject: subject,
+                class_date: classDate,
+                time: finalTime,
+                status: finalStatus,
+                published: published
+            }).eq('id', classId);
+
+            if (updErr) {
+                console.error('[LiveTimetable] Update error:', updErr);
+                throw updErr;
+            }
+
+            // 2. Broadcast announcement if requested
+            if (doBroadcast) {
+                try {
+                    await sb.from('announcements').insert({
+                        title: `🔄 Schedule Update: ${classGrade} - ${subject}`,
+                        description: `Class scheduled for ${_friendlyDate(classDate)} has been updated: Time is ${timeStr}${faculty ? ' with ' + faculty : ''}. Check your mobile app schedule.`,
+                        author: faculty || 'Center Admin',
+                        tag: 'Timetable',
+                        important: true
+                    });
+                } catch (bErr) {
+                    console.warn('[LiveTimetable] Broadcast announcement failed:', bErr);
+                }
+            }
+
+            // Update local memory
+            const idx = _liveClasses.findIndex(c => c.id === classId);
+            if (idx !== -1) {
+                _liveClasses[idx] = {
+                    ..._liveClasses[idx],
+                    class_grade: classGrade,
+                    roll_no: classGrade,
+                    subject: subject,
+                    class_date: classDate,
+                    time: finalTime,
+                    status: finalStatus,
+                    published: published
+                };
+            }
+
+            window.closeEditClassModal();
+            _showToast('Class session updated successfully in Supabase!');
+            renderPlatform();
+            updateBadgeCounters();
+        } catch (err) {
+            alert('Failed to update class: ' + (err.message || err));
+        } finally {
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Changes';
+            }
+        }
+    };
+
+    // ── Delete Class Session ────────────────────────────────────────────
+    window.deleteLiveClass = async function (classId, btn, containerId) {
+        if (!classId) return;
+
+        // 2-step confirmation
+        if (btn && btn.getAttribute('data-confirming') !== 'true') {
+            btn.setAttribute('data-confirming', 'true');
+            const origHtml = btn.innerHTML;
+            btn.className = 'btn btn-warning font-weight-bold';
+            btn.innerHTML = '<i class="fas fa-exclamation-triangle mr-1"></i> Confirm?';
+
+            setTimeout(() => {
+                if (document.body.contains(btn)) {
+                    btn.removeAttribute('data-confirming');
+                    btn.className = 'btn btn-outline-danger';
+                    btn.innerHTML = origHtml;
+                }
+            }, 3500);
+            return;
+        }
+
+        const sb = _getSb();
+        if (!sb) {
+            alert('Supabase client not ready.');
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
+
+        try {
+            const { error } = await sb.from('classes').delete().eq('id', classId);
+            if (error) {
+                console.error('[LiveTimetable] Delete error:', error);
+                throw error;
+            }
+
+            // Remove from local list
+            _liveClasses = _liveClasses.filter(c => c.id !== classId);
+            _showToast('Class deleted from mobile app database.');
+            renderPlatform(containerId);
+            updateBadgeCounters();
+        } catch (err) {
+            alert('Failed to delete class: ' + (err.message || err));
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+            }
+        }
+    };
+
+    // ── Toggle Published / Visibility ───────────────────────────────────
+    window.toggleLiveClassPublish = async function (classId, currentStatus, containerId) {
+        const sb = _getSb();
+        if (!sb) return;
+
+        const newStatus = !currentStatus;
+        try {
+            const { error } = await sb.from('classes').update({ published: newStatus }).eq('id', classId);
+            if (error) throw error;
+
+            const idx = _liveClasses.findIndex(c => c.id === classId);
+            if (idx !== -1) {
+                _liveClasses[idx].published = newStatus;
+            }
+
+            _showToast(newStatus ? 'Class is now LIVE on mobile app!' : 'Class is now HIDDEN from mobile app.');
+            renderPlatform(containerId);
+            updateBadgeCounters();
+        } catch (err) {
+            alert('Failed to toggle class status: ' + (err.message || err));
+        }
+    };
+
+    // ── Clear Past Completed Classes ────────────────────────────────────
+    window.clearPastClasses = async function (containerId) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const cutoffStr = yesterday.toISOString().slice(0, 10);
+
+        const pastCount = _liveClasses.filter(c => c.class_date && c.class_date <= cutoffStr).length;
+        if (pastCount === 0) {
+            alert('No past classes to clean up.');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete ${pastCount} past class session(s) scheduled before today? This cannot be undone.`)) {
+            return;
+        }
+
+        const sb = _getSb();
+        if (!sb) return;
+
+        try {
+            const { error } = await sb.from('classes').delete().lte('class_date', cutoffStr);
+            if (error) throw error;
+
+            _liveClasses = _liveClasses.filter(c => !c.class_date || c.class_date > cutoffStr);
+            _showToast(`Successfully purged ${pastCount} past class session(s).`);
+            renderPlatform(containerId);
+            updateBadgeCounters();
+        } catch (err) {
+            alert('Failed to purge past classes: ' + (err.message || err));
+        }
+    };
+
+    // ── Filter Handlers ─────────────────────────────────────────────────
+    window.filterLiveClass = function (val, containerId) {
+        _activeFilterClass = val;
+        renderPlatform(containerId);
+    };
+
+    window.filterLiveDate = function (type, customVal, containerId) {
+        _activeFilterDate = type;
+        if (type === 'custom') {
+            _activeCustomDate = customVal;
+        }
+        renderPlatform(containerId);
+    };
+
+    window.filterLiveSearch = function (query, containerId) {
+        _searchQuery = (query || '').trim();
+        renderPlatform(containerId);
+    };
+
+    window.refreshLiveTimetable = async function (containerId) {
+        const btn = document.getElementById('refreshLiveBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Refreshing...';
+        }
+        await loadLiveClasses(containerId);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Refresh Live Data';
+        }
+        _showToast('Live App Timetable refreshed from Supabase.');
+    };
+
+    // ── Realtime Synchronization ────────────────────────────────────────
+    function _setupRealtime(containerId) {
+        const sb = _getSb();
+        if (!sb || typeof sb.channel !== 'function') return;
+
+        try {
+            if (_realtimeChannel) {
+                sb.removeChannel(_realtimeChannel);
+            }
+
+            _realtimeChannel = sb
+                .channel('live-timetable-realtime')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, payload => {
+                    console.log('[LiveTimetable] Realtime event on classes:', payload.eventType);
+                    // Silently reload classes to keep table fresh
+                    loadLiveClasses(containerId);
+                })
+                .subscribe();
+        } catch (e) {
+            console.warn('[LiveTimetable] Realtime setup failed:', e);
+        }
+    }
+
+    // ── Initialize on container ─────────────────────────────────────────
+    window.initLiveAppTimetable = function (containerId) {
+        const targetId = containerId || 'liveTimetablePlatform';
+        loadLiveClasses(targetId);
+        _setupRealtime(targetId);
+    };
+
+    // Hook into window.shareTimetableToApp so it automatically refreshes
+    const originalShare = window.shareTimetableToApp;
+    if (typeof originalShare === 'function') {
+        window.shareTimetableToApp = async function () {
+            await originalShare.apply(this, arguments);
+            // Refresh live table after sharing
+            setTimeout(() => {
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('liveTimetablePlatform');
+                }
+            }, 1000);
+        };
+    }
+
+    // Auto-init if container exists on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('liveTimetablePlatform')) {
+            window.initLiveAppTimetable('liveTimetablePlatform');
+        }
+    });
+
+})();

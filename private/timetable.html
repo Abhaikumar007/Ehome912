@@ -14,14 +14,31 @@
     <script src="js/security.js"></script>
 
     <div class="container mt-4">
-        <div class="page-header d-flex justify-content-between align-items-center mb-4">
-            <h2><a href="index.html" class="text-dark"><i class="fas fa-arrow-left"></i></a> Create Timetable</h2>
-            <a href="teacher_allotment.html" class="btn btn-primary" style="font-weight: 600; border-radius: 8px;">
-                <i class="fas fa-chalkboard-teacher mr-1"></i> Assign Teachers for Subjects
-            </a>
+        <div class="page-header d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center mb-2 mb-md-0">
+                <h2><a href="index.html" class="text-dark mr-2"><i class="fas fa-arrow-left"></i></a> Timetable Control Center</h2>
+            </div>
+            <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                <div class="btn-group shadow-sm" role="group">
+                    <button type="button" class="btn btn-primary" id="btnShowBuilder" onclick="switchTimetableMode('builder')">
+                        <i class="fas fa-plus-circle mr-1"></i> Create & Share
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="btnShowLive" onclick="switchTimetableMode('live')">
+                        <i class="fas fa-mobile-alt mr-1"></i> Live on Mobile App <span class="badge badge-primary live-timetable-counter-badge ml-1" id="liveCountBadge">0</span>
+                    </button>
+                </div>
+                <a href="teacher_allotment.html" class="btn btn-outline-secondary" style="font-weight: 600; border-radius: 8px;">
+                    <i class="fas fa-chalkboard-teacher mr-1"></i> Assign Teachers
+                </a>
+                <a href="master_hub.html#tab-timetable" class="btn btn-outline-info" style="font-weight: 600; border-radius: 8px;">
+                    <i class="fas fa-satellite-dish mr-1"></i> Master Hub
+                </a>
+            </div>
         </div>
 
-        <div class="row">
+        <!-- Section 1: Timetable Builder & Generator -->
+        <div id="timetableBuilderSection">
+            <div class="row">
             <div class="col-md-4">
                 <div class="form-section">
                     <h4>Add Class Entry</h4>
@@ -133,6 +150,13 @@
                 </div>
             </div>
         </div>
+        </div><!-- /#timetableBuilderSection -->
+
+        <!-- Section 2: Live Mobile App Timetable Platform -->
+        <div id="liveSectionWrapper" class="mt-4" style="display:none;">
+            <div id="liveTimetablePlatform"></div>
+        </div>
+
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -141,6 +165,43 @@
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
     <script src="js/admin.js"></script>
+    <script src="js/live_timetable.js"></script>
+
+    <script>
+        function switchTimetableMode(mode) {
+            const builderSec = document.getElementById('timetableBuilderSection');
+            const liveSec = document.getElementById('liveSectionWrapper');
+            const btnBuilder = document.getElementById('btnShowBuilder');
+            const btnLive = document.getElementById('btnShowLive');
+
+            if (mode === 'live') {
+                if (builderSec) builderSec.style.display = 'none';
+                if (liveSec) liveSec.style.display = 'block';
+                if (btnBuilder) { btnBuilder.className = 'btn btn-outline-primary'; }
+                if (btnLive) { btnLive.className = 'btn btn-primary'; }
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('liveTimetablePlatform');
+                }
+            } else {
+                if (builderSec) builderSec.style.display = 'block';
+                if (liveSec) liveSec.style.display = 'none';
+                if (btnBuilder) { btnBuilder.className = 'btn btn-primary'; }
+                if (btnLive) { btnLive.className = 'btn btn-outline-primary'; }
+            }
+        }
+
+        // Check URL hash on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.location.hash === '#live' || window.location.hash === '#liveSectionWrapper') {
+                switchTimetableMode('live');
+            } else {
+                // Preload live count badge silently
+                if (typeof window.initLiveAppTimetable === 'function') {
+                    window.initLiveAppTimetable('liveTimetablePlatform');
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>
