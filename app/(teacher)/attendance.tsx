@@ -123,28 +123,32 @@ export default function FacultyAttendanceScreen() {
         // Map attendance subjects (where code_test syncs student subjects)
         // today_subjects may be EITHER:
         //   (a) Plain string arrays from code_test admin sync: ["Physics", "Maths"]
+        //       → These represent the FULL enrolled subjects list – use them.
         //   (b) Attendance record objects from dataService:    [{subject:"Physics", status:"present"}]
-        // We normalise both into clean subject-name string arrays.
+        //       → These only contain the LAST session's subject – do NOT use as enrollment list.
+        // We only use format (a) here; format (b) is ignored so the student's
+        // static/Supabase subjects take precedence.
         const attMap = new Map<string, string[]>();
         if (Array.isArray(attData)) {
           attData.forEach((a: any) => {
             if (!a.roll_no || !Array.isArray(a.today_subjects) || a.today_subjects.length === 0) return;
 
+            // Only trust entries that are plain strings (format a from code_test sync)
             const subjects: string[] = [];
+            let hasObjectEntries = false;
             a.today_subjects.forEach((entry: any) => {
               if (typeof entry === 'string' && entry.trim()) {
-                // Format (a): plain string like "Physics"
                 subjects.push(entry.trim());
-              } else if (entry && typeof entry === 'object' && typeof entry.subject === 'string' && entry.subject.trim()) {
-                // Format (b): attendance record object like {subject: "Physics", ...}
-                subjects.push(entry.subject.trim());
+              } else if (entry && typeof entry === 'object') {
+                hasObjectEntries = true;
               }
             });
 
-            // De-duplicate and only store if we extracted real subject names
-            const unique = Array.from(new Set(subjects));
-            if (unique.length > 0) {
-              attMap.set(a.roll_no.toUpperCase(), unique);
+            // If ALL entries were plain strings, use them as enrollment data.
+            // If any were objects (attendance records), skip entirely – these are
+            // session logs, not the full enrollment list.
+            if (subjects.length > 0 && !hasObjectEntries) {
+              attMap.set(a.roll_no.toUpperCase(), Array.from(new Set(subjects)));
             }
           });
         }
