@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  Alert, Modal, TextInput, Image, ActivityIndicator,
+  Alert, Modal, TextInput, Image, ActivityIndicator, RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,8 +21,6 @@ import {
   isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
 
-const ASSIGNED_STUDENTS = EDUSYNC_STUDENTS;
-
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
@@ -30,6 +28,8 @@ export default function TeacherHomeScreen() {
   const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
   const [adminClasses, setAdminClasses] = useState<any[]>([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [liveStudents, setLiveStudents] = useState<typeof EDUSYNC_STUDENTS>(EDUSYNC_STUDENTS);
 
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState('');
@@ -95,10 +95,135 @@ export default function TeacherHomeScreen() {
     } catch {}
   };
 
+  const fetchLiveStudents = useCallback(async () => {
+    try {
+      const [{ data, error }, { data: attData }] = await Promise.all([
+        supabase.from('students').select('*').order('created_at', { ascending: true }),
+        supabase.from('attendance_records').select('roll_no, today_subjects'),
+      ]);
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        const attMap = new Map<string, string[]>();
+        if (Array.isArray(attData)) {
+          attData.forEach((a: any) => {
+            if (!a.roll_no || !Array.isArray(a.today_subjects) || a.today_subjects.length === 0) return;
+            const subjects: string[] = [];
+            let hasObjectEntries = false;
+            a.today_subjects.forEach((entry: any) => {
+              if (typeof entry === 'string' && entry.trim()) {
+                subjects.push(entry.trim());
+              } else if (entry && typeof entry === 'object') {
+                hasObjectEntries = true;
+              }
+            });
+            if (subjects.length > 0 && !hasObjectEntries) {
+              attMap.set(a.roll_no.toUpperCase(), Array.from(new Set(subjects)));
+            }
+          });
+        }
+
+        const supabaseMap = new Map<string, any>();
+        data.forEach((d: any) => {
+          supabaseMap.set((d.roll_no || '').toUpperCase(), d);
+        });
+
+        const merged = EDUSYNC_STUDENTS.map((s) => {
+          const remote = supabaseMap.get(s.rollNo.toUpperCase());
+          const attSubjects = attMap.get(s.rollNo.toUpperCase());
+          if (!remote) {
+            if (attSubjects && attSubjects.length > 0) {
+              return { ...s, subjects: attSubjects.join(', ') };
+            }
+            return s;
+          }
+          return {
+            ...s,
+            name: remote.name || s.name,
+            class: remote.class_name || s.class,
+            batch: remote.batch || remote.class_name || s.batch,
+            phone: remote.phone || s.phone,
+            school: remote.school || s.school,
+            subjects: (attSubjects && attSubjects.length > 0)
+              ? attSubjects.join(', ')
+              : (remote.subjects
+                  ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
+                  : s.subjects),
+            accuracy: remote.accuracy ?? s.accuracy,
+            streak: remote.streak ?? s.streak,
+            testsCompleted: remote.tests_completed ?? s.testsCompleted,
+            topPercent: remote.top_percent ?? s.topPercent,
+            pin: remote.pin || s.pin,
+          };
+        });
+
+        data.forEach((d: any) => {
+          const roll = (d.roll_no || '').toUpperCase();
+          const exists = EDUSYNC_STUDENTS.some((s) => s.rollNo.toUpperCase() === roll);
+          if (!exists) {
+            const attSubjects = attMap.get(roll);
+            merged.push({
+              rollNo: d.roll_no || '',
+              pin: d.pin || '1234',
+              name: d.name || '',
+              class: d.class_name || 'Class 10',
+              batch: d.batch || d.class_name || 'Class 10',
+              avatar: (d.name || 'ST').slice(0, 2).toUpperCase(),
+              phone: d.phone || '',
+              school: d.school || 'EduHome',
+              streak: d.streak ?? 0,
+              accuracy: d.accuracy ?? 0,
+              testsCompleted: d.tests_completed ?? 0,
+              topPercent: d.top_percent ?? 0,
+              recentScore: `${d.accuracy ?? 0}%`,
+              avatarColor: '#0284C7',
+              monthlyFee: 0,
+              currentDue: 0,
+              dueDate: '',
+              daysLeft: 0,
+              joiningDate: '',
+              joiningDateIso: '',
+              monthsPaidOnTime: 0,
+              subjects: (attSubjects && attSubjects.length > 0)
+                ? attSubjects.join(', ')
+                : (d.subjects
+                    ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
+                    : 'General'),
+            } as any);
+          }
+        });
+
+        setLiveStudents(merged as any);
+      }
+    } catch (e) {
+      console.warn('[TeacherHomeScreen] Could not fetch live students:', e);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        loadActiveFaculty(),
+        loadTimetable(),
+        loadAnnouncements(),
+        loadPendingOpinions(),
+        fetchLiveStudents(),
+      ]);
+    } catch (e) {
+      console.warn('[TeacherHomeScreen] Refresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchLiveStudents]);
+
   useFocusEffect(
     useCallback(() => {
       loadActiveFaculty();
-    }, [])
+      loadTimetable();
+      loadAnnouncements();
+      loadPendingOpinions();
+      fetchLiveStudents();
+    }, [fetchLiveStudents])
   );
 
   useEffect(() => {
@@ -106,6 +231,7 @@ export default function TeacherHomeScreen() {
     loadAnnouncements();
     loadPendingOpinions();
     loadTimetable();
+    fetchLiveStudents();
 
     const unsub = subscribeToActiveTeacher((updated) => {
       setActiveTeacher({ ...updated });
@@ -136,13 +262,22 @@ export default function TeacherHomeScreen() {
       })
       .subscribe();
 
+    const studentChannel = supabase
+      .channel('teacher_students_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => {
+        console.log('[Realtime] Students updated from cloud in teacher home!');
+        fetchLiveStudents();
+      })
+      .subscribe();
+
     return () => {
       unsub();
       supabase.removeChannel(classChannel);
       supabase.removeChannel(channel);
       supabase.removeChannel(teacherChannel);
+      supabase.removeChannel(studentChannel);
     };
-  }, []);
+  }, [fetchLiveStudents]);
 
   const getInitials = (name: string) => {
     return name
@@ -297,6 +432,20 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={styles.refreshBtn}
+            onPress={onRefresh}
+            disabled={refreshing}
+            activeOpacity={0.7}
+            accessibilityLabel="Refresh faculty dashboard"
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color="#0284C7" />
+            ) : (
+              <Ionicons name="refresh" size={16} color="#0284C7" />
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
             style={styles.bellBtn}
             onPress={() => Alert.alert('Faculty Notifications', 'All class notes and attendance are synchronized with admin timetable.')}
           >
@@ -312,7 +461,18 @@ export default function TeacherHomeScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+      >
         {/* Welcome Banner */}
         <View style={styles.welcomeCard}>
           <View style={{ flex: 1 }}>
@@ -486,7 +646,7 @@ export default function TeacherHomeScreen() {
         {/* Student Academic Opinions & Faculty Remarks Workflow */}
         {(() => {
           // Strictly filter students assigned to this active teacher's subject & grades
-          const teacherAllottedStudents = ASSIGNED_STUDENTS.filter((stu) => {
+          const teacherAllottedStudents = liveStudents.filter((stu) => {
             // Grade check
             if (activeTeacher?.allowedGrades && !activeTeacher.allowedGrades.includes('*')) {
               const gradeNum = (stu.class || '').match(/\b(1[0-2]|[6-9])\b/)?.[1];
@@ -930,6 +1090,16 @@ const styles = StyleSheet.create({
     borderColor: '#BAE6FD',
   },
   facultyPillText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
+  refreshBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   bellBtn: { position: 'relative', padding: 4 },
   bellDot: {
     position: 'absolute',

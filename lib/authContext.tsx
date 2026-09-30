@@ -29,10 +29,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadSession = async () => {
     try {
-      const cur = await DataService.getCurrentStudent();
+      const cur = await DataService.syncCurrentStudentFromSupabase();
       setStudent(cur);
     } catch {
-      // ignore
+      try {
+        const fallback = await DataService.getCurrentStudent();
+        setStudent(fallback);
+      } catch {
+        // ignore
+      }
     } finally {
       setLoading(false);
     }

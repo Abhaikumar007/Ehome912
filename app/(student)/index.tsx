@@ -136,9 +136,17 @@ export default function DashboardScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([loadData(), refreshAuth()]);
-    } catch {}
-    setRefreshing(false);
+      await Promise.all([
+        loadData(),
+        refreshAuth(),
+        DataService.getAnnouncements(true),
+        DataService.syncCurrentStudentFromSupabase(rollNo),
+      ]);
+    } catch (e) {
+      console.warn('[DashboardScreen] Refresh error:', e);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const today = new Date();
@@ -192,6 +200,19 @@ export default function DashboardScreen() {
           <TouchableOpacity style={styles.classPill}>
             <Text style={styles.classPillText}>{student?.class || 'Class 12'}</Text>
             <Ionicons name="chevron-down" size={13} color={Colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.refreshBtn}
+            onPress={onRefresh}
+            disabled={refreshing}
+            activeOpacity={0.7}
+            accessibilityLabel="Refresh student dashboard"
+          >
+            {refreshing ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <Ionicons name="refresh" size={17} color={Colors.primary} />
+            )}
           </TouchableOpacity>
           <TouchableOpacity style={styles.notifBtn} onPress={() => router.push('/(student)/notifications' as any)}>
             <Ionicons name="notifications-outline" size={22} color={Colors.textPrimary} />
@@ -702,6 +723,16 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
   },
   classPillText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  refreshBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   notifBtn: { position: 'relative' },
   notifDot: {
     position: 'absolute', top: 1, right: 1,

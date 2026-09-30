@@ -138,6 +138,42 @@ export const DataService = {
     }
   },
 
+  // Synchronize student session with latest Supabase record on refresh
+  async syncCurrentStudentFromSupabase(rollNo?: string): Promise<StudentProfile> {
+    const current = await this.getCurrentStudent();
+    const targetRoll = rollNo || current.rollNo;
+    if (!targetRoll) return current;
+
+    try {
+      const { data, error } = await withTimeout(
+        supabase.from('students').select('*').eq('roll_no', targetRoll).single(),
+        3000
+      ) as any;
+
+      if (!error && data) {
+        const updated: StudentProfile = {
+          ...current,
+          rollNo: data.roll_no || current.rollNo,
+          name: data.name || current.name,
+          class: data.class_name || current.class,
+          batch: data.batch || data.class_name || current.batch,
+          phone: data.phone || current.phone,
+          avatar: data.avatar || current.avatar,
+          streak: data.streak ?? current.streak,
+          accuracy: data.accuracy ?? current.accuracy,
+          testsCompleted: data.tests_completed ?? current.testsCompleted,
+          topPercent: data.top_percent ?? current.topPercent,
+          goals: data.class_name || current.goals,
+        };
+        await this.saveCurrentStudent(updated);
+        return updated;
+      }
+    } catch (e) {
+      console.warn('[DataService] syncCurrentStudentFromSupabase notice:', e);
+    }
+    return current;
+  },
+
   // Student Login
   async loginStudent(rollNo: string, pin: string): Promise<{ success: boolean; student?: StudentProfile; error?: string }> {
     const trimmedRoll = rollNo.trim();
