@@ -1,3 +1,18 @@
+
+function _formatToDateInputValue(dateStr) {
+    if (!dateStr) return '';
+    const trimmed = String(dateStr).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+    return '';
+}
+
 // Master Roster of all 50 students with full subjects, fees, schools, and joining dates
 const MASTER_STUDENTS_ROSTER = [
     {
@@ -1346,21 +1361,37 @@ if (document.getElementById('addStudentForm')) {
         let studentToSync = null;
 
         if (id) {
-            // EDIT MODE
+            // EDIT MODE: Preserve original admission/joining date if input is blank or unchanged
             const index = students.findIndex(s => s.id === id || (s.rollNo && s.rollNo === id) || (s.roll_no && s.roll_no === id));
             if (index !== -1) {
+                const existingDate = students[index].joiningDate || students[index].joining_date || '';
+                const finalJoiningDate = joiningDate ? joiningDate : (existingDate || new Date().toISOString().slice(0, 10));
+
                 students[index] = {
                     ...students[index],
-                    name, class: studentClass, school, phone, joiningDate, amount, subjects
+                    name,
+                    class: studentClass,
+                    school,
+                    phone,
+                    joiningDate: finalJoiningDate,
+                    amount,
+                    subjects
                 };
                 studentToSync = students[index];
                 alert('Student Updated Successfully!');
             }
         } else {
-            // ADD MODE
+            // ADD MODE: Default to today if left blank
+            const finalJoiningDate = joiningDate || new Date().toISOString().slice(0, 10);
             const newStudent = {
                 id: Date.now().toString(),
-                name, class: studentClass, school, phone, joiningDate, amount, subjects
+                name,
+                class: studentClass,
+                school,
+                phone,
+                joiningDate: finalJoiningDate,
+                amount,
+                subjects
             };
             students.push(newStudent);
             studentToSync = newStudent;
@@ -2781,7 +2812,7 @@ if (document.getElementById('studentListBody')) {
         document.getElementById('class').value = student.class;
         document.getElementById('school').value = student.school;
         document.getElementById('phone').value = student.phone;
-        document.getElementById('joiningDate').value = student.joiningDate || '';
+        document.getElementById('joiningDate').value = _formatToDateInputValue(student.joiningDate || student.joining_date);
         document.getElementById('amount').value = student.amount || '';
         
         // Stop auto-calc from overriding during an edit
