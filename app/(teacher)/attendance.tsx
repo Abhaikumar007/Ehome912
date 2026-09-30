@@ -121,11 +121,30 @@ export default function FacultyAttendanceScreen() {
 
       if (!error && Array.isArray(data) && data.length > 0) {
         // Map attendance subjects (where code_test syncs student subjects)
+        // today_subjects may be EITHER:
+        //   (a) Plain string arrays from code_test admin sync: ["Physics", "Maths"]
+        //   (b) Attendance record objects from dataService:    [{subject:"Physics", status:"present"}]
+        // We normalise both into clean subject-name string arrays.
         const attMap = new Map<string, string[]>();
         if (Array.isArray(attData)) {
           attData.forEach((a: any) => {
-            if (a.roll_no && Array.isArray(a.today_subjects) && a.today_subjects.length > 0) {
-              attMap.set(a.roll_no.toUpperCase(), a.today_subjects);
+            if (!a.roll_no || !Array.isArray(a.today_subjects) || a.today_subjects.length === 0) return;
+
+            const subjects: string[] = [];
+            a.today_subjects.forEach((entry: any) => {
+              if (typeof entry === 'string' && entry.trim()) {
+                // Format (a): plain string like "Physics"
+                subjects.push(entry.trim());
+              } else if (entry && typeof entry === 'object' && typeof entry.subject === 'string' && entry.subject.trim()) {
+                // Format (b): attendance record object like {subject: "Physics", ...}
+                subjects.push(entry.subject.trim());
+              }
+            });
+
+            // De-duplicate and only store if we extracted real subject names
+            const unique = Array.from(new Set(subjects));
+            if (unique.length > 0) {
+              attMap.set(a.roll_no.toUpperCase(), unique);
             }
           });
         }
