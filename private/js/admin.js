@@ -1947,13 +1947,15 @@ if (document.getElementById('timetableTableBody')) {
 
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType, facultyId, facultyName };
 
-        // FIX BUG: Only replace if it is the EXACT same time slot! Different slots on the same day are ADDED cleanly.
+        // Only replace if ALL fields are identical (exact duplicate). Otherwise always add as a new entry.
         const existingIdx = timetableEntries.findIndex(e =>
             e.class === studentClass &&
             e.date === date &&
             e.startTime === startTime &&
             e.endTime === endTime &&
-            (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim()
+            (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim() &&
+            (e.board || 'Both') === (board || 'Both') &&
+            (e.sessionType || 'Regular') === (sessionType || 'Regular')
         );
         if (existingIdx !== -1) {
             timetableEntries[existingIdx] = entry;
@@ -2240,14 +2242,16 @@ if (document.getElementById('timetableTableBody')) {
                 return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
             }
 
-            // Deduplicate entries so each class + subject + date has only 1 final slot
+            // Deduplicate entries: key must include ALL distinguishing fields so different boards/session types are preserved
             const entriesMap = new Map();
             rawEntries.forEach(e => {
                 const rawCls = String(e.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
                 const normSub = (e.subject || '').trim().toLowerCase();
-                // FIX BUG: Key must include start and end times so multiple sessions on the same day are NEVER dropped
-                const key = gradeStr + '_' + normSub + '_' + e.date + '_' + (e.startTime || '') + '_' + (e.endTime || '');
+                const boardVal = (e.board || 'Both').trim();
+                const sessVal = (e.sessionType || 'Regular').trim();
+                // Key includes ALL fields so multiple sessions with same time but different board/type are NEVER dropped
+                const key = gradeStr + '_' + normSub + '_' + e.date + '_' + (e.startTime || '') + '_' + (e.endTime || '') + '_' + boardVal + '_' + sessVal;
                 entriesMap.set(key, e);
             });
             const deduplicatedEntries = Array.from(entriesMap.values());
