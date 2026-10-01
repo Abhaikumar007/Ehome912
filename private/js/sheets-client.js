@@ -524,54 +524,122 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
     if (sb) {
         try {
             const sid = String(studentId);
-            // Locate student in students table or fees_records table
-            const { data: feeRecord } = await sb.from('fees_records')
+            const localStudents = (typeof getStudents === 'function') ? getStudents() : [];
+            const student = localStudents.find(s => s.id === sid || s.rollNo === sid || s.roll_no === sid || s.phone === sid) || null;
+            const rollNo = student?.rollNo || student?.roll_no || student?.id || sid;
+            const studentFee = Number(student?.amount || student?.fee) || (student?.class ? (typeof getStandardClassFee === 'function' ? getStandardClassFee(student.class) : 4000) : 4000);
+
+            // Fetch current fee record from Supabase
+            const { data: feeRecord, error: fErr } = await sb.from('fees_records')
                 .select('*')
-                .or('roll_no.eq.' + sid + ',id.eq.' + sid)
+                .eq('roll_no', rollNo)
                 .maybeSingle();
 
-            const rollNo = feeRecord ? feeRecord.roll_no : sid;
+            if (fErr) {
+                console.warn('[DualSync] Pre-fetch feeRecord error:', fErr);
+            }
 
-            if (newStatus === 'Paid') {
-                const now = new Date();
+            const mShort = (month || 'AUG').slice(0, 3).toUpperCase();
+            const fullMonthStr = month + ' ' + year;
+
+            let fees = {};
+            try {
+                fees = (typeof getFees === 'function') ? getFees() : (JSON.parse(localStorage.getItem('fees')) || {});
+            } catch (e) {}
+
+            const studentSubjects = (Array.isArray(student?.subjects) && student.subjects.length > 0) ? student.subjects : [subject];
+            let isMonthFullyPaid = (newStatus === 'Paid');
+            if (isMonthFullyPaid) {
+                for (const sub of studentSubjects) {
+                    const k1 = `${student?.id || sid}_${sub}_${month}_${year}`;
+                    const k2 = `${rollNo}_${sub}_${month}_${year}`;
+                    if (fees[k1] !== 'Paid' && fees[k2] !== 'Paid') {
+                        isMonthFullyPaid = false;
+                        break;
+                    }
+                }
+            }
+
+            const now = new Date();
+            let currentDue = 0;
+            let dueDate = 'All Cleared';
+            let daysLeft = 0;
+            let updatedPayments = Array.isArray(feeRecord?.recent_payments) ? [...feeRecord.recent_payments] : [];
+            let updatedLoyalty = Array.isArray(feeRecord?.loyalty_months) ? [...feeRecord.loyalty_months] : [];
+
+            if (isMonthFullyPaid) {
                 const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-                const mShort = (month || 'SEP').slice(0, 3).toUpperCase();
-                const paymentAmount = feeRecord?.monthly_fee || 4000;
-
                 const paymentEntry = {
                     month: mShort,
-                    fullMonth: month + ' ' + year,
+                    fullMonth: fullMonthStr,
                     paidOn: paidOnStr,
-                    amount: paymentAmount,
+                    amount: studentFee, // Accurate student fee, e.g. ₹4,500!
                     onTime: true,
-                    status: 'Verified by Admin (Web Panel)',
-                    receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000)
+                    status: 'Verified by Center Admin',
+                    receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000),
+                    utr: 'ADMIN-VERIFIED'
                 };
 
-                const currentPayments = Array.isArray(feeRecord?.recent_payments) ? feeRecord.recent_payments : [];
-                const updatedPayments = [paymentEntry, ...currentPayments.filter(p => !(p.month === mShort && p.fullMonth?.includes(String(year))))];
+                const pIdx = updatedPayments.findIndex(p => p.fullMonth === fullMonthStr || p.month === mShort);
+                if (pIdx >= 0) updatedPayments[pIdx] = paymentEntry;
+                else updatedPayments.push(paymentEntry);
 
-                await sb.from('fees_records').update({
-                    status: 'paid',
-                    current_due: 0,
-                    recent_payments: updatedPayments,
-                    updated_at: now.toISOString()
-                }).eq('roll_no', rollNo);
+                if (!updatedLoyalty.some(l => l.label === month || l.label === fullMonthStr)) {
+                    updatedLoyalty.push({ label: month, earned: true });
+                }
 
-                console.log('[DualSync] Fee marked PAID in Supabase for:', rollNo);
+                const isOctPaid = updatedPayments.some(p => p.month === 'OCT' || p.fullMonth?.includes('October'));
+                currentDue = isOctPaid ? 0 : studentFee;
+                dueDate = isOctPaid ? 'All Cleared' : '25 October 2026';
+                daysLeft = isOctPaid ? 0 : 24;
             } else {
-                // Pending / Due
-                const monthlyFee = feeRecord?.monthly_fee || 4000;
-                await sb.from('fees_records').update({
-                    status: 'due',
-                    current_due: monthlyFee,
-                    updated_at: new Date().toISOString()
-                }).eq('roll_no', rollNo);
+                // Pending / Not Paid — REMOVE receipt & loyalty badge for this month!
+                updatedPayments = updatedPayments.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
+                updatedLoyalty = updatedLoyalty.filter(l => l.label !== month && l.label !== fullMonthStr);
 
-                console.log('[DualSync] Fee marked DUE in Supabase for:', rollNo);
+                currentDue = studentFee; // e.g. ₹4,500
+                dueDate = '25 ' + month + ' ' + year;
+                daysLeft = 5;
+            }
+
+            const { error: upErr } = await sb.from('fees_records').upsert({
+                roll_no: rollNo,
+                current_due: currentDue,
+                due_date: dueDate,
+                days_left: daysLeft,
+                months_paid_on_time: updatedLoyalty.length,
+                loyalty_months: updatedLoyalty,
+                recent_payments: updatedPayments,
+                updated_at: now.toISOString()
+            }, { onConflict: 'roll_no' });
+
+            if (upErr) {
+                console.error('[DualSync] Supabase fee update error:', upErr);
+            } else {
+                console.log(`[DualSync] Supabase fee ${newStatus} synced for ${rollNo} (${month}): Due = ₹${currentDue}, Amount = ₹${studentFee}`);
+
+                // Realtime broadcast to student mobile app
+                try {
+                    const channel = sb.channel('admin_fee_broadcast');
+                    channel.subscribe((status) => {
+                        if (status === 'SUBSCRIBED') {
+                            channel.send({
+                                type: 'broadcast',
+                                event: 'fee_record_changed',
+                                payload: {
+                                    rollNo: rollNo,
+                                    month: month,
+                                    status: newStatus,
+                                    amount: studentFee,
+                                    currentDue: currentDue
+                                }
+                            });
+                        }
+                    });
+                } catch (rtErr) {}
             }
         } catch (e) {
-            console.warn('[DualSync] Supabase toggleFee error:', e);
+            console.warn('[DualSync] Supabase toggleFee exception:', e);
         }
     }
 };

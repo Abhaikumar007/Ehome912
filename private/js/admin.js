@@ -1812,7 +1812,9 @@ window.quickMarkPaidUpToMonth = async function() {
                 if (!roll) return;
                 const rollKey = String(roll).toUpperCase().trim();
                 const fRec = feeMap.get(rollKey);
-                const monthlyFee = Number(s.amount || s.fee) || 3000;
+                const sClass = s.class || s.class_name || '10';
+                const stdFee = (typeof getStandardClassFee === 'function') ? getStandardClassFee(sClass) : 4000;
+                const monthlyFee = Number(s.amount || s.fee) || stdFee;
 
                 const existingPayments = Array.isArray(fRec?.recent_payments) ? [...fRec.recent_payments] : [];
                 clearedMonths.forEach(m => {
