@@ -653,6 +653,7 @@
     <script>
         $(document).ready(function() {
             // Check hash on load
+            if (typeof window.loadPendingVerifications === 'function') { window.loadPendingVerifications(); } // OnLoad
             if (window.location.hash === '#tab-timetable') {
                 $('#tab-timetable-link').tab('show');
                 if (typeof window.initLiveAppTimetable === 'function') {

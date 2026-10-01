@@ -1,4 +1,3 @@
-
 function _formatToDateInputValue(dateStr) {
     if (!dateStr) return '';
     const trimmed = String(dateStr).trim();
@@ -1089,12 +1088,12 @@ window.exportSupabaseSQL = async function () {
         lines.push('ALTER TABLE subjects ENABLE ROW LEVEL SECURITY;');
         lines.push('DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = \'subjects\' AND policyname = \'Public subjects access\') THEN CREATE POLICY "Public subjects access" ON subjects FOR ALL USING (true) WITH CHECK (true); END IF; END $$;');
         lines.push('INSERT INTO subjects (code, name, category, classes, faculty_id, faculty_name, monthly_fee_unit, icon, color) VALUES');
-        lines.push('  (\'PHY\',  \'Physics\',          \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-phy\',       \'Mr. Rajesh Menon\',    1000, \'flash-outline\',       \'#1A56DB\'),');
-        lines.push('  (\'CHEM\', \'Chemistry\',        \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-chem\',      \'Dr. Ramesh Nair\',     1000, \'flask-outline\',       \'#12B76A\'),');
-        lines.push('  (\'MATH\', \'Mathematics\',      \'Maths\',      \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-math\', \'Mr. Arun K. Varma\', 1000, \'calculator-outline\',  \'#F79009\'),');
-        lines.push('  (\'BIO\',  \'Biology\',          \'Science\',    \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-bio-lower\', \'Mrs. Deepa Anoop / Dr. Suresh Kumar\', 1000, \'leaf-outline\', \'#0284C7\'),');
-        lines.push('  (\'CS\',   \'Computer Science\', \'Technology\', \'{"11", "12"}\',                 \'fac-cs\',        \'Ms. Ananya Sharma\',   1000, \'code-slash-outline\',  \'#7C3AED\'),');
-        lines.push('  (\'SCI\',  \'Science\',          \'Science\',    \'{"6", "7", "8", "9"}\',         \'fac-bio-lower\', \'Mrs. Deepa Anoop\',    1000, \'planet-outline\',      \'#059669\')');
+        lines.push('  (\'PHY\',  \'Physics\',          \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-phy\',       \'Mr. Akshay Kumar M\',    1000, \'flash-outline\',       \'#1A56DB\'),');
+        lines.push('  (\'CHEM\', \'Chemistry\',        \'Science\',    \'{"8", "9", "10", "11", "12"}\', \'fac-chem\',      \'Ms. Renju\',     1000, \'flask-outline\',       \'#12B76A\'),');
+        lines.push('  (\'MATH\', \'Mathematics\',      \'Maths\',      \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-math\', \'Ms. Devi\', 1000, \'calculator-outline\',  \'#F79009\'),');
+        lines.push('  (\'BIO\',  \'Biology\',          \'Science\',    \'{"6", "7", "8", "9", "10", "11", "12"}\', \'fac-bio-lower\', \'Mr. Madhusudanan / Mr. Gokul Krishnan\', 1000, \'leaf-outline\', \'#0284C7\'),');
+        lines.push('  (\'CS\',   \'Computer Science\', \'Technology\', \'{"11", "12"}\',                 \'fac-cs\',        \'Mr. Abhai Kumar\',   1000, \'code-slash-outline\',  \'#7C3AED\'),');
+        lines.push('  (\'SCI\',  \'Science\',          \'Science\',    \'{"6", "7", "8", "9"}\',         \'fac-bio-lower\', \'Mr. Madhusudanan\',    1000, \'planet-outline\',      \'#059669\')');
         lines.push('ON CONFLICT (code) DO UPDATE SET name = EXCLUDED.name, category = EXCLUDED.category, classes = EXCLUDED.classes, faculty_id = EXCLUDED.faculty_id, faculty_name = EXCLUDED.faculty_name, monthly_fee_unit = EXCLUDED.monthly_fee_unit, icon = EXCLUDED.icon, color = EXCLUDED.color;');
         lines.push('');
         lines.push('COMMIT;');
@@ -1700,6 +1699,61 @@ if (document.getElementById('timetableTableBody')) {
     classSelect.addEventListener('change', updateBoardVisibility);
     // Run once on load
     updateBoardVisibility();
+    // Teacher Auto-Sync
+    const subjectSelect = document.getElementById('timetableSubject');
+    const facultySelect = document.getElementById('timetableFaculty');
+    const facultyHint = document.getElementById('timetableFacultyHint');
+
+    function getOfficialAssignedTeacher(sub, grade) {
+        const numClass = parseInt(grade, 10) || 10;
+        const subLower = (sub || '').toLowerCase();
+        try {
+            const stored = JSON.parse(localStorage.getItem('eduhome_faculty_allotments') || '[]');
+            if (Array.isArray(stored) && stored.length > 0) {
+                const match = stored.find(t => {
+                    const tSub = (t.subject || '').toLowerCase();
+                    const subMatches = (subLower.includes('chem') && tSub.includes('chem')) ||
+                                       (subLower.includes('phys') && tSub.includes('phys')) ||
+                                       (subLower.includes('math') && tSub.includes('math')) ||
+                                       (subLower.includes('comp') && tSub.includes('comp')) ||
+                                       (subLower.includes('bio') && tSub.includes('bio'));
+                    if (!subMatches) return false;
+                    const grades = (t.grades || '').match(/\b(1[0-2]|[6-9])\b/g) || [];
+                    return grades.length === 0 || grades.includes(String(numClass));
+                });
+                if (match && match.name) return { id: match.id, name: match.name };
+            }
+        } catch(e) {}
+
+        if (subLower.includes('chem')) return { id: 'fac-chem', name: 'Ms. Renju' };
+        if (subLower.includes('bio')) {
+            return numClass <= 9 ? { id: 'fac-bio-lower', name: 'Mr. Madhusudanan' } : { id: 'fac-bio-upper', name: 'Mr. Gokul Krishnan' };
+        }
+        if (subLower.includes('phys')) return { id: 'fac-phy', name: 'Mr. Akshay Kumar M' };
+        if (subLower.includes('comp') || /\bcs\b/i.test(subLower)) return { id: 'fac-cs', name: 'Mr. Abhai Kumar' };
+        if (subLower.includes('math')) return { id: 'fac-math', name: 'Ms. Devi' };
+        return { id: 'fac-phy', name: 'Mr. Akshay Kumar M' };
+    }
+
+    function updateTimetableFacultySync() {
+        if (!classSelect || !subjectSelect || !facultySelect) return;
+        const cls = classSelect.value;
+        const sub = subjectSelect.value;
+        const assigned = getOfficialAssignedTeacher(sub, cls);
+
+        if (facultyHint) {
+            facultyHint.innerHTML = `<i class="fas fa-check-circle mr-1"></i>Allotted Teacher: <strong>${assigned.name}</strong>`;
+        }
+
+        const autoOpt = facultySelect.querySelector('option[value="auto"]');
+        if (autoOpt) {
+            autoOpt.textContent = `⚡ Auto (${assigned.name} - Allotted)`;
+        }
+    }
+
+    if (classSelect) classSelect.addEventListener('change', updateTimetableFacultySync);
+    if (subjectSelect) subjectSelect.addEventListener('change', updateTimetableFacultySync);
+    updateTimetableFacultySync();
 
     // ── Clock Time Picker Component ───────────────────────────────────
     (function initClockPicker() {
@@ -1937,44 +1991,12 @@ if (document.getElementById('timetableTableBody')) {
             }
         }
 
-        // Auto-assign based on subject and grade rules if not manually picked
+        // Auto-assign based on official allotment rules if not manually picked
         if (!facultyId || facultyId === 'auto' || !facultyName) {
-            const numClass = parseInt(studentClass, 10) || 10;
-            const subLower = (subject || '').toLowerCase();
-            if (subLower.includes('chem')) {
-                facultyId = 'fac-chem';
-                facultyName = 'Dr. Ramesh Nair';
-            } else if (subLower.includes('bio')) {
-                if (numClass <= 9) {
-                    facultyId = 'fac-bio-lower';
-                    facultyName = 'Mrs. Deepa Anoop';
-                } else {
-                    facultyId = 'fac-bio-upper';
-                    facultyName = 'Dr. Suresh Kumar';
-                }
-            } else if (subLower.includes('phys')) {
-                facultyId = 'fac-phy';
-                facultyName = 'Mr. Rajesh Menon';
-            } else if (subLower.includes('comp')) {
-                facultyId = 'fac-cs';
-                facultyName = 'Ms. Ananya Sharma';
-            } else if (subLower.includes('math')) {
-                facultyId = 'fac-math';
-                facultyName = 'Mr. Arun K. Varma';
-            } else {
-                facultyId = 'fac-phy';
-                facultyName = 'Mr. Rajesh Menon';
-            }
+            const assigned = getOfficialAssignedTeacher(subject, studentClass);
+            facultyId = assigned.id;
+            facultyName = assigned.name;
         }
-
-        // Dynamically resolve custom teacher name if updated in Assign Teachers
-        try {
-            const storedAllotments = JSON.parse(localStorage.getItem('eduhome_faculty_allotments') || '[]');
-            const matchedFaculty = storedAllotments.find(t => t.id === facultyId);
-            if (matchedFaculty && matchedFaculty.name) {
-                facultyName = matchedFaculty.name;
-            }
-        } catch (e) {}
 
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType, facultyId, facultyName };
 
@@ -2907,8 +2929,6 @@ window.saveAttendanceToCloud = async function () {
     }
 };
 
-
-
 // --- PENDING FEE VERIFICATION QUEUE (BULLETPROOF APPROVAL FOR MOBILE APP) ---
 window._pendingFeeRegistry = {};
 
@@ -2969,6 +2989,7 @@ window.loadPendingVerifications = async function() {
                     utr,
                     studentClass,
                     submittedAt,
+                    screenshot: pItem.screenshot || null,
                 };
 
                 pending.push(window._pendingFeeRegistry[rollNo]);
@@ -2986,21 +3007,25 @@ window.loadPendingVerifications = async function() {
                 const tr = document.createElement('tr');
                 const safeId = item.rollNo.replace(/[^a-zA-Z0-9_-]/g, '_');
                 tr.id = 'pendingRow_' + safeId;
-                tr.innerHTML = `
-                    <td><strong>${item.studentName}</strong></td>
-                    <td><span class="badge badge-info">${item.studentClass}</span> <small class="text-muted">${item.rollNo}</small></td>
-                    <td><strong class="text-primary">₹${item.amount.toLocaleString('en-IN')}</strong></td>
-                    <td><code>${item.utr}</code></td>
-                    <td><small class="text-muted">${item.submittedAt}</small></td>
-                    <td>
-                        <button class="btn btn-sm btn-success shadow-sm mr-1 btn-approve-fee" id="btnApprove_${safeId}" onclick="window.requestApproveFee('${item.rollNo}', this)">
-                            <i class="fas fa-check-circle mr-1"></i> Approve
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger shadow-sm btn-reject-fee" id="btnReject_${safeId}" onclick="window.requestRejectFee('${item.rollNo}', this)">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </td>
-                `;
+                
+                let screenshotBtn = '';
+                if (item.screenshot) {
+                    screenshotBtn = '<div class="mt-1"><button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; font-weight: 600;" onclick="window.viewFeeScreenshot(\'' + item.rollNo + '\')"><i class="fas fa-image mr-1"></i> View Receipt</button></div>';
+                }
+
+                tr.innerHTML = '<td><strong>' + item.studentName + '</strong></td>' +
+                    '<td><span class="badge badge-info">' + item.studentClass + '</span> <small class="text-muted">' + item.rollNo + '</small></td>' +
+                    '<td><strong class="text-primary">₹' + item.amount.toLocaleString('en-IN') + '</strong></td>' +
+                    '<td><code>' + item.utr + '</code>' + screenshotBtn + '</td>' +
+                    '<td><small class="text-muted">' + item.submittedAt + '</small></td>' +
+                    '<td>' +
+                        '<button class="btn btn-sm btn-success shadow-sm mr-1 btn-approve-fee" id="btnApprove_' + safeId + '" onclick="window.requestApproveFee(\'' + item.rollNo + '\', this)">' +
+                            '<i class="fas fa-check-circle mr-1"></i> Approve' +
+                        '</button>' +
+                        '<button class="btn btn-sm btn-outline-danger shadow-sm btn-reject-fee" id="btnReject_' + safeId + '" onclick="window.requestRejectFee(\'' + item.rollNo + '\', this)">' +
+                            '<i class="fas fa-times"></i>' +
+                        '</button>' +
+                    '</td>';
                 tbody.appendChild(tr);
             });
         });
@@ -3014,21 +3039,20 @@ window.loadPendingVerifications = async function() {
     } catch (e) {
         console.error('Error loading pending verifications:', e);
         tbodyList.forEach(tb => {
-            tb.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-3">Failed to load pending payments: ${e.message || e}</td></tr>`;
+            tb.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Failed to load pending payments: ' + (e.message || e) + '</td></tr>';
         });
     }
 };
 
 window.requestApproveFee = function(rollNo, btn) {
     if (!btn) return;
-
     if (btn.getAttribute('data-step') === 'confirm') {
         window.executeApproveFee(rollNo, btn);
     } else {
         btn.setAttribute('data-step', 'confirm');
-        btn.className = 'btn btn-sm btn-warning shadow-sm font-weight-bold mr-1';
-        btn.innerHTML = '<i class="fas fa-check-double mr-1"></i> Really Approve?';
-
+        btn.className = 'btn btn-sm btn-warning shadow-sm font-weight-bold text-dark';
+        btn.innerHTML = '<i class="fas fa-question-circle mr-1"></i> Confirm Approve?';
+        
         setTimeout(() => {
             if (btn && btn.getAttribute('data-step') === 'confirm') {
                 btn.setAttribute('data-step', 'initial');
@@ -3042,17 +3066,12 @@ window.requestApproveFee = function(rollNo, btn) {
 window.executeApproveFee = async function(rollNo, btn) {
     if (btn) {
         btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Approving...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Approving...';
     }
 
     const sb = _getSafeAdminSupabase();
     if (!sb) {
-        alert('Database connection not available. Please refresh the page.');
-        if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Approve';
-            btn.setAttribute('data-step', 'initial');
-        }
+        window.showPendingFeeNotice('Database connection failed. Please refresh.', 'danger');
         return;
     }
 
@@ -3060,7 +3079,9 @@ window.executeApproveFee = async function(rollNo, btn) {
 
     try {
         const now = new Date();
-        const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) + 
+            ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        
         const paymentEntry = {
             month: 'SEP',
             fullMonth: 'September 2026',
@@ -3100,7 +3121,7 @@ window.executeApproveFee = async function(rollNo, btn) {
                 const matched = students.find(s => s.id === rollNo || s.phone === rollNo);
                 if (matched && Array.isArray(matched.subjects)) {
                     matched.subjects.forEach(sub => {
-                        fees[`${matched.id}_${sub}_September_2026`] = 'Paid';
+                        fees[matched.id + '_' + sub + '_September_2026'] = 'Paid';
                     });
                     if (typeof saveFees === 'function') saveFees(fees);
                     if (typeof window.loadFeeTable === 'function') window.loadFeeTable();
@@ -3110,7 +3131,7 @@ window.executeApproveFee = async function(rollNo, btn) {
             console.warn('Local fee sync notice:', localErr);
         }
 
-        window.showPendingFeeNotice(`✓ Payment of ₹${item.amount.toLocaleString('en-IN')} from ${item.studentName} APPROVED and marked as PAID!`, 'success');
+        window.showPendingFeeNotice('✓ Payment of ₹' + item.amount.toLocaleString('en-IN') + ' from ' + item.studentName + ' APPROVED and marked as PAID!', 'success');
         await window.loadPendingVerifications();
     } catch (e) {
         console.error('Error approving student fee:', e);
@@ -3171,7 +3192,7 @@ window.executeRejectFee = async function(rollNo, btn) {
             })
             .eq('roll_no', rollNo);
 
-        window.showPendingFeeNotice(`Verification rejected for roll ${rollNo}. Student status reverted to Due.`, 'warning');
+        window.showPendingFeeNotice('Verification rejected for roll ' + rollNo + '. Student status reverted to Due.', 'warning');
         await window.loadPendingVerifications();
     } catch (e) {
         window.showPendingFeeNotice('Failed to reject fee: ' + (e.message || e), 'danger');
@@ -3189,18 +3210,53 @@ window.showPendingFeeNotice = function(msg, type) {
     const alertBoxes = document.querySelectorAll('.pending-fee-notice-area');
     if (alertBoxes.length > 0) {
         alertBoxes.forEach(box => {
-            box.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show mb-3 shadow-sm" role="alert">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'} mr-2"></i>
-                ${msg}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>`;
+            box.innerHTML = '<div class="alert alert-' + type + ' alert-dismissible fade show mb-3 shadow-sm" role="alert">' +
+                '<i class="fas ' + (type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle') + ' mr-2"></i>' +
+                msg +
+                '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                    '<span aria-hidden="true">&times;</span>' +
+                '</button>' +
+            '</div>';
             setTimeout(() => { box.innerHTML = ''; }, 6000);
         });
     } else {
         alert(msg);
     }
+};
+
+window.viewFeeScreenshot = function(rollNo) {
+    const item = window._pendingFeeRegistry[rollNo];
+    if (!item || !item.screenshot) {
+        alert("No payment screenshot proof attached for this request.");
+        return;
+    }
+    let modal = document.getElementById('screenshotProofModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'screenshotProofModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);';
+        modal.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:520px;width:100%;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;max-height:92vh;">' +
+            '<div style="padding:14px 18px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">' +
+                '<div>' +
+                    '<strong id="screenshotModalTitle" style="color:#0f172a;font-size:1rem;display:block;font-weight:700;">Receipt Proof</strong>' +
+                    '<small id="screenshotModalMeta" class="text-muted" style="font-size:0.8rem;"></small>' +
+                '</div>' +
+                '<button type="button" style="border:none;background:transparent;font-size:1.6rem;line-height:1;cursor:pointer;color:#64748b;padding:0 4px;" onclick="document.getElementById(\'screenshotProofModal\').style.display=\'none\'">&times;</button>' +
+            '</div>' +
+            '<div style="padding:16px;background:#090d16;text-align:center;overflow:auto;flex:1;display:flex;align-items:center;justify-content:center;">' +
+                '<img id="screenshotModalImg" src="" alt="Payment Receipt" style="max-width:100%;max-height:68vh;border-radius:8px;object-fit:contain;box-shadow:0 4px 16px rgba(0,0,0,0.6);" />' +
+            '</div>' +
+            '<div style="padding:12px 18px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">' +
+                '<span style="font-size:0.78rem;color:#0284c7;font-weight:600;"><i class="fas fa-shield-alt mr-1"></i> Auto-purged upon approval</span>' +
+                '<button type="button" class="btn btn-sm btn-secondary" style="border-radius:6px;font-weight:600;padding:5px 16px;" onclick="document.getElementById(\'screenshotProofModal\').style.display=\'none\'">Close</button>' +
+            '</div>' +
+        '</div>';
+        document.body.appendChild(modal);
+    }
+    document.getElementById('screenshotModalTitle').innerText = 'Receipt Proof: ' + item.studentName + ' (' + item.rollNo + ')';
+    document.getElementById('screenshotModalMeta').innerText = 'Fee: ₹' + item.amount.toLocaleString('en-IN') + ' • Ref: ' + item.utr;
+    document.getElementById('screenshotModalImg').src = item.screenshot;
+    modal.style.display = 'flex';
 };
 
 // Aliases for compatibility

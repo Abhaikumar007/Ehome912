@@ -2,6 +2,7 @@
  * Live Mobile App Timetable Management Platform
  * Provides real-time viewing, inline editing, toggling publication, and deleting
  * of timetable class sessions published to the EduHome Mobile App (Supabase 'classes' table).
+ * Integrated with the "Assign Teachers" allotment system for accurate faculty assignments.
  */
 
 (function () {
@@ -23,6 +24,23 @@
         'General': { emoji: '📖', color: '#475569', bg: '#f1f5f9' },
         'No Class': { emoji: '☕', color: '#dc2626', bg: '#fee2e2' }
     };
+
+    // Official Default Assigned Faculty Roster matching Assign Teachers & Supabase
+    const DEFAULT_ASSIGNED_TEACHERS = [
+        { id: 'fac-phy', name: 'Mr. Akshay Kumar M', subject: 'Physics', grades: ['8', '9', '10', '11', '12'], dept: 'Science Department' },
+        { id: 'fac-chem', name: 'Ms. Renju', subject: 'Chemistry', grades: ['10', '11', '12'], dept: 'Senior Science Department' },
+        { id: 'fac-bio-lower', name: 'Mr. Madhusudanan', subject: 'Biology (Lower)', grades: ['6', '7', '8', '9'], dept: 'Secondary Science Department' },
+        { id: 'fac-bio-upper', name: 'Mr. Gokul Krishnan', subject: 'Biology (Upper)', grades: ['10', '11', '12'], dept: 'Senior Science Department' },
+        { id: 'fac-math', name: 'Ms. Devi', subject: 'Mathematics', grades: ['6', '7', '8', '9', '10', '11', '12'], dept: 'Mathematics Department' },
+        { id: 'fac-cs', name: 'Mr. Abhai Kumar', subject: 'Computer Science', grades: ['11', '12'], dept: 'Computer Applications & IT' }
+    ];
+
+    // Outdated placeholder faculty names that should be flagged for correction
+    const OUTDATED_PLACEHOLDERS = [
+        'rajesh menon', 'ramesh nair', 'arun k. varma', 'arun varma', 'deepa anoop', 'suresh kumar', 'ananya sharma'
+    ];
+
+    let _assignedTeachers = [...DEFAULT_ASSIGNED_TEACHERS];
 
     function _getSubjectMeta(sub) {
         if (!sub) return SUBJECT_META['General'];
@@ -113,6 +131,113 @@
         return { status: rawStatus.trim(), facultyId: '' };
     }
 
+    // ── Load Assigned Teachers from Supabase / localStorage ───────────────
+    async function loadAssignedTeachers() {
+        const sb = _getSb();
+        if (sb) {
+            try {
+                const { data, error } = await sb.from('teachers').select('*');
+                if (!error && Array.isArray(data) && data.length > 0) {
+                    _assignedTeachers = data.map(t => {
+                        const gradeMatches = (t.subjects || '').match(/\b(1[0-2]|[6-9])\b/g) || [];
+                        return {
+                            id: t.faculty_id || t.id,
+                            name: t.name || 'Faculty Member',
+                            subject: t.subjects ? t.subjects.split('(')[0].trim() : 'General',
+                            grades: gradeMatches.length > 0 ? gradeMatches : ['6', '7', '8', '9', '10', '11', '12'],
+                            phone: t.phone || '',
+                            dept: t.role || 'Faculty'
+                        };
+                    });
+                    try {
+                        localStorage.setItem('eduhome_faculty_allotments', JSON.stringify(_assignedTeachers));
+                    } catch (e) {}
+                    return _assignedTeachers;
+                }
+            } catch (err) {
+                console.warn('[LiveTimetable] Failed to fetch teachers from Supabase:', err);
+            }
+        }
+
+        // Fallback to localStorage
+        try {
+            const stored = JSON.parse(localStorage.getItem('eduhome_faculty_allotments') || '[]');
+            if (Array.isArray(stored) && stored.length > 0) {
+                _assignedTeachers = stored.map(t => {
+                    const gradeMatches = typeof t.grades === 'string'
+                        ? (t.grades.match(/\b(1[0-2]|[6-9])\b/g) || [])
+                        : (t.grades || []);
+                    return {
+                        id: t.id,
+                        name: t.name,
+                        subject: t.subject,
+                        grades: gradeMatches,
+                        dept: t.dept || 'Faculty',
+                        phone: t.phone || ''
+                    };
+                });
+                return _assignedTeachers;
+            }
+        } catch (e) {}
+
+        _assignedTeachers = [...DEFAULT_ASSIGNED_TEACHERS];
+        return _assignedTeachers;
+    }
+
+    // ── Resolve Allotted Teacher based on Subject & Grade ────────────────
+    function getAssignedFacultyFor(subject, rawGrade) {
+        const gradeNumMatch = String(rawGrade || '').match(/\b(1[0-2]|[6-9])\b/);
+        const gradeNum = gradeNumMatch ? parseInt(gradeNumMatch[0], 10) : 10;
+        const gradeStr = String(gradeNum);
+        const subLower = (subject || '').toLowerCase().trim();
+
+        // 1. Search in loaded _assignedTeachers
+        if (Array.isArray(_assignedTeachers) && _assignedTeachers.length > 0) {
+            const match = _assignedTeachers.find(t => {
+                const tSub = (t.subject || '').toLowerCase();
+                let subMatches = false;
+                if (subLower.includes('chem') && tSub.includes('chem')) subMatches = true;
+                else if (subLower.includes('phys') && tSub.includes('phys')) subMatches = true;
+                else if (subLower.includes('math') && tSub.includes('math')) subMatches = true;
+                else if ((subLower.includes('comp') || /\bcs\b/i.test(subLower)) && (tSub.includes('comp') || /\bcs\b/i.test(tSub))) subMatches = true;
+                else if (subLower.includes('bio') && tSub.includes('bio')) {
+                    if (gradeNum <= 9 && (tSub.includes('lower') || tSub.includes('secondary'))) subMatches = true;
+                    else if (gradeNum >= 10 && (tSub.includes('upper') || tSub.includes('senior'))) subMatches = true;
+                    else if (!tSub.includes('lower') && !tSub.includes('upper')) subMatches = true;
+                }
+                if (!subMatches) return false;
+
+                const tGrades = Array.isArray(t.grades)
+                    ? t.grades
+                    : (String(t.grades || '').match(/\b(1[0-2]|[6-9])\b/g) || []);
+                return tGrades.length === 0 || tGrades.includes(gradeStr);
+            });
+
+            if (match && match.name) {
+                return { id: match.id, name: match.name, full: match };
+            }
+        }
+
+        // 2. Official Standard Fallback
+        if (subLower.includes('chem')) return { id: 'fac-chem', name: 'Ms. Renju' };
+        if (subLower.includes('bio')) {
+            return gradeNum <= 9
+                ? { id: 'fac-bio-lower', name: 'Mr. Madhusudanan' }
+                : { id: 'fac-bio-upper', name: 'Mr. Gokul Krishnan' };
+        }
+        if (subLower.includes('phys')) return { id: 'fac-phy', name: 'Mr. Akshay Kumar M' };
+        if (subLower.includes('comp') || /\bcs\b/i.test(subLower)) return { id: 'fac-cs', name: 'Mr. Abhai Kumar' };
+        if (subLower.includes('math')) return { id: 'fac-math', name: 'Ms. Devi' };
+        return { id: 'fac-phy', name: 'Mr. Akshay Kumar M' };
+    }
+
+    // Check if faculty name is an outdated placeholder
+    function isFacultyOutdated(facultyName) {
+        if (!facultyName) return false;
+        const norm = facultyName.toLowerCase();
+        return OUTDATED_PLACEHOLDERS.some(old => norm.includes(old));
+    }
+
     // ── Load classes from Supabase ──────────────────────────────────────
     async function loadLiveClasses(containerId) {
         const sb = _getSb();
@@ -131,6 +256,9 @@
         }
 
         try {
+            // First ensure assigned teachers are fresh
+            await loadAssignedTeachers();
+
             const { data, error } = await sb
                 .from('classes')
                 .select('*')
@@ -229,15 +357,21 @@
                                 </span>
                             </h4>
                             <p class="mb-0 text-white-50" style="font-size:0.88rem;">
-                                Edit, reschedule, toggle visibility, or delete class sessions currently posted on the EduHome student & faculty mobile apps.
+                                Manage live class sessions published to the EduHome student & faculty mobile apps. Teachers are synced from the Assign Teachers roster.
                             </p>
                         </div>
-                        <div class="mt-2 mt-md-0 d-flex align-items-center" style="gap:10px;">
+                        <div class="mt-2 mt-md-0 d-flex flex-wrap align-items-center" style="gap:10px;">
+                            <button class="btn btn-sm btn-warning text-dark font-weight-bold shadow-sm" onclick="window.reassignAllLiveClasses('${containerId}')" id="reassignLiveBtn" title="Auto-assign official allotted teachers to all live classes">
+                                <i class="fas fa-user-check mr-1"></i> Sync & Fix All Teachers
+                            </button>
+                            <a href="teacher_allotment.html" class="btn btn-sm btn-outline-light" style="font-weight:600; border-radius:8px;" target="_blank" title="View or edit teacher subject & class allotments">
+                                <i class="fas fa-chalkboard-teacher mr-1"></i> Assign Teachers
+                            </a>
                             <button class="btn btn-sm btn-outline-light" onclick="window.refreshLiveTimetable('${containerId}')" id="refreshLiveBtn">
-                                <i class="fas fa-sync-alt mr-1"></i> Refresh Live Data
+                                <i class="fas fa-sync-alt mr-1"></i> Refresh Data
                             </button>
                             <a href="#timetable-container" class="btn btn-sm btn-primary" style="font-weight:600; border-radius:8px;">
-                                <i class="fas fa-plus mr-1"></i> Post New Schedule
+                                <i class="fas fa-plus mr-1"></i> Post New
                             </a>
                         </div>
                     </div>
@@ -325,7 +459,7 @@
                                 <th style="width:150px; font-weight:600; padding:12px 16px;">Date</th>
                                 <th style="width:110px; font-weight:600;">Grade</th>
                                 <th style="width:160px; font-weight:600;">Subject</th>
-                                <th style="min-width:200px; font-weight:600;">Time & Faculty</th>
+                                <th style="min-width:230px; font-weight:600;">Time & Assigned Teacher</th>
                                 <th style="width:110px; font-weight:600; text-align:center;">Status</th>
                                 <th style="width:120px; font-weight:600; text-align:center;">App Visibility</th>
                                 <th style="width:140px; font-weight:600; text-align:center;">Actions</th>
@@ -348,6 +482,37 @@
                                 const statusInfo = _parseStatus(item.status);
                                 const dateFormatted = _friendlyDate(item.class_date);
                                 const isPublished = item.published !== false;
+
+                                // Resolve correct official allotted teacher
+                                const assigned = getAssignedFacultyFor(item.subject, item.class_grade || item.roll_no);
+                                const isOutdated = isFacultyOutdated(timeInfo.faculty);
+                                const isMismatched = !timeInfo.faculty || (assigned.name && timeInfo.faculty.toLowerCase().trim() !== assigned.name.toLowerCase().trim());
+
+                                let facultyBadgeHtml = '';
+                                if (isOutdated || isMismatched) {
+                                    facultyBadgeHtml = `
+                                        <div class="mt-1 d-flex flex-wrap align-items-center" style="gap:4px;">
+                                            ${timeInfo.faculty ? `
+                                                <span class="badge ${isOutdated ? 'badge-danger' : 'badge-warning'} text-dark" style="font-size:0.75rem; font-weight:600;" title="${isOutdated ? 'Outdated faculty assignment' : 'Does not match official allotment'}">
+                                                    <i class="fas ${isOutdated ? 'fa-times-circle text-danger' : 'fa-exclamation-triangle text-warning'} mr-1"></i>${timeInfo.faculty}
+                                                </span>
+                                            ` : `
+                                                <span class="badge badge-secondary" style="font-size:0.75rem;"><i class="fas fa-question-circle mr-1"></i>No Teacher</span>
+                                            `}
+                                            <button class="btn btn-xs btn-outline-primary" style="font-size:0.72rem; padding:1px 7px; border-radius:4px; font-weight:700;" onclick="window.quickAssignTeacher('${item.id}', '${assigned.id}', '${assigned.name.replace(/'/g, "\\'")}', '${containerId}')" title="Click to assign allotted teacher: ${assigned.name}">
+                                                <i class="fas fa-magic mr-1"></i>Assign ${assigned.name}
+                                            </button>
+                                        </div>
+                                    `;
+                                } else {
+                                    facultyBadgeHtml = `
+                                        <div class="mt-1 d-flex align-items-center">
+                                            <span class="badge badge-success px-2 py-1" style="font-size:0.78rem; border-radius:4px; font-weight:600;" title="Verified Allotted Teacher">
+                                                <i class="fas fa-chalkboard-teacher mr-1"></i>${timeInfo.faculty}
+                                            </span>
+                                        </div>
+                                    `;
+                                }
 
                                 let statusBadge = '<span class="badge badge-info px-2 py-1">Upcoming</span>';
                                 if (statusInfo.status === 'completed') {
@@ -384,11 +549,7 @@
                                             <div class="font-weight-bold text-dark" style="font-size:0.92rem;">
                                                 <i class="far fa-clock text-muted mr-1"></i>${timeInfo.time}
                                             </div>
-                                            ${timeInfo.faculty ? `
-                                                <div class="small text-muted mt-1">
-                                                    <i class="fas fa-chalkboard-teacher text-primary mr-1"></i>${timeInfo.faculty}
-                                                </div>
-                                            ` : ''}
+                                            ${facultyBadgeHtml}
                                         </td>
 
                                         <!-- Status Badge -->
@@ -467,7 +628,7 @@
                     <div class="form-row mb-3">
                         <div class="col-md-6">
                             <label class="font-weight-bold text-dark small mb-1">Class Grade *</label>
-                            <select class="form-control" id="editClassGrade" required>
+                            <select class="form-control" id="editClassGrade" onchange="window.handleEditSubjectOrGradeChange()" required>
                                 <option value="Class 6">Class 6</option>
                                 <option value="Class 7">Class 7</option>
                                 <option value="Class 8">Class 8</option>
@@ -479,7 +640,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="font-weight-bold text-dark small mb-1">Subject *</label>
-                            <select class="form-control" id="editClassSubject" required>
+                            <select class="form-control" id="editClassSubject" onchange="window.handleEditSubjectOrGradeChange()" required>
                                 <option value="Physics">Physics</option>
                                 <option value="Chemistry">Chemistry</option>
                                 <option value="Maths">Maths</option>
@@ -520,9 +681,19 @@
 
                     <!-- Assigned Faculty -->
                     <div class="form-group mb-3">
-                        <label class="font-weight-bold text-dark small mb-1">Assigned Faculty Name</label>
-                        <input type="text" class="form-control" id="editClassFaculty" placeholder="e.g. Mr. Rajesh Menon">
-                        <small class="form-text text-muted">Displayed alongside the time slot in student app schedule tabs.</small>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="font-weight-bold text-dark small mb-0">Assigned Teacher</label>
+                            <a href="teacher_allotment.html" target="_blank" class="small text-primary font-weight-bold" style="text-decoration:underline;">
+                                <i class="fas fa-external-link-alt mr-1"></i>Allotment Rules
+                            </a>
+                        </div>
+                        <select class="form-control" id="editClassFacultySelect" onchange="window.handleEditFacultySelectChange()">
+                            <!-- Populated dynamically -->
+                        </select>
+                        <div id="editCustomFacultyGroup" style="display:none; margin-top:8px;">
+                            <input type="text" class="form-control form-control-sm" id="editCustomFacultyInput" placeholder="Enter teacher's full name">
+                        </div>
+                        <small id="editClassFacultyHint" class="form-text text-primary font-weight-bold mt-1"></small>
                     </div>
 
                     <!-- Published Checkbox -->
@@ -557,6 +728,57 @@
         document.body.appendChild(modalDiv);
     }
 
+    // Populate faculty dropdown options in edit modal
+    function _populateEditFacultyDropdown(selectedFacultyName, assignedTeacher) {
+        const select = document.getElementById('editClassFacultySelect');
+        if (!select) return;
+
+        let html = `<option value="auto">⚡ Auto (${assignedTeacher.name} - Allotted)</option>`;
+        
+        // Add options for each teacher in _assignedTeachers
+        _assignedTeachers.forEach(t => {
+            const gradesStr = Array.isArray(t.grades) ? t.grades.join(', ') : (t.grades || '');
+            html += `<option value="${t.id}" data-name="${t.name}">${t.name} (${t.subject} • Classes ${gradesStr})</option>`;
+        });
+
+        html += `<option value="none">No Teacher Assigned</option>`;
+        html += `<option value="custom">Custom / Other Teacher Name...</option>`;
+
+        select.innerHTML = html;
+
+        // Try to match selected faculty name
+        const customGroup = document.getElementById('editCustomFacultyGroup');
+        const customInput = document.getElementById('editCustomFacultyInput');
+
+        if (!selectedFacultyName) {
+            select.value = 'auto';
+            if (customGroup) customGroup.style.display = 'none';
+        } else {
+            let matched = false;
+            for (let i = 0; i < select.options.length; i++) {
+                const opt = select.options[i];
+                const optName = opt.getAttribute('data-name');
+                if (optName && optName.toLowerCase().trim() === selectedFacultyName.toLowerCase().trim()) {
+                    select.selectedIndex = i;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                // If it was the auto allotted teacher
+                if (assignedTeacher && assignedTeacher.name.toLowerCase().trim() === selectedFacultyName.toLowerCase().trim()) {
+                    select.value = 'auto';
+                } else {
+                    select.value = 'custom';
+                    if (customInput) customInput.value = selectedFacultyName;
+                    if (customGroup) customGroup.style.display = 'block';
+                }
+            } else {
+                if (customGroup) customGroup.style.display = 'none';
+            }
+        }
+    }
+
     // ── Open Edit Modal ─────────────────────────────────────────────────
     window.openEditClassModal = function (classId) {
         _injectEditModalDOM();
@@ -588,7 +810,15 @@
         }
         document.getElementById('editClassStartTime').value = sTime;
         document.getElementById('editClassEndTime').value = eTime;
-        document.getElementById('editClassFaculty').value = timeInfo.faculty;
+
+        // Setup assigned teacher dropdown
+        const assigned = getAssignedFacultyFor(item.subject, formattedGrade);
+        _populateEditFacultyDropdown(timeInfo.faculty, assigned);
+
+        const hintEl = document.getElementById('editClassFacultyHint');
+        if (hintEl) {
+            hintEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i>Official Allotted Teacher for ${formattedGrade} ${item.subject}: <strong>${assigned.name}</strong>`;
+        }
 
         const statusInfo = _parseStatus(item.status);
         document.getElementById('editClassStatus').value = statusInfo.status || 'upcoming';
@@ -603,6 +833,38 @@
         const modal = document.getElementById('editLiveClassModal');
         if (modal) modal.style.display = 'none';
         _currentEditId = null;
+    };
+
+    window.handleEditFacultySelectChange = function () {
+        const select = document.getElementById('editClassFacultySelect');
+        const customGroup = document.getElementById('editCustomFacultyGroup');
+        if (select && customGroup) {
+            customGroup.style.display = (select.value === 'custom') ? 'block' : 'none';
+        }
+    };
+
+    window.handleEditSubjectOrGradeChange = function () {
+        const grade = document.getElementById('editClassGrade').value;
+        const subject = document.getElementById('editClassSubject').value;
+        const assigned = getAssignedFacultyFor(subject, grade);
+
+        const select = document.getElementById('editClassFacultySelect');
+        const hintEl = document.getElementById('editClassFacultyHint');
+
+        if (hintEl) {
+            hintEl.innerHTML = `<i class="fas fa-check-circle mr-1"></i>Official Allotted Teacher for ${grade} ${subject}: <strong>${assigned.name}</strong>`;
+        }
+
+        if (select) {
+            const autoOpt = select.querySelector('option[value="auto"]');
+            if (autoOpt) {
+                autoOpt.textContent = `⚡ Auto (${assigned.name} - Allotted)`;
+            }
+            // If on auto, keep it on auto
+            if (select.value === 'auto') {
+                // perfect
+            }
+        }
     };
 
     // ── Save Class Edit to Supabase ─────────────────────────────────────
@@ -628,18 +890,43 @@
             const classDate = document.getElementById('editClassDate').value;
             const startTime = document.getElementById('editClassStartTime').value.trim();
             const endTime = document.getElementById('editClassEndTime').value.trim();
-            const faculty = document.getElementById('editClassFaculty').value.trim();
             const status = document.getElementById('editClassStatus').value;
             const published = document.getElementById('editClassPublished').checked;
             const doBroadcast = document.getElementById('editClassBroadcast').checked;
+
+            // Resolve selected faculty
+            const facultySelect = document.getElementById('editClassFacultySelect');
+            let facultyName = '';
+            let facultyId = '';
+
+            if (facultySelect) {
+                const val = facultySelect.value;
+                if (val === 'auto') {
+                    const assigned = getAssignedFacultyFor(subject, classGrade);
+                    facultyName = assigned.name;
+                    facultyId = assigned.id;
+                } else if (val === 'none') {
+                    facultyName = '';
+                    facultyId = '';
+                } else if (val === 'custom') {
+                    const customInput = document.getElementById('editCustomFacultyInput');
+                    facultyName = customInput ? customInput.value.trim() : '';
+                    facultyId = '';
+                } else {
+                    facultyId = val;
+                    if (facultySelect.selectedOptions && facultySelect.selectedOptions[0]) {
+                        facultyName = facultySelect.selectedOptions[0].getAttribute('data-name') || '';
+                    }
+                }
+            }
 
             let timeStr = startTime;
             if (startTime && endTime) {
                 timeStr = `${startTime} - ${endTime}`;
             }
 
-            const finalTime = faculty ? `${timeStr} • ${faculty}` : timeStr;
-            const finalStatus = faculty ? `${status}:fac` : status;
+            const finalTime = facultyName ? `${timeStr} • ${facultyName}` : timeStr;
+            const finalStatus = facultyId ? `${status}:${facultyId}` : (facultyName ? `${status}:fac` : status);
 
             // 1. Update in Supabase classes table
             const { error: updErr } = await sb.from('classes').update({
@@ -662,8 +949,8 @@
                 try {
                     await sb.from('announcements').insert({
                         title: `🔄 Schedule Update: ${classGrade} - ${subject}`,
-                        description: `Class scheduled for ${_friendlyDate(classDate)} has been updated: Time is ${timeStr}${faculty ? ' with ' + faculty : ''}. Check your mobile app schedule.`,
-                        author: faculty || 'Center Admin',
+                        description: `Class scheduled for ${_friendlyDate(classDate)} has been updated: Time is ${timeStr}${facultyName ? ' with ' + facultyName : ''}. Check your mobile app schedule.`,
+                        author: facultyName || 'Center Admin',
                         tag: 'Timetable',
                         important: true
                     });
@@ -697,6 +984,126 @@
             if (saveBtn) {
                 saveBtn.disabled = false;
                 saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Changes';
+            }
+        }
+    };
+
+    // ── Quick Assign Teacher to Single Class ─────────────────────────────
+    window.quickAssignTeacher = async function (classId, facultyId, facultyName, containerId) {
+        if (!classId) return;
+        const item = _liveClasses.find(c => c.id === classId);
+        if (!item) return;
+
+        const sb = _getSb();
+        if (!sb) {
+            alert('Supabase client not ready.');
+            return;
+        }
+
+        const timeInfo = _parseTimeDetails(item.time);
+        const statusInfo = _parseStatus(item.status);
+        const newTime = `${timeInfo.time} • ${facultyName}`;
+        const newStatus = `${statusInfo.status || 'upcoming'}:${facultyId}`;
+
+        try {
+            const { error } = await sb.from('classes').update({
+                time: newTime,
+                status: newStatus
+            }).eq('id', classId);
+
+            if (error) throw error;
+
+            item.time = newTime;
+            item.status = newStatus;
+
+            _showToast(`Assigned ${facultyName} to ${item.class_grade || item.roll_no} ${item.subject}!`);
+            renderPlatform(containerId);
+        } catch (err) {
+            alert('Failed to assign teacher: ' + (err.message || err));
+        }
+    };
+
+    // ── Reassign All Live Classes to Allotted Teachers ────────────────────
+    window.reassignAllLiveClasses = async function (containerId) {
+        if (!_liveClasses || _liveClasses.length === 0) {
+            alert('No live class sessions found to reassign.');
+            return;
+        }
+
+        const sb = _getSb();
+        if (!sb) {
+            alert('Supabase client not ready.');
+            return;
+        }
+
+        // Make sure we have latest assigned teachers
+        await loadAssignedTeachers();
+
+        // Find classes that need fixing or updating
+        const itemsToUpdate = [];
+        for (const item of _liveClasses) {
+            const timeInfo = _parseTimeDetails(item.time);
+            const statusInfo = _parseStatus(item.status);
+            const assigned = getAssignedFacultyFor(item.subject, item.class_grade || item.roll_no);
+
+            const isOutdated = isFacultyOutdated(timeInfo.faculty);
+            const isMismatched = !timeInfo.faculty || (assigned.name && timeInfo.faculty.toLowerCase().trim() !== assigned.name.toLowerCase().trim());
+            const isStatusIdWrong = !statusInfo.facultyId || (assigned.id && statusInfo.facultyId !== assigned.id);
+
+            if (isOutdated || isMismatched || isStatusIdWrong) {
+                const newTime = `${timeInfo.time} • ${assigned.name}`;
+                const newStatus = `${statusInfo.status || 'upcoming'}:${assigned.id}`;
+                itemsToUpdate.push({
+                    id: item.id,
+                    oldName: timeInfo.faculty || '(None)',
+                    newName: assigned.name,
+                    newTime,
+                    newStatus,
+                    item
+                });
+            }
+        }
+
+        if (itemsToUpdate.length === 0) {
+            _showToast('✅ All class sessions already have the correct allotted teachers!');
+            return;
+        }
+
+        if (!confirm(`Found ${itemsToUpdate.length} class session(s) with outdated, mismatched, or missing teachers.\n\nDo you want to automatically assign the official allotted teachers to these sessions now?`)) {
+            return;
+        }
+
+        const btn = document.getElementById('reassignLiveBtn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Syncing Teachers...';
+        }
+
+        let updatedCount = 0;
+        try {
+            for (const upd of itemsToUpdate) {
+                const { error } = await sb.from('classes').update({
+                    time: upd.newTime,
+                    status: upd.newStatus
+                }).eq('id', upd.id);
+
+                if (!error) {
+                    upd.item.time = upd.newTime;
+                    upd.item.status = upd.newStatus;
+                    updatedCount++;
+                } else {
+                    console.warn('[LiveTimetable] Error updating session ' + upd.id, error);
+                }
+            }
+
+            _showToast(`✅ Successfully synced & assigned official teachers to ${updatedCount} session(s)!`);
+            renderPlatform(containerId);
+        } catch (err) {
+            alert('Error during batch re-assignment: ' + (err.message || err));
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-user-check mr-1"></i> Sync & Fix All Teachers';
             }
         }
     };
@@ -837,7 +1244,7 @@
         await loadLiveClasses(containerId);
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Refresh Live Data';
+            btn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i> Refresh Data';
         }
         _showToast('Live App Timetable refreshed from Supabase.');
     };
@@ -856,8 +1263,11 @@
                 .channel('live-timetable-realtime')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, payload => {
                     console.log('[LiveTimetable] Realtime event on classes:', payload.eventType);
-                    // Silently reload classes to keep table fresh
                     loadLiveClasses(containerId);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'teachers' }, () => {
+                    console.log('[LiveTimetable] Realtime event on teachers allotment update');
+                    loadAssignedTeachers().then(() => renderPlatform(containerId));
                 })
                 .subscribe();
         } catch (e) {
@@ -877,7 +1287,6 @@
     if (typeof originalShare === 'function') {
         window.shareTimetableToApp = async function () {
             await originalShare.apply(this, arguments);
-            // Refresh live table after sharing
             setTimeout(() => {
                 if (typeof window.initLiveAppTimetable === 'function') {
                     window.initLiveAppTimetable('liveTimetablePlatform');

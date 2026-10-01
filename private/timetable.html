@@ -89,6 +89,24 @@
                         </select>
                     </div>
 
+                    <!-- Assigned Faculty -->
+                    <div class="form-group">
+                        <label class="d-flex justify-content-between align-items-center">
+                            <span>Assigned Teacher</span>
+                            <small class="text-muted"><a href="teacher_allotment.html" target="_blank"><i class="fas fa-external-link-alt mr-1"></i>Allotment Rules</a></small>
+                        </label>
+                        <select class="form-control" id="timetableFaculty">
+                            <option value="auto">⚡ Auto (Allotted Teacher for Class & Subject)</option>
+                            <option value="fac-phy" data-name="Mr. Akshay Kumar M">Mr. Akshay Kumar M (Physics • Classes 8-12)</option>
+                            <option value="fac-chem" data-name="Ms. Renju">Ms. Renju (Chemistry • Classes 10-12)</option>
+                            <option value="fac-math" data-name="Ms. Devi">Ms. Devi (Mathematics • Classes 6-12)</option>
+                            <option value="fac-bio-lower" data-name="Mr. Madhusudanan">Mr. Madhusudanan (Biology • Classes 6-9)</option>
+                            <option value="fac-bio-upper" data-name="Mr. Gokul Krishnan">Mr. Gokul Krishnan (Biology • Classes 10-12)</option>
+                            <option value="fac-cs" data-name="Mr. Abhai Kumar">Mr. Abhai Kumar (Computer Science • Classes 11-12)</option>
+                        </select>
+                        <small id="timetableFacultyHint" class="form-text text-primary font-weight-bold mt-1"></small>
+                    </div>
+
                     <!-- Session Type -->
                     <div class="form-group">
                         <label>Session Type</label>
