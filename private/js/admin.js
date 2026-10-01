@@ -1727,14 +1727,26 @@ window.quickMarkPaidUpToMonth = async function() {
         }
 
         // 1. Update localStorage fees
+        // loadFeeTable reads key: `${student.id}_${sub}_${month}_${year}`
+        // getStudents() resolves student.id = s.id || masterRollNo || roll
+        // We use the student objects directly from getStudents() so student.id is already canonical.
         let localFees = typeof getFees === 'function' ? getFees() : {};
         students.forEach(s => {
-            const idKey = s.id || s.rollNo || s.roll_no;
+            // s.id is the canonical ID getStudents() resolved — same value loadFeeTable uses as feeKey prefix
+            const canonId = s.id;
+            // Also cover rollNo in case it differs from s.id
+            const allIds = [...new Set([canonId, s.rollNo, s.roll_no].filter(Boolean))];
             const subjects = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
             clearedMonths.forEach(m => {
                 subjects.forEach(sub => {
-                    localFees[`${idKey}_${sub}_${m.name}_2026`] = 'Paid';
-                    localFees[`${s.rollNo}_${sub}_${m.name}_2026`] = 'Paid';
+                    // Write canonical key (matches loadFeeTable exactly)
+                    allIds.forEach(idVariant => {
+                        localFees[`${idVariant}_${sub}_${m.name}_2026`] = 'Paid';
+                        // Also lowercase subject variant for safety
+                        if (sub !== sub.toLowerCase()) {
+                            localFees[`${idVariant}_${sub.toLowerCase()}_${m.name}_2026`] = 'Paid';
+                        }
+                    });
                 });
             });
         });
@@ -1797,6 +1809,17 @@ window.quickMarkPaidUpToMonth = async function() {
             await sb.from('fees_records').upsert(recordsToUpsert, { onConflict: 'roll_no' });
         }
 
+        // Switch the month dropdown to the settlement end month so the table shows Paid rows
+        const monthDropdown = document.getElementById('feeMonthSelect');
+        if (monthDropdown) {
+            monthDropdown.value = selectedMonth;
+            // Update quick labels if present
+            const qTxt = document.getElementById('quickSettlementMonthText');
+            const qBtn = document.getElementById('quickBtnMonth');
+            if (qTxt) qTxt.textContent = selectedMonth;
+            if (qBtn) qBtn.textContent = selectedMonth;
+        }
+
         if (typeof window.loadFeeTable === 'function') {
             window.loadFeeTable();
         }
@@ -1810,14 +1833,13 @@ window.quickMarkPaidUpToMonth = async function() {
                 <div class="alert alert-success alert-dismissible fade show my-2" role="alert">
                     <i class="fas fa-check-circle mr-1"></i>
                     <strong>Settled!</strong> All students marked as Paid from January to ${selectedMonth} (${endIdx + 1} months).
+                    <small class="d-block text-muted mt-1">The fee table below now shows <strong>${selectedMonth}</strong> — switch to any cleared month (Jan–${selectedMonth}) to verify.</small>
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             `;
         }
-
-        alert(`✓ Successfully marked all students as PAID from January to ${selectedMonth}!`);
     } catch (err) {
         console.error('Error in quickMarkPaidUpToMonth:', err);
         alert('Error clearing fees: ' + (err.message || err));
