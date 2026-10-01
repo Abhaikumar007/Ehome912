@@ -603,32 +603,31 @@ window.sb_saveAttendance = async function (attData) {
 
                 // (Attendance is tracked in attendance_records, keeping classes table strictly for timetables)
 
-                // Update student's attendance_records
+                // Upsert student's attendance_records (creates row if none exists yet)
                 const { data: curAtt } = await sb.from('attendance_records')
                     .select('*')
                     .eq('roll_no', rollNo)
                     .maybeSingle();
 
-                if (curAtt) {
-                    const newAttended = isPresent ? (curAtt.attended || 0) + 1 : (curAtt.attended || 0);
-                    const newTotal = (curAtt.total || 0) + 1;
-                    const newOverall = Math.round((newAttended / newTotal) * 100);
+                const newAttended = isPresent ? ((curAtt?.attended || 0) + 1) : (curAtt?.attended || 0);
+                const newTotal = (curAtt?.total || 0) + 1;
+                const newOverall = newTotal > 0 ? Math.round((newAttended / newTotal) * 100) : (isPresent ? 100 : 0);
 
-                    const todaySubjects = Array.isArray(curAtt.today_subjects) ? curAtt.today_subjects : [];
-                    todaySubjects.push({
-                        name: attData.subject,
-                        status: isPresent ? 'present' : 'absent',
-                        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-                    });
+                const todaySubjects = Array.isArray(curAtt?.today_subjects) ? [...curAtt.today_subjects] : [];
+                todaySubjects.push({
+                    name: attData.subject,
+                    status: isPresent ? 'present' : 'absent',
+                    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+                });
 
-                    await sb.from('attendance_records').update({
-                        attended: newAttended,
-                        total: newTotal,
-                        overall: newOverall,
-                        today_subjects: todaySubjects,
-                        updated_at: new Date().toISOString()
-                    }).eq('roll_no', rollNo);
-                }
+                await sb.from('attendance_records').upsert({
+                    roll_no: rollNo,
+                    attended: newAttended,
+                    total: newTotal,
+                    overall: newOverall,
+                    today_subjects: todaySubjects,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'roll_no' });
             }
             console.log('[DualSync] Attendance synced to Supabase student records ✓');
             return true;
