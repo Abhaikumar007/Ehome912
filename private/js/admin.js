@@ -1440,7 +1440,18 @@ if (document.getElementById('feesClassSelect')) {
     // We need a month select event listener too
     const monthSelect = document.getElementById('feeMonthSelect');
     if (monthSelect) {
-        monthSelect.addEventListener('change', loadFeeTable);
+        const updateQuickMonthLabels = () => {
+            const mVal = monthSelect.value;
+            const qTxt = document.getElementById('quickSettlementMonthText');
+            const qBtn = document.getElementById('quickBtnMonth');
+            if (qTxt) qTxt.textContent = mVal;
+            if (qBtn) qBtn.textContent = mVal;
+        };
+        monthSelect.addEventListener('change', () => {
+            updateQuickMonthLabels();
+            loadFeeTable();
+        });
+        updateQuickMonthLabels();
     }
 
     function loadFeeTable() {
@@ -1671,6 +1682,152 @@ if (document.getElementById('feesClassSelect')) {
     // Initial load
     loadFeeTable();
 }
+
+window.quickMarkPaidUpToMonth = async function() {
+    const monthSelect = document.getElementById('feeMonthSelect');
+    const classSelect = document.getElementById('feesClassSelect');
+    const selectedMonth = monthSelect ? monthSelect.value : 'October';
+    const selectedClass = classSelect ? classSelect.value : '';
+    const alertBox = document.getElementById('quickFeeStatusAlert');
+    const btn = document.getElementById('btnQuickMarkPaid');
+
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const monthIndex = monthNames.indexOf(selectedMonth);
+    const endIdx = monthIndex >= 0 ? monthIndex : 9;
+    const startIdx = 0; // January
+
+    const confirmMsg = `Mark all students as PAID from January to ${selectedMonth} (${endIdx + 1} months)?\n\nThis will record payments in Supabase, update student receipts, and set dues to 0.`;
+    if (typeof window.__confirmBypass === 'undefined' && !confirm(confirmMsg)) return;
+
+    const originalBtnHtml = btn ? btn.innerHTML : `<i class="fas fa-check-circle mr-1"></i> Mark All Paid (Jan → ${selectedMonth})`;
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing Fees...';
+    }
+
+    try {
+        const sb = typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null;
+        let students = typeof getStudents === 'function' ? getStudents() : [];
+        if (selectedClass) {
+            students = students.filter(s => s.class === selectedClass);
+        }
+
+        const now = new Date();
+        const paidDateStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+
+        const clearedMonths = [];
+        const monthShorts = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+        for (let i = startIdx; i <= endIdx; i++) {
+            clearedMonths.push({
+                index: i,
+                name: monthNames[i],
+                short: monthShorts[i],
+                full: `${monthNames[i]} 2026`
+            });
+        }
+
+        // 1. Update localStorage fees
+        let localFees = typeof getFees === 'function' ? getFees() : {};
+        students.forEach(s => {
+            const idKey = s.id || s.rollNo || s.roll_no;
+            const subjects = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
+            clearedMonths.forEach(m => {
+                subjects.forEach(sub => {
+                    localFees[`${idKey}_${sub}_${m.name}_2026`] = 'Paid';
+                    localFees[`${s.rollNo}_${sub}_${m.name}_2026`] = 'Paid';
+                });
+            });
+        });
+        localStorage.setItem('fees', JSON.stringify(localFees));
+
+        // 2. Update Supabase fees_records if connected
+        if (sb) {
+            let feeMap = new Map();
+            try {
+                const { data: fRows } = await sb.from('fees_records').select('*');
+                if (Array.isArray(fRows)) {
+                    fRows.forEach(r => { if (r.roll_no) feeMap.set(String(r.roll_no).toUpperCase().trim(), r); });
+                }
+            } catch (e) {}
+
+            const recordsToUpsert = [];
+            students.forEach(s => {
+                const roll = s.rollNo || s.roll_no || s.id;
+                if (!roll) return;
+                const rollKey = String(roll).toUpperCase().trim();
+                const fRec = feeMap.get(rollKey);
+                const monthlyFee = Number(s.amount || s.fee) || 3000;
+
+                const existingPayments = Array.isArray(fRec?.recent_payments) ? [...fRec.recent_payments] : [];
+                clearedMonths.forEach(m => {
+                    const pIdx = existingPayments.findIndex(p => p.fullMonth === m.full || p.month === m.short);
+                    const receiptItem = {
+                        month: m.short,
+                        fullMonth: m.full,
+                        paidOn: paidDateStr,
+                        amount: monthlyFee,
+                        onTime: true,
+                        status: 'Verified by Center Admin',
+                        receiptNo: `REC-2026-${m.short}-${Math.floor(1000 + Math.random() * 9000)}`,
+                        utr: 'ADMIN-BULK-SETTLED'
+                    };
+                    if (pIdx >= 0) existingPayments[pIdx] = receiptItem;
+                    else existingPayments.push(receiptItem);
+                });
+
+                const existingLoyalty = Array.isArray(fRec?.loyalty_months) ? [...fRec.loyalty_months] : [];
+                clearedMonths.forEach(m => {
+                    if (!existingLoyalty.some(l => l.label === m.name)) {
+                        existingLoyalty.push({ label: m.name, earned: true });
+                    }
+                });
+
+                recordsToUpsert.push({
+                    roll_no: String(roll).trim(),
+                    current_due: endIdx >= 9 ? 0 : monthlyFee,
+                    due_date: endIdx >= 9 ? 'All Cleared' : '25 October 2026',
+                    days_left: endIdx >= 9 ? 0 : 24,
+                    months_paid_on_time: Math.max(fRec?.months_paid_on_time || 0, endIdx + 1),
+                    loyalty_months: existingLoyalty,
+                    recent_payments: existingPayments,
+                    updated_at: now.toISOString()
+                });
+            });
+
+            await sb.from('fees_records').upsert(recordsToUpsert, { onConflict: 'roll_no' });
+        }
+
+        if (typeof window.loadFeeTable === 'function') {
+            window.loadFeeTable();
+        }
+
+        if (typeof window.updateFeeSummary === 'function') {
+            await window.updateFeeSummary();
+        }
+
+        if (alertBox) {
+            alertBox.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show my-2" role="alert">
+                    <i class="fas fa-check-circle mr-1"></i>
+                    <strong>Settled!</strong> All students marked as Paid from January to ${selectedMonth} (${endIdx + 1} months).
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        alert(`✓ Successfully marked all students as PAID from January to ${selectedMonth}!`);
+    } catch (err) {
+        console.error('Error in quickMarkPaidUpToMonth:', err);
+        alert('Error clearing fees: ' + (err.message || err));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalBtnHtml;
+        }
+    }
+};
 
 
 // --- TIMETABLE PAGE ---
