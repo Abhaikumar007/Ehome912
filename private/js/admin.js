@@ -2966,6 +2966,38 @@ window.loadPendingVerifications = async function() {
 
         if (error) throw error;
 
+        // Instant Supabase Realtime Broadcast to student mobile app
+        try {
+            const rtChan = sb.channel('fee_realtime_broadcast');
+            rtChan.subscribe((subStatus) => {
+                if (subStatus === 'SUBSCRIBED') {
+                    rtChan.send({
+                        type: 'broadcast',
+                        event: 'fee_approved',
+                        payload: {
+                            rollNo: rollNo,
+                            studentName: item.studentName,
+                            amount: item.amount,
+                            status: 'paid',
+                            timestamp: now.toISOString(),
+                        }
+                    });
+                }
+            });
+            const dashChan = sb.channel('student_dashboard_realtime');
+            dashChan.subscribe((ds) => {
+                if (ds === 'SUBSCRIBED') {
+                    dashChan.send({
+                        type: 'broadcast',
+                        event: 'fee_approved',
+                        payload: { rollNo: rollNo, status: 'paid' }
+                    });
+                }
+            });
+        } catch (rtErr) {
+            console.warn('[Admin] Realtime broadcast error:', rtErr);
+        }
+
         const pending = [];
         window._pendingFeeRegistry = {};
 
@@ -3133,6 +3165,9 @@ window.executeApproveFee = async function(rollNo, btn) {
 
         window.showPendingFeeNotice('✓ Payment of ₹' + item.amount.toLocaleString('en-IN') + ' from ' + item.studentName + ' APPROVED and marked as PAID!', 'success');
         await window.loadPendingVerifications();
+        if (typeof window.updateFeeSummary === 'function') {
+            await window.updateFeeSummary();
+        }
     } catch (e) {
         console.error('Error approving student fee:', e);
         window.showPendingFeeNotice('Failed to approve fee: ' + (e.message || e), 'danger');
@@ -3194,6 +3229,9 @@ window.executeRejectFee = async function(rollNo, btn) {
 
         window.showPendingFeeNotice('Verification rejected for roll ' + rollNo + '. Student status reverted to Due.', 'warning');
         await window.loadPendingVerifications();
+        if (typeof window.updateFeeSummary === 'function') {
+            await window.updateFeeSummary();
+        }
     } catch (e) {
         window.showPendingFeeNotice('Failed to reject fee: ' + (e.message || e), 'danger');
         if (btn) {

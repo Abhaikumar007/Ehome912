@@ -22,6 +22,15 @@ function escapeHtml(str) {
 }
 
 
+function getStandardClassFee(className) {
+    const raw = String(className || '10').replace(/[^0-9]/g, '');
+    const num = parseInt(raw, 10) || 10;
+    if (num >= 11) return 4000;
+    if (num >= 9) return 3000;
+    return 2500;
+}
+window.getStandardClassFee = getStandardClassFee;
+
 function _getMasterHubSupabase() {
     if (typeof _getSupabaseClient === 'function') {
         const client = _getSupabaseClient();
@@ -55,11 +64,15 @@ function setupMasterHubRealtime() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
                 console.log('[MasterHub Realtime] Announcements changed:', payload.eventType);
                 loadActiveBroadcasts();
-    setupMasterHubRealtime();
+                setupMasterHubRealtime();
             })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, (payload) => {
                 console.log('[MasterHub Realtime] Students changed:', payload.eventType);
                 refreshMasterData(true);
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records' }, (payload) => {
+                console.log('[MasterHub Realtime] Fees records changed:', payload.eventType);
+                if (typeof updateFeeSummary === 'function') updateFeeSummary();
             })
             .subscribe((status) => {
                 console.log('[MasterHub Realtime] Subscription status:', status);
@@ -100,12 +113,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (typeof window.loadPendingVerifications === 'function') {
                 window.loadPendingVerifications();
             }
+            if (typeof updateFeeSummary === 'function') updateFeeSummary();
         });
         feesTabLink.addEventListener('click', function () {
             setTimeout(function () {
                 if (typeof window.loadPendingVerifications === 'function') {
                     window.loadPendingVerifications();
                 }
+                if (typeof updateFeeSummary === 'function') updateFeeSummary();
             }, 100);
         });
     }
@@ -146,20 +161,44 @@ async function refreshMasterData(isRealtime) {
                 .select('*')
                 .order('created_at', { ascending: false });
 
+            // Fetch live fees_records to get exact fee figures
+            let feeMap = new Map();
+            try {
+                const { data: feeRows, error: feeErr } = await sb
+                    .from('fees_records')
+                    .select('roll_no, current_due, due_date, days_left, recent_payments');
+                if (!feeErr && Array.isArray(feeRows)) {
+                    feeRows.forEach(fr => {
+                        if (fr.roll_no) feeMap.set(String(fr.roll_no).toUpperCase().trim(), fr);
+                    });
+                }
+            } catch (feeEx) {
+                console.warn('[MasterHub] Error querying fees_records in refreshMasterData:', feeEx);
+            }
+
             if (!error && Array.isArray(dbStudents) && dbStudents.length > 0) {
-                students = dbStudents.map(s => ({
-                    rollNo: s.roll_no || s.rollNo || s.id || '',
-                    name: s.name || '',
-                    class: s.class || '',
-                    phone: s.phone || '',
-                    fee: s.monthly_fee || s.amount || s.fee || 0,
-                    amount: s.monthly_fee || s.amount || s.fee || 0,
-                    subjects: Array.isArray(s.subjects) ? s.subjects : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()) : []),
-                    school: s.school || 'EduHome Campus',
-                    pin: s.pin || '1234',
-                    joiningDate: s.joining_date || s.joiningDate || '',
-                    status: s.status || 'Active'
-                }));
+                students = dbStudents.map(s => {
+                    const roll = s.roll_no || s.rollNo || s.id || '';
+                    const cleanRoll = String(roll).toUpperCase().trim();
+                    const feeRec = feeMap.get(cleanRoll);
+                    const sClass = s.class || s.class_name || '10';
+                    const stdFee = getStandardClassFee(sClass);
+                    const actualFee = feeRec ? (Number(feeRec.current_due) || stdFee) : (Number(s.monthly_fee || s.amount || s.fee) || stdFee);
+
+                    return {
+                        rollNo: roll,
+                        name: s.name || '',
+                        class: sClass,
+                        phone: s.phone || '',
+                        fee: actualFee,
+                        amount: actualFee,
+                        subjects: Array.isArray(s.subjects) ? s.subjects : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()) : []),
+                        school: s.school || 'EduHome Campus',
+                        pin: s.pin || '1234',
+                        joiningDate: s.joining_date || s.joiningDate || '',
+                        status: s.status || 'Active'
+                    };
+                });
             }
         } catch (e) {
             console.warn('[MasterHub] Error querying students from Supabase:', e);
@@ -174,6 +213,14 @@ async function refreshMasterData(isRealtime) {
             students = JSON.parse(localStorage.getItem('students')) || [];
         }
     }
+
+    students.forEach(s => {
+        if (!s.class) s.class = s.class_name || '10';
+        if (!s.amount || Number(s.amount) === 0) {
+            s.amount = getStandardClassFee(s.class);
+            s.fee = s.amount;
+        }
+    });
 
     // Extra deduplication safeguard to guarantee no duplicate rows
     const uniqueMap = new Map();
@@ -194,7 +241,7 @@ async function refreshMasterData(isRealtime) {
     try { localStorage.setItem('students', JSON.stringify(uniqueStudents)); } catch (e) {}
 
     renderMasterGrid(currentStudents);
-    updateFeeSummary();
+    await updateFeeSummary();
 
     // Also refresh active announcements and pending fee receipts
     if (!isRealtime) {
@@ -860,22 +907,76 @@ document.addEventListener('click', function (evt) {
 
 // ─── 3. MONTHLY FEES AUTOMATION ──────────────────────────────────────────────
 
-function updateFeeSummary() {
+async function updateFeeSummary() {
     const students = currentStudents || [];
     let totalExpected = 0;
+    let totalCollected = 0;
+    let totalPending = 0;
     const classGroups = {};
 
-    students.forEach(s => {
-        const amt = Number(s.amount || s.monthly_fee || s.monthlyFee) || 0;
-        totalExpected += amt;
+    const sb = _getMasterHubSupabase();
+    let feeRecordsMap = new Map();
+    if (sb) {
+        try {
+            const { data: fRows, error } = await sb
+                .from('fees_records')
+                .select('roll_no, current_due, recent_payments, due_date');
+            if (!error && Array.isArray(fRows)) {
+                fRows.forEach(r => {
+                    if (r.roll_no) {
+                        feeRecordsMap.set(String(r.roll_no).toUpperCase().trim(), r);
+                    }
+                });
+            }
+        } catch (e) {
+            console.warn('[MasterHub] Error fetching fee records for summary:', e);
+        }
+    }
 
-        const cName = 'Class ' + String(s.class || s.class_name || '10').replace(/[^0-9]/g, '');
+    students.forEach(s => {
+        const rollKey = String(s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
+        const sClass = s.class || s.class_name || '10';
+        const stdFee = getStandardClassFee(sClass);
+        const monthlyFee = Number(s.amount || s.fee) || stdFee;
+        totalExpected += monthlyFee;
+
+        const fRec = feeRecordsMap.get(rollKey);
+        if (fRec) {
+            const due = Number(fRec.current_due);
+            if (isNaN(due) || due === 0) {
+                totalCollected += monthlyFee;
+            } else {
+                totalPending += due;
+            }
+
+            // Sum any verified payments from mobile app
+            const payments = Array.isArray(fRec.recent_payments) ? fRec.recent_payments : [];
+            payments.forEach(p => {
+                if (p && (p.status === 'Verified by Center Admin' || p.status === 'approved' || p.status === 'paid')) {
+                    const pAmt = Number(p.amount) || 0;
+                    totalCollected += pAmt;
+                    if (totalPending >= pAmt) {
+                        totalPending -= pAmt;
+                    }
+                }
+            });
+        } else {
+            totalPending += monthlyFee;
+        }
+
+        const rawCls = String(sClass).replace(/[^0-9]/g, '') || '10';
+        const cName = 'Class ' + rawCls;
         if (!classGroups[cName]) {
             classGroups[cName] = { count: 0, total: 0 };
         }
         classGroups[cName].count++;
-        classGroups[cName].total += amt;
+        classGroups[cName].total += monthlyFee;
     });
+
+    // Guard: if fresh cycle and no collections yet, pending equals expected
+    if (totalCollected === 0 && totalPending === 0 && totalExpected > 0) {
+        totalPending = totalExpected;
+    }
 
     const elTotalStu = document.getElementById('feeTotalStudents');
     const elExpected = document.getElementById('feeTotalExpected');
@@ -884,60 +985,190 @@ function updateFeeSummary() {
 
     if (elTotalStu) elTotalStu.innerText = students.length;
     if (elExpected) elExpected.innerText = '₹' + totalExpected.toLocaleString('en-IN');
-    if (elCollected) elCollected.innerText = '₹' + Math.round(totalExpected * 0.6).toLocaleString('en-IN');
-    if (elPending) elPending.innerText = '₹' + Math.round(totalExpected * 0.4).toLocaleString('en-IN');
+    if (elCollected) elCollected.innerText = '₹' + totalCollected.toLocaleString('en-IN');
+    if (elPending) elPending.innerText = '₹' + totalPending.toLocaleString('en-IN');
 
     // Populate class breakdown table
     const tbody = document.getElementById('cycleFeeTbody');
     if (tbody) {
         tbody.innerHTML = '';
-        Object.keys(classGroups).sort().forEach(c => {
-            const grp = classGroups[c];
-            const avg = grp.count > 0 ? Math.round(grp.total / grp.count) : 0;
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td class="font-weight-bold">${c}</td>
-                <td>${grp.count} Students</td>
-                <td>Avg ₹${avg.toLocaleString('en-IN')} / student</td>
-                <td class="font-weight-bold text-primary">₹${grp.total.toLocaleString('en-IN')}</td>
-                <td><span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i>Live in Supabase</span></td>
-            `;
-            tbody.appendChild(tr);
+        const sortedClasses = Object.keys(classGroups).sort((a, b) => {
+            const numA = parseInt(a.replace(/[^0-9]/g, '')) || 0;
+            const numB = parseInt(b.replace(/[^0-9]/g, '')) || 0;
+            return numA - numB;
         });
+
+        if (sortedClasses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No student classes registered. Add students in the Master Grid.</td></tr>';
+        } else {
+            sortedClasses.forEach(c => {
+                const grp = classGroups[c];
+                const avg = grp.count > 0 ? Math.round(grp.total / grp.count) : 0;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="font-weight-bold">${c}</td>
+                    <td>${grp.count} Students</td>
+                    <td>Avg ₹${avg.toLocaleString('en-IN')} / student</td>
+                    <td class="font-weight-bold text-primary">₹${grp.total.toLocaleString('en-IN')}</td>
+                    <td><span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i>Live in Supabase</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
     }
 }
 
 async function generateMonthlyFeeCycle() {
-    const cycleMonth = document.getElementById('cycleMonthSelect').value;
-    if (!confirm('Generate fee billing cycle for "' + cycleMonth + '" across all ' + currentStudents.length + ' active students?')) {
+    const cycleSelect = document.getElementById('cycleMonthSelect');
+    const cycleMonth = cycleSelect ? cycleSelect.value : 'October 2026';
+    const students = currentStudents || [];
+
+    if (!students || students.length === 0) {
+        alert('⚠️ No active student records found. Please wait for students to load or refresh.');
         return;
     }
 
-    const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
-    let count = 0;
-
-    if (sb) {
-        for (const s of currentStudents) {
-            const rollNo = s.rollNo || s.roll_no || s.id;
-            const monthlyFee = Number(s.amount || s.monthly_fee) || 3000;
-
-            // Upsert fee record for cycle
-            await sb.from('fees_records').upsert({
-                roll_no: rollNo,
-                monthly_fee: monthlyFee,
-                current_due: monthlyFee,
-                due_date: '25 ' + cycleMonth,
-                days_left: 5,
-                status: 'due',
-                updated_at: new Date().toISOString()
-            }, { onConflict: 'roll_no' });
-
-            count++;
-        }
+    if (!confirm('Generate fee billing cycle for "' + cycleMonth + '" across all ' + students.length + ' active students? This will set active cycle dues in Supabase.')) {
+        return;
     }
 
-    alert('✅ Generated ' + cycleMonth + ' billing cycle for ' + count + ' students in Supabase and Google Sheets!');
+    const genBtn = document.querySelector('button[onclick="generateMonthlyFeeCycle()"]');
+    const originalBtnHtml = genBtn ? genBtn.innerHTML : '<i class="fas fa-bolt mr-1"></i> Generate Cycle Dues';
+    if (genBtn) {
+        genBtn.disabled = true;
+        genBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Generating Cycle...';
+    }
+
+    const sb = _getMasterHubSupabase();
+    if (!sb) {
+        alert('❌ Supabase database client not available. Please verify cloud connection.');
+        if (genBtn) {
+            genBtn.disabled = false;
+            genBtn.innerHTML = originalBtnHtml;
+        }
+        return;
+    }
+
+    try {
+        const dueDateStr = '25 ' + cycleMonth;
+        let daysLeft = 24;
+        try {
+            const dueObj = new Date(dueDateStr);
+            if (!isNaN(dueObj.getTime())) {
+                const now = new Date();
+                const diffTime = dueObj.getTime() - now.getTime();
+                daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+            }
+        } catch (dEx) {
+            daysLeft = 20;
+        }
+
+        const recordsToUpsert = [];
+        let totalCycleAmount = 0;
+
+        students.forEach((s, idx) => {
+            const rollNo = s.rollNo || s.roll_no || s.id || ('EDU-C10-' + String(idx + 1).padStart(3, '0'));
+            const sClass = s.class || s.class_name || '10';
+            const stdFee = getStandardClassFee(sClass);
+            const monthlyFee = Number(s.amount || s.fee) || stdFee;
+
+            s.amount = monthlyFee;
+            s.fee = monthlyFee;
+            s.class = sClass;
+            totalCycleAmount += monthlyFee;
+
+            recordsToUpsert.push({
+                roll_no: String(rollNo).trim(),
+                current_due: monthlyFee,
+                due_date: dueDateStr,
+                days_left: daysLeft,
+                updated_at: new Date().toISOString()
+            });
+        });
+
+        console.log(`[MonthlyFeeCycle] Upserting ${recordsToUpsert.length} records into fees_records for ${cycleMonth}...`);
+
+        // Batch upsert into Supabase fees_records (strictly valid schema columns!)
+        const { error: sbError } = await sb
+            .from('fees_records')
+            .upsert(recordsToUpsert, { onConflict: 'roll_no' });
+
+        if (sbError) {
+            console.error('[MonthlyFeeCycle] Supabase upsert error:', sbError);
+            throw sbError;
+        }
+
+        // Persist updated students to memory & localStorage
+        originalStudents = JSON.parse(JSON.stringify(students));
+        try {
+            localStorage.setItem('students', JSON.stringify(students));
+        } catch (e) {}
+
+        // Immediately refresh the grid and summary cards
+        renderMasterGrid(students);
+        await updateFeeSummary();
+
+        // Broadcast realtime notification to student mobile apps
+        try {
+            const feeChan = sb.channel('fee_realtime_broadcast');
+            feeChan.subscribe((subStatus) => {
+                if (subStatus === 'SUBSCRIBED') {
+                    feeChan.send({
+                        type: 'broadcast',
+                        event: 'cycle_generated',
+                        payload: {
+                            cycle: cycleMonth,
+                            dueDate: dueDateStr,
+                            timestamp: new Date().toISOString()
+                        }
+                    });
+                }
+            });
+        } catch (rtEx) {
+            console.warn('[MonthlyFeeCycle] Realtime broadcast warning:', rtEx);
+        }
+
+        // Display in-page status alert
+        const cycleAlertBox = document.getElementById('cycleStatusAlert');
+        if (cycleAlertBox) {
+            cycleAlertBox.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show my-3" role="alert">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>${cycleMonth} Fee Cycle Active!</strong> Successfully generated dues for <strong>${recordsToUpsert.length} students</strong>. Total Expected Revenue: <strong>₹${totalCycleAmount.toLocaleString('en-IN')}</strong>. Due Date: <strong>${dueDateStr}</strong> (${daysLeft} days left).
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+        }
+
+        alert(`✅ Successfully generated "${cycleMonth}" billing cycle for ${recordsToUpsert.length} students in Supabase!\n\n• Due Date: ${dueDateStr} (${daysLeft} days left)\n• Total Expected Revenue: ₹${totalCycleAmount.toLocaleString('en-IN')}\n• All student mobile apps now reflect these active dues.`);
+
+    } catch (err) {
+        console.error('[MonthlyFeeCycle] Error generating cycle:', err);
+        const cycleAlertBox = document.getElementById('cycleStatusAlert');
+        if (cycleAlertBox) {
+            cycleAlertBox.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>Error Generating Cycle:</strong> ${escapeHtml(err.message || String(err))}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+        }
+        alert('❌ Failed to generate fee cycle: ' + (err.message || err));
+    } finally {
+        if (genBtn) {
+            genBtn.disabled = false;
+            genBtn.innerHTML = originalBtnHtml;
+        }
+    }
 }
+
+window.updateFeeSummary = updateFeeSummary;
+window.generateMonthlyFeeCycle = generateMonthlyFeeCycle;
 
 // ─── 4. CLOUD HEALTH & DIAGNOSTICS ────────────────────────────────────────────
 
