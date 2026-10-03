@@ -3748,20 +3748,32 @@ window.approveStudentFee = async function(rollNo, studentName, amount, utr) {
 
         // Fully paid only if every month up to NOW (since Jan / joining) has an approved payment
         let firstUnpaid = null;
+        let unpaidCount = 0;
         const nowKey = now.getFullYear() * 12 + now.getMonth();
         for (let k = now.getFullYear() * 12; k <= nowKey; k++) {
-            if (!paidKeys.has(k)) { firstUnpaid = k; break; }
+            if (!paidKeys.has(k)) {
+                unpaidCount++;
+                if (firstUnpaid === null) firstUnpaid = k;
+            }
         }
         const fullyPaid = firstUnpaid === null;
-        const stuAmount = (rec && rec.current_due) ? rec.current_due : amount;
+        const stuList = typeof getStudents === 'function' ? getStudents() : [];
+        const matchedStudent = stuList.find(s => s.id === rollNo || s.rollNo === rollNo || s.phone === rollNo);
+        const monthlyAmt = Number(matchedStudent?.amount) || Number(amount) || 4000;
+        const currentDue = fullyPaid ? 0 : (unpaidCount * monthlyAmt);
 
         const upd = {
-            current_due: fullyPaid ? 0 : stuAmount,
+            current_due: currentDue,
             loyalty_months: existingLoyalty,
             recent_payments: updated,
             updated_at: now.toISOString()
         };
-        if (fullyPaid) { upd.due_date = 'All Cleared'; upd.days_left = 0; }
+        if (fullyPaid) {
+            upd.due_date = 'All Cleared';
+            upd.days_left = 0;
+        } else if (firstUnpaid !== null) {
+            upd.due_date = '15 ' + mLong[firstUnpaid % 12] + ' ' + Math.floor(firstUnpaid / 12);
+        }
         const { error } = await sb.from('fees_records').update(upd).eq('roll_no', rollNo);
 
         if (error) throw error;
