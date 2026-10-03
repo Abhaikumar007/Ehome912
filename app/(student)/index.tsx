@@ -92,17 +92,7 @@ interface SessionTypeInfo {
 }
 
 function getClassSessionInfo(cls: any, academicAlert?: any): SessionTypeInfo {
-  let resolved: string = resolveSessionType(cls);
-
-  // If cls is not already marked as TP/Test Paper, check if an active academic alert matches this subject & date
-  if (resolved === 'Regular Class' && academicAlert) {
-    const alertTitle = (academicAlert.title || '').toLowerCase();
-    const alertSub = (cls?.subject || '').toLowerCase();
-    const alertDesc = (academicAlert.desc || academicAlert.description || '').toLowerCase();
-    if (alertTitle.includes(alertSub) || alertDesc.includes(alertSub)) {
-      resolved = 'Test Paper';
-    }
-  }
+  const resolved: string = resolveSessionType(cls);
 
   if (resolved === 'TP' || resolved === 'Test Paper') {
     return {
