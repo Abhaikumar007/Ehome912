@@ -579,11 +579,12 @@
                                                 ${meta.emoji} ${item.subject || 'General'}
                                             </span>
                                             ${(() => {
+                                                const sType = timeInfo.sessionType || statusInfo.sessionType;
                                                 const nStat = (item.status || '').toLowerCase();
                                                 const nTime = (item.time || '').toLowerCase();
-                                                if (nStat.split(':').includes('tp') || nStat.includes(':tp') || nStat.includes('test') || nTime.includes('test paper') || nTime.includes('• tp')) {
+                                                if (sType === 'TP' || nStat.split(':').includes('tp') || nStat.includes(':tp') || nStat.includes('test') || nTime.includes('test paper') || nTime.includes('• tp')) {
                                                     return '<span class="badge badge-danger ml-1" style="font-size:0.72rem; font-weight:600;"><i class="fas fa-file-alt mr-1"></i>Test Paper</span>';
-                                                } else if (nStat.split(':').includes('questionbank') || nStat.split(':').includes('qb') || nStat.includes(':qb') || nTime.includes('question bank') || nTime.includes('• qb')) {
+                                                } else if (sType === 'QuestionBank' || nStat.split(':').includes('questionbank') || nStat.split(':').includes('qb') || nStat.includes(':qb') || nTime.includes('question bank') || nTime.includes('• qb')) {
                                                     return '<span class="badge ml-1 text-white" style="font-size:0.72rem; font-weight:600; background:#7c3aed;"><i class="fas fa-book-open mr-1"></i>Question Bank</span>';
                                                 } else {
                                                     return '<span class="badge badge-light border ml-1 text-muted" style="font-size:0.72rem; font-weight:600;">📖 Regular Class</span>';
@@ -1095,8 +1096,27 @@
 
         const timeInfo = _parseTimeDetails(item.time);
         const statusInfo = _parseStatus(item.status);
-        const newTime = `${timeInfo.time} • ${facultyName}`;
-        const newStatus = `${statusInfo.status || 'upcoming'}:${facultyId}`;
+        const sessType = timeInfo.sessionType || statusInfo.sessionType || 'Regular';
+        const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+            ? 'Test Paper'
+            : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+            ? 'Question Bank'
+            : '';
+        const statusTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+            ? 'TP'
+            : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+            ? 'QuestionBank'
+            : '';
+
+        const timeParts = [timeInfo.time];
+        if (sessionTag) timeParts.push(sessionTag);
+        if (facultyName) timeParts.push(facultyName);
+        const newTime = timeParts.join(' • ');
+
+        const baseStat = statusInfo.status || 'upcoming';
+        const newStatus = statusTag
+            ? `${baseStat}:${statusTag}${facultyId ? ':' + facultyId : ''}`
+            : (facultyId ? `${baseStat}:${facultyId}` : `${baseStat}:fac`);
 
         try {
             const { error } = await sb.from('classes').update({
@@ -1144,8 +1164,27 @@
             const isStatusIdWrong = !statusInfo.facultyId || (assigned.id && statusInfo.facultyId !== assigned.id);
 
             if (isOutdated || isMismatched || isStatusIdWrong) {
-                const newTime = `${timeInfo.time} • ${assigned.name}`;
-                const newStatus = `${statusInfo.status || 'upcoming'}:${assigned.id}`;
+                const sessType = timeInfo.sessionType || statusInfo.sessionType || 'Regular';
+                const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'Test Paper'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'Question Bank'
+                    : '';
+                const statusTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'TP'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'QuestionBank'
+                    : '';
+
+                const timeParts = [timeInfo.time];
+                if (sessionTag) timeParts.push(sessionTag);
+                if (assigned.name) timeParts.push(assigned.name);
+                const newTime = timeParts.join(' • ');
+
+                const baseStat = statusInfo.status || 'upcoming';
+                const newStatus = statusTag
+                    ? `${baseStat}:${statusTag}:${assigned.id}`
+                    : `${baseStat}:${assigned.id}`;
                 itemsToUpdate.push({
                     id: item.id,
                     oldName: timeInfo.faculty || '(None)',
