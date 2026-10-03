@@ -843,10 +843,12 @@ export const DataService = {
         const todayMid = new Date(feeNow.getFullYear(), feeNow.getMonth(), feeNow.getDate());
         const targetDaysLeft = Math.round((targetDueObj.getTime() - todayMid.getTime()) / 86400000);
 
+        const computedDue = isPaid ? 0 : (unpaidCount > 0 ? unpaidCount * studentFeeInfo.monthlyFee : studentFeeInfo.monthlyFee);
+
         const mapped = {
           monthlyFee: studentFeeInfo.monthlyFee,
-          currentDue: isPaid ? 0 : (Number(data.current_due) || studentFeeInfo.monthlyFee),
-          actualDue: isPaid ? 0 : (Number(data.current_due) || studentFeeInfo.monthlyFee),
+          currentDue: computedDue,
+          actualDue: computedDue,
           dueDate: isPaid ? 'All Cleared' : targetDueStr,
           joiningDate: data.joining_date || studentFeeInfo.joiningDate || studentDueInfo.dueDate,
           daysLeft: isPaid ? 0 : targetDaysLeft,

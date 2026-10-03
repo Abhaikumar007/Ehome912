@@ -663,12 +663,15 @@ export default function FeesScreen() {
                   <Text style={styles.paymentDate}>Paid on {p.paidOn}</Text>
                 </View>
                 <View style={styles.paymentRightCol}>
-                  <Text style={styles.paymentAmount}>₹ {p.amount.toLocaleString('en-IN')}</Text>
-                  <View style={[styles.onTimeBadge, { backgroundColor: p.onTime ? Colors.greenLight : Colors.redLight }]}>
-                    <Ionicons name={p.onTime ? 'checkmark-circle' : 'time-outline'} size={11} color={p.onTime ? Colors.green : Colors.red} />
-                    <Text style={[styles.onTimeText, { color: p.onTime ? Colors.green : Colors.red }]}>
-                      {p.onTime ? 'On Time' : 'Late'}
+                  <View style={[styles.onTimeBadge, { backgroundColor: p.onTime !== false ? Colors.greenLight : '#FEF3C7' }]}>
+                    <Ionicons name={p.onTime !== false ? 'checkmark-circle' : 'time-outline'} size={11} color={p.onTime !== false ? Colors.green : '#D97706'} />
+                    <Text style={[styles.onTimeText, { color: p.onTime !== false ? Colors.green : '#D97706' }]}>
+                      {p.onTime !== false ? 'On Time' : 'Delayed'}
                     </Text>
+                  </View>
+                  <View style={styles.historyVerifiedBadge}>
+                    <Ionicons name="shield-checkmark" size={9.5} color="#15803D" />
+                    <Text style={[styles.historyVerifiedText, { fontSize: 9 }]}>Verified</Text>
                   </View>
                 </View>
               </View>
@@ -834,10 +837,15 @@ export default function FeesScreen() {
                         <Text style={styles.historyCardTitle}>{item.category || item.fullMonth}</Text>
                         <Text style={styles.historyCardDate}>{item.paidOn}</Text>
                       </View>
-                      <View style={{ alignItems: 'flex-end' }}>
-                        <Text style={styles.historyAmountText}>₹ {item.amount.toLocaleString('en-IN')}</Text>
+                      <View style={{ alignItems: 'flex-end', justifyContent: 'center', gap: 4 }}>
+                        <View style={[styles.onTimeBadge, { backgroundColor: item.onTime !== false ? Colors.greenLight : '#FEF3C7' }]}>
+                          <Ionicons name={item.onTime !== false ? 'checkmark-circle' : 'time-outline'} size={11} color={item.onTime !== false ? Colors.green : '#D97706'} />
+                          <Text style={[styles.onTimeText, { color: item.onTime !== false ? Colors.green : '#D97706' }]}>
+                            {item.onTime !== false ? 'On Time' : 'Delayed'}
+                          </Text>
+                        </View>
                         <View style={styles.historyVerifiedBadge}>
-                          <Ionicons name="checkmark-circle" size={11} color={Colors.green} />
+                          <Ionicons name="shield-checkmark" size={10} color="#15803D" />
                           <Text style={styles.historyVerifiedText}>Verified</Text>
                         </View>
                       </View>
