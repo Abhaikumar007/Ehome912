@@ -1703,18 +1703,36 @@ if (document.getElementById('feesClassSelect')) {
                         utr: 'ADMIN-DIRECT-TOGGLE'
                     });
                 }
-                if (month === 'October') {
-                    rec.current_due = 0;
-                    rec.due_date = 'All Cleared';
-                    rec.status = 'paid';
+                // Recalculate current_due after adding this payment
+                const nowDate = new Date();
+                const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                const nowMonthIdx = nowDate.getMonth();
+                const paidMonths = new Set(pmts.map(p => p.month)); // short codes
+                let due = 0;
+                for (let mi = 0; mi <= nowMonthIdx; mi++) {
+                    const sh = months[mi].slice(0,3).toUpperCase();
+                    if (!paidMonths.has(sh)) due++;
                 }
+                rec.current_due = due * (Number(student?.amount) || 4000);
+                rec.due_date = due === 0 ? 'All Cleared' : ('25 ' + months[nowMonthIdx] + ' ' + nowDate.getFullYear());
+                rec.status = due === 0 ? 'paid' : 'due';
+                rec.recent_payments = pmts;
             } else {
                 rec.recent_payments = pmts.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
-                if (month === 'October') {
-                    rec.current_due = Number(student?.amount) || 4000;
-                    rec.due_date = '25 October 2026';
-                    rec.status = 'due';
+                // Recalculate current_due after removing this payment
+                const nowDate2 = new Date();
+                const months2 = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+                const nowMonthIdx2 = nowDate2.getMonth();
+                const remainPmts = rec.recent_payments;
+                const paidMonths2 = new Set(remainPmts.map(p => p.month));
+                let due2 = 0;
+                for (let mi = 0; mi <= nowMonthIdx2; mi++) {
+                    const sh = months2[mi].slice(0,3).toUpperCase();
+                    if (!paidMonths2.has(sh)) due2++;
                 }
+                rec.current_due = due2 * (Number(student?.amount) || 4000);
+                rec.due_date = due2 === 0 ? 'All Cleared' : ('25 ' + months2[nowMonthIdx2] + ' ' + nowDate2.getFullYear());
+                rec.status = due2 === 0 ? 'paid' : 'due';
             }
         }
 
@@ -1736,6 +1754,101 @@ if (document.getElementById('feesClassSelect')) {
     // Initial load
     loadFeeTable();
 }
+
+/**
+ * sb_toggleFee — Writes fee paid/unpaid change to Supabase fees_records.
+ * Called by toggleFee() after local state is updated.
+ */
+window.sb_toggleFee = async function(studentId, subject, month, year, newStatus) {
+    const sb = typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null;
+    if (!sb) { console.warn('[sb_toggleFee] No Supabase client'); return; }
+
+    const students = typeof getStudents === 'function' ? getStudents() : [];
+    const student = students.find(s => s.id === studentId || s.rollNo === studentId);
+    if (!student) { console.warn('[sb_toggleFee] Student not found:', studentId); return; }
+
+    const roll = String(student.rollNo || student.id).toUpperCase().trim();
+    const rollUpper = roll;
+
+    // Fetch current record from Supabase
+    const { data, error } = await sb
+        .from('fees_records')
+        .select('*')
+        .eq('roll_no', rollUpper)
+        .single();
+
+    if (error || !data) {
+        console.warn('[sb_toggleFee] Fetch error:', error);
+        return;
+    }
+
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const mShort = month.slice(0,3).toUpperCase();
+    let pmts = Array.isArray(data.recent_payments) ? [...data.recent_payments] : [];
+
+    if (newStatus === 'Paid') {
+        // Add if not already there
+        if (!pmts.some(p => p.month === mShort || (p.fullMonth && p.fullMonth.toLowerCase().includes(month.toLowerCase())))) {
+            pmts.unshift({
+                month: mShort,
+                fullMonth: month + ' ' + year,
+                amount: Number(student.amount) || 4000,
+                paidOn: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+                status: 'Verified by Center Admin',
+                receiptNo: 'ADMIN-TOGGLE-' + Date.now(),
+                utr: 'ADMIN-DIRECT-TOGGLE'
+            });
+        }
+    } else {
+        // Remove the month entry
+        pmts = pmts.filter(p => {
+            const pLong = p.fullMonth ? p.fullMonth.split(' ')[0] : '';
+            return !(p.month === mShort || pLong.toLowerCase() === month.toLowerCase());
+        });
+    }
+
+    // Recalculate current_due based on how many months (Jan → now) are unpaid
+    const nowDate = new Date();
+    const nowMonthIdx = nowDate.getMonth();
+    const paidSet = new Set(pmts.map(p => p.month));
+    let due = 0;
+    for (let mi = 0; mi <= nowMonthIdx; mi++) {
+        const sh = months[mi].slice(0,3).toUpperCase();
+        if (!paidSet.has(sh)) due++;
+    }
+    const amount = Number(student.amount) || 4000;
+    const currentDue = due * amount;
+    const dueDate = due === 0 ? 'All Cleared' : ('25 ' + months[nowMonthIdx] + ' ' + nowDate.getFullYear());
+    const loyalty = pmts.filter(p => p.status !== 'pending_verification').length;
+
+    // Update Supabase
+    const { error: upErr } = await sb
+        .from('fees_records')
+        .update({
+            recent_payments: pmts,
+            current_due: currentDue,
+            due_date: dueDate,
+            loyalty_months: loyalty
+        })
+        .eq('roll_no', rollUpper);
+
+    if (upErr) {
+        console.error('[sb_toggleFee] Update error:', upErr);
+        throw upErr;
+    }
+
+    // Also update local in-memory map so the table reflects correctly without reload
+    if (window._supabaseFeeMap) {
+        const rec = window._supabaseFeeMap.get(rollUpper) || {};
+        rec.recent_payments = pmts;
+        rec.current_due = currentDue;
+        rec.due_date = dueDate;
+        rec.loyalty_months = loyalty;
+        window._supabaseFeeMap.set(rollUpper, rec);
+    }
+
+    console.log('[sb_toggleFee] Synced', roll, month, newStatus, '→ due:', currentDue);
+};
 
 /**
  * Robust Supabase Client Resolver for Admin Panel
