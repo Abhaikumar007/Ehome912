@@ -83,20 +83,42 @@ function getTeacherDefaultSubject(t: TeacherProfile | null): string {
 
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ classGrade?: string; subject?: string }>();
+  const params = useLocalSearchParams<{
+    classGrade?: string;
+    subject?: string;
+    classId?: string;
+    timeSlot?: string;
+    sessionType?: string;
+    classDate?: string;
+    dateOffset?: string;
+  }>();
   const [roster, setRoster] = useState<TeacherProfile[]>([]);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [selectedClassId, setSelectedClassId] = useState('c11');
   // Empty string = not yet resolved (teacher still loading); auto-adjust effect sets the real subject
   const [selectedSubject, setSelectedSubject] = useState<string>('');
+  const [activeSessionTime, setActiveSessionTime] = useState<string>(params.timeSlot || '');
+  const [activeClassId, setActiveClassId] = useState<string>(params.classId || '');
+  const [activeSessionType, setActiveSessionType] = useState<string>(params.sessionType || '');
+  const [attRecords, setAttRecords] = useState<any[]>([]);
+  const [adminClasses, setAdminClasses] = useState<any[]>(() => {
+    return DataService.getCachedAdminTimetableClasses() || [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [students, setStudents] = useState<StudentRoster[]>([]);
-  const [dateOffset, setDateOffset] = useState(0);
+  const [dateOffset, setDateOffset] = useState(() => (params.dateOffset !== undefined ? parseInt(params.dateOffset, 10) || 0 : 0));
   const [classModalVisible, setClassModalVisible] = useState(false);
   const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
   // Live student pool: fetched from Supabase, falls back to static roster
   const [liveStudents, setLiveStudents] = useState<typeof EDUSYNC_STUDENTS>(EDUSYNC_STUDENTS);
+
+  // Sync scheduled classes from Supabase
+  useEffect(() => {
+    DataService.getAdminTimetableClasses().then((cls) => {
+      if (cls && Array.isArray(cls)) setAdminClasses(cls);
+    });
+  }, []);
 
   const applyTeacher = useCallback((t: TeacherProfile) => {
     setActiveTeacher(t);
@@ -116,8 +138,12 @@ export default function FacultyAttendanceScreen() {
     try {
       const [{ data, error }, { data: attData }] = await Promise.all([
         supabase.from('students').select('*').order('created_at', { ascending: true }),
-        supabase.from('attendance_records').select('roll_no, today_subjects'),
+        supabase.from('attendance_records').select('roll_no, today_subjects, history'),
       ]);
+
+      if (Array.isArray(attData)) {
+        setAttRecords(attData);
+      }
 
       if (!error && Array.isArray(data) && data.length > 0) {
         // Map attendance subjects (where code_test syncs student subjects)
@@ -293,7 +319,70 @@ export default function FacultyAttendanceScreen() {
     if (params.subject && params.subject !== 'Science') {
       setSelectedSubject(params.subject);
     }
-  }, [params.classGrade, params.subject]);
+    if (params.timeSlot) {
+      setActiveSessionTime(params.timeSlot);
+    }
+    if (params.classId) {
+      setActiveClassId(params.classId);
+    }
+    if (params.sessionType) {
+      setActiveSessionType(params.sessionType);
+    }
+    if (params.dateOffset !== undefined) {
+      const parsedOffset = parseInt(params.dateOffset, 10);
+      if (!isNaN(parsedOffset)) {
+        setDateOffset(parsedOffset);
+      }
+    }
+  }, [params.classGrade, params.subject, params.classId, params.timeSlot, params.sessionType, params.dateOffset]);
+
+  const targetDateIso = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + dateOffset);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }, [dateOffset]);
+
+  const sessionsForSelectedClassAndSubject = useMemo(() => {
+    const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+    const targetSub = (selectedSubject || '').toLowerCase();
+    const list = adminClasses.filter((c) => {
+      if (c.published === false) return false;
+      const cDate = c.class_date;
+      const matchesDate = cDate ? cDate === targetDateIso : (dateOffset === 0);
+      if (!matchesDate) return false;
+      const cGrade = (c.class_grade || c.roll_no || '').toLowerCase();
+      if (!cGrade.includes(classPrefix.toLowerCase())) return false;
+      const cSub = (c.subject || '').toLowerCase();
+      if (targetSub && !cSub.includes(targetSub) && !targetSub.includes(cSub)) return false;
+      return true;
+    });
+    return list.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+  }, [adminClasses, selectedClassId, selectedSubject, targetDateIso, dateOffset]);
+
+  useEffect(() => {
+    if (sessionsForSelectedClassAndSubject.length > 0) {
+      const match = sessionsForSelectedClassAndSubject.find(
+        (s) => (activeClassId && s.id === activeClassId) || (activeSessionTime && s.time?.includes(activeSessionTime))
+      );
+      if (match) {
+        if (match.id && match.id !== activeClassId) setActiveClassId(match.id);
+        const sTime = (match.time || '').split('•')[0].trim();
+        if (sTime && sTime !== activeSessionTime) setActiveSessionTime(sTime);
+        const sType = match.time?.toLowerCase().includes('test paper') ? 'Test Paper' : match.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+        if (sType !== activeSessionType) setActiveSessionType(sType);
+      } else {
+        const first = sessionsForSelectedClassAndSubject[0];
+        setActiveClassId(first.id || '');
+        const sTime = (first.time || '').split('•')[0].trim();
+        setActiveSessionTime(sTime);
+        const sType = first.time?.toLowerCase().includes('test paper') ? 'Test Paper' : first.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+        setActiveSessionType(sType);
+      }
+    }
+  }, [sessionsForSelectedClassAndSubject]);
 
   // Filter only classes assigned to this active faculty member's allowed grades
   // BUG FIX: Previously hard-coded CS to grades 11-12, ignoring allowedGrades from Supabase.
@@ -413,21 +502,40 @@ export default function FacultyAttendanceScreen() {
       isStudentEnrolledInSubject(s.subjects, targetSubject)
     );
 
-    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => ({
-      id: s.rollNo,
-      no: String(idx + 1).padStart(2, '0'),
-      name: s.name,
-      roll: s.rollNo,
-      overall: `${s.accuracy || 85}%`,
-      online: true,
-      attendance: 'P' as 'P' | 'A',
-      subjects: s.subjects || 'General',
-      school: s.school,
-    }));
+    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => {
+      let initialAttendance: 'P' | 'A' = 'P';
+      const studentAtt = attRecords.find((a) => (a.roll_no || '').toUpperCase() === s.rollNo.toUpperCase());
+      if (studentAtt) {
+        const allEntries = [...(studentAtt.today_subjects || []), ...(studentAtt.history || [])];
+        const matched = allEntries.find((entry: any) => {
+          if (activeClassId && entry.classId && entry.classId === activeClassId) return true;
+          const sameSub = (entry.subject || entry.subjects || '').trim().toLowerCase() === targetSubject.trim().toLowerCase();
+          if (!sameSub) return false;
+          if (activeSessionTime && entry.time && entry.time !== 'Class Session') {
+            return entry.time.trim().toLowerCase() === activeSessionTime.trim().toLowerCase();
+          }
+          return false;
+        });
+        if (matched) {
+          initialAttendance = (matched.status === 'absent' || matched.score === '0/1') ? 'A' : 'P';
+        }
+      }
+      return {
+        id: s.rollNo,
+        no: String(idx + 1).padStart(2, '0'),
+        name: s.name,
+        roll: s.rollNo,
+        overall: `${s.accuracy || 85}%`,
+        online: true,
+        attendance: initialAttendance,
+        subjects: s.subjects || 'General',
+        school: s.school,
+      };
+    });
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents]);
+  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents, activeClassId, activeSessionTime, attRecords]);
 
   // Format date display
   const getDateLabel = () => {
@@ -479,14 +587,20 @@ export default function FacultyAttendanceScreen() {
         students.map((s) => ({ rollNo: s.roll, name: s.name, status: s.attendance })),
         dateLabel,
         subjectName,
-        currentClass.label
+        currentClass.label,
+        {
+          classId: activeClassId,
+          timeSlot: activeSessionTime || 'Class Session',
+          sessionType: activeSessionType || 'Regular Class',
+          classDate: targetDateIso,
+        }
       );
     } catch {
       // Offline fallback — still mark submitted
     }
     Alert.alert(
       'Attendance Submitted Successfully',
-      `Class: ${currentClass.label}\nSubject: ${subjectName}\nTeacher: ${teacherName}\nDate: ${dateLabel}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded by ${teacherName} for ${totalCount} enrolled students and synced with student portals.`,
+      `Class: ${currentClass.label}\nSubject: ${subjectName}\nSession: ${activeSessionTime || 'Class Session'}${activeSessionType ? ` (${activeSessionType})` : ''}\nDate: ${dateLabel}\nTeacher: ${teacherName}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded separately for this session and synced with student portals.`,
       [{ text: 'OK' }]
     );
   };
@@ -647,6 +761,49 @@ export default function FacultyAttendanceScreen() {
           </ScrollView>
         </View>
 
+        {/* Scheduled Sessions Selector (for multiple sessions per day/class/subject) */}
+        {sessionsForSelectedClassAndSubject.length > 0 && (
+          <View style={styles.sessionSelectSection}>
+            <View style={styles.sessionSelectHeader}>
+              <Text style={styles.sessionSelectLabel}>
+                <Ionicons name="time" size={11} color="#0284C7" /> Scheduled Timetable Session:
+              </Text>
+              <Text style={styles.sessionSelectCount}>
+                {sessionsForSelectedClassAndSubject.length} session{sessionsForSelectedClassAndSubject.length !== 1 ? 's' : ''} on this date
+              </Text>
+            </View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sessionScroll}>
+              {sessionsForSelectedClassAndSubject.map((sess) => {
+                const sTime = (sess.time || '').split('•')[0].trim();
+                const isSessActive = (activeClassId && sess.id === activeClassId) || (activeSessionTime && sTime === activeSessionTime);
+                const sType = sess.time?.toLowerCase().includes('test paper') ? 'Test Paper' : sess.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+                return (
+                  <TouchableOpacity
+                    key={sess.id}
+                    style={[styles.sessionChip, isSessActive && styles.sessionChipActive]}
+                    onPress={() => {
+                      setActiveClassId(sess.id || '');
+                      setActiveSessionTime(sTime);
+                      setActiveSessionType(sType);
+                      setSubmitted(false);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name={isSessActive ? "radio-button-on" : "radio-button-off"}
+                      size={13}
+                      color={isSessActive ? "#fff" : "#0284C7"}
+                    />
+                    <Text style={[styles.sessionChipText, isSessActive && styles.sessionChipTextActive]}>
+                      {sTime} • {sType}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
         {/* Attendance Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryTopRow}>
@@ -656,7 +813,11 @@ export default function FacultyAttendanceScreen() {
               </View>
               <View>
                 <Text style={styles.summaryTitle}>Attendance Summary</Text>
-                <Text style={styles.summarySub}>{currentClass.batch} • {selectedSubject}</Text>
+                <Text style={styles.summarySub}>
+                  {currentClass.batch} • {selectedSubject}
+                  {activeSessionTime ? ` • ${activeSessionTime}` : ''}
+                  {activeSessionType ? ` (${activeSessionType})` : ''}
+                </Text>
               </View>
             </View>
 
@@ -1051,6 +1212,54 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   subjectChipTextActive: {
+    color: '#fff',
+  },
+
+  sessionSelectSection: {
+    marginBottom: 14,
+    paddingHorizontal: 2,
+  },
+  sessionSelectHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  sessionSelectLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0369A1',
+  },
+  sessionSelectCount: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textMuted,
+  },
+  sessionScroll: {
+    gap: 8,
+    paddingVertical: 2,
+  },
+  sessionChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  sessionChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  sessionChipText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0369A1',
+  },
+  sessionChipTextActive: {
     color: '#fff',
   },
 

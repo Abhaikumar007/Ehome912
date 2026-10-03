@@ -894,6 +894,11 @@ export default function TeacherHomeScreen() {
                     params: {
                       classGrade: classTitle,
                       subject: subjectTitle,
+                      classId: c.id || '',
+                      timeSlot: (c.time || '').split('•')[0].trim(),
+                      sessionType: sessionInfo.label,
+                      classDate: c.class_date || targetDateInfo.iso,
+                      dateOffset: String(dateOffset),
                     },
                   })
                 }

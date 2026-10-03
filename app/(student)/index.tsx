@@ -555,14 +555,61 @@ export default function DashboardScreen() {
 
           {displayedClasses.length > 0 ? (
             displayedClasses.map((cls, i) => {
-              const subAtt = dateOffset === 0
-                ? attSummary?.todaySubjects?.find(
-                    (s: any) => s.subject && cls.subject && s.subject.trim().toLowerCase() === cls.subject.trim().toLowerCase()
-                  )
-                : null;
-              const effectiveStatus = dateOffset === 0
-                ? (subAtt?.status || cls.status || 'upcoming')
-                : 'upcoming';
+              const subAtt = (() => {
+                const normSub = (cls?.subject || '').trim().toLowerCase();
+                const clsTimeSlot = (cls?.time || '').split('•')[0].trim().toLowerCase();
+                const clsId = String(cls?.id || '');
+
+                // Look in both todaySubjects and history
+                const candidates = [
+                  ...(attSummary?.todaySubjects || []),
+                  ...(attSummary?.history || []).map((h: any) => ({
+                    ...h,
+                    subject: h.subjects || h.subject,
+                    status: (h.status === 'full' || h.score === '1/1') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : h.status,
+                  })),
+                ];
+
+                // 1. Direct classId match
+                if (clsId) {
+                  const byId = candidates.find((s: any) => s.classId && String(s.classId) === clsId);
+                  if (byId) return byId;
+                }
+
+                // 2. Filter candidate records matching this subject
+                const subCandidates = candidates.filter((s: any) => {
+                  const sSub = (s.subject || s.subjects || s.name || '').trim().toLowerCase();
+                  return sSub === normSub || sSub.includes(normSub) || normSub.includes(sSub);
+                });
+
+                if (subCandidates.length === 0) return null;
+
+                // 3. Match by time slot
+                if (clsTimeSlot) {
+                  const byTime = subCandidates.find((s: any) => {
+                    const sTime = (s.time || s.timeSlot || '').split('•')[0].trim().toLowerCase();
+                    if (!sTime || sTime === 'class session') return false;
+                    return sTime === clsTimeSlot || clsTimeSlot.includes(sTime) || sTime.includes(clsTimeSlot);
+                  });
+                  if (byTime) return byTime;
+                }
+
+                // 4. Match by session type
+                const clsSessType = getClassSessionInfo(cls, academicAlert).label.toLowerCase();
+                const byType = subCandidates.find((s: any) => {
+                  const sType = (s.sessionType || '').toLowerCase();
+                  return sType && (sType === clsSessType || clsSessType.includes(sType) || sType.includes(clsSessType));
+                });
+                if (byType) return byType;
+
+                // 5. If only 1 subject candidate and no conflicting time
+                if (subCandidates.length === 1 && (!subCandidates[0].time || subCandidates[0].time === 'Class Session')) {
+                  return subCandidates[0];
+                }
+
+                return null;
+              })();
+              const effectiveStatus = (subAtt?.status || cls.status || 'upcoming');
 
               // Determine if this is the current/active class slot based on time
               const isActive = (() => {

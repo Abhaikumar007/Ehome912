@@ -324,6 +324,13 @@ export function resolveSessionType(c: any): 'Regular Class' | 'Test Paper' | 'Qu
   return 'Regular Class';
 }
 
+export interface SessionAttendanceMeta {
+  classId?: string;
+  timeSlot?: string;
+  sessionType?: string;
+  classDate?: string;
+}
+
 export const DataService = {
   // Store session locally
   async saveCurrentStudent(student: StudentProfile) {
@@ -1623,34 +1630,72 @@ export const DataService = {
   },
 
   // Save attendance record for a student (called from faculty portal) -> syncs to student view & Supabase
-  async saveAttendance(rollNo: string, date: string, subject: string, classLabel: string, status: 'P' | 'A') {
+  async saveAttendance(
+    rollNo: string,
+    date: string,
+    subject: string,
+    classLabel: string,
+    status: 'P' | 'A',
+    meta?: SessionAttendanceMeta
+  ) {
     const cacheKey = `attendance_${rollNo}`;
     const existing = (await getCached<any>(cacheKey)) || { overall: 0, attended: 0, total: 0, history: [], todaySubjects: [] };
+
+    const timeSlotStr = meta?.timeSlot || 'Class Session';
+    const classIdStr = meta?.classId || '';
+    const sessionTypeStr = meta?.sessionType || 'Regular Class';
 
     // Format entry
     const historyEntry = {
       date,
       subjects: subject,
+      time: timeSlotStr,
+      classId: classIdStr,
+      sessionType: sessionTypeStr,
       score: status === 'P' ? '1/1' : '0/1',
       status: status === 'P' ? 'full' : 'absent',
       class: classLabel,
     };
 
-    // Filter duplicate if same day & subject exists
-    const prevHistory = (existing.history || []).filter((h: any) => !(h.date === date && h.subjects === subject));
+    // Filter duplicate session entry: only replace if matching the exact same session slot (classId or date+subject+timeSlot)
+    const isSameHistorySession = (h: any) => {
+      if (h.date !== date) return false;
+      const sameSub = (h.subjects || h.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
+      if (!sameSub) return false;
+      if (classIdStr && h.classId && h.classId === classIdStr) return true;
+      if (timeSlotStr !== 'Class Session' && h.time && h.time !== 'Class Session') {
+        return h.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
+      }
+      return timeSlotStr === 'Class Session' || !h.time || h.time === 'Class Session';
+    };
+
+    const prevHistory = (existing.history || []).filter((h: any) => !isSameHistorySession(h));
     const history = [historyEntry, ...prevHistory].slice(0, 60);
     const attended = history.filter((h: any) => h.status === 'full').length;
     const total = history.length;
     const overall = total > 0 ? Math.round((attended / total) * 100) : 0;
 
-    // Update today's subjects
-    const prevTodaySubjects = (existing.todaySubjects || []).filter((s: any) => s.subject !== subject);
+    // Update today's subjects / active day sessions
+    const isSameTodaySession = (s: any) => {
+      const sameSub = (s.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
+      if (!sameSub) return false;
+      if (classIdStr && s.classId && s.classId === classIdStr) return true;
+      if (timeSlotStr !== 'Class Session' && s.time && s.time !== 'Class Session') {
+        return s.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
+      }
+      return timeSlotStr === 'Class Session' || !s.time || s.time === 'Class Session';
+    };
+
+    const prevTodaySubjects = (existing.todaySubjects || []).filter((s: any) => !isSameTodaySession(s));
     const todaySubjects = [
       {
-        id: `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        id: classIdStr || `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        classId: classIdStr,
         subject,
-        time: 'Class Session',
+        time: timeSlotStr,
+        sessionType: sessionTypeStr,
         status: status === 'P' ? 'present' : 'absent',
+        date,
       },
       ...prevTodaySubjects,
     ];
@@ -1673,36 +1718,19 @@ export const DataService = {
       console.warn('[Attendance Sync] Error saving to Supabase attendance_records:', e);
     }
 
-    // 2. Also update student classes table for today so student home screen status reflects present / absent
-    try {
-      await supabase
-        .from('classes')
-        .update({ status: status === 'P' ? 'present' : 'absent' })
-        .eq('roll_no', rollNo)
-        .ilike('subject', `%${subject}%`);
-    } catch {}
-
-    // 3. Update cached classes for student
-    try {
-      const clsKey = `classes_${rollNo}`;
-      const cachedCls = await getCached<any[]>(clsKey);
-      if (cachedCls && Array.isArray(cachedCls)) {
-        const updatedCls = cachedCls.map((c) =>
-          c.subject?.toLowerCase() === subject.toLowerCase()
-            ? { ...c, status: status === 'P' ? 'present' : 'absent' }
-            : c
-        );
-        await setCached(clsKey, updatedCls);
-      }
-    } catch {}
-
     return updated;
   },
 
   // Batch save attendance for a full class (from faculty submit)
-  async saveBatchAttendance(students: { rollNo: string; name: string; status: 'P' | 'A' }[], date: string, subject: string, classLabel: string) {
+  async saveBatchAttendance(
+    students: { rollNo: string; name: string; status: 'P' | 'A' }[],
+    date: string,
+    subject: string,
+    classLabel: string,
+    meta?: SessionAttendanceMeta
+  ) {
     for (const stu of students) {
-      await this.saveAttendance(stu.rollNo, date, subject, classLabel, stu.status);
+      await this.saveAttendance(stu.rollNo, date, subject, classLabel, stu.status, meta);
     }
   },
 

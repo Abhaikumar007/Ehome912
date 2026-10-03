@@ -93,25 +93,57 @@ export default function AttendanceScreen() {
 
   // Dynamic day-based attendance calculation
   const getDayAttendance = (offset: number) => {
-    if (offset === 0) {
-      const todayList = attendance.todaySubjects || [];
-      const presentCnt = todayList.filter((s: any) => s.status === 'present').length;
-      const totalCnt = todayList.length;
-      const pct = totalCnt > 0 ? Math.round((presentCnt / totalCnt) * 100) : 0;
-      return {
-        subjects: todayList,
-        sessionCount: totalCnt > 0 ? `${presentCnt} of ${totalCnt} Sessions Attended (${pct}%)` : 'No sessions recorded yet today',
-        statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : 'Attendance pending',
-        isHoliday: false,
-      };
-    } else {
-      return {
-        subjects: [],
-        sessionCount: 'No sessions recorded for this date',
-        statusSummary: 'No Records',
-        isHoliday: false,
-      };
-    }
+    const targetD = new Date();
+    targetD.setDate(targetD.getDate() + offset);
+    const targetIso = `${targetD.getFullYear()}-${String(targetD.getMonth() + 1).padStart(2, '0')}-${String(targetD.getDate()).padStart(2, '0')}`;
+    const targetDateLabel = targetD.toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+
+    // 1. Gather all candidates from todaySubjects and history
+    const allCandidates = [
+      ...(attendance.todaySubjects || []).map((s: any) => ({
+        ...s,
+        time: s.time || 'Class Session',
+      })),
+      ...(attendance.history || []).map((h: any) => ({
+        id: h.classId || `hist-${Math.random().toString(36).slice(2, 6)}`,
+        classId: h.classId || '',
+        subject: h.subjects || h.subject,
+        time: h.time || 'Class Session',
+        sessionType: h.sessionType || 'Regular Class',
+        status: (h.status === 'full' || h.score === '1/1') ? 'present' : 'absent',
+        date: h.date,
+      })),
+    ];
+
+    // Filter sessions matching target date
+    const matchedSessions = allCandidates.filter((s: any) => {
+      if (offset === 0 && !s.date) return true;
+      if (s.date && (s.date === targetDateLabel || s.date.includes(targetIso))) return true;
+      return false;
+    });
+
+    // Deduplicate by classId or subject+time
+    const seen = new Set<string>();
+    const sessionList: any[] = [];
+    matchedSessions.forEach((s: any) => {
+      const key = s.classId || `${(s.subject || '').toLowerCase()}_${(s.time || '').toLowerCase()}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        sessionList.push(s);
+      }
+    });
+
+    const listToUse = sessionList.length > 0 ? sessionList : (offset === 0 ? (attendance.todaySubjects || []) : []);
+    const presentCnt = listToUse.filter((s: any) => s.status === 'present').length;
+    const totalCnt = listToUse.length;
+    const pct = totalCnt > 0 ? Math.round((presentCnt / totalCnt) * 100) : 0;
+
+    return {
+      subjects: listToUse,
+      sessionCount: totalCnt > 0 ? `${presentCnt} of ${totalCnt} Sessions Attended (${pct}%)` : (offset === 0 ? 'No sessions recorded yet today' : 'No sessions recorded for this date'),
+      statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : (offset === 0 ? 'Attendance pending' : 'No Records'),
+      isHoliday: targetD.getDay() === 0,
+    };
   };
 
   const dayAtt = getDayAttendance(dateOffset);
@@ -208,8 +240,28 @@ export default function AttendanceScreen() {
                 />
               </View>
               <View style={styles.subjectInfo}>
-                <Text style={styles.subjectName}>{sub.subject}</Text>
-                <Text style={styles.subjectTime}>{sub.time}</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                  <Text style={styles.subjectName}>{sub.subject}</Text>
+                  {sub.sessionType && (
+                    <View style={{
+                      backgroundColor: sub.sessionType === 'Test Paper' ? '#FEF2F2' : sub.sessionType === 'Question Bank' ? '#F5F3FF' : '#F0F9FF',
+                      paddingHorizontal: 6,
+                      paddingVertical: 1,
+                      borderRadius: 4,
+                      borderWidth: 1,
+                      borderColor: sub.sessionType === 'Test Paper' ? '#FECACA' : sub.sessionType === 'Question Bank' ? '#DDD6FE' : '#BAE6FD',
+                    }}>
+                      <Text style={{
+                        fontSize: 10,
+                        fontFamily: 'Inter_600SemiBold',
+                        color: sub.sessionType === 'Test Paper' ? '#DC2626' : sub.sessionType === 'Question Bank' ? '#7C3AED' : '#0284C7',
+                      }}>
+                        {sub.sessionType}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.subjectTime}>{sub.time || 'Class Session'}</Text>
               </View>
               <View style={[styles.statusBadge, {
                 backgroundColor: sub.status === 'present' ? Colors.greenLight : Colors.redLight,
