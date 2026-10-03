@@ -588,14 +588,8 @@ export default function FeesScreen() {
         {/* Pay Instantly */}
         <View style={styles.card}>
           <View style={styles.payHeader}>
-            <View>
-              <Text style={styles.payTitle}>Open Payment App</Text>
-              <Text style={styles.paySub}>Launches app directly • Copies UPI ID automatically</Text>
-            </View>
-            <View style={styles.payDirectBadge}>
-              <Text style={styles.payDirectBadgeText}>₹{targetFeeAmount.toLocaleString('en-IN')}</Text>
-              <Text style={styles.payDirectBadgeSub}>Set Fee</Text>
-            </View>
+            <Text style={styles.payTitle}>Open Payment App</Text>
+            <Text style={styles.paySub}>Launches app directly • Copies UPI ID automatically</Text>
           </View>
           <View style={styles.upiRow}>
             {UPI_APPS.map((app) => (
@@ -1417,9 +1411,9 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.cardBg, borderRadius: 16, padding: 16, marginBottom: 12,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  payHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 },
+  payHeader: { marginBottom: 14 },
   payTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  paySub: { fontSize: 12, color: Colors.textSecondary, fontFamily: 'Inter_400Regular' },
+  paySub: { fontSize: 12, color: Colors.textSecondary, fontFamily: 'Inter_400Regular', marginTop: 2 },
   payTagline: { fontSize: 11, color: Colors.primary, fontFamily: 'Inter_600SemiBold', textAlign: 'right', lineHeight: 16 },
   upiRow: { flexDirection: 'row', gap: 10 },
   upiBtn: {
@@ -1490,25 +1484,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
     flex: 1,
-  },
-  payDirectBadge: {
-    alignItems: 'flex-end',
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#BFDBFE',
-  },
-  payDirectBadgeText: {
-    fontSize: 13,
-    fontFamily: 'Inter_700Bold',
-    color: Colors.primary,
-  },
-  payDirectBadgeSub: {
-    fontSize: 9.5,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.textSecondary,
   },
   upiDirectTag: {
     fontSize: 8.5,
