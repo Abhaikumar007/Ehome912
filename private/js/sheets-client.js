@@ -204,45 +204,29 @@ function _getRollNo(s) {
 window.sb_loadFromCloud = async function () {
     let loadedStudents = null;
     let loadedFees = null;
-
-    // Try Google Sheets first
-    if (_sheetsReady()) {
-        try {
-            var stuResult = await _sheetsGet('getStudents');
-            var feeResult = await _sheetsGet('getFees');
-            if (stuResult && stuResult.data && stuResult.data.length > 0) {
-                loadedStudents = stuResult.data.map(_fromSheetStudent);
-            }
-            if (feeResult && feeResult.data) {
-                var feesObj = {};
-                feeResult.data.forEach(function (row) {
-                    var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
-                    feesObj[key] = row.status;
-                });
-                loadedFees = feesObj;
-            }
-        } catch (e) {
-            console.warn('[Sheets] Pull failed, falling back to Supabase', e);
-        }
-    }
-
-    // If Sheets returned nothing or unavailable, pull from Supabase
     const sb = _getSupabaseClient();
-    if (!loadedStudents && sb) {
-        try {
-            const { data: stuRows, error: sErr } = await sb.from('students').select('*');
-            if (!sErr && stuRows && stuRows.length > 0) {
-                const localStudents = (typeof getStudents === 'function') ? getStudents() : (JSON.parse(localStorage.getItem('students')) || []);
-                const localMap = new Map((localStudents || []).map(l => [l.id || l.rollNo, l]));
 
-                loadedStudents = stuRows.map(r => {
-                    const roll = String(r.roll_no || r.id);
-                    const local = localMap.get(roll);
+    // 1. PRIMARY SOURCE: Supabase Live Database
+    if (sb) {
+        try {
+            console.log('[DualSync] Pulling live students and fees directly from Supabase...');
+            const [stuRes, feeRes] = await Promise.all([
+                sb.from('students').select('*'),
+                sb.from('fees_records').select('*')
+            ]);
+
+            if (!stuRes.error && Array.isArray(stuRes.data) && stuRes.data.length > 0) {
+                const localStudents = (typeof getStudents === 'function') ? getStudents() : (JSON.parse(localStorage.getItem('students')) || []);
+                const localMap = new Map((localStudents || []).map(l => [String(l.id || l.rollNo).toUpperCase().trim(), l]));
+
+                loadedStudents = stuRes.data.map(r => {
+                    const roll = String(r.roll_no || r.id).trim();
+                    const local = localMap.get(roll.toUpperCase());
                     return {
                         id: roll,
                         rollNo: roll,
                         name: r.name || (local ? local.name : 'Student'),
-                        class: String(r.class_name || (local ? local.class : '10')).replace('Class ', ''),
+                        class: String(r.class_name || (local ? local.class : '10')).replace('Class ', '').trim(),
                         school: r.school || (local ? local.school : 'EduHome Campus'),
                         phone: r.phone || (local ? local.phone : ''),
                         joiningDate: r.joining_date || (local ? local.joiningDate : '2026-01-15'),
@@ -252,34 +236,82 @@ window.sb_loadFromCloud = async function () {
                 });
             }
 
-            const { data: feeRows, error: fErr } = await sb.from('fees_records').select('*');
-            if (!fErr && feeRows && loadedStudents) {
+            if (!feeRes.error && Array.isArray(feeRes.data) && loadedStudents) {
                 const feesObj = {};
+                const feeRows = feeRes.data;
+                const feeMap = new Map();
+                feeRows.forEach(f => { if (f.roll_no) feeMap.set(String(f.roll_no).toUpperCase().trim(), f); });
+                window._supabaseFeeMap = feeMap;
+
                 loadedStudents.forEach(st => {
-                    const fr = feeRows.find(f => f.roll_no === st.id || f.roll_no === st.rollNo);
+                    const rollKey = String(st.rollNo || st.id).toUpperCase().trim();
+                    const fr = feeMap.get(rollKey);
                     if (fr) {
-                        st.amount = fr.monthly_fee ? String(fr.monthly_fee) : '';
+                        st.amount = fr.monthly_fee ? String(fr.monthly_fee) : (st.amount || '');
                         if (fr.subjects) {
                             st.subjects = fr.subjects.split(',').map(s => s.trim());
                         }
                         const payments = Array.isArray(fr.recent_payments) ? fr.recent_payments : [];
-                        const subs = Array.isArray(st.subjects) && st.subjects.length > 0 ? st.subjects : ['General'];
+                        const subs = (Array.isArray(st.subjects) && st.subjects.length > 0) ? st.subjects : ['General'];
+                        const isCleared = (Number(fr.current_due) === 0 || fr.due_date === 'All Cleared' || fr.status === 'paid');
+
+                        // Map all approved payments
                         payments.forEach(p => {
                             if (p.status !== 'pending_verification') {
                                 const m = p.fullMonth ? p.fullMonth.split(' ')[0] : (p.month === 'OCT' ? 'October' : (p.month === 'SEP' ? 'September' : p.month));
                                 const y = p.fullMonth ? (p.fullMonth.split(' ')[1] || '2026') : '2026';
                                 subs.forEach(sub => {
-                                    feesObj[`${st.id}_${sub}_${m}_${y}`] = 'Paid';
-                                    if (st.rollNo) feesObj[`${st.rollNo}_${sub}_${m}_${y}`] = 'Paid';
+                                    feesObj[st.id + '_' + sub + '_' + m + '_' + y] = 'Paid';
+                                    feesObj[st.id + '_' + sub + '_' + m + ' ' + y] = 'Paid';
+                                    if (st.rollNo) {
+                                        feesObj[st.rollNo + '_' + sub + '_' + m + '_' + y] = 'Paid';
+                                        feesObj[st.rollNo + '_' + sub + '_' + m + ' ' + y] = 'Paid';
+                                    }
                                 });
                             }
                         });
+
+                        // If current cycle (October) is marked all cleared or current_due === 0
+                        if (isCleared) {
+                            subs.forEach(sub => {
+                                feesObj[st.id + '_' + sub + '_October_2026'] = 'Paid';
+                                feesObj[st.id + '_' + sub + '_October 2026'] = 'Paid';
+                                if (st.rollNo) {
+                                    feesObj[st.rollNo + '_' + sub + '_October_2026'] = 'Paid';
+                                    feesObj[st.rollNo + '_' + sub + '_October 2026'] = 'Paid';
+                                }
+                            });
+                        }
                     }
                 });
                 loadedFees = feesObj;
+                console.log('[DualSync] Successfully mapped ' + Object.keys(feesObj).length + ' fee entries from Supabase ✓');
+            }
+        } catch (sbErr) {
+            console.warn('[DualSync] Supabase pull warning:', sbErr);
+        }
+    }
+
+    // 2. FALLBACK ONLY: Google Sheets (if Supabase had no students)
+    if ((!loadedStudents || loadedStudents.length === 0) && _sheetsReady()) {
+        try {
+            var stuResult = await _sheetsGet('getStudents');
+            var feeResult = await _sheetsGet('getFees');
+            if (stuResult && stuResult.data && stuResult.data.length > 0) {
+                loadedStudents = stuResult.data.map(_fromSheetStudent);
+            }
+            if (feeResult && feeResult.data && (!loadedFees || Object.keys(loadedFees).length === 0)) {
+                var sFeesObj = {};
+                feeResult.data.forEach(function (row) {
+                    var key = String(row.student_id) + '_' + row.subject + '_' + row.month + '_' + row.year;
+                    sFeesObj[key] = row.status;
+                });
+                if (Object.keys(sFeesObj).length > 0) {
+                    loadedFees = sFeesObj;
+                }
             }
         } catch (e) {
-            console.warn('[Supabase] Pull failed:', e);
+            console.warn('[Sheets] Fallback pull failed:', e);
         }
     }
 
@@ -322,7 +354,6 @@ window.sb_loadFromCloud = async function () {
                     : (master && master.subjects ? master.subjects : ['General Tuition'])
             });
         } else {
-            // Merge complementary properties if duplicate
             const existing = dedupMap.get(canonicalRoll);
             if ((!existing.amount || existing.amount === '-') && st.amount) existing.amount = String(st.amount);
             if ((!existing.subjects || existing.subjects.length === 0) && st.subjects && st.subjects.length > 0) existing.subjects = st.subjects;
@@ -334,15 +365,15 @@ window.sb_loadFromCloud = async function () {
 
     // Save to LocalStorage
     localStorage.setItem('students', JSON.stringify(loadedStudents));
-    if (loadedFees) {
+    if (loadedFees && Object.keys(loadedFees).length > 0) {
         localStorage.setItem('fees', JSON.stringify(loadedFees));
     }
 
     return {
         ok: true,
         students: loadedStudents,
-        fees: loadedFees || {},
-        msg: 'Synced ' + loadedStudents.length + ' students from cloud.'
+        fees: loadedFees || (JSON.parse(localStorage.getItem('fees')) || {}),
+        msg: 'Synced ' + loadedStudents.length + ' students from Supabase cloud.'
     };
 };
 
@@ -424,7 +455,7 @@ window.sb_saveStudent = async function (student) {
                 if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
             }
 
-            if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
+            
 
             // C. Attendance record with enrolled subjects
             const { error: attError } = await sb.from('attendance_records').upsert({
@@ -518,27 +549,9 @@ window.sb_getFees = async function () {
 };
 
 window.sb_toggleFee = async function (studentId, subject, month, year, newStatus) {
-    // 1. Update Sheets
-    if (_sheetsReady()) {
-        try {
-            await _sheetsPost({
-                action: 'toggleFee',
-                fee: {
-                    student_id: String(studentId),
-                    subject: subject,
-                    month: month,
-                    year: Number(year),
-                    status: newStatus
-                }
-            });
-            console.log('[DualSync] Fee toggled in Google Sheets ✓');
-        } catch (e) {
-            console.warn('[DualSync] Sheets toggleFee error:', e);
-        }
-    }
+    const sb = _getSafeAdminSupabase ? _getSafeAdminSupabase() : _getSupabaseClient();
 
-    // 2. Update Supabase
-    const sb = _getSupabaseClient();
+    // 1. PRIMARY: Update Supabase Live Table FIRST
     if (sb) {
         try {
             const sid = String(studentId);
@@ -553,11 +566,9 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                 .eq('roll_no', rollNo)
                 .maybeSingle();
 
-            if (fErr) {
-                console.warn('[DualSync] Pre-fetch feeRecord error:', fErr);
-            }
+            if (fErr) console.warn('[DualSync] Pre-fetch feeRecord error:', fErr);
 
-            const mShort = (month || 'AUG').slice(0, 3).toUpperCase();
+            const mShort = (month || 'OCT').slice(0, 3).toUpperCase();
             const fullMonthStr = month + ' ' + year;
 
             let fees = {};
@@ -569,9 +580,11 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
             let isMonthFullyPaid = (newStatus === 'Paid');
             if (isMonthFullyPaid) {
                 for (const sub of studentSubjects) {
-                    const k1 = `${student?.id || sid}_${sub}_${month}_${year}`;
-                    const k2 = `${rollNo}_${sub}_${month}_${year}`;
-                    if (fees[k1] !== 'Paid' && fees[k2] !== 'Paid') {
+                    const k1 = studentId + '_' + sub + '_' + month + '_' + year;
+                    const k2 = rollNo + '_' + sub + '_' + month + '_' + year;
+                    const k3 = studentId + '_' + sub + '_' + month + ' ' + year;
+                    const k4 = rollNo + '_' + sub + '_' + month + ' ' + year;
+                    if (fees[k1] !== 'Paid' && fees[k2] !== 'Paid' && fees[k3] !== 'Paid' && fees[k4] !== 'Paid') {
                         isMonthFullyPaid = false;
                         break;
                     }
@@ -579,9 +592,10 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
             }
 
             const now = new Date();
-            let currentDue = 0;
-            let dueDate = 'All Cleared';
-            let daysLeft = 0;
+            let currentDue = feeRecord?.current_due ?? studentFee;
+            let dueDate = feeRecord?.due_date || ('25 ' + month + ' ' + year);
+            let daysLeft = feeRecord?.days_left ?? 22;
+            let status = 'due';
             let updatedPayments = Array.isArray(feeRecord?.recent_payments) ? [...feeRecord.recent_payments] : [];
             let updatedLoyalty = Array.isArray(feeRecord?.loyalty_months) ? [...feeRecord.loyalty_months] : [];
 
@@ -591,7 +605,7 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                     month: mShort,
                     fullMonth: fullMonthStr,
                     paidOn: paidOnStr,
-                    amount: studentFee, // Accurate student fee, e.g. ₹4,500!
+                    amount: studentFee,
                     onTime: true,
                     status: 'Verified by Center Admin',
                     receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000),
@@ -606,25 +620,32 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                     updatedLoyalty.push({ label: month, earned: true });
                 }
 
-                const isOctPaid = updatedPayments.some(p => p.month === 'OCT' || p.fullMonth?.includes('October'));
-                currentDue = isOctPaid ? 0 : studentFee;
-                dueDate = isOctPaid ? 'All Cleared' : '25 October 2026';
-                daysLeft = isOctPaid ? 0 : 24;
+                if (month === 'October') {
+                    currentDue = 0;
+                    dueDate = 'All Cleared';
+                    daysLeft = 0;
+                    status = 'paid';
+                }
             } else {
-                // Pending / Not Paid — REMOVE receipt & loyalty badge for this month!
+                // Pending / Not Paid — remove receipt & loyalty badge for this month
                 updatedPayments = updatedPayments.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
                 updatedLoyalty = updatedLoyalty.filter(l => l.label !== month && l.label !== fullMonthStr);
 
-                currentDue = studentFee; // e.g. ₹4,500
-                dueDate = '25 ' + month + ' ' + year;
-                daysLeft = 5;
+                if (month === 'October') {
+                    currentDue = studentFee;
+                    dueDate = '25 October 2026';
+                    daysLeft = 22;
+                    status = 'due';
+                }
             }
 
             const { error: upErr } = await sb.from('fees_records').upsert({
                 roll_no: rollNo,
+                monthly_fee: studentFee,
                 current_due: currentDue,
                 due_date: dueDate,
                 days_left: daysLeft,
+                status: status,
                 months_paid_on_time: updatedLoyalty.length,
                 loyalty_months: updatedLoyalty,
                 recent_payments: updatedPayments,
@@ -634,13 +655,28 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
             if (upErr) {
                 console.error('[DualSync] Supabase fee update error:', upErr);
             } else {
-                console.log(`[DualSync] Supabase fee ${newStatus} synced for ${rollNo} (${month}): Due = ₹${currentDue}, Amount = ₹${studentFee}`);
+                console.log('[DualSync] Supabase fee ' + newStatus + ' synced for ' + rollNo + ' (' + month + '): Due = ₹' + currentDue + ', Amount = ₹' + studentFee + ' ✓');
+
+                // Update in-memory feeMap
+                if (window._supabaseFeeMap) {
+                    window._supabaseFeeMap.set(String(rollNo).toUpperCase().trim(), {
+                        roll_no: rollNo,
+                        monthly_fee: studentFee,
+                        current_due: currentDue,
+                        due_date: dueDate,
+                        days_left: daysLeft,
+                        status: status,
+                        loyalty_months: updatedLoyalty,
+                        recent_payments: updatedPayments,
+                        updated_at: now.toISOString()
+                    });
+                }
 
                 // Realtime broadcast to student mobile app
                 try {
                     const channel = sb.channel('admin_fee_broadcast');
-                    channel.subscribe((status) => {
-                        if (status === 'SUBSCRIBED') {
+                    channel.subscribe((subStatus) => {
+                        if (subStatus === 'SUBSCRIBED') {
                             channel.send({
                                 type: 'broadcast',
                                 event: 'fee_record_changed',
@@ -648,17 +684,34 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                                     rollNo: rollNo,
                                     month: month,
                                     status: newStatus,
-                                    amount: studentFee,
-                                    currentDue: currentDue
+                                    currentDue: currentDue,
+                                    dueDate: dueDate,
+                                    timestamp: now.toISOString()
                                 }
                             });
                         }
                     });
-                } catch (rtErr) {}
+                } catch (rtErr) {
+                    console.warn('[DualSync] Realtime broadcast warning:', rtErr);
+                }
             }
-        } catch (e) {
-            console.warn('[DualSync] Supabase toggleFee exception:', e);
+        } catch (sbErr) {
+            console.warn('[DualSync] Supabase toggleFee exception:', sbErr);
         }
+    }
+
+    // 2. Google Sheets sync (background non-blocking)
+    if (_sheetsReady()) {
+        _sheetsPost({
+            action: 'toggleFee',
+            fee: {
+                student_id: String(studentId),
+                subject: subject,
+                month: month,
+                year: Number(year),
+                status: newStatus
+            }
+        }).catch(e => console.warn('[DualSync] Sheets background toggle error:', e));
     }
 };
 
@@ -735,8 +788,54 @@ window.sb_migrateFromLocalStorage = async function () {
     }
 
     var msgs = [];
+    const sb = _getSafeAdminSupabase ? _getSafeAdminSupabase() : _getSupabaseClient();
 
-    // 1. Push to Google Sheets
+    // 1. Direct Push to Supabase students and fees_records
+    if (sb) {
+        try {
+            let stuCount = 0;
+            for (const s of students) {
+                await window.sb_saveStudent(s);
+                stuCount++;
+            }
+
+            // Also upsert fee records
+            const feeRecordsToUpsert = [];
+            const now = new Date();
+            students.forEach(s => {
+                const roll = s.rollNo || s.id;
+                if (!roll) return;
+                const subs = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
+                const isOctPaid = subs.every(sub => 
+                    feesRaw[s.id + '_' + sub + '_October_2026'] === 'Paid' || 
+                    feesRaw[roll + '_' + sub + '_October_2026'] === 'Paid' ||
+                    feesRaw[s.id + '_' + sub + '_October 2026'] === 'Paid' || 
+                    feesRaw[roll + '_' + sub + '_October 2026'] === 'Paid'
+                );
+                const monthlyFee = Number(s.amount) || 4000;
+
+                feeRecordsToUpsert.push({
+                    roll_no: roll,
+                    monthly_fee: monthlyFee,
+                    current_due: isOctPaid ? 0 : monthlyFee,
+                    due_date: isOctPaid ? 'All Cleared' : '25 October 2026',
+                    days_left: isOctPaid ? 0 : 22,
+                    status: isOctPaid ? 'paid' : 'due',
+                    updated_at: now.toISOString()
+                });
+            });
+
+            if (feeRecordsToUpsert.length > 0) {
+                await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
+            }
+
+            msgs.push('Supabase (' + stuCount + ' students & fees)');
+        } catch (e) {
+            console.warn('[DualSync] Supabase migration error:', e);
+        }
+    }
+
+    // 2. Push to Google Sheets (if configured)
     if (_sheetsReady()) {
         try {
             var studentRows = students.map(_toSheetStudent);
@@ -772,21 +871,6 @@ window.sb_migrateFromLocalStorage = async function () {
             if (result && result.ok) msgs.push('Google Sheets (' + students.length + ' students)');
         } catch (e) {
             console.warn('[DualSync] Sheets migration error:', e);
-        }
-    }
-
-    // 2. Push to Supabase
-    const sb = _getSupabaseClient();
-    if (sb) {
-        try {
-            let count = 0;
-            for (const s of students) {
-                await window.sb_saveStudent(s);
-                count++;
-            }
-            msgs.push('Supabase (' + count + ' students)');
-        } catch (e) {
-            console.warn('[DualSync] Supabase migration error:', e);
         }
     }
 

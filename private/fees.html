@@ -49,6 +49,7 @@
                                 <th>Class & Roll</th>
                                 <th>Amount</th>
                                 <th>Transaction / UTR</th>
+                                <th>Receipt Proof</th>
                                 <th>Submitted On</th>
                                 <th style="width: 200px;">Action</th>
                             </tr>
@@ -67,6 +68,7 @@
             <div class="col-md-5">
                 <select class="form-control" id="feesClassSelect">
                     <option value="">Select Class to View</option>
+                    <option value="all">All Classes (Overview)</option>
                     <option value="6">Class 6</option>
                     <option value="7">Class 7</option>
                     <option value="8">Class 8</option>
@@ -145,21 +147,21 @@
     <script src="js/admin.js?v=20261001_exact_fee_sync"></script>
 
     <script>
-    // ── Cloud Sync Handlers for Fees Page ─────────────────────────────
+    // ── Direct Supabase Cloud Handlers for Fees Page ─────────────────
 
-    // Auto-pull on load to keep fee records fresh across devices
     document.addEventListener('DOMContentLoaded', function() {
-        if (typeof window.loadPendingVerifications === 'function') {
-            window.loadPendingVerifications();
-        }
-        if (typeof sb_loadFromCloud === 'function') {
+        // Direct Supabase pull on page load
+        if (typeof window.loadSupabaseFeesData === 'function') {
+            window.loadSupabaseFeesData();
+        } else if (typeof sb_loadFromCloud === 'function') {
             sb_loadFromCloud().then(function(result) {
-                if (result && result.ok) {
-                    if (typeof window.loadFeeTable === 'function') {
-                        window.loadFeeTable();
-                    }
+                if (result && result.ok && typeof window.loadFeeTable === 'function') {
+                    window.loadFeeTable();
                 }
             });
+        }
+        if (typeof window.loadPendingVerifications === 'function') {
+            window.loadPendingVerifications();
         }
     });
 
@@ -169,21 +171,23 @@
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pulling...';
-        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading latest fees from cloud...</span>';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading live fees from Supabase...</span>';
 
-        const result = await sb_loadFromCloud();
+        let result = null;
+        if (typeof window.loadSupabaseFeesData === 'function') {
+            result = await window.loadSupabaseFeesData();
+        } else if (typeof sb_loadFromCloud === 'function') {
+            result = await sb_loadFromCloud();
+        }
 
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-1"></i> Pull';
 
         if (result && result.ok) {
-            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pulled latest fees and ' + result.students.length + ' students from cloud!</span>';
-            if (typeof window.loadFeeTable === 'function') {
-                window.loadFeeTable();
-            }
-            setTimeout(() => { status.innerHTML = ''; }, 4000);
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pulled live fees from Supabase!</span>';
+            setTimeout(() => { if (status) status.innerHTML = ''; }, 4000);
         } else {
-            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Pull failed: ' + (result ? result.msg : 'Network error') + '</span>';
+            status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Pull failed: ' + (result ? (result.msg || result.message) : 'Network error') + '</span>';
         }
     }
 
@@ -193,7 +197,7 @@
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pushing...';
-        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-upload-alt mr-1"></i>Uploading local fees and students to cloud...</span>';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-upload-alt mr-1"></i>Uploading fees and students to Supabase cloud...</span>';
 
         const result = await sb_migrateFromLocalStorage();
 
@@ -201,8 +205,8 @@
         btn.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Push';
 
         if (result && result.ok) {
-            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pushed all local data to cloud!</span>';
-            setTimeout(() => { status.innerHTML = ''; }, 4000);
+            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pushed all data to Supabase cloud!</span>';
+            setTimeout(() => { if (status) status.innerHTML = ''; }, 4000);
         } else {
             status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Push failed: ' + (result ? result.msg : 'Network error') + '</span>';
         }

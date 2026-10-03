@@ -136,6 +136,15 @@
             display: block !important;
         }
 
+        /* Pending Approvals Section Banner */
+        .pending-approvals-banner {
+            background: #fffbeb !important;
+            border: 1px solid #fde68a !important;
+            border-left: 5px solid #f59e0b !important;
+            border-radius: 12px !important;
+            padding: 16px 18px !important;
+        }
+
         .broadcast-item,
         .broadcast-card-item {
             display: flex !important;
@@ -161,15 +170,42 @@
         }
 
         .broadcast-card-item.pending-approval-item {
-            border-left: 6px solid #f59e0b !important;
+            border: 1px solid #fef3c7 !important;
+            border-left: 5px solid #f59e0b !important;
             background: #ffffff !important;
-            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.1) !important;
-            border-radius: 10px !important;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.08) !important;
+            border-radius: 12px !important;
+            padding: 16px 18px !important;
         }
 
         .broadcast-card-header {
             width: 100% !important;
             min-width: 0 !important;
+        }
+
+        .approval-meta-row {
+            width: 100% !important;
+        }
+
+        .approval-title-box {
+            width: 100% !important;
+        }
+
+        .approval-card-title {
+            font-size: 1.15rem !important;
+            font-weight: 700 !important;
+            color: #0f172a !important;
+            line-height: 1.35 !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        .approval-timestamp {
+            font-size: 0.78rem !important;
+            font-weight: 500 !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            white-space: nowrap !important;
         }
 
         .broadcast-card-body {
@@ -200,11 +236,31 @@
             overflow-wrap: anywhere !important;
         }
 
+        /* Structured Test Paper Details Grid */
         .pending-test-details-box {
             background: #f8fafc !important;
             border: 1px solid #e2e8f0 !important;
-            border-radius: 8px !important;
-            padding: 12px 14px !important;
+            border-radius: 10px !important;
+            padding: 14px 16px !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+
+        .pending-test-grid {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 12px 16px !important;
+            width: 100% !important;
+        }
+
+        .pending-test-grid-item {
+            display: flex !important;
+            flex-direction: column !important;
+            min-width: 0 !important;
+        }
+
+        .pending-test-grid-item.grid-col-full {
+            grid-column: 1 / -1 !important;
         }
 
         .pending-test-meta-label {
@@ -213,21 +269,25 @@
             letter-spacing: 0.5px !important;
             color: #64748b !important;
             text-transform: uppercase !important;
-            margin-bottom: 2px !important;
-            display: block !important;
+            margin-bottom: 3px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 5px !important;
         }
 
         .pending-test-meta-value {
-            font-size: 0.92rem !important;
+            font-size: 0.95rem !important;
+            font-weight: 600 !important;
             color: #0f172a !important;
             word-break: break-word !important;
             overflow-wrap: anywhere !important;
+            line-height: 1.35 !important;
         }
 
         .broadcast-card-footer {
             width: 100% !important;
             border-top: 1px solid #f1f5f9 !important;
-            padding-top: 10px !important;
+            padding-top: 12px !important;
             margin-top: 4px !important;
             display: flex !important;
             align-items: center !important;
@@ -236,6 +296,7 @@
             gap: 10px !important;
         }
 
+        /* Desktop Actions Layout */
         .broadcast-actions-area {
             display: flex !important;
             flex-direction: row !important;
@@ -245,27 +306,83 @@
             margin-left: auto !important;
         }
 
-        .broadcast-actions-area .btn {
+        .approval-actions-container {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 8px !important;
+            margin-left: auto !important;
+        }
+
+        .approval-btn-pair {
+            display: inline-flex !important;
+            gap: 8px !important;
+        }
+
+        .broadcast-actions-area .btn,
+        .approval-actions-container .btn {
             display: inline-flex !important;
             align-items: center !important;
             justify-content: center !important;
             white-space: nowrap !important;
             font-weight: 600 !important;
             border-radius: 6px !important;
+            padding: 8px 14px !important;
+            font-size: 0.88rem !important;
         }
 
-        /* Responsive alignment for mobile devices and narrow screens */
+        /* Responsive Mobile Styles */
         @media (max-width: 768px) {
+            .hub-card {
+                padding: 16px 12px !important;
+            }
+
+            .pending-approvals-banner {
+                padding: 12px 10px !important;
+                border-left-width: 4px !important;
+                border-radius: 10px !important;
+            }
+
             .broadcast-item,
             .broadcast-card-item {
-                padding: 12px 14px !important;
+                padding: 12px 12px !important;
                 gap: 8px !important;
+                border-radius: 10px !important;
+            }
+
+            .broadcast-card-item.pending-approval-item {
+                padding: 12px 12px !important;
+                border-left-width: 4px !important;
+            }
+
+            .approval-card-title {
+                font-size: 1.08rem !important;
+            }
+
+            .pending-test-details-box {
+                padding: 10px 12px !important;
+                border-radius: 8px !important;
+            }
+
+            .pending-test-grid {
+                gap: 10px 10px !important;
             }
 
             .broadcast-card-footer {
                 flex-direction: column !important;
                 align-items: stretch !important;
                 gap: 10px !important;
+            }
+
+            .broadcast-card-footer.pending-card-footer {
+                padding-top: 10px !important;
+            }
+
+            .pending-footer-instruction {
+                width: 100% !important;
+                font-size: 0.82rem !important;
+                line-height: 1.35 !important;
             }
 
             .broadcast-actions-area {
@@ -276,13 +393,66 @@
                 gap: 8px !important;
             }
 
-            .pending-approval-item .broadcast-actions-area .btn {
+            .approval-actions-container {
+                width: 100% !important;
+                margin-left: 0 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                gap: 8px !important;
+            }
+
+            .approval-actions-container .btn-quick-approve {
+                width: 100% !important;
+                padding: 11px 16px !important;
+                font-size: 0.94rem !important;
+                font-weight: 700 !important;
+                border-radius: 8px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                box-shadow: 0 2px 8px rgba(16, 185, 129, 0.28) !important;
+            }
+
+            .approval-btn-pair {
+                display: flex !important;
+                width: 100% !important;
+                gap: 8px !important;
+            }
+
+            .approval-btn-pair > button,
+            .approval-btn-pair > .btn,
+            .approval-btn-pair .btn-edit-approve,
+            .approval-btn-pair .btn-reject {
                 flex: 1 1 0 !important;
                 min-width: 0 !important;
                 text-align: center !important;
                 justify-content: center !important;
-                padding: 10px 12px !important;
+                padding: 10px 8px !important;
                 font-size: 0.88rem !important;
+                font-weight: 600 !important;
+                border-radius: 8px !important;
+                display: flex !important;
+                align-items: center !important;
+                white-space: nowrap !important;
+            }
+
+            /* Edit Approval Modal mobile responsiveness */
+            #editApprovalModal .modal-dialog {
+                margin: 10px !important;
+            }
+            #editApprovalModal .modal-content {
+                border-radius: 12px !important;
+            }
+            #editApprovalModal .modal-body {
+                padding: 16px 14px !important;
+            }
+            #editApprovalModal .modal-footer {
+                flex-direction: column-reverse !important;
+                gap: 8px !important;
+            }
+            #editApprovalModal .modal-footer .btn {
+                width: 100% !important;
+                margin: 0 !important;
             }
         }
     </style>

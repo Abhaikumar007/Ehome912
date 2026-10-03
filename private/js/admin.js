@@ -1455,7 +1455,6 @@ if (document.getElementById('feesClassSelect')) {
     }
 
     function loadFeeTable() {
-        // Safe check
         if (!classSelect) return;
 
         const selectedClass = classSelect.value;
@@ -1465,37 +1464,28 @@ if (document.getElementById('feesClassSelect')) {
         const selectedMonth = document.getElementById('feeMonthSelect') ? document.getElementById('feeMonthSelect').value : new Date().toLocaleString('default', { month: 'long' });
         const currentYear = new Date().getFullYear();
 
-        if (displayMonth) displayMonth.textContent = `${selectedMonth} ${currentYear}`;
+        if (displayMonth) displayMonth.textContent = selectedMonth + ' ' + currentYear;
 
         feeTableBody.innerHTML = '';
 
-        // --- 1. Future Month Check ---
+        // Month indexing
         const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
         const monthIndex = monthNames.indexOf(selectedMonth);
         const now = new Date();
         const currentMonthIndex = now.getMonth();
         const realCurrentYear = now.getFullYear();
 
-        // If selected year is future OR (same year AND selected month > current month)
-        if (currentYear > realCurrentYear || (currentYear === realCurrentYear && monthIndex > currentMonthIndex)) {
-            feeTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-muted">Cannot view fees for future months (${selectedMonth}).</td></tr>`;
-            return;
-        }
-
-        // --- 2. Filter Students by Class AND Date of Joining ---
-        let students = getStudents(); // Get all
+        // Filter Students by Class (or All) AND Date of Joining
+        let students = getStudents();
         let filteredStudents = students.filter(s => {
             // Class Check
-            if (s.class !== selectedClass) return false;
+            if (selectedClass && selectedClass !== 'all' && String(s.class || '').replace('Class ', '').trim() !== String(selectedClass).replace('Class ', '').trim()) {
+                return false;
+            }
 
             // Date of Joining Check
             if (s.joiningDate) {
                 const joinDate = new Date(s.joiningDate);
-                // Compare Month/Year indices to be safe
-                // We compare: View Month Start Date vs Join Date
-                // If View Month is BEFORE Join Month/Year, exclude.
-
-                // Construct Date objects for comparison (First day of respective months)
                 const viewMonthStart = new Date(currentYear, monthIndex, 1);
                 const joinMonthStart = new Date(joinDate.getFullYear(), joinDate.getMonth(), 1);
 
@@ -1507,104 +1497,128 @@ if (document.getElementById('feesClassSelect')) {
         });
 
         if (filteredStudents.length === 0) {
-            feeTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No active students found for this class in ' + selectedMonth + '.</td></tr>';
+            const msg = selectedClass ? ('No active students found for this class in ' + selectedMonth + '.') : 'Select Class to view student fees.';
+            feeTableBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">' + msg + '</td></tr>';
             return;
         }
 
         filteredStudents.forEach(student => {
             const tr = document.createElement('tr');
+            const rollUpper = String(student.rollNo || student.id).toUpperCase().trim();
+            const fRec = window._supabaseFeeMap ? window._supabaseFeeMap.get(rollUpper) : null;
 
             let subjectsHtml = '';
             (Array.isArray(student.subjects) && student.subjects.length > 0 ? student.subjects : ['General']).forEach(sub => {
-                const feeKey = `${student.id}_${sub}_${selectedMonth}_${currentYear}`;
+                // Check all fee key variants
+                const k1 = student.id + '_' + sub + '_' + selectedMonth + '_' + currentYear;
+                const k2 = student.id + '_' + sub + '_' + selectedMonth + ' ' + currentYear;
+                const k3 = student.rollNo + '_' + sub + '_' + selectedMonth + '_' + currentYear;
+                const k4 = student.rollNo + '_' + sub + '_' + selectedMonth + ' ' + currentYear;
 
-                let status = fees[feeKey] === 'Paid' ? 'Paid' : 'Pending';
-                let statusClass = '';
+                let isPaid = (fees[k1] === 'Paid' || fees[k2] === 'Paid' || fees[k3] === 'Paid' || fees[k4] === 'Paid');
+                let isPendingVerification = false;
+
+                // Also check live Supabase fee record
+                if (fRec) {
+                    const pmts = Array.isArray(fRec.recent_payments) ? fRec.recent_payments : [];
+                    const mShort = selectedMonth.slice(0, 3).toUpperCase();
+
+                    const approvedReceipt = pmts.find(p => 
+                        (p.month === mShort || (p.fullMonth && p.fullMonth.includes(selectedMonth))) &&
+                        p.status !== 'pending_verification'
+                    );
+                    if (approvedReceipt) isPaid = true;
+
+                    const pendingReceipt = pmts.find(p => 
+                        (p.month === mShort || (p.fullMonth && p.fullMonth.includes(selectedMonth))) &&
+                        p.status === 'pending_verification'
+                    );
+                    if (pendingReceipt) isPendingVerification = true;
+
+                    // If the selected month appears in the stored payments OR student has current_due=0 (all cleared)
+                    // "All Cleared" means every month through the most-recently-paid one is paid
+                    if (!isPaid && (Number(fRec.current_due) === 0 || fRec.due_date === 'All Cleared' || fRec.status === 'paid')) {
+                        const _mlm = {JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
+                        const allPmts = Array.isArray(fRec.recent_payments) ? fRec.recent_payments : [];
+                        const approvedPmts = allPmts.filter(p => p.status !== 'pending_verification');
+                        // Check if selectedMonth is in the approved list
+                        const foundApproved = approvedPmts.some(p => {
+                            const pLong = p.fullMonth ? p.fullMonth.split(' ')[0] : (_mlm[String(p.month||'').slice(0,3).toUpperCase()]||p.month||'');
+                            return pLong.toLowerCase() === selectedMonth.toLowerCase();
+                        });
+                        if (foundApproved) isPaid = true;
+                    }
+                }
+
+                let status = 'Pending';
+                let statusClass = 'fee-pending';
                 let canToggle = true;
 
-                // Day-Based Logic for Pending Fees
-                if (status === 'Pending' && student.joiningDate) {
+                if (isPaid) {
+                    status = 'Paid';
+                    statusClass = 'fee-paid';
+                } else if (isPendingVerification) {
+                    status = 'Verification Pending';
+                    statusClass = 'fee-upcoming';
+                } else if (student.joiningDate) {
                     const joinDate = new Date(student.joiningDate);
-                    const joinDay = joinDate.getDate(); // e.g., 10th
-
-                    // Determine Due Date for THIS selected month
-                    // Be careful with months having fewer days
+                    const joinDay = joinDate.getDate();
                     const daysInMonth = new Date(currentYear, monthIndex + 1, 0).getDate();
                     const dueDay = Math.min(joinDay, daysInMonth);
-
                     const dueDate = new Date(currentYear, monthIndex, dueDay);
-                    // Compare with Today (stripped of time for fair comparison)
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
 
-                    // If we are looking at the current month/year AND today is BEFORE due date
                     if (currentYear === realCurrentYear && monthIndex === currentMonthIndex) {
                         if (today < dueDate) {
-                            status = `Upcoming (Due: ${dueDay})`;
-                            statusClass = 'fee-upcoming'; // Yellow/Orange
-                            canToggle = true; // User can still mark as paid if they want? Yes, typically.
+                            status = 'Upcoming (Due: ' + dueDay + ')';
+                            statusClass = 'fee-upcoming';
                         } else {
-                            statusClass = 'fee-pending'; // Red
+                            statusClass = 'fee-pending';
                         }
                     } else if (currentYear < realCurrentYear || (currentYear === realCurrentYear && monthIndex < currentMonthIndex)) {
-                        // Past Month: Always Pending if not paid
                         statusClass = 'fee-pending';
                     } else {
-                        // Future Month: Should be hidden by top logic, but if not:
                         statusClass = 'fee-upcoming';
                     }
-                } else if (status === 'Pending') {
-                    // No join date? Default to pending
-                    statusClass = 'fee-pending';
-                } else {
-                    statusClass = 'fee-paid';
                 }
 
                 // Reminder Check
                 let reminderBtn = '';
-                // Only show reminder if actually PENDING (Red)
                 if (statusClass === 'fee-pending') {
-                    // Check logic for ALL pending months
-                    // We need to calculate this dynamically here or helper?
-                    // Let's do a meaningful check here.
-
                     const pendingInfo = getPendingDues(student, fees);
                     const pendingMonths = pendingInfo.months.join(', ');
                     const pendingSubjects = pendingInfo.subjects.join(', ');
-                    const amountMsg = student.amount ? `Amount per month: ₹${student.amount}` : 'Amount: Not Set';
+                    const amountMsg = student.amount ? ('Amount per month: ₹' + student.amount) : 'Amount: Not Set';
 
-                    const msg = `Dear Parent, fee for student *${student.name}* (Class ${student.class}) is pending.\n\n` +
-                        `*Pending Months:* ${pendingMonths}\n` +
-                        `*Subjects:* ${pendingSubjects}\n` +
-                        `*${amountMsg}*\n\n` +
-                        `Please pay at the earliest.`;
+                    const msg = 'Dear Parent, fee for student *' + student.name + '* (Class ' + student.class + ') is pending.\n\n' +
+                        '*Pending Months:* ' + (pendingMonths || selectedMonth) + '\n' +
+                        '*Subjects:* ' + pendingSubjects + '\n' +
+                        '*' + amountMsg + '*\n\n' +
+                        'Please pay at the earliest.';
 
-                    // Use verified whatsapp logic (wa.me)
-                    const whatsappUrl = `https://wa.me/91${student.phone}?text=${encodeURIComponent(msg)}`;
-                    // Removed ml-2, added mobile styling
-                    reminderBtn = `<a href="${whatsappUrl}" target="_blank" class="btn btn-sm btn-warning shadow-sm" style="font-weight:bold; margin-top: 5px;"><i class="fab fa-whatsapp"></i> Share Reminder</a>`;
+                    const whatsappUrl = 'https://wa.me/91' + student.phone + '?text=' + encodeURIComponent(msg);
+                    reminderBtn = '<a href="' + whatsappUrl + '" target="_blank" class="btn btn-sm btn-warning shadow-sm" style="font-weight:bold; margin-top: 5px;"><i class="fab fa-whatsapp"></i> Share Reminder</a>';
                 }
 
-                subjectsHtml += `
-                    <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                        <span style="font-weight: 500; margin-top: 4px;">${sub}</span>
-                        <div style="display: flex; flex-direction: column; align-items: flex-end;">
-                            <span class="fee-status ${statusClass}" onclick="toggleFee('${student.id}', '${sub}', '${selectedMonth}', '${currentYear}')" style="min-width: 90px; text-align: center;">
-                                ${status}
-                            </span>
-                            ${reminderBtn}
-                        </div>
-                    </div>`;
+                subjectsHtml += '<div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #eee; padding-bottom: 8px;">' +
+                    '<span style="font-weight: 500; margin-top: 4px;">' + sub + '</span>' +
+                    '<div style="display: flex; flex-direction: column; align-items: flex-end;">' +
+                    '<span class="fee-status ' + statusClass + '" onclick="toggleFee(\'' + student.id + '\', \'' + sub + '\', \'' + selectedMonth + '\', \'' + currentYear + '\')" style="min-width: 90px; text-align: center; cursor: pointer;">' +
+                    status +
+                    '</span>' +
+                    reminderBtn +
+                    '</div>' +
+                    '</div>';
             });
 
-            tr.innerHTML = `
-                <td>
-                    ${student.name}
-                    ${student.joiningDate ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${new Date(student.joiningDate).toLocaleDateString()}</small>` : ''}
-                </td>
-                <td>${student.phone}</td>
-                <td>${subjectsHtml}</td>
-            `;
+            tr.innerHTML = '<td>' +
+                '<strong>' + student.name + '</strong>' +
+                (student.class ? ('<br><span class="badge badge-light border">Class ' + student.class + '</span>') : '') +
+                (student.joiningDate ? ('<small class="text-muted ml-1" style="font-size:0.75rem;">Joined: ' + new Date(student.joiningDate).toLocaleDateString() + '</small>') : '') +
+                '</td>' +
+                '<td>' + student.phone + '</td>' +
+                '<td>' + subjectsHtml + '</td>';
             feeTableBody.appendChild(tr);
         });
     }
@@ -1653,30 +1667,70 @@ if (document.getElementById('feesClassSelect')) {
     }
 
     window.toggleFee = function (studentId, subject, month, year) {
-        const key = `${studentId}_${subject}_${month}_${year}`;
+        const k1 = studentId + '_' + subject + '_' + month + '_' + year;
+        const k2 = studentId + '_' + subject + '_' + month + ' ' + year;
         const fees = getFees();
         var newStatus;
-        if (fees[key] === 'Paid') {
-            delete fees[key]; // Toggle back to pending
+        if (fees[k1] === 'Paid' || fees[k2] === 'Paid') {
+            delete fees[k1];
+            delete fees[k2];
             newStatus = 'Pending';
         } else {
-            fees[key] = 'Paid';
+            fees[k1] = 'Paid';
+            fees[k2] = 'Paid';
             newStatus = 'Paid';
         }
         saveFees(fees);
+
+        // Update in-memory feeMap immediately
+        const students = getStudents();
+        const student = students.find(s => s.id === studentId || s.rollNo === studentId);
+        const roll = student ? (student.rollNo || student.id) : studentId;
+        const rollUpper = String(roll).toUpperCase().trim();
+        if (window._supabaseFeeMap && window._supabaseFeeMap.has(rollUpper)) {
+            const rec = window._supabaseFeeMap.get(rollUpper);
+            const pmts = Array.isArray(rec.recent_payments) ? [...rec.recent_payments] : [];
+            const mShort = month.slice(0, 3).toUpperCase();
+            if (newStatus === 'Paid') {
+                if (!pmts.some(p => p.month === mShort || (p.fullMonth && p.fullMonth.includes(month)))) {
+                    pmts.push({
+                        month: mShort,
+                        fullMonth: month + ' ' + year,
+                        amount: Number(student?.amount) || 4000,
+                        paidOn: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
+                        status: 'Verified by Center Admin',
+                        receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000),
+                        utr: 'ADMIN-DIRECT-TOGGLE'
+                    });
+                }
+                if (month === 'October') {
+                    rec.current_due = 0;
+                    rec.due_date = 'All Cleared';
+                    rec.status = 'paid';
+                }
+            } else {
+                rec.recent_payments = pmts.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
+                if (month === 'October') {
+                    rec.current_due = Number(student?.amount) || 4000;
+                    rec.due_date = '25 October 2026';
+                    rec.status = 'due';
+                }
+            }
+        }
+
         loadFeeTable(); // Refresh UI immediately
 
-        // ── Auto-sync fee change to cloud (fire-and-forget) ──
+        // ── Auto-sync fee change to Supabase ──
         if (typeof sb_toggleFee === 'function') {
             sb_toggleFee(studentId, subject, month, year, newStatus).then(function () {
-                if (typeof _showSyncToast === 'function') _showSyncToast('✅ Fee synced');
-            }).catch(function () {
-                if (typeof _showSyncToast === 'function') _showSyncToast('⚠️ Fee sync failed — saved locally', true);
+                if (typeof _showSyncToast === 'function') _showSyncToast('✅ Synced ' + month + ' fee to Supabase');
+            }).catch(function (err) {
+                console.warn('[ToggleFee] Sync error:', err);
+                if (typeof _showSyncToast === 'function') _showSyncToast('⚠️ Fee sync issue — saved locally', true);
             });
         }
     };
 
-    // Expose for cloud sync refresh
     window.loadFeeTable = loadFeeTable;
 
     // Initial load
@@ -1686,6 +1740,139 @@ if (document.getElementById('feesClassSelect')) {
 /**
  * Robust Supabase Client Resolver for Admin Panel
  */
+/**
+ * Direct Supabase Fees & Students Loader
+ * Keeps fees.html in real-time sync with Supabase and EduHome mobile app
+ */
+window.loadSupabaseFeesData = async function() {
+    const statusEl = document.getElementById('manualSyncStatus');
+    const sb = _getSafeAdminSupabase();
+    if (!sb) {
+        console.warn('[SupabaseFees] Supabase client not available');
+        return { ok: false, msg: 'Supabase client unavailable' };
+    }
+
+    try {
+        if (statusEl) statusEl.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i> Connecting directly to Supabase cloud fees...</span>';
+
+        const [feeRes, stuRes] = await Promise.all([
+            sb.from('fees_records').select('*'),
+            sb.from('students').select('*')
+        ]);
+
+        if (feeRes.error) throw feeRes.error;
+
+        const feeRecords = feeRes.data || [];
+        const feeMap = new Map();
+        feeRecords.forEach(r => {
+            if (r.roll_no) feeMap.set(String(r.roll_no).toUpperCase().trim(), r);
+        });
+        window._supabaseFeeMap = feeMap;
+
+        // If students exist in Supabase, ensure local cache is up to date
+        if (stuRes.data && stuRes.data.length > 0) {
+            const cloudStudents = stuRes.data;
+            const localStudents = typeof getStudents === 'function' ? getStudents() : [];
+            const localMap = new Map(localStudents.map(s => [String(s.rollNo || s.id).toUpperCase().trim(), s]));
+
+            const merged = cloudStudents.map(cs => {
+                const roll = String(cs.roll_no || cs.id).toUpperCase().trim();
+                const loc = localMap.get(roll);
+                const feeRec = feeMap.get(roll);
+                return {
+                    id: cs.roll_no || cs.id,
+                    rollNo: cs.roll_no || cs.id,
+                    name: cs.name || loc?.name || 'Student',
+                    class: String(cs.class_name || loc?.class || '10').replace('Class ', '').trim(),
+                    school: cs.school || loc?.school || 'EduHome Campus',
+                    phone: cs.phone || loc?.phone || '',
+                    joiningDate: cs.joining_date || loc?.joiningDate || '2026-01-15',
+                    amount: (feeRec && feeRec.monthly_fee) ? String(feeRec.monthly_fee) : (loc?.amount || '4000'),
+                    subjects: (loc && Array.isArray(loc.subjects) && loc.subjects.length > 0) ? loc.subjects : ['General']
+                };
+            });
+            localStorage.setItem('students', JSON.stringify(merged));
+        }
+
+        // Populate local fees cache with verified payments from Supabase
+        const feesCache = typeof getFees === 'function' ? getFees() : {};
+        const allStudents = typeof getStudents === 'function' ? getStudents() : [];
+
+        feeRecords.forEach(fr => {
+            const roll = fr.roll_no;
+            const stu = allStudents.find(s => String(s.rollNo || s.id).toUpperCase().trim() === String(roll).toUpperCase().trim());
+            const subjects = (stu && Array.isArray(stu.subjects) && stu.subjects.length > 0) ? stu.subjects : ['General'];
+            const payments = Array.isArray(fr.recent_payments) ? fr.recent_payments : [];
+            const isCleared = (Number(fr.current_due) === 0 || fr.due_date === 'All Cleared' || fr.status === 'paid');
+
+            payments.forEach(p => {
+                if (p.status !== 'pending_verification') {
+                    const _monthLongMap = {JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
+                    const mName = p.fullMonth ? p.fullMonth.split(' ')[0] : (_monthLongMap[String(p.month || '').slice(0,3).toUpperCase()] || p.month || 'Unknown');
+                    const y = p.fullMonth ? (p.fullMonth.split(' ')[1] || '2026') : '2026';
+                    subjects.forEach(sub => {
+                        feesCache[roll + '_' + sub + '_' + mName + '_' + y] = 'Paid';
+                        feesCache[roll + '_' + sub + '_' + mName + ' ' + y] = 'Paid';
+                        if (stu && stu.id) {
+                            feesCache[stu.id + '_' + sub + '_' + mName + '_' + y] = 'Paid';
+                            feesCache[stu.id + '_' + sub + '_' + mName + ' ' + y] = 'Paid';
+                        }
+                    });
+                }
+            });
+
+            if (isCleared) {
+                subjects.forEach(sub => {
+                    feesCache[roll + '_' + sub + '_October_2026'] = 'Paid';
+                    feesCache[roll + '_' + sub + '_October 2026'] = 'Paid';
+                    if (stu && stu.id) {
+                        feesCache[stu.id + '_' + sub + '_October_2026'] = 'Paid';
+                        feesCache[stu.id + '_' + sub + '_October 2026'] = 'Paid';
+                    }
+                });
+            }
+        });
+
+        localStorage.setItem('fees', JSON.stringify(feesCache));
+
+        // Setup realtime subscription if not already active
+        if (!window._supabaseFeesRealtimeSubscribed) {
+            try {
+                sb.channel('admin_fees_live_channel')
+                  .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records' }, (payload) => {
+                      console.log('[SupabaseRealtime] fees_records updated live:', payload);
+                      if (payload.new && payload.new.roll_no) {
+                          if (!window._supabaseFeeMap) window._supabaseFeeMap = new Map();
+                          window._supabaseFeeMap.set(String(payload.new.roll_no).toUpperCase().trim(), payload.new);
+                      }
+                      if (typeof window.loadFeeTable === 'function') window.loadFeeTable();
+                      if (typeof window.loadPendingVerifications === 'function') window.loadPendingVerifications();
+                  })
+                  .subscribe();
+                window._supabaseFeesRealtimeSubscribed = true;
+            } catch (rtErr) {
+                console.warn('[SupabaseRealtime] Subscription error:', rtErr);
+            }
+        }
+
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i> Connected to Supabase Cloud (' + feeRecords.length + ' student records live)</span>';
+            setTimeout(() => { if (statusEl) statusEl.innerHTML = ''; }, 4000);
+        }
+
+        if (typeof window.loadFeeTable === 'function') window.loadFeeTable();
+        if (typeof window.loadPendingVerifications === 'function') window.loadPendingVerifications();
+
+        return { ok: true, count: feeRecords.length };
+    } catch (err) {
+        console.error('[SupabaseFees] Error loading Supabase fees:', err);
+        if (statusEl) {
+            statusEl.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i> Supabase fees error: ' + (err.message || err) + '</span>';
+        }
+        return { ok: false, msg: err.message || err };
+    }
+};
+
 function _getSafeAdminSupabase() {
     if (typeof _getSupabaseClient === 'function') {
         const client = _getSupabaseClient();
@@ -1844,6 +2031,7 @@ window.quickMarkPaidUpToMonth = async function() {
                     roll_no: String(roll).trim(),
                     current_due: isCurrentCycleCovered ? 0 : monthlyFee,
                     due_date: isCurrentCycleCovered ? 'All Cleared' : '25 October 2026',
+                    status: isCurrentCycleCovered ? 'paid' : 'due',
                     days_left: isCurrentCycleCovered ? 0 : 24,
                     months_paid_on_time: Math.max(fRec?.months_paid_on_time || 0, endIdx + 1),
                     loyalty_months: existingLoyalty,
@@ -2348,11 +2536,11 @@ if (document.getElementById('timetableTableBody')) {
                 let timeStr = (startTime && endTime) ? (`${_format12Hr(startTime)} - ${_format12Hr(endTime)}`) : _format12Hr(startTime || 'Scheduled');
                 const sessType = (sessionType || 'Regular').trim();
                 const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
-                    ? 'Test Paper'
+                    ? 'TP'
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'Question Bank'
                     : 'Regular';
-                const statusStr = 'upcoming' + (sessType ? ':' + sessType : '') + (facultyId ? ':' + facultyId : '');
+                const statusStr = 'upcoming' + (sessType && sessType !== 'Regular' ? ':' + sessType : '') + (facultyId ? ':' + facultyId : '');
                 const timeParts = [timeStr];
                 if (sessType && sessType !== 'Regular') {
                     timeParts.push(sessionTag);
@@ -2718,11 +2906,11 @@ if (document.getElementById('timetableTableBody')) {
                 // 2. Insert exactly 1 clean class session with session type preserved
                 const sessType = (entry.sessionType || 'Regular').trim();
                 const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
-                    ? 'Test Paper'
+                    ? 'TP'
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'Question Bank'
                     : 'Regular';
-                const statusStr = 'upcoming' + (sessType ? ':' + sessType : '') + (entry.facultyId ? ':' + entry.facultyId : '');
+                const statusStr = 'upcoming' + (sessType && sessType !== 'Regular' ? ':' + sessType : '') + (entry.facultyId ? ':' + entry.facultyId : '');
                 const timeParts = [timeStr];
                 if (sessType && sessType !== 'Regular') {
                     timeParts.push(sessionTag);
@@ -3384,40 +3572,161 @@ window.loadPendingVerifications = async function() {
 };
 
 window.approveStudentFee = async function(rollNo, studentName, amount, utr) {
-    if (!confirm('Approve Rs.' + amount + ' from ' + studentName + '? This marks the student as PAID.')) return;
-    const sb = _getSupabaseClient();
+    if (!confirm('Approve ₹' + amount + ' from ' + studentName + '? This marks the student as PAID.')) return;
+    const sb = _getSafeAdminSupabase ? _getSafeAdminSupabase() : _getSupabaseClient();
     if (!sb) return;
     try {
         const now = new Date();
-        const paidOnStr = now.toLocaleDateString('en-US', {day:'numeric',month:'short',year:'numeric'});
+        const paidOnStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
         const mNames = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-        const paymentEntry = { month: mNames[now.getMonth()], fullMonth: now.toLocaleDateString('en-US',{month:'long',year:'numeric'}), paidOn: paidOnStr, amount: amount, onTime: true, status: 'Verified by Center Admin', receiptNo: 'REC-' + now.getFullYear() + '-' + mNames[now.getMonth()] + '-' + Math.floor(1000 + Math.random() * 9000), utr: utr };
-        const { data: rec } = await sb.from('fees_records').select('recent_payments').eq('roll_no', rollNo).maybeSingle();
+        const mLong = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+        const { data: rec } = await sb.from('fees_records').select('*').eq('roll_no', rollNo).maybeSingle();
         const cur = Array.isArray(rec && rec.recent_payments) ? rec.recent_payments : [];
-        const updated = [paymentEntry, ...cur.filter(p => p.status !== 'pending_verification')];
-        const { error } = await sb.from('fees_records').update({ current_due: 0, recent_payments: updated, updated_at: now.toISOString() }).eq('roll_no', rollNo);
+        const approvedOnly = cur.filter(p => p.status !== 'pending_verification');
+
+        // Month being approved = the month on the student's pending proof.
+        // Fallback: the oldest month (since Jan / joining) with no approved payment.
+        const pend = cur.find(p => p.status === 'pending_verification');
+        let curMonth, fullMonth, monthLong;
+        const keyOf = (p) => {
+            let mi = -1, yr = now.getFullYear();
+            if (p.fullMonth) {
+                const parts = String(p.fullMonth).split(' ');
+                mi = mLong.findIndex(m => m.toLowerCase() === (parts[0] || '').toLowerCase());
+                if (parts[1] && !isNaN(Number(parts[1]))) yr = Number(parts[1]);
+            }
+            if (mi < 0 && p.month) mi = mNames.indexOf(String(p.month).slice(0, 3).toUpperCase());
+            return mi >= 0 ? yr * 12 + mi : null;
+        };
+        const paidKeys = new Set(approvedOnly.map(keyOf).filter(k => k !== null));
+        if (pend && pend.month && pend.fullMonth) {
+            curMonth = pend.month;
+            fullMonth = pend.fullMonth;
+            monthLong = String(pend.fullMonth).split(' ')[0];
+        } else {
+            let k = now.getFullYear() * 12;
+            const curKey = now.getFullYear() * 12 + now.getMonth();
+            while (k <= curKey && paidKeys.has(k)) k++;
+            while (paidKeys.has(k)) k++;
+            curMonth = mNames[k % 12];
+            monthLong = mLong[k % 12];
+            fullMonth = monthLong + ' ' + Math.floor(k / 12);
+        }
+        const approvedKey = keyOf({ month: curMonth, fullMonth: fullMonth });
+        if (approvedKey !== null) paidKeys.add(approvedKey);
+
+        const paymentEntry = {
+            month: curMonth,
+            fullMonth: fullMonth,
+            paidOn: paidOnStr,
+            amount: amount,
+            onTime: true,
+            status: 'Verified by Center Admin',
+            receiptNo: 'REC-' + now.getFullYear() + '-' + curMonth + '-' + Math.floor(1000 + Math.random() * 9000),
+            utr: utr || 'ADMIN-APPROVED'
+        };
+        const updated = [paymentEntry, ...approvedOnly];
+
+        const existingLoyalty = Array.isArray(rec && rec.loyalty_months) ? [...rec.loyalty_months] : [];
+        if (!existingLoyalty.some(l => l.label === monthLong || l.label === fullMonth)) {
+            existingLoyalty.push({ label: monthLong, earned: true });
+        }
+
+        // Fully paid only if every month up to NOW (since Jan / joining) has an approved payment
+        let firstUnpaid = null;
+        const nowKey = now.getFullYear() * 12 + now.getMonth();
+        for (let k = now.getFullYear() * 12; k <= nowKey; k++) {
+            if (!paidKeys.has(k)) { firstUnpaid = k; break; }
+        }
+        const fullyPaid = firstUnpaid === null;
+        const stuAmount = (rec && rec.current_due) ? rec.current_due : amount;
+
+        const upd = {
+            current_due: fullyPaid ? 0 : stuAmount,
+            loyalty_months: existingLoyalty,
+            recent_payments: updated,
+            updated_at: now.toISOString()
+        };
+        if (fullyPaid) { upd.due_date = 'All Cleared'; upd.days_left = 0; }
+        const { error } = await sb.from('fees_records').update(upd).eq('roll_no', rollNo);
+
         if (error) throw error;
-        try { await sb.channel('fee_realtime_broadcast').send({ type: 'broadcast', event: 'fee_approved', payload: { rollNo, approvedAt: now.toISOString() } }); } catch(be) { console.warn('Broadcast:', be); }
-        if (typeof getFees === 'function' && typeof getStudents === 'function') { const fees = getFees(); const students = getStudents(); const matched = students.find(s => s.id === rollNo || s.phone === rollNo); if (matched && Array.isArray(matched.subjects)) { matched.subjects.forEach(sub => { fees[matched.id + '_' + sub + '_' + paymentEntry.fullMonth] = 'Paid'; }); if (typeof saveFees === 'function') saveFees(fees); if (typeof window.loadFeeTable === 'function') window.loadFeeTable(); } }
-        alert('Payment Verified! ' + studentName + ' marked as Paid.');
-        window.loadPendingVerifications();
-    } catch (e) { alert('Failed to approve: ' + (e.message || e)); }
+
+        // Broadcast to mobile app
+        try {
+            await sb.channel('fee_realtime_broadcast').send({
+                type: 'broadcast',
+                event: 'fee_approved',
+                payload: { rollNo, approvedAt: now.toISOString() }
+            });
+        } catch (be) { console.warn('Broadcast:', be); }
+
+        // Update local fees cache under both key variants
+        if (typeof getFees === 'function' && typeof getStudents === 'function') {
+            const fees = getFees();
+            const students = getStudents();
+            const matched = students.find(s => s.id === rollNo || s.rollNo === rollNo || s.phone === rollNo);
+            const subjects = (matched && Array.isArray(matched.subjects) && matched.subjects.length > 0) ? matched.subjects : ['General'];
+            subjects.forEach(sub => {
+                const y = now.getFullYear();
+                fees[rollNo + '_' + sub + '_' + monthLong + '_' + y] = 'Paid';
+                fees[rollNo + '_' + sub + '_' + monthLong + ' ' + y] = 'Paid';
+                if (matched && matched.id) {
+                    fees[matched.id + '_' + sub + '_' + monthLong + '_' + y] = 'Paid';
+                    fees[matched.id + '_' + sub + '_' + monthLong + ' ' + y] = 'Paid';
+                }
+            });
+            if (typeof saveFees === 'function') saveFees(fees);
+        }
+
+        // Update in-memory feeMap
+        if (window._supabaseFeeMap) {
+            window._supabaseFeeMap.set(String(rollNo).toUpperCase().trim(), {
+                ...(rec || {}),
+                ...upd,
+                recent_payments: updated
+            });
+        }
+
+        alert('Payment Verified! ' + studentName + ' marked as Paid in Supabase.');
+        if (typeof window.loadPendingVerifications === 'function') window.loadPendingVerifications();
+        if (typeof window.loadFeeTable === 'function') window.loadFeeTable();
+    } catch (e) {
+        alert('Failed to approve: ' + (e.message || e));
+    }
 };
 
 window.rejectStudentFee = async function(rollNo, pendingAmount) {
     if (!confirm('Reject payment for ' + rollNo + '? Status will revert to Due.')) return;
-    const sb = _getSupabaseClient();
+    const sb = _getSafeAdminSupabase ? _getSafeAdminSupabase() : _getSupabaseClient();
     if (!sb) return;
     try {
         const { data: rec } = await sb.from('fees_records').select('recent_payments, current_due').eq('roll_no', rollNo).maybeSingle();
         const cur = Array.isArray(rec && rec.recent_payments) ? rec.recent_payments : [];
         const updated = cur.filter(p => p.status !== 'pending_verification');
         const restoreAmount = pendingAmount || (rec && rec.current_due) || 4000;
-        await sb.from('fees_records').update({ current_due: restoreAmount, recent_payments: updated, updated_at: new Date().toISOString() }).eq('roll_no', rollNo);
-        try { await sb.channel('fee_realtime_broadcast').send({ type: 'broadcast', event: 'fee_rejected', payload: { rollNo, rejectedAt: new Date().toISOString() } }); } catch(be) { console.warn('Broadcast:', be); }
+        await sb.from('fees_records').update({
+            current_due: restoreAmount,
+            status: 'due',
+            recent_payments: updated,
+            updated_at: new Date().toISOString()
+        }).eq('roll_no', rollNo);
+
+        try {
+            await sb.channel('fee_realtime_broadcast').send({
+                type: 'broadcast',
+                event: 'fee_rejected',
+                payload: { rollNo, rejectedAt: new Date().toISOString() }
+            });
+        } catch (be) { console.warn('Broadcast:', be); }
+
         alert('Payment rejected. Student status set to Due.');
-        window.loadPendingVerifications();
-    } catch (e) { alert('Failed to reject: ' + (e.message || e)); }
+        if (typeof window.loadPendingVerifications === 'function') window.loadPendingVerifications();
+        if (typeof window.loadFeeTable === 'function') window.loadFeeTable();
+    } catch (e) {
+        alert('Failed to reject: ' + (e.message || e));
+    }
 };
 
 // --- PENDING TEST APPROVAL (FACULTY SUBMITTED TESTS) ---
@@ -3455,7 +3764,7 @@ window.loadPendingTests = async function() {
                 '<div class="col-6"><label class="small font-weight-bold">Time</label><input type="text" class="form-control form-control-sm" id="test_time_' + test.test_id + '" placeholder="e.g. 4:30 PM - 6:00 PM" /></div>' +
                 '<div class="col-6"><label class="small font-weight-bold">Venue / Room</label><input type="text" class="form-control form-control-sm" id="test_venue_' + test.test_id + '" placeholder="e.g. Room 204" /></div>' +
                 '</div>' +
-                '<div class="d-flex gap-2">' +
+                '<div class="d-flex flex-wrap" style="gap: 8px;">' +
                 '<button class="btn btn-sm btn-success" onclick="approvePendingTest(\'' + test.test_id + '\',\'' + (test.id || '') + '\',\'' + (test.class_tag || '') + '\',\'' + (test.subject || '') + '\')">' +
                 '<i class="fas fa-check-circle mr-1"></i> Approve & Publish</button>' +
                 '<button class="btn btn-sm btn-outline-danger" onclick="rejectPendingTest(\'' + (test.id || '') + '\')">' +

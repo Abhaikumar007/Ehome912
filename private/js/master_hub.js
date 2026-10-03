@@ -607,17 +607,19 @@ async function loadActiveBroadcasts() {
                 const regularAnns = anns.filter(a => (!a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert'))) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval');
 
                 if (pendingAnns.length > 0) {
-                    html += '<div class="alert alert-warning mb-4 border-warning shadow-sm p-3 rounded" style="background: #fffbeb; border-left: 5px solid #f59e0b !important;">'
+                    html += '<div class="alert alert-warning pending-approvals-banner mb-4 shadow-sm">'
                         + '<div class="d-flex justify-content-between align-items-center flex-wrap mb-2" style="gap: 8px;">'
-                        + '<h6 class="font-weight-bold text-dark mb-0"><i class="fas fa-clock mr-2 text-warning"></i>Faculty Announcements Awaiting Admin Approval (' + pendingAnns.length + ')</h6>'
+                        + '<h6 class="font-weight-bold text-dark mb-0 d-flex align-items-center"><i class="fas fa-clock mr-2 text-warning"></i>Faculty Announcements Awaiting Admin Approval (' + pendingAnns.length + ')</h6>'
                         + '<span class="badge badge-warning text-dark font-weight-bold px-2 py-1">Requires Action</span>'
                         + '</div>'
-                        + '<p class="small text-muted mb-3">Submitted by faculty members via mobile app. Review and approve to broadcast live to all student devices.</p>';
+                        + '<p class="small text-muted mb-3" style="line-height: 1.45;">Submitted by faculty members via mobile app. Review and approve to broadcast live to all student devices.</p>';
 
                     pendingAnns.forEach(a => {
                         const rawTitle = a.title || '';
                         const cleanTitle = cleanApprovedTitle(rawTitle);
-                        const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : 'Just now';
+                        const dateStr = a.created_at
+                            ? new Date(a.created_at).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) + ', ' + new Date(a.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                            : 'Just now';
                         const desc = a.description || '';
 
                         // Determine if this is a test / exam submission
@@ -651,52 +653,52 @@ async function loadActiveBroadcasts() {
                         let bodyHtml = '';
                         if (isTest && (examDateMatch || maxMarksMatch || syllabusMatch || submittedByMatch)) {
                             bodyHtml = '<div class="pending-test-details-box my-2">'
-                                + '<div class="row" style="row-gap: 8px;">';
+                                + '<div class="pending-test-grid">';
 
                             if (examDateMatch) {
-                                bodyHtml += '<div class="col-sm-6 col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="far fa-calendar-alt text-primary mr-1"></i>Exam Date</span>'
+                                bodyHtml += '<div class="pending-test-grid-item">'
+                                    + '<span class="pending-test-meta-label"><i class="far fa-calendar-alt text-primary"></i>Exam Date</span>'
                                     + '<div class="pending-test-meta-value font-weight-bold text-dark">' + escapeHtml(examDateMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (maxMarksMatch) {
-                                bodyHtml += '<div class="col-sm-6 col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="fas fa-award text-warning mr-1"></i>Max Marks</span>'
+                                bodyHtml += '<div class="pending-test-grid-item">'
+                                    + '<span class="pending-test-meta-label"><i class="fas fa-award text-warning"></i>Max Marks</span>'
                                     + '<div class="pending-test-meta-value font-weight-bold text-dark">' + escapeHtml(maxMarksMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (timeMatch) {
-                                bodyHtml += '<div class="col-sm-6 col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="far fa-clock text-info mr-1"></i>Time</span>'
+                                bodyHtml += '<div class="pending-test-grid-item">'
+                                    + '<span class="pending-test-meta-label"><i class="far fa-clock text-info"></i>Time</span>'
                                     + '<div class="pending-test-meta-value text-dark">' + escapeHtml(timeMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (roomMatch) {
-                                bodyHtml += '<div class="col-sm-6 col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="fas fa-map-marker-alt text-danger mr-1"></i>Venue / Room</span>'
+                                bodyHtml += '<div class="pending-test-grid-item">'
+                                    + '<span class="pending-test-meta-label"><i class="fas fa-map-marker-alt text-danger"></i>Venue / Room</span>'
                                     + '<div class="pending-test-meta-value text-dark">' + escapeHtml(roomMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (syllabusMatch) {
-                                bodyHtml += '<div class="col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="fas fa-book-open text-info mr-1"></i>Syllabus Portion</span>'
+                                bodyHtml += '<div class="pending-test-grid-item grid-col-full">'
+                                    + '<span class="pending-test-meta-label"><i class="fas fa-book-open text-info"></i>Syllabus Portion</span>'
                                     + '<div class="pending-test-meta-value text-dark">' + escapeHtml(syllabusMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (submittedByMatch) {
-                                bodyHtml += '<div class="col-12">'
-                                    + '<span class="pending-test-meta-label"><i class="fas fa-chalkboard-teacher text-success mr-1"></i>Submitted By</span>'
+                                bodyHtml += '<div class="pending-test-grid-item grid-col-full">'
+                                    + '<span class="pending-test-meta-label"><i class="fas fa-chalkboard-teacher text-success"></i>Submitted By</span>'
                                     + '<div class="pending-test-meta-value font-weight-bold text-dark">' + escapeHtml(submittedByMatch[1].trim()) + '</div>'
                                     + '</div>';
                             }
 
                             if (remainingLines.length > 0) {
-                                bodyHtml += '<div class="col-12 mt-1 pt-1 border-top">'
+                                bodyHtml += '<div class="pending-test-grid-item grid-col-full mt-1 pt-2 border-top">'
                                     + '<small class="text-muted"><strong><i class="fas fa-info-circle mr-1"></i>Notes:</strong> ' + escapeHtml(remainingLines.join(' • ')) + '</small>'
                                     + '</div>';
                             }
@@ -709,15 +711,20 @@ async function loadActiveBroadcasts() {
                         }
 
                         html += '<div class="broadcast-card-item pending-approval-item" id="pendingAnn_' + a.id + '">'
-                            // Header Row
-                            + '<div class="broadcast-card-header d-flex flex-wrap align-items-center justify-content-between mb-1" style="gap: 8px;">'
-                            + '<div class="d-flex align-items-center flex-wrap" style="gap: 6px;">'
+                            // Header: Badges & Timestamp Row
+                            + '<div class="broadcast-card-header mb-1">'
+                            + '<div class="approval-meta-row d-flex align-items-center justify-content-between flex-wrap" style="gap: 6px;">'
+                            + '<div class="approval-badges d-flex align-items-center flex-wrap" style="gap: 6px;">'
                             + '<span class="badge badge-warning text-dark font-weight-bold py-1 px-2"><i class="fas fa-clock mr-1"></i>Pending Approval</span>'
                             + (classTag ? '<span class="badge badge-primary font-weight-bold py-1 px-2">' + escapeHtml(classTag) + '</span>' : '')
                             + (isTest ? '<span class="badge badge-info font-weight-bold py-1 px-2"><i class="fas fa-file-alt mr-1"></i>Test Paper</span>' : '')
-                            + '<strong class="broadcast-content-title text-dark mb-0 ml-1">' + escapeHtml(displayTitle) + '</strong>'
                             + '</div>'
-                            + '<span class="badge badge-light border text-secondary"><i class="far fa-clock mr-1"></i>' + escapeHtml(dateStr) + '</span>'
+                            + '<span class="approval-timestamp badge badge-light border text-secondary" title="' + escapeHtml(new Date(a.created_at).toLocaleString()) + '"><i class="far fa-clock mr-1"></i>' + escapeHtml(dateStr) + '</span>'
+                            + '</div>'
+                            // Header: Clean Left-Aligned Full-Width Title
+                            + '<div class="approval-title-box mt-2 mb-1">'
+                            + '<h5 class="approval-card-title text-dark font-weight-bold mb-0">' + escapeHtml(displayTitle) + '</h5>'
+                            + '</div>'
                             + '</div>'
 
                             // Body Row (Full width)
@@ -725,19 +732,23 @@ async function loadActiveBroadcasts() {
                             + bodyHtml
                             + '</div>'
 
-                            // Footer Action Row
-                            + '<div class="broadcast-card-footer">'
+                            // Footer Action Row (Responsive & Touch Friendly)
+                            + '<div class="broadcast-card-footer pending-card-footer">'
+                            + '<div class="pending-footer-instruction">'
                             + '<small class="text-muted"><i class="fas fa-shield-alt text-warning mr-1"></i>Review & approve to broadcast live to all student devices</small>'
-                            + '<div class="broadcast-actions-area" style="gap: 8px; flex-wrap: wrap;">'
-                            + '<button type="button" class="btn btn-sm btn-primary px-3 py-2 font-weight-bold shadow-sm" onclick="window.openEditApprovalModal(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
-                            + '<i class="fas fa-edit mr-1"></i> Edit & Approve'
-                            + '</button>'
-                            + '<button type="button" class="btn btn-sm btn-success px-3 py-2 font-weight-bold shadow-sm" onclick="window.requestApproveAnnouncement(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
+                            + '</div>'
+                            + '<div class="broadcast-actions-area approval-actions-container">'
+                            + '<button type="button" class="btn btn-sm btn-success btn-quick-approve font-weight-bold shadow-sm" onclick="window.requestApproveAnnouncement(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
                             + '<i class="fas fa-check-circle mr-1"></i> Quick Approve'
                             + '</button>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2 font-weight-bold" data-action="reject" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Reject & Delete" style="cursor: pointer;">'
+                            + '<div class="approval-btn-pair">'
+                            + '<button type="button" class="btn btn-sm btn-primary btn-edit-approve font-weight-bold shadow-sm" onclick="window.openEditApprovalModal(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
+                            + '<i class="fas fa-edit mr-1"></i> Edit & Approve'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger btn-reject font-weight-bold" data-action="reject" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Reject & Delete" style="cursor: pointer;">'
                             + '<i class="fas fa-times mr-1"></i> Reject'
                             + '</button>'
+                            + '</div>'
                             + '</div>'
                             + '</div>'
 
