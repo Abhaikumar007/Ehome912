@@ -18,6 +18,7 @@ import {
   TeacherProfile,
   getInitials,
   isStudentEnrolledInSubject,
+  isTeacherAssignedToClass,
 } from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 
@@ -125,8 +126,7 @@ export default function FacultyAttendanceScreen() {
     if (params.subject && params.subject !== 'Science') {
       setSelectedSubject(params.subject);
     } else {
-      const defSub = getTeacherDefaultSubject(t);
-      setSelectedSubject(defSub);
+      setSelectedSubject((prev) => prev || getTeacherDefaultSubject(t));
     }
   }, [params.subject]);
 
@@ -269,6 +269,30 @@ export default function FacultyAttendanceScreen() {
         if (isMounted) {
           setRoster(fullRoster);
           applyTeacher(currentTeacher);
+          if (params.classGrade) {
+            const gradeNum = params.classGrade.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+            const match = INITIAL_CLASSES.find((c) => {
+              if (gradeNum && c.label.includes(gradeNum)) return true;
+              return c.label.toLowerCase().includes(params.classGrade!.toLowerCase());
+            });
+            if (match) setSelectedClassId(match.id);
+          }
+          if (params.subject && params.subject !== 'Science') {
+            setSelectedSubject(params.subject);
+          }
+          if (params.classId) {
+            setActiveClassId(params.classId);
+          }
+          if (params.timeSlot) {
+            setActiveSessionTime(params.timeSlot);
+          }
+          if (params.sessionType) {
+            setActiveSessionType(params.sessionType);
+          }
+          if (params.dateOffset !== undefined) {
+            const parsedOffset = parseInt(params.dateOffset, 10);
+            if (!isNaN(parsedOffset)) setDateOffset(parsedOffset);
+          }
         }
         await fetchLiveStudents();
       };
@@ -276,7 +300,7 @@ export default function FacultyAttendanceScreen() {
       return () => {
         isMounted = false;
       };
-    }, [applyTeacher, fetchLiveStudents])
+    }, [applyTeacher, fetchLiveStudents, params.classGrade, params.subject, params.classId, params.timeSlot, params.sessionType, params.dateOffset])
   );
 
   // Cross-screen live subscription: updates immediately if faculty changes elsewhere
@@ -364,42 +388,73 @@ export default function FacultyAttendanceScreen() {
 
   useEffect(() => {
     if (sessionsForSelectedClassAndSubject.length > 0) {
-      const match = sessionsForSelectedClassAndSubject.find(
-        (s) => (activeClassId && s.id === activeClassId) || (activeSessionTime && s.time?.includes(activeSessionTime))
-      );
+      const preferredId = params.classId || activeClassId;
+      const preferredTime = params.timeSlot || activeSessionTime;
+
+      let match = sessionsForSelectedClassAndSubject.find((s) => preferredId && s.id === preferredId);
+      if (!match && preferredTime) {
+        match = sessionsForSelectedClassAndSubject.find((s) => {
+          const sTime = (s.time || '').split('•')[0].trim().toLowerCase();
+          const tTime = preferredTime.split('•')[0].trim().toLowerCase();
+          return sTime === tTime || sTime.includes(tTime) || tTime.includes(sTime);
+        });
+      }
+
       if (match) {
         if (match.id && match.id !== activeClassId) setActiveClassId(match.id);
         const sTime = (match.time || '').split('•')[0].trim();
         if (sTime && sTime !== activeSessionTime) setActiveSessionTime(sTime);
-        const sType = match.time?.toLowerCase().includes('test paper') ? 'Test Paper' : match.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+        const sType = match.time?.toLowerCase().includes('test paper')
+          ? 'Test Paper'
+          : match.time?.toLowerCase().includes('question bank')
+          ? 'Question Bank'
+          : 'Regular Class';
         if (sType !== activeSessionType) setActiveSessionType(sType);
       } else {
         const first = sessionsForSelectedClassAndSubject[0];
         setActiveClassId(first.id || '');
         const sTime = (first.time || '').split('•')[0].trim();
         setActiveSessionTime(sTime);
-        const sType = first.time?.toLowerCase().includes('test paper') ? 'Test Paper' : first.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+        const sType = first.time?.toLowerCase().includes('test paper')
+          ? 'Test Paper'
+          : first.time?.toLowerCase().includes('question bank')
+          ? 'Question Bank'
+          : 'Regular Class';
         setActiveSessionType(sType);
       }
     }
-  }, [sessionsForSelectedClassAndSubject]);
+  }, [sessionsForSelectedClassAndSubject, params.classId, params.timeSlot]);
 
   // Filter only classes assigned to this active faculty member's allowed grades
-  // BUG FIX: Previously hard-coded CS to grades 11-12, ignoring allowedGrades from Supabase.
-  // Now always uses allowedGrades first (which are synced from Supabase), only falling back
-  // to subject-based inference when allowedGrades is empty/missing.
+  // Also include grades from classes in adminClasses where teacher is assigned or passed via navigation params
   const teacherAssignedClasses = useMemo(() => {
     if (!activeTeacher) return INITIAL_CLASSES;
-    const grades = activeTeacher.allowedGrades || [];
+    const grades = new Set<string>(activeTeacher.allowedGrades || []);
 
-    if (grades.includes('*')) {
+    // Include grades from classes in adminClasses where teacher is assigned
+    if (adminClasses && adminClasses.length > 0) {
+      adminClasses.forEach((c) => {
+        if (isTeacherAssignedToClass(activeTeacher, c)) {
+          const g = c.grade || (c.class_grade || c.roll_no || '').match(/\b(1[0-2]|[6-9])\b/)?.[1];
+          if (g) grades.add(g);
+        }
+      });
+    }
+
+    // Also include params.classGrade if passed
+    if (params.classGrade) {
+      const paramG = params.classGrade.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      if (paramG) grades.add(paramG);
+    }
+
+    if (grades.has('*')) {
       return INITIAL_CLASSES;
     }
 
-    if (grades.length > 0) {
+    if (grades.size > 0) {
       return INITIAL_CLASSES.filter((c) => {
         const gradeNum = c.grade || c.label.match(/\b(1[0-2]|[6-9])\b/)?.[1];
-        return gradeNum && grades.includes(gradeNum);
+        return gradeNum && grades.has(gradeNum);
       });
     }
 
@@ -409,7 +464,7 @@ export default function FacultyAttendanceScreen() {
       return INITIAL_CLASSES.filter((c) => c.grade === '11' || c.grade === '12');
     }
     return INITIAL_CLASSES;
-  }, [activeTeacher]);
+  }, [activeTeacher, adminClasses, params.classGrade]);
 
   // Auto-switch class if currently selected class is outside active teacher's assignment
   useEffect(() => {
@@ -421,11 +476,12 @@ export default function FacultyAttendanceScreen() {
   const currentClass = teacherAssignedClasses.find((c) => c.id === selectedClassId) || teacherAssignedClasses[0] || INITIAL_CLASSES[0];
   const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
 
-  // Available subjects strictly assigned to this teacher
-  // Strictly constrained to the 5 core academic disciplines: Physics, Chemistry, Biology, Mathematics, Computer Science
+  // Available subjects assigned to this teacher or scheduled in timetable for this class
   const availableSubjects = useMemo(() => {
     // While teacher is still loading, return empty list (auto-adjust handles the switch)
     if (!activeTeacher) return [];
+
+    const list = new Set<string>();
 
     // If teacher is Super Admin / Head / All grades, show all available subjects for this class
     if (
@@ -434,30 +490,63 @@ export default function FacultyAttendanceScreen() {
       (activeTeacher.department || '').toLowerCase().includes('administration')
     ) {
       const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
-      return (CLASS_SUBJECTS[classPrefix] || []).filter((s) => s !== 'All Subjects');
+      (CLASS_SUBJECTS[classPrefix] || []).filter((s) => s !== 'All Subjects').forEach((s) => list.add(s));
+      return Array.from(list);
     }
 
     const s = (activeTeacher.subject || '').toLowerCase();
-    const list: string[] = [];
-    if (s.includes('phys')) list.push('Physics');
-    if (s.includes('chem')) list.push('Chemistry');
-    if (s.includes('bio')) list.push('Biology');
-    if (s.includes('math')) list.push('Mathematics');
-    if (s.includes('comp') || /\bcs\b/i.test(s)) list.push('Computer Science');
+    if (s.includes('phys')) list.add('Physics');
+    if (s.includes('chem')) list.add('Chemistry');
+    if (s.includes('bio')) list.add('Biology');
+    if (s.includes('math')) list.add('Mathematics');
+    if (s.includes('comp') || /\bcs\b/i.test(s)) list.add('Computer Science');
 
-    if (list.length === 0) {
-      const defSub = getTeacherDefaultSubject(activeTeacher);
-      if (defSub && defSub !== 'Science') list.push(defSub);
+    // Add subjects from scheduled adminClasses assigned to this teacher
+    if (adminClasses && adminClasses.length > 0) {
+      adminClasses.forEach((c) => {
+        if (isTeacherAssignedToClass(activeTeacher, c) && c.subject) {
+          const norm = c.subject.trim();
+          if (norm.toLowerCase().includes('math')) list.add('Mathematics');
+          else if (norm.toLowerCase().includes('phys')) list.add('Physics');
+          else if (norm.toLowerCase().includes('chem')) list.add('Chemistry');
+          else if (norm.toLowerCase().includes('bio')) list.add('Biology');
+          else if (norm.toLowerCase().includes('comp') || /\bcs\b/i.test(norm)) list.add('Computer Science');
+          else if (norm) list.add(norm);
+        }
+      });
     }
 
-    return list;
-  }, [activeTeacher, selectedClassId]);
+    // Add params.subject if passed
+    if (params.subject && params.subject !== 'Science' && params.subject !== 'All') {
+      const pSub = params.subject.trim();
+      if (pSub.toLowerCase().includes('math')) list.add('Mathematics');
+      else if (pSub.toLowerCase().includes('phys')) list.add('Physics');
+      else if (pSub.toLowerCase().includes('chem')) list.add('Chemistry');
+      else if (pSub.toLowerCase().includes('bio')) list.add('Biology');
+      else if (pSub.toLowerCase().includes('comp') || /\bcs\b/i.test(pSub)) list.add('Computer Science');
+      else if (pSub) list.add(pSub);
+    }
+
+    // If selectedSubject is currently active, ensure it stays in the list
+    if (selectedSubject && selectedSubject !== 'Science' && selectedSubject !== 'All') {
+      list.add(selectedSubject);
+    }
+
+    if (list.size === 0) {
+      const defSub = getTeacherDefaultSubject(activeTeacher);
+      if (defSub && defSub !== 'Science') list.add(defSub);
+    }
+
+    return Array.from(list);
+  }, [activeTeacher, selectedClassId, adminClasses, params.subject, selectedSubject]);
 
   // Auto-adjust subject when teacher loads or changes, or when class changes
   // This is the canonical place that sets selectedSubject from the teacher's actual subject
   useEffect(() => {
-    if (availableSubjects.length > 0 && !availableSubjects.includes(selectedSubject)) {
-      // Teacher just loaded (or changed) and current subject doesn't belong to them — correct it
+    if (availableSubjects.length > 0 && selectedSubject && !availableSubjects.includes(selectedSubject)) {
+      // Current subject doesn't belong to available subjects — correct it
+      setSelectedSubject(availableSubjects[0]);
+    } else if (!selectedSubject && availableSubjects.length > 0) {
       setSelectedSubject(availableSubjects[0]);
     }
   }, [availableSubjects, selectedSubject]);
@@ -508,13 +597,32 @@ export default function FacultyAttendanceScreen() {
       if (studentAtt) {
         const allEntries = [...(studentAtt.today_subjects || []), ...(studentAtt.history || [])];
         const matched = allEntries.find((entry: any) => {
-          if (activeClassId && entry.classId && entry.classId === activeClassId) return true;
-          const sameSub = (entry.subject || entry.subjects || '').trim().toLowerCase() === targetSubject.trim().toLowerCase();
-          if (!sameSub) return false;
-          if (activeSessionTime && entry.time && entry.time !== 'Class Session') {
-            return entry.time.trim().toLowerCase() === activeSessionTime.trim().toLowerCase();
+          // 1. Direct classId match is the primary discriminator
+          if (activeClassId && entry.classId) {
+            return entry.classId === activeClassId;
           }
-          return false;
+          // If activeClassId is set but entry has a different classId, do NOT match
+          if (activeClassId && entry.classId && entry.classId !== activeClassId) {
+            return false;
+          }
+
+          // 2. Subject match
+          const entrySub = (entry.subject || entry.subjects || '').trim().toLowerCase();
+          const targetSubNorm = targetSubject.trim().toLowerCase();
+          const sameSub = entrySub === targetSubNorm || entrySub.includes(targetSubNorm) || targetSubNorm.includes(entrySub);
+          if (!sameSub) return false;
+
+          // 3. Time slot match (if specific session time is active)
+          if (activeSessionTime && activeSessionTime !== 'Class Session') {
+            if (entry.time && entry.time !== 'Class Session') {
+              const entryTimeNorm = entry.time.split('•')[0].trim().toLowerCase();
+              const activeTimeNorm = activeSessionTime.split('•')[0].trim().toLowerCase();
+              return entryTimeNorm === activeTimeNorm || entryTimeNorm.includes(activeTimeNorm) || activeTimeNorm.includes(entryTimeNorm);
+            }
+            return false;
+          }
+
+          return true;
         });
         if (matched) {
           initialAttendance = (matched.status === 'absent' || matched.score === '0/1') ? 'A' : 'P';

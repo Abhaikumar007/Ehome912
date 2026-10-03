@@ -1660,9 +1660,11 @@ export const DataService = {
     // Filter duplicate session entry: only replace if matching the exact same session slot (classId or date+subject+timeSlot)
     const isSameHistorySession = (h: any) => {
       if (h.date !== date) return false;
+      if (classIdStr && h.classId) {
+        return h.classId === classIdStr;
+      }
       const sameSub = (h.subjects || h.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
       if (!sameSub) return false;
-      if (classIdStr && h.classId && h.classId === classIdStr) return true;
       if (timeSlotStr !== 'Class Session' && h.time && h.time !== 'Class Session') {
         return h.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
       }
@@ -1677,9 +1679,11 @@ export const DataService = {
 
     // Update today's subjects / active day sessions
     const isSameTodaySession = (s: any) => {
+      if (classIdStr && s.classId) {
+        return s.classId === classIdStr;
+      }
       const sameSub = (s.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
       if (!sameSub) return false;
-      if (classIdStr && s.classId && s.classId === classIdStr) return true;
       if (timeSlotStr !== 'Class Session' && s.time && s.time !== 'Class Session') {
         return s.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
       }
