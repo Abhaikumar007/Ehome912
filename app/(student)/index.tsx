@@ -85,7 +85,7 @@ function getSubjectEmoji(subject?: string): string {
 }
 
 interface SessionTypeInfo {
-  label: 'Regular Class' | 'TP' | 'Question Bank';
+  label: 'Regular Class' | 'Test Paper' | 'Question Bank';
   bg: string;
   border: string;
   color: string;
@@ -100,13 +100,13 @@ function getClassSessionInfo(cls: any, academicAlert?: any): SessionTypeInfo {
     const alertSub = (cls?.subject || '').toLowerCase();
     const alertDesc = (academicAlert.desc || academicAlert.description || '').toLowerCase();
     if (alertTitle.includes(alertSub) || alertDesc.includes(alertSub)) {
-      resolved = 'TP';
+      resolved = 'Test Paper';
     }
   }
 
   if (resolved === 'TP' || resolved === 'Test Paper') {
     return {
-      label: 'TP',
+      label: 'Test Paper',
       bg: '#FEF2F2',
       border: '#FECACA',
       color: '#DC2626',
@@ -526,7 +526,7 @@ export default function DashboardScreen() {
           {/* 1-Day Advance Notice for Tomorrow's Exam */}
           {dateOffset === 0 && (() => {
             const tomorrowClasses = getDayClasses(1);
-            const testSlot = tomorrowClasses.find((c: any) => getClassSessionInfo(c, academicAlert).label === 'TP');
+            const testSlot = tomorrowClasses.find((c: any) => getClassSessionInfo(c, academicAlert).label === 'Test Paper');
             const alertDateStr = (academicAlert?.date || '').toLowerCase();
             const hasAlertTomorrow = alertDateStr.includes('oct 2') || alertDateStr.includes('tomorrow');
             const examSub = testSlot?.subject || (hasAlertTomorrow ? (academicAlert?.title || 'Exam') : null);

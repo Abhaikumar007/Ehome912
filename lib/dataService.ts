@@ -275,25 +275,20 @@ export function getFeeTargetMonth(
   };
 }
 
-export function resolveSessionType(c: any): 'Regular Class' | 'TP' | 'Question Bank' {
+export function resolveSessionType(c: any): 'Regular Class' | 'Test Paper' | 'Question Bank' {
   const normStatus = (c?.status || '').toLowerCase();
   const normTime = (c?.time || '').toLowerCase();
   const normSub = (c?.subject || '').toLowerCase();
   const rawType = (c?.session_type || c?.sessionType || c?.type || c?.class_type || '').toLowerCase();
 
-  // If explicitly regular and no TP/QB overrides
-  if (rawType === 'regular' || rawType === 'regular class' || normStatus.split(':').includes('regular')) {
-    if (!normTime.includes('• tp') && !normTime.includes('test paper') && !normTime.includes('question bank') && !normTime.includes('• qb')) {
-      return 'Regular Class';
-    }
-  }
-
-  // 1. Check Test Paper / TP
+  // 1. Check Test Paper / TP (Check first so explicit TP/Test Paper overrides take precedence)
   if (
     rawType === 'tp' ||
+    rawType === 'test paper' ||
     rawType.includes('test') ||
     rawType.includes('tp') ||
     normStatus.split(':').includes('tp') ||
+    normStatus.split(':').includes('test') ||
     normStatus.includes(':tp') ||
     normStatus.includes(':test') ||
     normStatus.includes('test_paper') ||
@@ -304,12 +299,13 @@ export function resolveSessionType(c: any): 'Regular Class' | 'TP' | 'Question B
     normSub.includes('(tp)') ||
     normSub.includes('[tp]')
   ) {
-    return 'TP';
+    return 'Test Paper';
   }
 
   // 2. Check Question Bank
   if (
     rawType === 'questionbank' ||
+    rawType === 'question bank' ||
     rawType.includes('question') ||
     rawType.includes('qb') ||
     normStatus.split(':').includes('questionbank') ||

@@ -23,7 +23,7 @@ import {
 
 export interface TeacherSessionInfo {
   type: 'Regular' | 'QuestionBank' | 'TP';
-  label: 'Regular Class' | 'Question Bank' | 'TP';
+  label: 'Regular Class' | 'Question Bank' | 'Test Paper';
   icon: keyof typeof Ionicons.glyphMap;
   bg: string;
   border: string;
@@ -38,26 +38,14 @@ export function getTeacherSessionType(cls: any): TeacherSessionInfo {
   const normTopic = (cls?.topic || '').toLowerCase();
   const normRoom = (cls?.room || '').toLowerCase();
 
-  // If explicitly regular and no TP/QB markers
-  if (rawType === 'regular' || rawType === 'regular class' || normStatus.split(':').includes('regular')) {
-    if (!normTime.includes('• tp') && !normTime.includes('test paper') && !normTime.includes('question bank') && !normTime.includes('• qb')) {
-      return {
-        type: 'Regular',
-        label: 'Regular Class',
-        icon: 'school-outline',
-        bg: '#F0F9FF',
-        border: '#BAE6FD',
-        color: '#0284C7',
-      };
-    }
-  }
-
-  // 1. Test Paper / TP Session
+  // 1. Test Paper / TP Session (Check first so explicit TP/Test Paper overrides take precedence)
   if (
     rawType === 'tp' ||
+    rawType === 'test paper' ||
     rawType.includes('test') ||
     rawType.includes('tp') ||
     normStatus.split(':').includes('tp') ||
+    normStatus.split(':').includes('test') ||
     normStatus.includes(':tp') ||
     normStatus.includes(':test') ||
     normStatus.includes('test_paper') ||
@@ -73,7 +61,7 @@ export function getTeacherSessionType(cls: any): TeacherSessionInfo {
   ) {
     return {
       type: 'TP',
-      label: 'TP',
+      label: 'Test Paper',
       icon: 'document-text-outline',
       bg: '#FEF2F2',
       border: '#FECACA',
@@ -84,6 +72,7 @@ export function getTeacherSessionType(cls: any): TeacherSessionInfo {
   // 2. Question Bank
   if (
     rawType === 'questionbank' ||
+    rawType === 'question bank' ||
     rawType.includes('question') ||
     rawType.includes('qb') ||
     normStatus.split(':').includes('questionbank') ||
@@ -126,7 +115,7 @@ function formatUpdatedSession(
   newType: 'Regular' | 'QuestionBank' | 'TP',
   teacher: TeacherProfile
 ) {
-  const typeTag = newType === 'TP' ? 'TP' : newType === 'QuestionBank' ? 'Question Bank' : 'Regular';
+  const typeTag = newType === 'TP' ? 'Test Paper' : newType === 'QuestionBank' ? 'Question Bank' : 'Regular Class';
 
   const rawTime = currentClass.time || '';
   const timeTokens = rawTime.split('•').map((s: string) => s.trim()).filter(Boolean);
@@ -940,7 +929,7 @@ export default function TeacherHomeScreen() {
                   <Text style={styles.topicText}>
                     {c.topic || (
                       sessionInfo.type === 'TP'
-                        ? `${subjectTitle} TP Session`
+                        ? `${subjectTitle} Test Paper Session`
                         : sessionInfo.type === 'QuestionBank'
                         ? `${subjectTitle} Question Bank Discussion`
                         : `${subjectTitle} Scheduled Session`
@@ -1438,7 +1427,7 @@ export default function TeacherHomeScreen() {
                 },
                 {
                   type: 'TP' as const,
-                  title: 'TP (Test Paper)',
+                  title: 'Test Paper',
                   desc: 'Timed evaluation, unit test, mock or chapter paper',
                   icon: 'document-text-outline' as const,
                   color: '#DC2626',
