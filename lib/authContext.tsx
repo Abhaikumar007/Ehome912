@@ -29,14 +29,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadSession = async () => {
     try {
-      const cur = await DataService.syncCurrentStudentFromSupabase();
-      setStudent(cur);
+      const stored = await DataService.getCurrentStudent();
+      if (stored && stored.rollNo) {
+        // We have a stored session! Fetch up-to-date profile from Supabase for THIS student
+        const cur = await DataService.syncCurrentStudentFromSupabase(stored.rollNo);
+        setStudent(cur || stored);
+      } else {
+        setStudent(null);
+      }
     } catch {
       try {
         const fallback = await DataService.getCurrentStudent();
         setStudent(fallback);
       } catch {
-        // ignore
+        setStudent(null);
       }
     } finally {
       setLoading(false);
@@ -63,7 +69,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refresh = async () => {
-    await loadSession();
+    if (student?.rollNo) {
+      try {
+        const cur = await DataService.syncCurrentStudentFromSupabase(student.rollNo);
+        if (cur) setStudent(cur);
+      } catch {
+        // keep current student intact
+      }
+    } else {
+      await loadSession();
+    }
   };
 
   const updateProfile = async (

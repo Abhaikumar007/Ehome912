@@ -8,6 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 
 import { useAuth } from '../lib/authContext';
+import { setActiveTeacherId } from '../lib/teacherRoster';
 import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -40,8 +41,8 @@ export default function LoginScreen() {
     setErrorMsg('');
     setLoading(true);
 
-    const activeRoll = rollNo.trim() || '2024-JEE-0842';
-    const activePin = pin.trim() || '1234';
+    const activeRoll = rollNo.trim() || (role === 'student' ? '2024-JEE-0842' : 'FAC-2024-042');
+    const activePin = pin.trim() || (role === 'student' ? '1234' : '123456');
 
     try {
       if (role === 'student') {
@@ -52,7 +53,8 @@ export default function LoginScreen() {
           setErrorMsg(res.error || 'Authentication failed. Please check credentials.');
         }
       } else {
-        // Teacher login routes to teacher portal
+        // Teacher login routes to teacher portal and activates teacher
+        await setActiveTeacherId(activeRoll);
         router.replace('/(teacher)' as any);
       }
     } catch (e: any) {

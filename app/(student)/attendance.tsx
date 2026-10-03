@@ -63,9 +63,10 @@ export default function AttendanceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [opinionIndex, setOpinionIndex] = useState(0);
 
-  const rollNo = student?.rollNo || '2024-JEE-0842';
+  const rollNo = student?.rollNo || '';
 
   const loadData = async () => {
+    if (!rollNo) return;
     try {
       const res = await DataService.getAttendance(rollNo);
       if (res) setAttendance(res);
@@ -195,8 +196,8 @@ export default function AttendanceScreen() {
         </View>
 
         {dayAtt.subjects.length > 0 ? (
-          dayAtt.subjects.map((sub: any) => (
-            <View key={sub.id} style={styles.subjectCard}>
+          dayAtt.subjects.map((sub: any, idx: number) => (
+            <View key={sub.id || `att-sub-${sub.subject || 'item'}-${idx}`} style={styles.subjectCard}>
               <View style={[styles.subjectIcon, {
                 backgroundColor: sub.status === 'present' ? Colors.primaryLight : Colors.redLight,
               }]}>

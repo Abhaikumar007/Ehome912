@@ -1,25 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Dimensions, ActivityIndicator, RefreshControl, Image, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
-import { DataService } from '../../lib/dataService';
-import { studentData as defaultStudent, todaysClasses as defaultClasses, attendanceData as defaultAtt, feesData as defaultFees } from '../../constants/mockData';
+import { DataService, compareClassTimes, resolveSessionType } from '../../lib/dataService';
+import { todaysClasses as defaultClasses, attendanceData as defaultAtt, feesData as defaultFees } from '../../constants/mockData';
 import { supabase } from '../../lib/supabase';
 
 const { width } = Dimensions.get('window');
 
-function StatusBadge({ status }: { status?: string }) {
+function StatusBadge({ status, isFuture }: { status?: string; isFuture?: boolean }) {
+  if (isFuture) {
+    return (
+      <View style={[badgeStyles.wrap, { backgroundColor: '#F1F5F9' }]}>
+        <Ionicons name="time-outline" size={11} color={Colors.textSecondary} />
+        <Text style={[badgeStyles.text, { color: Colors.textSecondary }]}>Upcoming</Text>
+      </View>
+    );
+  }
   const norm = (status || '').toLowerCase().trim();
   if (norm === 'present' || norm === 'p') {
     return (
       <View style={[badgeStyles.wrap, { backgroundColor: Colors.greenLight }]}>
-        <Ionicons name="checkmark-circle" size={13} color={Colors.green} />
+        <Ionicons name="checkmark-circle" size={12} color={Colors.green} />
         <Text style={[badgeStyles.text, { color: Colors.green }]}>Present</Text>
       </View>
     );
@@ -27,17 +35,101 @@ function StatusBadge({ status }: { status?: string }) {
   if (norm === 'absent' || norm === 'a') {
     return (
       <View style={[badgeStyles.wrap, { backgroundColor: Colors.redLight }]}>
-        <Ionicons name="close-circle-outline" size={13} color={Colors.red} />
+        <Ionicons name="close-circle-outline" size={12} color={Colors.red} />
         <Text style={[badgeStyles.text, { color: Colors.red }]}>Absent</Text>
       </View>
     );
   }
-  return <Text style={{ color: Colors.textMuted, fontSize: 16 }}>—</Text>;
+  if (norm === 'upcoming') {
+    return (
+      <View style={[badgeStyles.wrap, { backgroundColor: '#F1F5F9' }]}>
+        <Ionicons name="time-outline" size={11} color={Colors.textMuted} />
+        <Text style={[badgeStyles.text, { color: Colors.textMuted }]}>Upcoming</Text>
+      </View>
+    );
+  }
+  return <Text style={{ color: Colors.textMuted, fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>—</Text>;
 }
 const badgeStyles = StyleSheet.create({
-  wrap: { flexDirection: 'row', alignItems: 'center', gap: 4, borderRadius: 20, paddingHorizontal: 10, paddingVertical: 4 },
-  text: { fontSize: 12, fontFamily: 'Inter_600SemiBold' },
+  wrap: { flexDirection: 'row', alignItems: 'center', gap: 3.5, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3.5 },
+  text: { fontSize: 11, fontFamily: 'Inter_600SemiBold' },
 });
+
+function parseClassTime(timeStr?: string): { start: string; end: string } {
+  if (!timeStr || timeStr === 'TBD') return { start: 'TBD', end: '' };
+  const clean = timeStr.split('•')[0].trim();
+  const parts = clean.split(/\s*[-–—]\s*|\s+to\s+/i).map(s => s.trim()).filter(Boolean);
+  if (parts.length >= 2) {
+    return { start: parts[0], end: parts[1] };
+  }
+  return { start: clean, end: '' };
+}
+
+function getSubjectEmoji(subject?: string): string {
+  if (!subject) return '📖';
+  const s = subject.toLowerCase().trim();
+  if (s.includes('physic')) return '⚛️';
+  if (s.includes('chem')) return '🧪';
+  if (s.includes('math')) return '📐';
+  if (s.includes('bio')) return '🧬';
+  if (s.includes('computer') || s.includes('cs') || s.includes('coding') || s.includes('python')) return '💻';
+  if (s.includes('english')) return '📚';
+  if (s.includes('malayalam')) return '📜';
+  if (s.includes('hindi')) return '✍️';
+  if (s.includes('social') || s.includes('history') || s.includes('geography') || s.includes('civics')) return '🌍';
+  if (s.includes('arabic')) return '🌙';
+  if (s.includes('sanskrit')) return '🕉️';
+  if (s.includes('account') || s.includes('commerce') || s.includes('business')) return '📊';
+  if (s.includes('economic')) return '📈';
+  return '📖';
+}
+
+interface SessionTypeInfo {
+  label: 'Regular Class' | 'TP' | 'Question Bank';
+  bg: string;
+  border: string;
+  color: string;
+}
+
+function getClassSessionInfo(cls: any, academicAlert?: any): SessionTypeInfo {
+  let resolved: string = resolveSessionType(cls);
+
+  // If cls is not already marked as TP/Test Paper, check if an active academic alert matches this subject & date
+  if (resolved === 'Regular Class' && academicAlert) {
+    const alertTitle = (academicAlert.title || '').toLowerCase();
+    const alertSub = (cls?.subject || '').toLowerCase();
+    const alertDesc = (academicAlert.desc || academicAlert.description || '').toLowerCase();
+    if (alertTitle.includes(alertSub) || alertDesc.includes(alertSub)) {
+      resolved = 'TP';
+    }
+  }
+
+  if (resolved === 'TP' || resolved === 'Test Paper') {
+    return {
+      label: 'TP',
+      bg: '#FEF2F2',
+      border: '#FECACA',
+      color: '#DC2626',
+    };
+  }
+
+  if (resolved === 'Question Bank') {
+    return {
+      label: 'Question Bank',
+      bg: '#F5F3FF',
+      border: '#DDD6FE',
+      color: '#7C3AED',
+    };
+  }
+
+  // Regular Class (default)
+  return {
+    label: 'Regular Class',
+    bg: '#F0F9FF',
+    border: '#BAE6FD',
+    color: '#0284C7',
+  };
+}
 
 const HOME_TEACHER_OPINIONS = [
   {
@@ -59,8 +151,10 @@ const HOME_TEACHER_OPINIONS = [
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const { student, refresh: refreshAuth } = useAuth();
-  const [dateOffset, setDateOffset] = useState(0);
+  const { student, loading: authLoading, refresh: refreshAuth } = useAuth();
+  // After 7 PM, default to tomorrow's schedule automatically
+  const initialOffset = React.useMemo(() => new Date().getHours() >= 19 ? 1 : 0, []);
+  const [dateOffset, setDateOffset] = useState(initialOffset);
   const [classes, setClasses] = useState(defaultClasses);
   const [announcementsList, setAnnouncementsList] = useState<any[]>([]);
   const [attSummary, setAttSummary] = useState(defaultAtt);
@@ -74,16 +168,16 @@ export default function DashboardScreen() {
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const rollNo = student?.rollNo || defaultStudent.rollNo;
+  const rollNo = student?.rollNo || '';
 
   const loadData = async () => {
     try {
       const [cls, anns, att, fees, alert, opinions, notifs] = await Promise.all([
         DataService.getClasses(rollNo, student?.class),
-        DataService.getAnnouncements(),
+        DataService.getAnnouncements(false, student?.class),
         DataService.getAttendance(rollNo),
         DataService.getFees(rollNo),
-        DataService.getAcademicAlert(),
+        DataService.getAcademicAlert(student?.class),
         DataService.getStudentTeacherOpinions(rollNo),
         DataService.getNotifications(rollNo),
       ]);
@@ -109,10 +203,10 @@ export default function DashboardScreen() {
       .channel('student_dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
         console.log('[Realtime] Announcement change detected:', payload);
-        DataService.getAnnouncements(true).then((anns) => {
+        DataService.getAnnouncements(true, student?.class).then((anns) => {
           setAnnouncementsList(anns || []);
         });
-        DataService.getAcademicAlert().then((alt) => {
+        DataService.getAcademicAlert(student?.class).then((alt) => {
           setAcademicAlert(alt || null);
         });
       })
@@ -125,6 +219,25 @@ export default function DashboardScreen() {
         DataService.getClasses(rollNo, student?.class).then((cls) => {
           if (cls) setClasses(cls);
         });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records', filter: `roll_no=eq.${rollNo}` }, () => {
+        DataService.getFees(rollNo).then((f) => {
+          if (f) setFeesSummary(f);
+        });
+      })
+      .on('broadcast', { event: 'fee_approved' }, (event) => {
+        if (!event?.payload || event.payload.rollNo === rollNo) {
+          DataService.getFees(rollNo).then((f) => {
+            if (f) setFeesSummary(f);
+          });
+        }
+      })
+      .on('broadcast', { event: 'fee_rejected' }, (event) => {
+        if (!event?.payload || event.payload.rollNo === rollNo) {
+          DataService.getFees(rollNo).then((f) => {
+            if (f) setFeesSummary(f);
+          });
+        }
       })
       .subscribe();
 
@@ -139,8 +252,8 @@ export default function DashboardScreen() {
       await Promise.all([
         loadData(),
         refreshAuth(),
-        DataService.getAnnouncements(true),
-        DataService.syncCurrentStudentFromSupabase(rollNo),
+        DataService.getAnnouncements(true, student?.class),
+        DataService.getAcademicAlert(student?.class),
       ]);
     } catch (e) {
       console.warn('[DashboardScreen] Refresh error:', e);
@@ -148,6 +261,12 @@ export default function DashboardScreen() {
       setRefreshing(false);
     }
   };
+
+  // Only show announcements that target this student's specific class or all classes
+  const visibleAnnouncements = useMemo(() => {
+    if (!student?.class) return announcementsList;
+    return announcementsList.filter((a) => DataService.isTargetedToClass(a, student.class));
+  }, [announcementsList, student?.class]);
 
   const today = new Date();
   today.setDate(today.getDate() + dateOffset);
@@ -159,27 +278,47 @@ export default function DashboardScreen() {
 
   // Dynamic day-based classes and attendance history
   const getDayClasses = (offset: number) => {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() + offset);
+    const y = targetDate.getFullYear();
+    const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+    const d = String(targetDate.getDate()).padStart(2, '0');
+    const targetIso = `${y}-${m}-${d}`;
+
     const seen = new Set<string>();
     const reversed = [...classes].reverse();
     const result: any[] = [];
     for (const cls of reversed) {
       if (cls.published === false) continue;
-      const matchesDate = cls.class_date ? (cls.class_date === currentDateIso) : (offset === 0);
+      const matchesDate = cls.class_date ? (cls.class_date === targetIso) : (offset === 0);
       if (!matchesDate) continue;
       const normSubject = (cls.subject || '').trim().toLowerCase();
-      const normDate = (cls.class_date || currentDateIso).trim();
-      const key = `${normSubject}_${normDate}`;
+      const normTime = (cls.time || '').trim().toLowerCase();
+      // Deduplicate by slot time so multiple sessions of the same subject (e.g. Regular + Question Bank or Test Paper) are preserved
+      const key = cls.id ? String(cls.id) : `${normSubject}_${normTime}_${targetIso}`;
       if (!seen.has(key)) {
         seen.add(key);
         result.push(cls);
       }
     }
-    return result.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    return result.sort((a, b) => compareClassTimes(a.time, b.time));
   };
 
   const displayedClasses = getDayClasses(dateOffset);
   const isSunday = today.getDay() === 0;
   const isFuture = dateOffset > 0;
+
+  if (authLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!student) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -223,7 +362,7 @@ export default function DashboardScreen() {
               <Image source={{ uri: student.photoUrl }} style={{ width: 34, height: 34, borderRadius: 17 }} />
             ) : (
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{student?.avatar || defaultStudent.avatar}</Text>
+                <Text style={styles.avatarText}>{student?.avatar || (student?.name ? student.name.slice(0, 2).toUpperCase() : 'ST')}</Text>
               </View>
             )}
           </TouchableOpacity>
@@ -246,7 +385,7 @@ export default function DashboardScreen() {
         <View style={styles.greetRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.greetSmall}>Good Afternoon,</Text>
-            <Text style={styles.greetName}>{student?.name || defaultStudent.name}</Text>
+            <Text style={styles.greetName}>{student?.name || 'Student'}</Text>
             <Text style={styles.greetMotivation}>Keep going, every step counts!</Text>
           </View>
           <View style={styles.characterBox}>
@@ -262,98 +401,241 @@ export default function DashboardScreen() {
         </View>
 
         {/* Top Broadcast Notice Banner from Super Admin */}
-        {announcementsList && announcementsList.length > 0 && (
+        {visibleAnnouncements && visibleAnnouncements.length > 0 && (
           <TouchableOpacity
             style={[
               styles.broadcastBanner,
-              announcementsList[0].important ? styles.broadcastBannerUrgent : styles.broadcastBannerNormal,
+              visibleAnnouncements[0].important ? styles.broadcastBannerUrgent : styles.broadcastBannerNormal,
             ]}
             onPress={() => {
-              setSelectedAnnouncement(announcementsList[0]);
+              setSelectedAnnouncement(visibleAnnouncements[0]);
               setCommunityModalVisible(true);
             }}
             activeOpacity={0.88}
           >
             <View style={styles.broadcastBannerLeft}>
-              <View style={[styles.broadcastIconWrap, { backgroundColor: announcementsList[0].iconBg || '#FEF3F2' }]}>
-                <Ionicons name={(announcementsList[0].icon as any) || 'megaphone'} size={18} color={announcementsList[0].iconColor || '#F04438'} />
+              <View style={[styles.broadcastIconWrap, { backgroundColor: visibleAnnouncements[0].iconBg || '#FEF3F2' }]}>
+                <Ionicons name={(visibleAnnouncements[0].icon as any) || 'megaphone'} size={18} color={visibleAnnouncements[0].iconColor || '#F04438'} />
               </View>
               <View style={{ flex: 1 }}>
                 <View style={styles.broadcastBadgeRow}>
-                  <Text style={[styles.broadcastBadgeText, { color: announcementsList[0].important ? '#DC2626' : '#2563EB' }]}>
-                    {announcementsList[0].important ? 'URGENT NOTICE' : 'BROADCAST ANNOUNCEMENT'}
+                  <Text style={[styles.broadcastBadgeText, { color: visibleAnnouncements[0].important ? '#DC2626' : '#2563EB' }]}>
+                    {visibleAnnouncements[0].important ? 'URGENT NOTICE' : 'BROADCAST ANNOUNCEMENT'}
                   </Text>
-                  <Text style={styles.broadcastTimeText}>{announcementsList[0].time || 'Recently'}</Text>
+                  <Text style={styles.broadcastTimeText}>{visibleAnnouncements[0].time || 'Recently'}</Text>
                 </View>
                 <Text style={styles.broadcastTitleText} numberOfLines={1}>
-                  {announcementsList[0].title}
+                  {visibleAnnouncements[0].title}
                 </Text>
                 <Text style={styles.broadcastDescText} numberOfLines={2}>
-                  {announcementsList[0].desc}
+                  {visibleAnnouncements[0].desc}
                 </Text>
               </View>
             </View>
             <View style={styles.broadcastActionRight}>
-              <Text style={[styles.broadcastViewText, { color: announcementsList[0].important ? '#DC2626' : '#2563EB' }]}>View</Text>
-              <Ionicons name="chevron-forward" size={14} color={announcementsList[0].important ? '#DC2626' : '#2563EB'} />
+              <Text style={[styles.broadcastViewText, { color: visibleAnnouncements[0].important ? '#DC2626' : '#2563EB' }]}>View</Text>
+              <Ionicons name="chevron-forward" size={14} color={visibleAnnouncements[0].important ? '#DC2626' : '#2563EB'} />
             </View>
           </TouchableOpacity>
         )}
 
         {/* Classes & Attendance for Date */}
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <View style={styles.cardTitleRow}>
-              <View style={styles.cardIconBox}>
-                <Ionicons name="calendar" size={15} color={Colors.primary} />
-              </View>
-              <Text style={styles.cardTitle} numberOfLines={1}>
-                {dateOffset === 0 ? "Today's Classes" : dateOffset === -1 ? "Yesterday's Classes" : "Class Schedule"}
-              </Text>
+          {/* Day Mode Switcher & Date Navigation */}
+          <View style={styles.timetableHeader}>
+            <View style={styles.dayToggleRow}>
+              {/* Today Tab */}
+              <TouchableOpacity
+                style={[
+                  styles.dayTabPill,
+                  dateOffset === 0 && styles.dayTabActiveToday,
+                ]}
+                onPress={() => setDateOffset(0)}
+                activeOpacity={0.75}
+              >
+                <View style={[styles.dayTabDot, { backgroundColor: dateOffset === 0 ? '#10B981' : Colors.textMuted }]} />
+                <Text style={[styles.dayTabText, dateOffset === 0 && styles.dayTabTextActiveToday]}>
+                  Today
+                </Text>
+              </TouchableOpacity>
+
+              {/* Tomorrow Tab */}
+              <TouchableOpacity
+                style={[
+                  styles.dayTabPill,
+                  dateOffset === 1 && styles.dayTabActiveTomorrow,
+                ]}
+                onPress={() => setDateOffset(1)}
+                activeOpacity={0.75}
+              >
+                <Text style={{ fontSize: 12, marginRight: 2 }}>🌅</Text>
+                <Text style={[styles.dayTabText, dateOffset === 1 && styles.dayTabTextActiveTomorrow]}>
+                  Tomorrow
+                </Text>
+              </TouchableOpacity>
             </View>
 
-            <View style={styles.dateNavWrap}>
-              {dateOffset !== 0 && (
-                <TouchableOpacity
-                  style={styles.todayResetPill}
-                  onPress={() => setDateOffset(0)}
-                  activeOpacity={0.7}
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                >
-                  <Ionicons name="refresh" size={10} color={Colors.primary} />
-                  <Text style={styles.todayResetText}>Today</Text>
-                </TouchableOpacity>
-              )}
-              <View style={styles.dateNav}>
-                <TouchableOpacity
-                  onPress={() => setDateOffset(dateOffset - 1)}
-                  style={styles.dateNavBtn}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="chevron-back" size={15} color={Colors.primary} />
-                </TouchableOpacity>
-                <Text style={styles.dateText} numberOfLines={1}>{dateLabel}</Text>
-                <TouchableOpacity
-                  onPress={() => setDateOffset(dateOffset + 1)}
-                  style={styles.dateNavBtn}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Ionicons name="chevron-forward" size={15} color={Colors.primary} />
-                </TouchableOpacity>
-              </View>
+            {/* Date Stepper Controls */}
+            <View style={styles.dateStepper}>
+              <TouchableOpacity
+                onPress={() => setDateOffset(dateOffset - 1)}
+                style={styles.dateNavBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chevron-back" size={13} color={Colors.primary} />
+              </TouchableOpacity>
+              <Text style={styles.dateStepperText} numberOfLines={1}>{dateLabel}</Text>
+              <TouchableOpacity
+                onPress={() => setDateOffset(dateOffset + 1)}
+                style={styles.dateNavBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chevron-forward" size={13} color={Colors.primary} />
+              </TouchableOpacity>
             </View>
           </View>
+
+          {/* Prominent Day Indicator Banner */}
+          <View style={[
+            styles.dayIndicatorBanner,
+            dateOffset === 0 ? styles.dayIndicatorBannerToday :
+            dateOffset === 1 ? styles.dayIndicatorBannerTomorrow :
+            styles.dayIndicatorBannerOther,
+          ]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+              <Text style={styles.dayIndicatorEmoji}>
+                {dateOffset === 0 ? '🟢' : dateOffset === 1 ? '🌅' : '📅'}
+              </Text>
+              <Text style={[
+                styles.dayIndicatorTitle,
+                dateOffset === 0 && { color: '#065F46' },
+                dateOffset === 1 && { color: '#3730A3' },
+              ]} numberOfLines={1}>
+                {dateOffset === 0 ? "TODAY'S CLASSES" : dateOffset === 1 ? "TOMORROW'S CLASSES" : dateOffset === -1 ? "YESTERDAY'S CLASSES" : "CLASSES SCHEDULE"}
+              </Text>
+            </View>
+            <Text style={[
+              styles.dayIndicatorDateSub,
+              dateOffset === 0 && { color: '#047857' },
+              dateOffset === 1 && { color: '#4338CA' },
+            ]}>
+              {dateOffset === 0 ? 'Active Today' : dateOffset === 1 ? 'Next Day Schedule' : dateLabel}
+            </Text>
+          </View>
+
+          {/* 1-Day Advance Notice for Tomorrow's Exam */}
+          {dateOffset === 0 && (() => {
+            const tomorrowClasses = getDayClasses(1);
+            const testSlot = tomorrowClasses.find((c: any) => getClassSessionInfo(c, academicAlert).label === 'TP');
+            const alertDateStr = (academicAlert?.date || '').toLowerCase();
+            const hasAlertTomorrow = alertDateStr.includes('oct 2') || alertDateStr.includes('tomorrow');
+            const examSub = testSlot?.subject || (hasAlertTomorrow ? (academicAlert?.title || 'Exam') : null);
+            if (!examSub) return null;
+            return (
+              <TouchableOpacity
+                style={styles.tomorrowAdvanceNoticeCard}
+                onPress={() => setDateOffset(1)}
+                activeOpacity={0.85}
+              >
+                <View style={styles.advanceNoticeIconBox}>
+                  <Ionicons name="notifications" size={14} color="#DC2626" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.advanceNoticeTitle} numberOfLines={1}>
+                    Upcoming Exam Tomorrow: {examSub}
+                  </Text>
+                  <Text style={styles.advanceNoticeSub}>
+                    Scheduled 1 day in advance • Tap to view tomorrow's timetable
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={14} color="#DC2626" />
+              </TouchableOpacity>
+            );
+          })()}
+
           {displayedClasses.length > 0 ? (
             displayedClasses.map((cls, i) => {
-              const subAtt = attSummary?.todaySubjects?.find(
-                (s: any) => s.subject && cls.subject && s.subject.trim().toLowerCase() === cls.subject.trim().toLowerCase()
-              );
-              const effectiveStatus = subAtt?.status || cls.status || 'upcoming';
+              const subAtt = dateOffset === 0
+                ? attSummary?.todaySubjects?.find(
+                    (s: any) => s.subject && cls.subject && s.subject.trim().toLowerCase() === cls.subject.trim().toLowerCase()
+                  )
+                : null;
+              const effectiveStatus = dateOffset === 0
+                ? (subAtt?.status || cls.status || 'upcoming')
+                : 'upcoming';
+
+              // Determine if this is the current/active class slot based on time
+              const isActive = (() => {
+                if (dateOffset !== 0) return false;
+                const nowH = new Date().getHours();
+                const nowM = new Date().getMinutes();
+                const timeStr = (cls.time || '').split('–')[0].split('-')[0].trim();
+                const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                if (!match) return i === 0; // first slot if unparseable
+                let h = parseInt(match[1]); const min = parseInt(match[2]);
+                if (match[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+                if (match[3].toUpperCase() === 'AM' && h === 12) h = 0;
+                const diffMin = (nowH * 60 + nowM) - (h * 60 + min);
+                return diffMin >= 0 && diffMin < 90;
+              })();
+              const accentColors = ['#0284C7', '#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#EC4899'];
+              const accent = accentColors[i % accentColors.length];
+              const parsedTime = parseClassTime(cls.time);
+              const sessionInfo = getClassSessionInfo(cls, academicAlert);
+
               return (
-                <View key={cls.id || `${cls.subject}_${i}`} style={[styles.classRow, i < displayedClasses.length - 1 && styles.classRowBorder]}>
-                  <Text style={styles.classTime}>{cls.time}</Text>
-                  <Text style={styles.classSubject}>{cls.subject}</Text>
-                  <StatusBadge status={effectiveStatus} />
+                <View
+                  key={cls.id || `${cls.subject}_${i}`}
+                  style={[
+                    styles.classRow,
+                    i < displayedClasses.length - 1 && styles.classRowBorder,
+                    isActive && styles.classRowActive,
+                  ]}
+                >
+                  {/* Left accent bar */}
+                  <View style={[styles.classAccentBar, { backgroundColor: accent }]} />
+                  <View style={styles.classRowInner}>
+                    {/* 1. Left-aligned Time Column */}
+                    <View style={[styles.classTimeCol, isActive && { backgroundColor: accent + '14', borderColor: accent + '45' }]}>
+                      <View style={styles.classTimeStartRow}>
+                        <Ionicons name="time-outline" size={10} color={isActive ? accent : Colors.textSecondary} />
+                        <Text style={[styles.classTimeStart, isActive && { color: accent, fontFamily: 'Inter_700Bold' }]} numberOfLines={1}>
+                          {parsedTime.start}
+                        </Text>
+                        {isActive && <View style={[styles.liveDot, { backgroundColor: accent }]} />}
+                      </View>
+                      {parsedTime.end ? (
+                        <Text style={[styles.classTimeEnd, isActive && { color: accent }]} numberOfLines={1}>
+                          {parsedTime.end}
+                        </Text>
+                      ) : null}
+                      {/* Session Type (Regular Class / Test Paper / Question Bank) */}
+                      <View style={[styles.sessionTypePill, { backgroundColor: sessionInfo.bg, borderColor: sessionInfo.border }]}>
+                        <Text style={[styles.sessionTypeText, { color: sessionInfo.color }]} numberOfLines={1}>
+                          {sessionInfo.label}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 2. Center-aligned Subject Column with Emoji */}
+                    <View style={styles.classSubjectCenter}>
+                      <View style={styles.classSubjectCenterRow}>
+                        <Text style={styles.classSubjectEmoji}>{getSubjectEmoji(cls.subject)}</Text>
+                        <Text
+                          style={[styles.classSubject, isActive && { color: accent }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {cls.subject}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 3. Right-aligned Status Badge */}
+                    <View style={styles.classStatusRight}>
+                      <StatusBadge status={effectiveStatus} isFuture={dateOffset > 0} />
+                    </View>
+                  </View>
                 </View>
               );
             })
@@ -363,6 +645,10 @@ export default function DashboardScreen() {
               <Text style={styles.noClassText}>
                 {isSunday
                   ? "Sunday — Tuition Holiday"
+                  : dateOffset === 1
+                  ? "No classes scheduled for tomorrow yet."
+                  : dateOffset === 0
+                  ? "No classes scheduled for today."
                   : isFuture
                   ? "No classes published for this day yet."
                   : "No class records for this date."}
@@ -420,7 +706,7 @@ export default function DashboardScreen() {
         ) : null}
 
         {/* Academic / Test Paper Alert Banner (Above Overall Attendance) */}
-        {academicAlert && (
+        {academicAlert && DataService.isTargetedToClass(academicAlert, student?.class) && (
           <TouchableOpacity
             style={styles.testAlertCard}
             onPress={() => setAlertModalVisible(true)}
@@ -441,7 +727,7 @@ export default function DashboardScreen() {
             <View style={styles.testAlertActionRow}>
               <View style={styles.testAlertActionLeft}>
                 <Ionicons name="information-circle-outline" size={14} color="#2563EB" />
-                <Text style={styles.testAlertActionHint}>Tap to view timings, venue & syllabus</Text>
+                <Text style={styles.testAlertActionHint}>Tap to view venue & syllabus details</Text>
               </View>
               <View style={styles.viewSyllabusPill}>
                 <Text style={styles.viewSyllabusPillText}>View Details</Text>
@@ -526,18 +812,18 @@ export default function DashboardScreen() {
               </View>
               <Text style={styles.cardTitle}>Community</Text>
             </View>
-            {announcementsList.length > 0 && (
+            {visibleAnnouncements.length > 0 && (
               <TouchableOpacity onPress={() => setCommunityModalVisible(true)}>
-                <Text style={styles.viewAllText}>View All ({announcementsList.length}) →</Text>
+                <Text style={styles.viewAllText}>View All ({visibleAnnouncements.length}) →</Text>
               </TouchableOpacity>
             )}
           </View>
 
-          {announcementsList.length > 0 ? (
-            announcementsList.slice(0, 3).map((ann, i) => (
+          {visibleAnnouncements.length > 0 ? (
+            visibleAnnouncements.slice(0, 3).map((ann, i) => (
               <TouchableOpacity
                 key={ann.id}
-                style={[styles.annRow, i < Math.min(announcementsList.length, 3) - 1 && styles.annRowBorder]}
+                style={[styles.annRow, i < Math.min(visibleAnnouncements.length, 3) - 1 && styles.annRowBorder]}
                 onPress={() => {
                   setSelectedAnnouncement(ann);
                   setCommunityModalVisible(true);
@@ -603,9 +889,8 @@ export default function DashboardScreen() {
                   <View style={styles.modalMetaGrid}>
                     <View style={styles.modalMetaCard}>
                       <Ionicons name="calendar-outline" size={14} color={Colors.primary} />
-                      <Text style={styles.modalMetaLabel}>Date & Time</Text>
+                      <Text style={styles.modalMetaLabel}>Exam Date</Text>
                       <Text style={styles.modalMetaVal}>{academicAlert.date}</Text>
-                      <Text style={styles.modalMetaSubVal}>{academicAlert.time}</Text>
                     </View>
                     <View style={styles.modalMetaCard}>
                       <Ionicons name="location-outline" size={14} color="#10B981" />
@@ -624,7 +909,9 @@ export default function DashboardScreen() {
                   ))}
 
                   <Text style={[styles.modalSectionTitle, { marginTop: 14 }]}>⚠️ Student Instructions</Text>
-                  {academicAlert.instructions?.map((ins: string, idx: number) => (
+                  {academicAlert.instructions
+                    ?.filter((ins: string) => !ins.toLowerCase().includes('calculator'))
+                    .map((ins: string, idx: number) => (
                     <View key={idx} style={styles.syllabusRow}>
                       <Ionicons name="alert-circle-outline" size={14} color="#D97706" style={{ marginTop: 2 }} />
                       <Text style={styles.syllabusText}>{ins}</Text>
@@ -666,8 +953,8 @@ export default function DashboardScreen() {
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-              {announcementsList.length > 0 ? (
-                announcementsList.map((ann) => (
+              {visibleAnnouncements.length > 0 ? (
+                visibleAnnouncements.map((ann) => (
                   <View key={ann.id} style={styles.fullAnnCard}>
                     <View style={styles.fullAnnTop}>
                       <View style={[styles.annIcon, { backgroundColor: ann.iconBg }]}>
@@ -806,12 +1093,252 @@ const styles = StyleSheet.create({
   dateText: { fontSize: 11, color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
 
   classRow: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 4,
+    borderRadius: 10,
+    marginVertical: 2,
+    overflow: 'hidden',
+  },
+  classRowActive: {
+    backgroundColor: '#F0F9FF',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.10,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  classAccentBar: {
+    width: 3.5,
+    height: 52,
+    borderRadius: 2,
+    marginRight: 8,
+  },
+  classRowInner: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  // 1. Left Time Column
+  classTimeCol: {
+    width: 86,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    paddingVertical: 4.5,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  classTimeStartRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+    width: '100%',
+  },
+  classTimeStart: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  classTimeEnd: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textMuted,
+    marginTop: 1,
+    textAlign: 'center',
+    width: '100%',
+  },
+  sessionTypePill: {
+    marginTop: 3.5,
+    paddingHorizontal: 3,
+    paddingVertical: 1.5,
+    borderRadius: 4,
+    borderWidth: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionTypeText: {
+    fontSize: 8.5,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.1,
+    textAlign: 'center',
+  },
+  liveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginLeft: 2,
+  },
+  // 2. Center Subject Column
+  classSubjectCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
+  },
+  classSubjectCenterRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    maxWidth: '100%',
+  },
+  classSubjectEmoji: {
+    fontSize: 15,
+  },
+  classSubject: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+    flexShrink: 1,
+    textAlign: 'center',
+  },
+  // 3. Right Status Column
+  classStatusRight: {
+    minWidth: 72,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   classRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.borderLight },
-  classTime: { width: 130, fontSize: 12, color: Colors.textSecondary, fontFamily: 'Inter_400Regular' },
-  classSubject: { flex: 1, fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary },
+  classFaculty: { fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular', marginTop: 1 },
+
+  // Timetable Day Switcher & Indicator Styles
+  timetableHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 6,
+  },
+  dayToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dayTabPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  dayTabActiveToday: {
+    backgroundColor: '#ECFDF5',
+    borderColor: '#10B981',
+  },
+  dayTabActiveTomorrow: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#6366F1',
+  },
+  dayTabDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  dayTabText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  dayTabTextActiveToday: {
+    color: '#065F46',
+    fontFamily: 'Inter_700Bold',
+  },
+  dayTabTextActiveTomorrow: {
+    color: '#3730A3',
+    fontFamily: 'Inter_700Bold',
+  },
+  dateStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    paddingHorizontal: 5,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    gap: 2,
+  },
+  dateStepperText: {
+    fontSize: 10,
+    color: Colors.textPrimary,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  dayIndicatorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+  },
+  dayIndicatorBannerToday: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  dayIndicatorBannerTomorrow: {
+    backgroundColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+  },
+  dayIndicatorBannerOther: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
+  dayIndicatorEmoji: {
+    fontSize: 13,
+  },
+  dayIndicatorTitle: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 0.3,
+  },
+  dayIndicatorDateSub: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  tomorrowAdvanceNoticeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  advanceNoticeIconBox: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#FEE2E2',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  advanceNoticeTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#991B1B',
+  },
+  advanceNoticeSub: {
+    fontSize: 10,
+    fontFamily: 'Inter_500Medium',
+    color: '#B91C1C',
+    marginTop: 1,
+  },
 
   noClassWrap: { alignItems: 'center', paddingVertical: 20, gap: 6 },
   noClassText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary },

@@ -60,10 +60,10 @@ const CLASS_MAP: Record<string, string> = {
 };
 
 const CLASS_SUBJECTS: Record<string, string[]> = {
-  'Class 6': ['All Subjects', 'Mathematics', 'Science'],
-  'Class 7': ['All Subjects', 'Mathematics', 'Science'],
-  'Class 8': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics', 'Science'],
-  'Class 9': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics', 'Science'],
+  'Class 6': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
+  'Class 7': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
+  'Class 8': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
+  'Class 9': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
   'Class 10': ['All Subjects', 'Physics', 'Chemistry', 'Biology', 'Mathematics'],
   'Class 11': ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'],
   'Class 12': ['All Subjects', 'Physics', 'Chemistry', 'Mathematics', 'Biology', 'Computer Science'],
@@ -100,7 +100,7 @@ export default function FacultyAttendanceScreen() {
 
   const applyTeacher = useCallback((t: TeacherProfile) => {
     setActiveTeacher(t);
-    if (params.subject) {
+    if (params.subject && params.subject !== 'Science') {
       setSelectedSubject(params.subject);
     } else {
       const defSub = getTeacherDefaultSubject(t);
@@ -290,7 +290,7 @@ export default function FacultyAttendanceScreen() {
         setSelectedClassId(match.id);
       }
     }
-    if (params.subject) {
+    if (params.subject && params.subject !== 'Science') {
       setSelectedSubject(params.subject);
     }
   }, [params.classGrade, params.subject]);
@@ -333,27 +333,36 @@ export default function FacultyAttendanceScreen() {
   const currentClassPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
 
   // Available subjects strictly assigned to this teacher
-  // BUG FIX: For subjects like Mathematics that span ALL grades (6-12), we now correctly
-  // include the 'Science' alias pill for lower grades (6-9) for ANY science-adjacent subject,
-  // not just Biology/Physics/Chemistry. This ensures Ms. Devi and similar multi-grade
-  // teachers see the correct subject pill for each class they select.
+  // Strictly constrained to the 5 core academic disciplines: Physics, Chemistry, Biology, Mathematics, Computer Science
   const availableSubjects = useMemo(() => {
     // While teacher is still loading, return empty list (auto-adjust handles the switch)
     if (!activeTeacher) return [];
-    const defSub = getTeacherDefaultSubject(activeTeacher);
-    const gradeNum = parseInt(currentClass.grade || '10', 10);
+
+    // If teacher is Super Admin / Head / All grades, show all available subjects for this class
+    if (
+      activeTeacher.allowedGrades?.includes('*') ||
+      (activeTeacher.subject || '').toLowerCase().includes('head') ||
+      (activeTeacher.department || '').toLowerCase().includes('administration')
+    ) {
+      const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+      return (CLASS_SUBJECTS[classPrefix] || []).filter((s) => s !== 'All Subjects');
+    }
+
+    const s = (activeTeacher.subject || '').toLowerCase();
     const list: string[] = [];
-    if (defSub) {
-      list.push(defSub);
+    if (s.includes('phys')) list.push('Physics');
+    if (s.includes('chem')) list.push('Chemistry');
+    if (s.includes('bio')) list.push('Biology');
+    if (s.includes('math')) list.push('Mathematics');
+    if (s.includes('comp') || /\bcs\b/i.test(s)) list.push('Computer Science');
+
+    if (list.length === 0) {
+      const defSub = getTeacherDefaultSubject(activeTeacher);
+      if (defSub && defSub !== 'Science') list.push(defSub);
     }
-    // For lower secondary grades (6-9): science subjects may also appear as 'Science'
-    const scienceSubjects = ['Biology', 'Physics', 'Chemistry'];
-    if (gradeNum <= 9 && scienceSubjects.includes(defSub)) {
-      if (!list.includes('Science')) list.push('Science');
-    }
-    // Never fall back to 'Computer Science' — return whatever the teacher actually teaches
+
     return list;
-  }, [activeTeacher, currentClass.grade]);
+  }, [activeTeacher, selectedClassId]);
 
   // Auto-adjust subject when teacher loads or changes, or when class changes
   // This is the canonical place that sets selectedSubject from the teacher's actual subject

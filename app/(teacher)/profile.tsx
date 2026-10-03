@@ -246,14 +246,14 @@ export default function TeacherProfileScreen() {
         <View style={[styles.menuCard, { marginTop: 16 }]}>
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => Alert.alert('Academic Classes', `Assigned: ${activeTeacher.gradeDescription}. Synced with Admin timetable.`)}
+            onPress={() => router.push('/(teacher)' as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: '#F0F9FF' }]}>
               <Ionicons name="calendar-outline" size={18} color="#0284C7" />
             </View>
             <View style={styles.menuTextWrap}>
               <Text style={styles.menuTitle}>Teaching Schedule & Batches</Text>
-              <Text style={styles.menuSub}>{activeTeacher.gradeDescription}</Text>
+              <Text style={styles.menuSub}>{activeTeacher.gradeDescription} • Tap to view</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
           </TouchableOpacity>

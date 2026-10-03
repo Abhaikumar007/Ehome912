@@ -20,9 +20,10 @@ export default function MockTestsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const rollNo = student?.rollNo || '2024-JEE-0842';
+  const rollNo = student?.rollNo || '';
 
   const loadTests = async () => {
+    if (!rollNo) return;
     try {
       const data = await DataService.getStudentTests(rollNo, student?.class);
       if (data) {

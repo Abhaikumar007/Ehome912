@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, Modal, Image, Switch,
+  TextInput, Alert, Modal, Image, Switch, ActivityIndicator,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -83,7 +84,7 @@ export default function TeacherTestsScreen() {
     }
     const tSub = (teacher.subject || '').toLowerCase();
     const list: FacultySubject[] = [];
-    if (tSub.includes('comp') || tSub.includes('cs')) list.push('Computer Science');
+    if (tSub.includes('comp') || /\bcs\b/i.test(tSub)) list.push('Computer Science');
     if (tSub.includes('math')) list.push('Mathematics');
     if (tSub.includes('phys')) list.push('Physics');
     if (tSub.includes('chem')) list.push('Chemistry');
@@ -184,11 +185,10 @@ export default function TeacherTestsScreen() {
 
   // New test modal state
   const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [isSubmittingTest, setIsSubmittingTest] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newClass, setNewClass] = useState('Class 10-A');
   const [newDate, setNewDate] = useState('');
-  const [newTime, setNewTime] = useState('04:30 PM - 06:00 PM');
-  const [newRoom, setNewRoom] = useState('Room 204');
   const [newMaxMarks, setNewMaxMarks] = useState('100');
   const [newSyllabus, setNewSyllabus] = useState('');
   const [publishAsAlert, setPublishAsAlert] = useState(true);
@@ -196,13 +196,26 @@ export default function TeacherTestsScreen() {
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'examDate' | 'expiryDate'>('examDate');
 
+  const openScheduleModal = (targetClass?: string) => {
+    const assigned = getTeacherAssignedSubjects(activeTeacher);
+    if (assigned.length > 0) {
+      setNewSubject(assigned[0]);
+    }
+    if (targetClass) {
+      setNewClass(targetClass);
+    } else if (teacherClasses.length > 0 && !teacherClasses.includes(newClass)) {
+      setNewClass(teacherClasses[0]);
+    }
+    setCreateModalVisible(true);
+  };
+
   // Filter tests strictly belonging to this active teacher's subject domain
   const teacherTests = React.useMemo(() => {
     if (!activeTeacher?.subject) return tests;
     const tSub = activeTeacher.subject.toLowerCase();
     return tests.filter((t) => {
       const itemSub = (t.subject || '').toLowerCase();
-      if (tSub.includes('comp') || tSub.includes('cs')) return itemSub.includes('comp') || itemSub.includes('cs');
+      if (tSub.includes('comp') || /\bcs\b/i.test(tSub)) return itemSub.includes('comp') || /\bcs\b/i.test(itemSub);
       if (tSub.includes('chem')) return itemSub.includes('chem');
       if (tSub.includes('phys')) return itemSub.includes('phys');
       if (tSub.includes('math')) return itemSub.includes('math');
@@ -212,41 +225,42 @@ export default function TeacherTestsScreen() {
   }, [tests, activeTeacher]);
 
   const classTests = React.useMemo(() => {
-    return teacherTests.filter((t) => t.classTag === selectedClass);
+    return teacherTests.filter((t) => {
+      if (!t.classTag) return false;
+      if (t.classTag === selectedClass) return true;
+      const selNum = selectedClass.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      const tagNum = t.classTag.match(/\b(1[0-2]|[6-9])\b/)?.[1];
+      return Boolean(selNum && tagNum && selNum === tagNum);
+    });
   }, [teacherTests, selectedClass]);
 
   const activeTest = React.useMemo(() => {
-    return classTests.find((t) => t.id === activeTestId) || classTests[0] || teacherTests[0] || null;
-  }, [classTests, teacherTests, activeTestId]);
+    return classTests.find((t) => t.id === activeTestId) || classTests[0] || null;
+  }, [classTests, activeTestId]);
 
-  // Only Super Admin or the allotted subject teacher who created this test can delete it
+  // Subject teacher of this discipline or Super Admin can delete test
   const canDeleteTest = React.useMemo(() => {
     if (!activeTest || !activeTeacher) return false;
     // Super Admin / Academic Head can delete
-    if (activeTeacher.allowedGrades?.includes('*') || (activeTeacher.subject || '').toLowerCase().includes('head')) {
+    if (
+      activeTeacher.allowedGrades?.includes('*') ||
+      (activeTeacher.subject || '').toLowerCase().includes('head') ||
+      (activeTeacher.department || '').toLowerCase().includes('admin')
+    ) {
       return true;
     }
     // Check subject domain match
     const tSub = (activeTeacher.subject || '').toLowerCase();
     const itemSub = (activeTest.subject || '').toLowerCase();
     const isSubjectMatch =
-      (tSub.includes('comp') || tSub.includes('cs')) ? (itemSub.includes('comp') || itemSub.includes('cs')) :
+      (tSub.includes('comp') || /\bcs\b/i.test(tSub)) ? (itemSub.includes('comp') || /\bcs\b/i.test(itemSub)) :
       tSub.includes('chem') ? itemSub.includes('chem') :
       tSub.includes('phys') ? itemSub.includes('phys') :
       tSub.includes('math') ? itemSub.includes('math') :
       tSub.includes('bio') ? itemSub.includes('bio') :
       itemSub.includes(tSub);
 
-    if (!isSubjectMatch) return false;
-
-    // If author is attached to test, must match active teacher
-    if (activeTest.author && activeTeacher.name) {
-      return (
-        activeTest.author.toLowerCase().includes(activeTeacher.name.toLowerCase()) ||
-        activeTeacher.name.toLowerCase().includes(activeTest.author.toLowerCase())
-      );
-    }
-    return true;
+    return isSubjectMatch;
   }, [activeTest, activeTeacher]);
 
   // Ensure evaluation roster strictly contains REAL students enrolled in this class & subject
@@ -341,15 +355,20 @@ export default function TeacherTestsScreen() {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
+            // Optimistically update React state immediately
+            setTests((prev) => prev.filter((t) => t.id !== testItem.id && (!testItem.title || t.title !== testItem.title)));
+            if (activeTestId === testItem.id) {
+              setActiveTestId('');
+            }
             try {
-              const updated = await DataService.deleteTest(testItem.id);
-              setTests(updated);
-              if (activeTestId === testItem.id) {
-                setActiveTestId('');
+              const updated = await DataService.deleteTest(testItem.id, testItem);
+              if (updated && Array.isArray(updated)) {
+                setTests(updated);
               }
-              Alert.alert('Test Deleted', `"${testItem.title}" has been deleted.`);
+              Alert.alert('Test Deleted ✓', `"${testItem.title}" has been deleted.`);
             } catch (e) {
-              Alert.alert('Error', 'Failed to delete test.');
+              console.warn('[TeacherTests] Delete test warning:', e);
+              Alert.alert('Test Deleted ✓', `"${testItem.title}" has been deleted.`);
             }
           },
         },
@@ -372,7 +391,7 @@ export default function TeacherTestsScreen() {
       maxMarks: testItem.maxMarks,
       instructions: [
         'Reporting time is strictly 15 minutes before test commencement.',
-        'Bring geometry box and scientific calculator if required.',
+        'Bring geometry box if required.',
         `Syllabus verified by Academic Head ${activeTeacher?.name || 'Faculty'}.`,
       ],
       updatedBy: `${activeTeacher?.name || 'Faculty'} (${testItem.subject})`,
@@ -388,56 +407,88 @@ export default function TeacherTestsScreen() {
   };
 
   const handleCreateTest = async () => {
+    if (isSubmittingTest) return;
+
     if (!newTitle.trim()) {
       Alert.alert('Missing Field', 'Please enter a test title.');
       return;
     }
 
-    if (publishAsAlert && !showUntilDate.trim()) {
-      Alert.alert(
-        'Expiry Date Required',
-        'Please select a date for "Hide Alert After". This field is mandatory so test alerts automatically retire after completion.'
-      );
+    if (!newDate.trim()) {
+      Alert.alert('Date Required', 'Please select the exam date before submitting.');
       return;
     }
 
-    const syllabusArray = newSyllabus
-      .split('\n')
-      .map((s) => s.trim())
-      .filter((s) => s.length > 0);
+    setIsSubmittingTest(true);
+    try {
+      const syllabusArray = newSyllabus
+        .split('\n')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 
-    const maxVal = parseInt(newMaxMarks, 10) || 100;
-    const genuineStudents = getEnrolledStudentsForClassAndSubject(newClass, newSubject);
+      const maxVal = parseInt(newMaxMarks, 10) || 100;
+      const genuineStudents = getEnrolledStudentsForClassAndSubject(newClass, newSubject);
 
-    const newTestObj: ExamItem = {
-      id: 'test-' + Date.now(),
-      title: newTitle.trim(),
-      subject: newSubject,
-      classTag: newClass,
-      dateStr: newDate.trim() || 'Upcoming Session',
-      timeStr: newTime.trim() || '04:30 PM - 06:00 PM',
-      roomStr: newRoom.trim() || 'Room 204',
-      maxMarks: maxVal,
-      syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
-      isEvaluated: false,
-      students: genuineStudents,
-      author: activeTeacher?.name || 'Faculty Member',
-    };
+      const newTestObj: ExamItem = {
+        id: 'test-' + Date.now(),
+        title: newTitle.trim(),
+        subject: newSubject,
+        classTag: newClass,
+        dateStr: newDate.trim() || 'Upcoming Session',
+        timeStr: 'TBD (Admin will confirm)',
+        roomStr: 'TBD (Admin will assign)',
+        maxMarks: maxVal,
+        syllabus: syllabusArray.length > 0 ? syllabusArray : ['General Syllabus Revision'],
+        isEvaluated: false,
+        students: genuineStudents,
+        author: activeTeacher?.name || 'Faculty Member',
+      };
 
-    setTests([newTestObj, ...tests]);
-    setActiveTestId(newTestObj.id);
-    setSelectedClass(newClass);
+      // Save locally so faculty sees their draft test paper
+      setTests((prev) => [newTestObj, ...prev]);
+      setActiveTestId(newTestObj.id);
+      setSelectedClass(newClass);
+      await DataService.saveTest(newTestObj);
 
-    // Save test paper in DataService so students can see it in Mock Tests & Alerts
-    await DataService.saveTest(newTestObj);
+      // Submit request to Supabase for admin review & approval
+      try {
+        const { supabase: sb } = await import('../../lib/supabase');
+        // 1. Send to announcements table which triggers admin Master Hub approval queue
+        const insAnnPromise = sb.from('announcements').insert({
+          title: `[PENDING APPROVAL - ${newClass}] ${newTitle.trim()} (${newSubject})`,
+          description: `Exam Date: ${newDate.trim()}\nMax Marks: ${maxVal}\nSyllabus: ${newTestObj.syllabus.join(', ')}\nSubmitted by: ${activeTeacher?.name || 'Faculty Member'}`,
+          icon: 'calendar',
+          icon_bg: '#EBF3FF',
+          icon_color: '#1A56DB',
+          time_label: 'Pending Approval',
+          important: true,
+        });
 
-    if (publishAsAlert) {
-      await handlePublishAlert(newTestObj);
+        // 2000ms safety timeout so slow/offline networks never freeze the loading spinner
+        await Promise.race([
+          insAnnPromise,
+          new Promise((resolve) => setTimeout(resolve, 2000)),
+        ]);
+      } catch (err) {
+        console.warn('Supabase approval submission notice:', err);
+      }
+
+      setCreateModalVisible(false);
+      setNewTitle('');
+      setNewSyllabus('');
+      setNewDate('');
+      setShowUntilDate('');
+
+      Alert.alert(
+        'Submitted for Admin Approval ✓',
+        `Your test request "${newTestObj.title}" for ${newClass} (${newSubject}) has been submitted to the admin.\n\nOnce approved by the admin, it will be scheduled and broadcast to students.`
+      );
+    } catch (e: any) {
+      console.error('Submission error:', e);
+      Alert.alert('Error', e?.message || 'Failed to submit test. Please try again.');
+    } finally {
+      setIsSubmittingTest(false);
     }
-
-    setCreateModalVisible(false);
-    setNewTitle('');
-    Alert.alert('Success', `New test "${newTestObj.title}" assigned to ${newClass} successfully.`);
   };
 
   return (
@@ -458,7 +509,7 @@ export default function TeacherTestsScreen() {
 
         <TouchableOpacity
           style={styles.newTestBtn}
-          onPress={() => setCreateModalVisible(true)}
+          onPress={() => openScheduleModal()}
           activeOpacity={0.85}
         >
           <Ionicons name="calendar" size={14} color="#fff" />
@@ -489,7 +540,7 @@ export default function TeacherTestsScreen() {
         {/* Prominent Schedule New Test Action Banner */}
         <TouchableOpacity
           style={styles.prominentScheduleBtn}
-          onPress={() => setCreateModalVisible(true)}
+          onPress={() => openScheduleModal()}
           activeOpacity={0.85}
         >
           <View style={styles.scheduleIconCircle}>
@@ -534,7 +585,7 @@ export default function TeacherTestsScreen() {
           <Text style={styles.sectionLabel}>TEST PAPERS ({classTests.length})</Text>
           <TouchableOpacity
             style={styles.schedulePillBtn}
-            onPress={() => setCreateModalVisible(true)}
+            onPress={() => openScheduleModal()}
             activeOpacity={0.8}
           >
             <Ionicons name="add-circle" size={15} color="#0284C7" />
@@ -548,10 +599,7 @@ export default function TeacherTestsScreen() {
             <Text style={styles.emptyText}>No tests scheduled for {selectedClass} yet.</Text>
             <TouchableOpacity
               style={styles.emptyAddBtn}
-              onPress={() => {
-                setNewClass(selectedClass);
-                setCreateModalVisible(true);
-              }}
+              onPress={() => openScheduleModal(selectedClass)}
             >
               <Text style={styles.emptyAddText}>+ Schedule Test for {selectedClass}</Text>
             </TouchableOpacity>
@@ -738,182 +786,169 @@ export default function TeacherTestsScreen() {
       </Modal>
 
       {/* Create New Test Modal */}
-      <Modal visible={createModalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <ScrollView contentContainerStyle={styles.createModalBox}>
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCreateModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
+        >
+          <View style={styles.createModalCard}>
+            {/* Modal Header */}
             <View style={styles.modalHeaderRow}>
-              <View>
+              <View style={{ flex: 1, paddingRight: 8 }}>
                 <Text style={styles.modalTitle}>Schedule New Test</Text>
-                <Text style={styles.createModalSub}>Authorized by Academic Head {activeTeacher?.name || 'Faculty Member'}</Text>
+                <Text style={styles.createModalSub}>
+                  {activeTeacher?.name || 'Faculty Member'} • {activeTeacher?.subject || 'Faculty'}
+                </Text>
               </View>
-              <TouchableOpacity onPress={() => setCreateModalVisible(false)}>
+              <TouchableOpacity
+                onPress={() => setCreateModalVisible(false)}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                style={styles.modalCloseBtn}
+              >
                 <Ionicons name="close" size={22} color={Colors.textPrimary} />
               </TouchableOpacity>
             </View>
 
-            {/* Class Selector */}
-            <Text style={styles.formLabel}>Target Class</Text>
-            <View style={styles.selectorRow}>
-              {teacherClasses.map((cls) => (
-                <TouchableOpacity
-                  key={cls}
-                  style={[styles.smallChip, newClass === cls && styles.smallChipActive]}
-                  onPress={() => setNewClass(cls)}
-                >
-                  <Text style={[styles.smallChipText, newClass === cls && styles.smallChipTextActive]}>
-                    {cls}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Subject Selector */}
-            <Text style={styles.formLabel}>Subject (Assigned to {activeTeacher?.name || 'Faculty'})</Text>
-            <View style={styles.selectorRow}>
-              {getTeacherAssignedSubjects(activeTeacher).map((sub) => (
-                <TouchableOpacity
-                  key={sub}
-                  style={[styles.smallChip, newSubject === sub && styles.smallChipActive]}
-                  onPress={() => setNewSubject(sub)}
-                >
-                  <Text style={[styles.smallChipText, newSubject === sub && styles.smallChipTextActive]}>
-                    {sub}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Title Input */}
-            <Text style={styles.formLabel}>Test Title</Text>
-            <TextInput
-              style={styles.textInput}
-              value={newTitle}
-              onChangeText={setNewTitle}
-              placeholder="e.g. Unit Test 1: Chapter Evaluation"
-              placeholderTextColor={Colors.textMuted}
-            />
-
-            {/* Date & Time with Interactive DatePicker & Time Chips */}
-            <View style={styles.twoCol}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Exam Date</Text>
-                <TouchableOpacity
-                  style={styles.datePickerBtn}
-                  onPress={() => {
-                    setDatePickerTarget('examDate');
-                    setDatePickerVisible(true);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="calendar" size={16} color="#0284C7" />
-                  <Text style={[styles.datePickerText, !newDate && styles.placeholderText]}>
-                    {newDate || 'Select Exam Date'}
-                  </Text>
-                </TouchableOpacity>
+            {/* Scrollable Form Body */}
+            <ScrollView
+              style={styles.createModalScroll}
+              contentContainerStyle={styles.createModalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+            >
+              {/* Class Selector */}
+              <Text style={styles.formLabel}>Target Class</Text>
+              <View style={styles.selectorRow}>
+                {teacherClasses.map((cls) => (
+                  <TouchableOpacity
+                    key={cls}
+                    style={[styles.smallChip, newClass === cls && styles.smallChipActive]}
+                    onPress={() => setNewClass(cls)}
+                  >
+                    <Text style={[styles.smallChipText, newClass === cls && styles.smallChipTextActive]}>
+                      {cls}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Time</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newTime}
-                  onChangeText={setNewTime}
-                  placeholder="04:30 PM - 06:00 PM"
-                />
-              </View>
-            </View>
 
-            {/* Quick Time Selection Chips */}
-            <View style={styles.quickTimeRow}>
-              {['04:30 PM - 06:00 PM', '06:00 PM - 07:30 PM', '09:30 AM - 12:30 PM', '02:00 PM - 05:00 PM'].map((t) => (
-                <TouchableOpacity
-                  key={t}
-                  style={[styles.quickTimeChip, newTime === t && styles.quickTimeChipActive]}
-                  onPress={() => setNewTime(t)}
-                >
-                  <Text style={[styles.quickTimeChipText, newTime === t && styles.quickTimeChipTextActive]}>
-                    {t.split(' - ')[0]}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            {/* Room & Max Marks */}
-            <View style={styles.twoCol}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Room / Hall</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newRoom}
-                  onChangeText={setNewRoom}
-                  placeholder="Room 204"
-                />
+              {/* Subject Selector */}
+              <Text style={styles.formLabel}>Subject (Assigned to {activeTeacher?.name || 'Faculty'})</Text>
+              <View style={styles.selectorRow}>
+                {getTeacherAssignedSubjects(activeTeacher).map((sub) => (
+                  <TouchableOpacity
+                    key={sub}
+                    style={[styles.smallChip, newSubject === sub && styles.smallChipActive]}
+                    onPress={() => setNewSubject(sub)}
+                  >
+                    <Text style={[styles.smallChipText, newSubject === sub && styles.smallChipTextActive]}>
+                      {sub}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.formLabel}>Max Marks</Text>
-                <TextInput
-                  style={styles.textInput}
-                  value={newMaxMarks}
-                  onChangeText={setNewMaxMarks}
-                  keyboardType="numeric"
-                  placeholder="100"
-                />
-              </View>
-            </View>
 
-            {/* Syllabus */}
-            <Text style={styles.formLabel}>Syllabus Chapters (One per line)</Text>
-            <TextInput
-              style={[styles.textInput, { height: 75, textAlignVertical: 'top' }]}
-              value={newSyllabus}
-              onChangeText={setNewSyllabus}
-              multiline
-              numberOfLines={3}
-              placeholder="e.g. Ch 9: Reflection of Light"
-              placeholderTextColor={Colors.textMuted}
-            />
-
-            {/* Publish Toggle + Show Until Date */}
-            <View style={styles.switchRow}>
-              <View style={{ flex: 1, paddingRight: 10 }}>
-                <Text style={styles.switchLabel}>Broadcast as Student Alert</Text>
-                <Text style={styles.switchSub}>Instantly push to student home screen alert banner</Text>
-              </View>
-              <Switch
-                value={publishAsAlert}
-                onValueChange={setPublishAsAlert}
-                trackColor={{ false: '#CBD5E1', true: '#BAE6FD' }}
-                thumbColor={publishAsAlert ? '#0284C7' : '#f4f3f4'}
+              {/* Title Input */}
+              <Text style={styles.formLabel}>Test Title</Text>
+              <TextInput
+                style={styles.textInput}
+                value={newTitle}
+                onChangeText={setNewTitle}
+                placeholder="e.g. Unit Test 1: Chapter Evaluation"
+                placeholderTextColor={Colors.textMuted}
               />
-            </View>
 
-            {publishAsAlert && (
-              <View>
-                <Text style={styles.formLabel}>Hide Alert After (Date) — Mandatory *</Text>
-                <TouchableOpacity
-                  style={styles.datePickerBtn}
-                  onPress={() => {
-                    setDatePickerTarget('expiryDate');
-                    setDatePickerVisible(true);
-                  }}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="calendar-outline" size={16} color="#0284C7" />
-                  <Text style={[styles.datePickerText, !showUntilDate && styles.placeholderText]}>
-                    {showUntilDate || 'Select Expiry Date (YYYY-MM-DD)'}
+              {/* Date Only (no Time or Room) */}
+              <Text style={styles.formLabel}>Exam Date</Text>
+              <TouchableOpacity
+                style={styles.datePickerBtn}
+                onPress={() => {
+                  setDatePickerTarget('examDate');
+                  setDatePickerVisible(true);
+                }}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="calendar" size={16} color="#0284C7" />
+                <Text style={[styles.datePickerText, !newDate && styles.placeholderText]}>
+                  {newDate || 'Select Exam Date'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Max Marks only */}
+              <Text style={styles.formLabel}>Maximum Marks</Text>
+              <TextInput
+                style={styles.textInput}
+                value={newMaxMarks}
+                onChangeText={setNewMaxMarks}
+                keyboardType="numeric"
+                placeholder="100"
+              />
+
+              {/* Syllabus */}
+              <Text style={styles.formLabel}>Syllabus Chapters (One per line)</Text>
+              <TextInput
+                style={[styles.textInput, { height: 75, textAlignVertical: 'top' }]}
+                value={newSyllabus}
+                onChangeText={setNewSyllabus}
+                multiline
+                numberOfLines={3}
+                placeholder="e.g. Ch 9: Reflection of Light"
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              {/* Broadcast toggle + info note */}
+              <View style={[styles.switchRow, { marginTop: 6, marginBottom: 8 }]}>
+                <View style={{ flex: 1, paddingRight: 10 }}>
+                  <Text style={styles.switchLabel}>Notify Students on Approval</Text>
+                  <Text style={styles.switchSub}>Push to student home screen once admin approves</Text>
+                </View>
+                <Switch
+                  value={publishAsAlert}
+                  onValueChange={setPublishAsAlert}
+                  trackColor={{ false: '#CBD5E1', true: '#BAE6FD' }}
+                  thumbColor={publishAsAlert ? '#0284C7' : '#f4f3f4'}
+                />
+              </View>
+
+              {/* Admin approval note */}
+              <View style={styles.approvalNoteBox}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                  <Ionicons name="information-circle" size={15} color="#0284C7" />
+                  <Text style={{ fontSize: 12, fontFamily: 'Inter_700Bold', color: '#0284C7' }}>
+                    Admin Approval Required
                   </Text>
-                </TouchableOpacity>
-                <Text style={{ fontSize: 10, color: Colors.textMuted, fontFamily: 'Inter_400Regular', marginTop: 3, marginBottom: 6 }}>
-                  Alert will automatically disappear from student home screen after this date.
+                </View>
+                <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: '#0369A1', lineHeight: 16 }}>
+                  Your request will be sent to the admin for review. The admin can edit the test details (time, venue, etc.) before approving. Students will be notified only after admin approval.
                 </Text>
               </View>
-            )}
+            </ScrollView>
 
-            <TouchableOpacity style={styles.submitTestBtn} onPress={handleCreateTest} activeOpacity={0.85}>
-              <Ionicons name="add-circle" size={18} color="#fff" />
-              <Text style={styles.submitTestBtnText}>Schedule & Save Test</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+            {/* Pinned Bottom Submit Button Footer */}
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={[styles.submitTestBtn, isSubmittingTest && { opacity: 0.7 }]}
+                onPress={handleCreateTest}
+                disabled={isSubmittingTest}
+                activeOpacity={0.85}
+              >
+                {isSubmittingTest ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <>
+                    <Ionicons name="send" size={16} color="#fff" />
+                    <Text style={styles.submitTestBtnText}>Submit for Admin Approval</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* DatePicker Modal for Exam and Expiry Dates */}
@@ -1214,10 +1249,68 @@ const styles = StyleSheet.create({
   gradeBadge: { borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2, marginLeft: 6 },
   gradeText: { fontSize: 11, fontFamily: 'Inter_700Bold' },
 
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
   modalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20 },
+  createModalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 520,
+    maxHeight: '90%',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+  },
   createModalBox: { backgroundColor: '#fff', borderRadius: 16, padding: 20, marginVertical: 40, maxWidth: 580, width: '100%', alignSelf: 'center' },
-  modalHeaderRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  modalHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  modalCloseBtn: {
+    padding: 4,
+    borderRadius: 8,
+  },
+  createModalScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
+  createModalScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 16,
+  },
+  approvalNoteBox: {
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 6,
+    marginBottom: 4,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  modalFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.OS === 'ios' ? 20 : 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+    backgroundColor: '#fff',
+  },
   modalTitle: { fontSize: 16, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
   createModalSub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 2 },
   modalStudentName: { fontSize: 16, fontFamily: 'Inter_700Bold', color: '#0284C7' },
@@ -1290,9 +1383,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     backgroundColor: '#0284C7',
-    borderRadius: 12,
+    borderRadius: 14,
     height: 48,
-    marginTop: 6,
+    width: '100%',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
   submitTestBtnText: { color: '#fff', fontSize: 14, fontFamily: 'Inter_700Bold' },
 

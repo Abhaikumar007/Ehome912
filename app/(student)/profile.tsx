@@ -65,8 +65,9 @@ export default function ProfileScreen() {
   const [feeRecord, setFeeRecord] = useState<any>(null);
 
   const loadFeeStatus = async () => {
+    if (!student?.rollNo) return;
     try {
-      const f = await DataService.getFees(student?.rollNo || '2024-JEE-0842');
+      const f = await DataService.getFees(student.rollNo);
       if (f) setFeeRecord(f);
     } catch {}
   };

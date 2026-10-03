@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, RefreshControl, Image, Alert, Modal, TextInput, Platform,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -10,6 +11,7 @@ import { Colors } from '../../constants/colors';
 import { feesData as defaultFees } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
 import { useAuth } from '../../lib/authContext';
+import { supabase } from '../../lib/supabase';
 
 export interface UpiAppConfig {
   label: string;
@@ -73,13 +75,17 @@ export default function FeesScreen() {
   const [allPaymentsModalVisible, setAllPaymentsModalVisible] = useState(false);
   const [allPaymentsHistory, setAllPaymentsHistory] = useState<any[]>([]);
   const [utrInput, setUtrInput] = useState('');
+  const [screenshot, setScreenshot] = useState<string | null>(null);
+  const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
+  const [pickingImage, setPickingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [copiedToast, setCopiedToast] = useState(false);
 
-  const rollNo = student?.rollNo || '2024-JEE-0842';
+  const rollNo = student?.rollNo || '';
   const targetFeeAmount = Number(fees.actualDue || fees.monthlyFee || fees.currentDue || 4000);
 
   const loadData = async () => {
+    if (!rollNo) return;
     try {
       const [res, hist] = await Promise.all([
         DataService.getFees(rollNo),
@@ -94,7 +100,44 @@ export default function FeesScreen() {
 
   useEffect(() => {
     loadData();
+
+    // 1. Supabase Realtime Channel: Listen for instant admin approvals/rejections
+    const channel = supabase
+      .channel('fee_realtime_broadcast')
+      .on('broadcast', { event: 'fee_approved' }, (event) => {
+        const payload = event?.payload;
+        // Reload if payload targets this student or no rollNo filter in payload
+        if (!payload || payload.rollNo !== rollNo) {
+          loadData();
+        }
+      })
+      .on('broadcast', { event: 'fee_rejected' }, (event) => {
+        const payload = event?.payload;
+        if (!payload || payload.rollNo !== rollNo) {
+          loadData();
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records', filter: `roll_no=eq.${rollNo}` }, () => {
+        // Postgres row-level change → always reload (already filtered to this student's row)
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [rollNo]);
+
+  // 2. Active fast-polling while waiting in review, so approval reflects instantly without reload
+  useEffect(() => {
+    if (fees?.status !== 'pending_verification') return;
+
+    const interval = setInterval(() => {
+      loadData();
+    }, 2500);
+
+    return () => clearInterval(interval);
+  }, [fees?.status, rollNo]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -211,41 +254,87 @@ export default function FeesScreen() {
       );
     }
 
-    // NOTE: Auto-prompt modal removed as requested. User can tap 'Already Paid? Submit UTR →' whenever ready.
+    // NOTE: Auto-prompt modal removed as requested. User can tap 'Already Paid? Submit Receipt Proof →' whenever ready.
+  };
+
+  const handlePickScreenshot = async () => {
+    try {
+      setPickingImage(true);
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          'Permission Required',
+          'Please allow gallery access to select your payment screenshot.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: false,
+        quality: 0.6, // Compressed to ~50-80KB to keep storage at virtually zero
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setScreenshotPreview(asset.uri);
+        
+        let finalDataUrl = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : null;
+        if (!finalDataUrl && asset.uri) {
+          try {
+            const resp = await fetch(asset.uri);
+            const blob = await resp.blob();
+            finalDataUrl = await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
+          } catch (e) {
+            console.warn('Fallback base64 conversion notice:', e);
+            finalDataUrl = asset.uri;
+          }
+        }
+        setScreenshot(finalDataUrl);
+      }
+    } catch (err) {
+      console.warn('Image picker error', err);
+      Alert.alert('Error', 'Could not open image library. Please try again.');
+    } finally {
+      setPickingImage(false);
+    }
   };
 
   const handleSubmitVerification = async () => {
+    if (!screenshot && !utrInput.trim()) {
+      Alert.alert(
+        'Proof Required',
+        'Please upload a screenshot of your payment receipt or enter the UPI transaction UTR.'
+      );
+      return;
+    }
     setSubmitting(true);
     try {
-      const updated = await DataService.submitFeePayment(rollNo, utrInput);
+      const updated = await DataService.submitFeePayment(rollNo, utrInput.trim() || undefined, screenshot);
       setFees(updated);
       setVerificationModalVisible(false);
+      setScreenshot(null);
+      setScreenshotPreview(null);
+      setUtrInput('');
       Alert.alert(
-        'Payment Submitted!',
+        'Payment Proof Submitted!',
         `Your payment proof of ₹${targetFeeAmount.toLocaleString('en-IN')} has been sent to Center Admin.\n\nOnce received and approved, your dashboard and profile will immediately update to Paid.`,
         [{ text: 'Great!', onPress: () => {} }]
       );
     } catch {
-      Alert.alert('Error', 'Could not submit payment. Please try again.');
+      Alert.alert('Error', 'Could not submit payment proof. Please try again.');
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Instant simulation helper for quick testing
-  const handleSuperAdminInstantApprove = async () => {
-    try {
-      const updated = await DataService.approveFeePayment(rollNo);
-      setFees(updated);
-      Alert.alert(
-        'Superadmin Approved ✓',
-        `Payment of ₹${targetFeeAmount.toLocaleString('en-IN')} has been verified and approved by Mr. Abhai Kumar.\n\nStudent dashboard, home alert banner, and profile status are now cleared and marked as Paid!`,
-        [{ text: 'Awesome' }]
-      );
-    } catch {
-      Alert.alert('Error', 'Approval failed');
-    }
-  };
+
 
   const handleResetForTesting = async () => {
     try {
@@ -325,7 +414,7 @@ export default function FeesScreen() {
                   <Ionicons name="checkmark-circle" size={26} color="#10B981" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.paidTitle}>September Fees Cleared</Text>
+                  <Text style={styles.paidTitle}>{fees.clearedMonth || 'October'} Fees Cleared</Text>
                   <Text style={styles.paidSub}>Verified by Center Admin ✓</Text>
                 </View>
                 <View style={styles.receiptBadge}>
@@ -361,9 +450,20 @@ export default function FeesScreen() {
               <View style={styles.nextCycleBox}>
                 <Ionicons name="information-circle-outline" size={14} color={Colors.primary} />
                 <Text style={styles.nextCycleText}>
-                  Next fee recovery cycle opens 5 days before 25 Oct 2026.
+                  All dues up to now are cleared. You can also pay {fees.nextMonthLabel || 'next month'}'s fee in advance.
                 </Text>
               </View>
+
+              <TouchableOpacity
+                style={[styles.actionPillBtn, styles.actionPillSubmit, { marginTop: 10, alignSelf: 'stretch', justifyContent: 'center' }]}
+                onPress={() => setVerificationModalVisible(true)}
+                activeOpacity={0.75}
+              >
+                <Ionicons name="receipt-outline" size={13} color="#0369A1" />
+                <Text style={[styles.actionPillText, { color: '#0369A1' }]} numberOfLines={1}>
+                  Pay {fees.nextMonthLabel || 'Next Month'} in Advance →
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.resetTestBtn}
@@ -383,7 +483,7 @@ export default function FeesScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.pendingTitle}>Payment Submitted</Text>
-                <Text style={styles.pendingSub}>₹{targetFeeAmount.toLocaleString('en-IN')} UPI • Monthly Fee ₹{(fees.monthlyFee || targetFeeAmount).toLocaleString('en-IN')}</Text>
+                <Text style={styles.pendingSub}>{fees.payingMonth ? `${fees.payingMonth} • ` : ''}₹{targetFeeAmount.toLocaleString('en-IN')} UPI • Monthly Fee ₹{(fees.monthlyFee || targetFeeAmount).toLocaleString('en-IN')}</Text>
               </View>
               <View style={styles.pendingStatusBadge}>
                 <View style={styles.pendingPulse} />
@@ -403,16 +503,6 @@ export default function FeesScreen() {
               Your transfer of ₹{targetFeeAmount.toLocaleString('en-IN')} to <Text style={{ fontFamily: 'Inter_700Bold' }}>{HARDCODED_UPI_ID}</Text> is currently queued in the Superadmin portal for confirmation.
             </Text>
 
-            {/* Instant Demo Helper */}
-            <TouchableOpacity
-              style={styles.instantVerifyBtn}
-              onPress={handleSuperAdminInstantApprove}
-              activeOpacity={0.85}
-            >
-              <Ionicons name="shield-checkmark" size={16} color="#fff" />
-              <Text style={styles.instantVerifyText}>⚡ Instant Superadmin Approval (Demo)</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.resetPendingBtn}
               onPress={handleResetForTesting}
@@ -426,11 +516,16 @@ export default function FeesScreen() {
           <View style={[styles.feeStatusCard, styles.dueCard]}>
             <View style={styles.dueTopRow}>
               <View style={{ flex: 1 }}>
-                <Text style={styles.dueLabel}>Monthly Tuition Fee</Text>
+                <Text style={styles.dueLabel}>{fees.payingMonth ? `Tuition Fee • ${fees.payingMonth}` : 'Monthly Tuition Fee'}</Text>
                 <Text style={styles.dueAmount}>₹ {targetFeeAmount.toLocaleString('en-IN')}.00</Text>
                 <Text style={styles.dueDateText}>
                   Due on {fees.dueDate} {fees.joiningDate ? `• Joined: ${fees.joiningDate}` : ''}
                 </Text>
+                {fees.overdueMonths > 1 ? (
+                  <Text style={[styles.dueDateText, { color: Colors.red, marginTop: 2 }]}>
+                    {fees.overdueMonths} months pending • pay the oldest month first
+                  </Text>
+                ) : null}
               </View>
               <View style={[styles.daysLeftBadge, fees.daysLeft <= 0 && { backgroundColor: '#FEF2F2' }]}>
                 <Ionicons
@@ -483,75 +578,12 @@ export default function FeesScreen() {
               >
                 <Ionicons name="receipt-outline" size={13} color="#0369A1" />
                 <Text style={[styles.actionPillText, { color: '#0369A1' }]} numberOfLines={1}>
-                  Already Paid? Submit UTR →
+                  Already Paid? Submit Receipt Proof →
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
-
-        {/* Dedicated Loyalty Bonus Card (Always full width and cleanly displayed) */}
-        {(() => {
-          const totalMonthsPaid = fees.monthsPaidOnTime ?? 2;
-          const currentCycleNumber = Math.floor(totalMonthsPaid / 3) + 1;
-          const cycleStartMonth = (currentCycleNumber - 1) * 3 + 1;
-          const cycleMonths = [
-            { label: `Month ${cycleStartMonth}`, earned: totalMonthsPaid >= cycleStartMonth },
-            { label: `Month ${cycleStartMonth + 1}`, earned: totalMonthsPaid >= cycleStartMonth + 1 },
-            { label: `Month ${cycleStartMonth + 2}`, earned: totalMonthsPaid >= cycleStartMonth + 2 },
-          ];
-          const hasRewardUnlocked = totalMonthsPaid >= 3;
-
-          return (
-            <View style={styles.loyaltyCard}>
-              <View style={styles.loyaltyHeader}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Ionicons name="gift" size={16} color={Colors.amber} />
-                  <Text style={styles.loyaltyTitle}>Loyalty Bonus Program</Text>
-                </View>
-                <View style={styles.loyaltyCyclePill}>
-                  <Text style={styles.loyaltyCycleText}>Cycle {currentCycleNumber}</Text>
-                </View>
-              </View>
-
-              <Text style={styles.loyaltySub}>
-                Maintain regular tuition payments to unlock ₹10–₹20 OFF every 3 months!
-              </Text>
-
-              {hasRewardUnlocked && (
-                <View style={styles.rewardUnlockedBadge}>
-                  <Ionicons name="checkmark-circle" size={13} color="#15803D" />
-                  <Text style={styles.rewardUnlockedText}>🎁 ₹15 OFF Milestone Reward Unlocked!</Text>
-                </View>
-              )}
-
-              <View style={styles.loyaltySteps}>
-                {cycleMonths.map((m, i) => (
-                  <View key={i} style={styles.loyaltyStep}>
-                    <View style={[styles.loyaltyCircle, m.earned ? styles.loyaltyCircleActive : styles.loyaltyCircleSoon]}>
-                      {m.earned ? (
-                        <Ionicons name="checkmark" size={16} color="#fff" />
-                      ) : (
-                        <Ionicons name="gift-outline" size={14} color={Colors.amber} />
-                      )}
-                    </View>
-                    <Text style={styles.loyaltyMonthLabel}>{m.label}</Text>
-                    <Text style={[styles.loyaltyStatus, { color: m.earned ? Colors.green : Colors.amber }]}>
-                      {m.earned ? '✓ On-Time' : 'Upcoming'}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-
-              <View style={styles.loyaltyFooterRow}>
-                <Text style={styles.loyaltyCount}>
-                  <Text style={styles.loyaltyCountNum}>{totalMonthsPaid}</Text> months paid on time
-                </Text>
-                <Text style={styles.loyaltyHint}>🎉 Next discount cycle in {3 - (totalMonthsPaid % 3 || 3)} mo</Text>
-              </View>
-            </View>
-          );
-        })()}
 
         {/* Pay Instantly */}
         <View style={styles.card}>
@@ -672,16 +704,70 @@ export default function FeesScreen() {
             </View>
 
             <Text style={styles.modalDesc}>
-              Once submitted, Center Admin will verify your ₹{targetFeeAmount.toLocaleString('en-IN')} transfer to{' '}
-              <Text style={{ fontFamily: 'Inter_700Bold', color: Colors.primary }}>{HARDCODED_UPI_ID}</Text> and unlock your cleared status.
+              Upload your payment receipt screenshot from GPay, PhonePe, Paytm, or BHIM. Center Admin will verify and clear your fee status.
             </Text>
 
-            <Text style={styles.inputFieldLabel}>UPI Reference / UTR Number</Text>
+            {/* Screenshot Upload / Preview Zone */}
+            <Text style={styles.inputFieldLabel}>Payment Screenshot Proof (Recommended)</Text>
+            {screenshotPreview ? (
+              <View style={styles.screenshotPreviewContainer}>
+                <Image source={{ uri: screenshotPreview }} style={styles.screenshotThumb} resizeMode="cover" />
+                <View style={styles.screenshotMeta}>
+                  <View style={styles.screenshotBadge}>
+                    <Ionicons name="checkmark-circle" size={14} color={Colors.green} />
+                    <Text style={styles.screenshotBadgeText}>Receipt Attached (~60 KB)</Text>
+                  </View>
+                  <Text style={styles.screenshotHint}>Tap Change to pick another image</Text>
+                  <View style={styles.screenshotActionRow}>
+                    <TouchableOpacity
+                      style={styles.screenshotActionBtn}
+                      onPress={handlePickScreenshot}
+                      disabled={pickingImage}
+                    >
+                      <Ionicons name="image-outline" size={14} color={Colors.primary} />
+                      <Text style={styles.screenshotActionText}>Change</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.screenshotActionBtn, { borderColor: '#FCA5A5' }]}
+                      onPress={() => {
+                        setScreenshot(null);
+                        setScreenshotPreview(null);
+                      }}
+                    >
+                      <Ionicons name="trash-outline" size={14} color={Colors.red} />
+                      <Text style={[styles.screenshotActionText, { color: Colors.red }]}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.uploadDropZone}
+                onPress={handlePickScreenshot}
+                disabled={pickingImage}
+                activeOpacity={0.7}
+              >
+                <View style={styles.uploadIconCircle}>
+                  <Ionicons name="cloud-upload" size={24} color={Colors.primary} />
+                </View>
+                <Text style={styles.uploadMainText}>
+                  {pickingImage ? 'Opening Gallery...' : 'Tap to Upload Payment Screenshot'}
+                </Text>
+                <Text style={styles.uploadSubText}>
+                  Select screenshot from GPay, PhonePe, Paytm (Auto-compressed to ~60 KB)
+                </Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Optional UTR Number */}
+            <Text style={[styles.inputFieldLabel, { marginTop: 12 }]}>
+              UPI Reference / UTR Number <Text style={styles.optionalTag}>(Optional)</Text>
+            </Text>
             <TextInput
               style={styles.utrInputField}
               value={utrInput}
               onChangeText={setUtrInput}
-              placeholder="e.g. 423985729104"
+              placeholder="e.g. 423985729104 (optional if screenshot attached)"
               placeholderTextColor={Colors.textMuted}
             />
 
@@ -697,17 +783,6 @@ export default function FeesScreen() {
               </Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.instantSimulateBtn}
-              onPress={async () => {
-                setVerificationModalVisible(false);
-                await handleSuperAdminInstantApprove();
-              }}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="shield-checkmark" size={14} color={Colors.green} />
-              <Text style={styles.instantSimulateText}>⚡ Instant Admin Approval (Test Mode)</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -1188,6 +1263,104 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     marginBottom: 6,
   },
+  optionalTag: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textMuted,
+  },
+  uploadDropZone: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: '#0284C7',
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    paddingVertical: 18,
+    paddingHorizontal: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  uploadIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  uploadMainText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+    marginBottom: 3,
+    textAlign: 'center',
+  },
+  uploadSubText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  screenshotPreviewContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    marginBottom: 6,
+    gap: 12,
+  },
+  screenshotThumb: {
+    width: 60,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#E2E8F0',
+  },
+  screenshotMeta: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  screenshotBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 4,
+  },
+  screenshotBadgeText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.green,
+  },
+  screenshotHint: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginBottom: 8,
+  },
+  screenshotActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  screenshotActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: '#fff',
+  },
+  screenshotActionText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+  },
   utrInputField: {
     backgroundColor: Colors.cardBg,
     borderRadius: 10,
@@ -1231,97 +1404,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_600SemiBold',
     color: '#15803D',
   },
-
-  loyaltyCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#FEF3C7',
-    shadowColor: '#F59E0B',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  loyaltyHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 4,
-  },
-  loyaltyTitle: { fontSize: 14, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  loyaltyCyclePill: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-  },
-  loyaltyCycleText: { fontSize: 10.5, fontFamily: 'Inter_700Bold', color: '#B45309' },
-  loyaltySub: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    fontFamily: 'Inter_400Regular',
-    marginBottom: 10,
-    lineHeight: 16,
-  },
-  rewardUnlockedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#DCFCE7',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#86EFAC',
-    alignSelf: 'flex-start',
-  },
-  rewardUnlockedText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: '#15803D',
-  },
-  loyaltySteps: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginVertical: 6,
-    paddingVertical: 10,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
-  },
-  loyaltyStep: { alignItems: 'center', gap: 5 },
-  loyaltyCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loyaltyCircleActive: { backgroundColor: Colors.green },
-  loyaltyCircleSoon: {
-    backgroundColor: '#FFFBEB',
-    borderWidth: 1.5,
-    borderColor: '#F59E0B',
-  },
-  loyaltyMonthLabel: { fontSize: 11, color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold' },
-  loyaltyStatus: { fontSize: 9.5, fontFamily: 'Inter_600SemiBold', textAlign: 'center' },
-  loyaltyFooterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#F1F5F9',
-  },
-  loyaltyCount: { fontSize: 11.5, color: Colors.textSecondary, fontFamily: 'Inter_400Regular' },
-  loyaltyCountNum: { fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  loyaltyHint: { fontSize: 10.5, color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
 
   card: {
     backgroundColor: Colors.cardBg, borderRadius: 16, padding: 16, marginBottom: 12,

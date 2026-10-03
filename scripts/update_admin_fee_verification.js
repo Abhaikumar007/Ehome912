@@ -64,6 +64,7 @@ window.loadPendingVerifications = async function() {
                     utr,
                     studentClass,
                     submittedAt,
+                    screenshot: pItem.screenshot || null,
                 };
 
                 pending.push(window._pendingFeeRegistry[rollNo]);
@@ -82,16 +83,25 @@ window.loadPendingVerifications = async function() {
                 const safeId = item.rollNo.replace(/[^a-zA-Z0-9_-]/g, '_');
                 tr.id = 'pendingRow_' + safeId;
                 tr.innerHTML = \`
-                    <td><strong>\${item.studentName}</strong></td>
-                    <td><span class="badge badge-info">\${item.studentClass}</span> <small class="text-muted">\${item.rollNo}</small></td>
-                    <td><strong class="text-primary">₹\${item.amount.toLocaleString('en-IN')}</strong></td>
-                    <td><code>\${item.utr}</code></td>
-                    <td><small class="text-muted">\${item.submittedAt}</small></td>
+                    <td><strong>\\\${item.studentName}</strong></td>
+                    <td><span class="badge badge-info">\\\${item.studentClass}</span> <small class="text-muted">\\\${item.rollNo}</small></td>
+                    <td><strong class="text-primary">₹\\\${item.amount.toLocaleString('en-IN')}</strong></td>
                     <td>
-                        <button class="btn btn-sm btn-success shadow-sm mr-1 btn-approve-fee" id="btnApprove_\${safeId}" onclick="window.requestApproveFee('\${item.rollNo}', this)">
+                        <code>\\\${item.utr}</code>
+                        \\\${item.screenshot ? \\\`
+                            <div class="mt-1">
+                                <button type="button" class="btn btn-xs btn-outline-primary" style="font-size: 0.72rem; padding: 2px 7px; border-radius: 4px; font-weight: 600;" onclick="window.viewFeeScreenshot('\\\\\\\${item.rollNo}')">
+                                    <i class="fas fa-image mr-1"></i> View Receipt
+                                </button>
+                            </div>
+                        \\\` : ''}
+                    </td>
+                    <td><small class="text-muted">\\\${item.submittedAt}</small></td>
+                    <td>
+                        <button class="btn btn-sm btn-success shadow-sm mr-1 btn-approve-fee" id="btnApprove_\\\${safeId}" onclick="window.requestApproveFee('\\\\\\\${item.rollNo}', this)">
                             <i class="fas fa-check-circle mr-1"></i> Approve
                         </button>
-                        <button class="btn btn-sm btn-outline-danger shadow-sm btn-reject-fee" id="btnReject_\${safeId}" onclick="window.requestRejectFee('\${item.rollNo}', this)">
+                        <button class="btn btn-sm btn-outline-danger shadow-sm btn-reject-fee" id="btnReject_\\\${safeId}" onclick="window.requestRejectFee('\\\\\\\${item.rollNo}', this)">
                             <i class="fas fa-times"></i>
                         </button>
                     </td>
@@ -296,6 +306,43 @@ window.showPendingFeeNotice = function(msg, type) {
     } else {
         alert(msg);
     }
+};
+
+window.viewFeeScreenshot = function(rollNo) {
+    const item = window._pendingFeeRegistry[rollNo];
+    if (!item || !item.screenshot) {
+        alert("No payment screenshot proof attached for this request.");
+        return;
+    }
+    let modal = document.getElementById('screenshotProofModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'screenshotProofModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.85);z-index:999999;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);';
+        modal.innerHTML = \`
+            <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.5);display:flex;flex-direction:column;max-height:92vh;">
+                <div style="padding:14px 18px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <strong id="screenshotModalTitle" style="color:#0f172a;font-size:1rem;display:block;font-weight:700;">Receipt Proof</strong>
+                        <small id="screenshotModalMeta" class="text-muted" style="font-size:0.8rem;"></small>
+                    </div>
+                    <button type="button" style="border:none;background:transparent;font-size:1.6rem;line-height:1;cursor:pointer;color:#64748b;padding:0 4px;" onclick="document.getElementById('screenshotProofModal').style.display='none'">&times;</button>
+                </div>
+                <div style="padding:16px;background:#090d16;text-align:center;overflow:auto;flex:1;display:flex;align-items:center;justify-content:center;">
+                    <img id="screenshotModalImg" src="" alt="Payment Receipt" style="max-width:100%;max-height:68vh;border-radius:8px;object-fit:contain;box-shadow:0 4px 16px rgba(0,0,0,0.6);" />
+                </div>
+                <div style="padding:12px 18px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:0.78rem;color:#0284c7;font-weight:600;"><i class="fas fa-shield-alt mr-1"></i> Auto-purged upon approval</span>
+                    <button type="button" class="btn btn-sm btn-secondary" style="border-radius:6px;font-weight:600;padding:5px 16px;" onclick="document.getElementById('screenshotProofModal').style.display='none'">Close</button>
+                </div>
+            </div>
+        \`;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('screenshotModalTitle').innerText = \\\`Receipt Proof: \\\${item.studentName} (\\\${item.rollNo})\\\`;
+    document.getElementById('screenshotModalMeta').innerText = \\\`Fee: ₹\\\${item.amount.toLocaleString('en-IN')} • Ref: \\\${item.utr}\\\`;
+    document.getElementById('screenshotModalImg').src = item.screenshot;
+    modal.style.display = 'flex';
 };
 
 // Aliases for compatibility

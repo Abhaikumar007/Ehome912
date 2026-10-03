@@ -1,4 +1,4 @@
-import * as SecureStore from 'expo-secure-store';
+import { AppStorage } from './storage';
 import { supabase } from './supabase';
 
 export interface TeacherProfile {
@@ -166,7 +166,7 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
   //    (Only name, phone, email, qualification — never allowedGrades from cache,
   //     since old cache may contain corrupted grades from the previous bug.)
   try {
-    const cached = await SecureStore.getItemAsync(ROSTER_CACHE_KEY);
+    const cached = await AppStorage.getItem(ROSTER_CACHE_KEY);
     if (cached) {
       const parsed: TeacherProfile[] = JSON.parse(cached);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -211,7 +211,7 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
             if (parsedSubject && parsedSubject !== match.subject) {
               // Only trust Supabase subject if it's a strict known subject name,
               // not a combined/description string
-              const knownSubjects = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science', 'Maths', 'Science'];
+              const knownSubjects = ['Physics', 'Chemistry', 'Biology', 'Mathematics', 'Computer Science', 'Maths'];
               const matchesKnown = knownSubjects.some((ks) => parsedSubject.toLowerCase().startsWith(ks.toLowerCase()));
               if (matchesKnown) {
                 match.subject = parsedSubject;
@@ -252,7 +252,7 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
         email: t.email,
         qualification: t.qualification,
       }));
-      await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(safeCache));
+      await AppStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(safeCache));
     }
   } catch (err) {
     console.warn('Error syncing roster from Supabase:', err);
@@ -295,11 +295,6 @@ export function isStudentEnrolledInSubject(studentSubjectsStr?: string, targetSu
   // 5. Biology
   if (tgt.includes('bio')) {
     return stu.includes('bio');
-  }
-
-  // 6. General Science (Grades 6-9)
-  if (tgt === 'science' || tgt.startsWith('science')) {
-    return stu.includes('science') || stu.includes('phys') || stu.includes('chem') || stu.includes('bio');
   }
 
   return stu.includes(tgt);
@@ -405,7 +400,7 @@ export async function getActiveTeacher(): Promise<TeacherProfile> {
   const roster = await getTeacherRoster();
 
   try {
-    const savedId = inMemoryActiveId || (await SecureStore.getItemAsync(ACTIVE_TEACHER_KEY));
+    const savedId = inMemoryActiveId || (await AppStorage.getItem(ACTIVE_TEACHER_KEY));
     if (savedId) {
       inMemoryActiveId = savedId;
       const found = roster.find((t) => t.id === savedId);
@@ -432,7 +427,7 @@ export async function setActiveTeacherId(teacherId: string): Promise<void> {
     });
   }
   try {
-    await SecureStore.setItemAsync(ACTIVE_TEACHER_KEY, teacherId);
+    await AppStorage.setItem(ACTIVE_TEACHER_KEY, teacherId);
   } catch (e) {
     console.warn('Error saving active faculty:', e);
   }
@@ -474,7 +469,7 @@ export async function updateFacultySelfProfile(
 
   // Persist locally
   try {
-    await SecureStore.setItemAsync(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
+    await AppStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
   } catch (e) {}
 
   // Sync to Supabase teachers table so admin portal sees it immediately

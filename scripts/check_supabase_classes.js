@@ -1,18 +1,24 @@
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = 'https://xrxwluezguxpqfzedlfq.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhyeHdsdWV6Z3V4cHFmemVkbGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTQ5ODIsImV4cCI6MjEwNTIzMDk4Mn0.GyAX0VRjgPuZxxBCIO7Y4bH7PubaaRYuW1cJjfoaHPI';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhyeHdsdWV6Z3V4cHFmemVkbGZxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk2NTQ5ODIsImV4cCI6MjEwNTIzMDk4Mn0.GyAX0VRjgPuZxxBCIO7Y4bH7PubaaRYuW1cJjfoaHPI';
 
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-async function main() {
-  const { data: classes, error: errC } = await sb.from('classes').select('*');
-  console.log('--- CLASSES IN SUPABASE ---', classes ? classes.length : 0, errC);
-  if (classes) console.log(JSON.stringify(classes, null, 2));
-
-  const { data: ann, error: errA } = await sb.from('announcements').select('*');
-  console.log('--- ANNOUNCEMENTS IN SUPABASE ---', ann ? ann.length : 0, errA);
-  if (ann) console.log(JSON.stringify(ann, null, 2));
+async function inspectColumns() {
+  const { data, error } = await sb.from('classes').select('*').limit(1);
+  if (error) {
+    console.error('Error fetching class:', error);
+    return;
+  }
+  if (data && data[0]) {
+    console.log('Columns in classes table:');
+    console.log(Object.keys(data[0]));
+    console.log('Sample row:');
+    console.log(JSON.stringify(data[0], null, 2));
+  } else {
+    console.log('No rows in classes table.');
+  }
 }
 
-main();
+inspectColumns();

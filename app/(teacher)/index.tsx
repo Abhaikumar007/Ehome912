@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
-import { DataService } from '../../lib/dataService';
+import { DataService, compareClassTimes } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import { supabase } from '../../lib/supabase';
 import {
@@ -21,15 +21,179 @@ import {
   isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
 
+export interface TeacherSessionInfo {
+  type: 'Regular' | 'QuestionBank' | 'TP';
+  label: 'Regular Class' | 'Question Bank' | 'TP';
+  icon: keyof typeof Ionicons.glyphMap;
+  bg: string;
+  border: string;
+  color: string;
+}
+
+export function getTeacherSessionType(cls: any): TeacherSessionInfo {
+  const normStatus = (cls?.status || '').toLowerCase();
+  const normTime = (cls?.time || '').toLowerCase();
+  const normSub = (cls?.subject || '').toLowerCase();
+  const rawType = (cls?.session_type || cls?.sessionType || cls?.type || cls?.class_type || '').toLowerCase();
+  const normTopic = (cls?.topic || '').toLowerCase();
+  const normRoom = (cls?.room || '').toLowerCase();
+
+  // If explicitly regular and no TP/QB markers
+  if (rawType === 'regular' || rawType === 'regular class' || normStatus.split(':').includes('regular')) {
+    if (!normTime.includes('• tp') && !normTime.includes('test paper') && !normTime.includes('question bank') && !normTime.includes('• qb')) {
+      return {
+        type: 'Regular',
+        label: 'Regular Class',
+        icon: 'school-outline',
+        bg: '#F0F9FF',
+        border: '#BAE6FD',
+        color: '#0284C7',
+      };
+    }
+  }
+
+  // 1. Test Paper / TP Session
+  if (
+    rawType === 'tp' ||
+    rawType.includes('test') ||
+    rawType.includes('tp') ||
+    normStatus.split(':').includes('tp') ||
+    normStatus.includes(':tp') ||
+    normStatus.includes(':test') ||
+    normStatus.includes('test_paper') ||
+    normStatus.includes('testpaper') ||
+    normTime.includes('• tp') ||
+    normTime.includes('test paper') ||
+    normTime.includes('tp session') ||
+    normSub.includes('(tp)') ||
+    normSub.includes('[tp]') ||
+    normTopic.includes('test paper') ||
+    normTopic.includes('(tp)') ||
+    normRoom.includes('test paper')
+  ) {
+    return {
+      type: 'TP',
+      label: 'TP',
+      icon: 'document-text-outline',
+      bg: '#FEF2F2',
+      border: '#FECACA',
+      color: '#DC2626',
+    };
+  }
+
+  // 2. Question Bank
+  if (
+    rawType === 'questionbank' ||
+    rawType.includes('question') ||
+    rawType.includes('qb') ||
+    normStatus.split(':').includes('questionbank') ||
+    normStatus.split(':').includes('qb') ||
+    normStatus.includes(':qb') ||
+    normStatus.includes(':questionbank') ||
+    normStatus.includes('question_bank') ||
+    normTime.includes('• qb') ||
+    normTime.includes('question bank') ||
+    normTime.includes('questionbank') ||
+    normSub.includes('(qb)') ||
+    normSub.includes('[qb]') ||
+    normTopic.includes('question bank') ||
+    normTopic.includes('(qb)') ||
+    normRoom.includes('question bank')
+  ) {
+    return {
+      type: 'QuestionBank',
+      label: 'Question Bank',
+      icon: 'library-outline',
+      bg: '#F5F3FF',
+      border: '#DDD6FE',
+      color: '#7C3AED',
+    };
+  }
+
+  // 3. Regular Class (default)
+  return {
+    type: 'Regular',
+    label: 'Regular Class',
+    icon: 'school-outline',
+    bg: '#F0F9FF',
+    border: '#BAE6FD',
+    color: '#0284C7',
+  };
+}
+
+function formatUpdatedSession(
+  currentClass: any,
+  newType: 'Regular' | 'QuestionBank' | 'TP',
+  teacher: TeacherProfile
+) {
+  const typeTag = newType === 'TP' ? 'TP' : newType === 'QuestionBank' ? 'Question Bank' : 'Regular';
+
+  const rawTime = currentClass.time || '';
+  const timeTokens = rawTime.split('•').map((s: string) => s.trim()).filter(Boolean);
+  const baseSlot = timeTokens[0] || '';
+
+  const teacherName = teacher?.name || '';
+  const facultyToken = timeTokens.find((tok: string) => {
+    const l = tok.toLowerCase();
+    if (l === 'test paper' || l === 'tp' || l === 'question bank' || l === 'qb' || l === 'regular') return false;
+    return (
+      l.includes('mr.') ||
+      l.includes('ms.') ||
+      l.includes('mrs.') ||
+      l.includes('dr.') ||
+      (teacherName && l.includes(teacherName.toLowerCase()))
+    );
+  }) || (teacherName ? teacherName : undefined);
+
+  const newTimeParts: string[] = [baseSlot];
+  if (newType !== 'Regular') {
+    newTimeParts.push(typeTag);
+  }
+  if (facultyToken) {
+    newTimeParts.push(facultyToken);
+  }
+  const newTime = newTimeParts.join(' • ');
+
+  const rawStatus = currentClass.status || 'upcoming';
+  const statusParts = rawStatus.split(':').map((s: string) => s.trim()).filter(Boolean);
+  const facId = statusParts.find((p: string) => p.startsWith('fac-')) || teacher?.id || 'fac-math';
+
+  let newStatus: string;
+  if (newType === 'Regular') {
+    newStatus = `upcoming:${facId}`;
+  } else {
+    newStatus = `upcoming:${newType}:${facId}`;
+  }
+
+  return { newTime, newStatus, typeTag };
+}
+
 export default function TeacherHomeScreen() {
   const router = useRouter();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
   const [roster, setRoster] = useState<TeacherProfile[]>(TEACHER_ROSTER);
   const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
-  const [adminClasses, setAdminClasses] = useState<any[]>([]);
-  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [adminClasses, setAdminClasses] = useState<any[]>(() => {
+    return DataService.getCachedAdminTimetableClasses() || [];
+  });
+  const [loadingClasses, setLoadingClasses] = useState<boolean>(() => {
+    const initial = DataService.getCachedAdminTimetableClasses();
+    return !initial || initial.length === 0;
+  });
   const [refreshing, setRefreshing] = useState(false);
   const [liveStudents, setLiveStudents] = useState<typeof EDUSYNC_STUDENTS>(EDUSYNC_STUDENTS);
+
+  // Safety fallback: guarantee loadingClasses never stays true indefinitely
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoadingClasses(false);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // After 7 PM (19:00), default to tomorrow's schedule automatically when admin schedules next day classes
+  const initialOffset = React.useMemo(() => (new Date().getHours() >= 19 ? 1 : 0), []);
+  const [dateOffset, setDateOffset] = useState(initialOffset);
 
   const [announcementModalVisible, setAnnouncementModalVisible] = useState(false);
   const [announcementTitle, setAnnouncementTitle] = useState('');
@@ -37,6 +201,10 @@ export default function TeacherHomeScreen() {
   const [announcementClasses, setAnnouncementClasses] = useState<string[]>(['All Assigned']);
   const [rosterClassFilter, setRosterClassFilter] = useState('All');
   const [rosterSubjectFilter, setRosterSubjectFilter] = useState('All');
+
+  // Session Format Switching workflow (Regular Class / Question Bank / Test Paper)
+  const [sessionTypeModalVisible, setSessionTypeModalVisible] = useState(false);
+  const [selectedClassForSessionType, setSelectedClassForSessionType] = useState<any>(null);
 
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
@@ -56,10 +224,15 @@ export default function TeacherHomeScreen() {
   };
 
   const loadTimetable = async () => {
-    setLoadingClasses(true);
+    // Only show loading placeholder if no classes are loaded in state
+    if (adminClasses.length === 0) {
+      setLoadingClasses(true);
+    }
     try {
       const cls = await DataService.getAdminTimetableClasses();
-      setAdminClasses(cls || []);
+      if (cls && Array.isArray(cls)) {
+        setAdminClasses(cls);
+      }
     } catch (e) {
       console.warn('Error fetching timetable classes:', e);
     } finally {
@@ -290,8 +463,56 @@ export default function TeacherHomeScreen() {
       .toUpperCase();
   };
 
-  // Filter admin timetable specifically for this active teacher's subject & grades
-  const assignedTodayClasses = adminClasses.filter((c) => isTeacherAssignedToClass(activeTeacher, c));
+  // Target date calculation for day toggle & 7 PM auto-switch to tomorrow
+  const targetDateInfo = React.useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + dateOffset);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return {
+      iso: `${y}-${m}-${day}`,
+      label: d.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+      }),
+      fullDate: d.toLocaleDateString('en-GB', {
+        weekday: 'short',
+        day: 'numeric',
+        month: 'short',
+        year: 'numeric',
+      }),
+      isTomorrow: dateOffset === 1,
+      isToday: dateOffset === 0,
+      isSunday: d.getDay() === 0,
+    };
+  }, [dateOffset]);
+
+  // Filter admin timetable for this active teacher's subject & grades, matching target date (today or tomorrow)
+  const assignedClasses = React.useMemo(() => {
+    const seen = new Set<string>();
+    const result: any[] = [];
+    const reversed = [...adminClasses].reverse();
+    for (const c of reversed) {
+      if (c.published === false) continue;
+      // Date guard: match target date (or today fallback if no class_date provided)
+      const matchesDate = c.class_date ? (c.class_date === targetDateInfo.iso) : (dateOffset === 0);
+      if (!matchesDate) continue;
+      if (!isTeacherAssignedToClass(activeTeacher, c)) continue;
+
+      const normSubject = (c.subject || '').trim().toLowerCase();
+      const normGrade = (c.class_grade || c.roll_no || '').trim().toLowerCase();
+      const normTime = (c.time || '').trim().toLowerCase();
+      const key = `${normGrade}_${normSubject}_${normTime}_${targetDateInfo.iso}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(c);
+      }
+    }
+    return result.sort((a, b) => compareClassTimes(a.time, b.time));
+  }, [adminClasses, activeTeacher, targetDateInfo.iso, dateOffset]);
+  const assignedTodayClasses = assignedClasses;
 
   const getTeacherOpinionSubjects = (teacher: TeacherProfile): string[] => {
     if (!teacher) return ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'Computer Science'];
@@ -308,7 +529,7 @@ export default function TeacherHomeScreen() {
     if (s.includes('phys')) list.push('Physics');
     if (s.includes('chem')) list.push('Chemistry');
     if (s.includes('bio')) list.push('Biology');
-    if (s.includes('comp') || s.includes('cs')) list.push('Computer Science');
+    if (s.includes('comp') || /\bcs\b/i.test(s)) list.push('Computer Science');
     return list.length > 0 ? list : [teacher.subject.split('(')[0].trim() || 'General'];
   };
 
@@ -356,6 +577,48 @@ export default function TeacherHomeScreen() {
       );
     } catch {
       Alert.alert('Error', 'Failed to submit announcement.');
+    }
+  };
+
+  const handleUpdateSessionType = async (newType: 'Regular' | 'QuestionBank' | 'TP') => {
+    if (!selectedClassForSessionType) return;
+    const targetClass = selectedClassForSessionType;
+    setSessionTypeModalVisible(false);
+
+    const { newTime, newStatus, typeTag } = formatUpdatedSession(targetClass, newType, activeTeacher);
+
+    // Optimistically update adminClasses state immediately
+    setAdminClasses((prev) =>
+      prev.map((cls) => {
+        if (cls.id === targetClass.id) {
+          return {
+            ...cls,
+            status: newStatus,
+            time: newTime,
+            session_type: typeTag,
+          };
+        }
+        return cls;
+      })
+    );
+
+    // Sync to Supabase classes table
+    try {
+      const { error } = await supabase
+        .from('classes')
+        .update({
+          status: newStatus,
+          time: newTime,
+        })
+        .eq('id', targetClass.id);
+
+      if (error) {
+        console.warn('[TeacherHomeScreen] Error updating session type in Supabase:', error);
+      } else {
+        console.log('[TeacherHomeScreen] Updated session format to:', typeTag);
+      }
+    } catch (err) {
+      console.warn('[TeacherHomeScreen] Failed to sync session format:', err);
     }
   };
 
@@ -543,78 +806,165 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Today's Teaching Schedule */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Today's Assigned Classes</Text>
-          <Text style={styles.sectionCount}>
-            {assignedTodayClasses.length > 0 ? `${assignedTodayClasses.length} Sessions` : 'None'}
-          </Text>
+        {/* Teaching Schedule Header with Day Toggle (Today vs Tomorrow) */}
+        <View style={styles.scheduleHeaderContainer}>
+          <View style={styles.scheduleTopRow}>
+            <View style={{ flex: 1, paddingRight: 6 }}>
+              <Text style={styles.sectionTitle} numberOfLines={1}>
+                {dateOffset === 1
+                  ? "Tomorrow's Classes"
+                  : "Today's Classes"}
+              </Text>
+              <View style={styles.scheduleSubRow}>
+                <Text style={styles.scheduleSubDate}>
+                  {targetDateInfo.label} • {assignedClasses.length > 0 ? `${assignedClasses.length} Session${assignedClasses.length > 1 ? 's' : ''}` : 'None'}
+                </Text>
+                {new Date().getHours() >= 19 && dateOffset === 1 && (
+                  <View style={styles.autoTomorrowBadge}>
+                    <Ionicons name="moon" size={9} color="#1D4ED8" />
+                    <Text style={styles.autoTomorrowBadgeText}>7 PM+ Auto</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Day Toggle Switch */}
+            <View style={styles.daySwitchContainer}>
+              <TouchableOpacity
+                style={[styles.daySwitchBtn, dateOffset === 0 && styles.daySwitchBtnActive]}
+                onPress={() => setDateOffset(0)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.daySwitchBtnText, dateOffset === 0 && styles.daySwitchBtnTextActive]}>
+                  Today
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.daySwitchBtn, dateOffset === 1 && styles.daySwitchBtnActive]}
+                onPress={() => setDateOffset(1)}
+                activeOpacity={0.8}
+              >
+                <Text style={[styles.daySwitchBtnText, dateOffset === 1 && styles.daySwitchBtnTextActive]}>
+                  Tomorrow
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
-        {loadingClasses ? (
+        {loadingClasses && assignedClasses.length === 0 ? (
           <View style={styles.emptySessionBox}>
             <ActivityIndicator size="small" color="#0284C7" />
-            <Text style={styles.emptySessionSub}>Loading today's assigned sessions...</Text>
-          </View>
-        ) : assignedTodayClasses.length === 0 ? (
-          <View style={styles.emptySessionBox}>
-            <View style={styles.emptyIconCircle}>
-              <Ionicons name="calendar-outline" size={24} color="#94A3B8" />
-            </View>
-            <Text style={styles.emptySessionTitle}>No sessions scheduled today</Text>
             <Text style={styles.emptySessionSub}>
-              None / No classes currently assigned for {activeTeacher.name} ({activeTeacher.subject}) in today's admin timetable.
+              Loading {dateOffset === 1 ? "tomorrow's" : "today's"} assigned sessions...
             </Text>
           </View>
+        ) : assignedClasses.length === 0 ? (
+          <View style={styles.emptySessionBox}>
+            <View style={styles.emptyIconCircle}>
+              <Ionicons
+                name={targetDateInfo.isSunday ? 'sunny-outline' : 'calendar-outline'}
+                size={24}
+                color="#94A3B8"
+              />
+            </View>
+            <Text style={styles.emptySessionTitle}>
+              {targetDateInfo.isSunday
+                ? 'Sunday — Tuition Holiday'
+                : dateOffset === 1
+                ? 'No sessions scheduled for tomorrow'
+                : 'No sessions scheduled today'}
+            </Text>
+            <Text style={styles.emptySessionSub}>
+              None / No classes currently assigned for {activeTeacher.name} ({activeTeacher.subject}) in {dateOffset === 1 ? "tomorrow's" : "today's"} admin timetable.
+            </Text>
+            {dateOffset === 1 && (
+              <TouchableOpacity
+                style={styles.switchDateHintBtn}
+                onPress={() => setDateOffset(0)}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="time-outline" size={13} color="#0284C7" />
+                <Text style={styles.switchDateHintText}>View Today's Classes</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         ) : (
-          assignedTodayClasses.map((c) => {
+          assignedClasses.map((c) => {
             const classTitle = c.class_grade || c.roll_no || 'Assigned Class';
             const subjectTitle = c.subject || activeTeacher.subject;
+            const sessionInfo = getTeacherSessionType(c);
             return (
-              <View key={c.id} style={styles.classCard}>
-                <View style={[styles.classColorBar, { backgroundColor: '#0284C7' }]} />
+              <TouchableOpacity
+                key={c.id}
+                style={styles.classCard}
+                activeOpacity={0.88}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(teacher)/attendance',
+                    params: {
+                      classGrade: classTitle,
+                      subject: subjectTitle,
+                    },
+                  })
+                }
+              >
+                <View style={[styles.classColorBar, { backgroundColor: sessionInfo.color }]} />
                 <View style={styles.classCardBody}>
                   <View style={styles.classCardTop}>
                     <View style={styles.classBadgeWrap}>
-                      <Text style={[styles.classBadgeName, { color: '#0284C7' }]}>{classTitle}</Text>
+                      <Text style={[styles.classBadgeName, { color: sessionInfo.color }]}>{classTitle}</Text>
                       <Text style={styles.subjectDot}>•</Text>
                       <Text style={styles.subjectText}>{subjectTitle}</Text>
                     </View>
-                    <View style={styles.roomPill}>
-                      <Ionicons name="location-outline" size={11} color={Colors.textSecondary} />
-                      <Text style={styles.roomText}>{c.room || 'Classroom Hall'}</Text>
-                    </View>
+                    <TouchableOpacity
+                      style={[
+                        styles.sessionTypePill,
+                        { backgroundColor: sessionInfo.bg, borderColor: sessionInfo.border },
+                      ]}
+                      activeOpacity={0.7}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setSelectedClassForSessionType(c);
+                        setSessionTypeModalVisible(true);
+                      }}
+                    >
+                      <Ionicons name={sessionInfo.icon} size={11} color={sessionInfo.color} />
+                      <Text style={[styles.sessionTypeText, { color: sessionInfo.color }]}>
+                        {sessionInfo.label}
+                      </Text>
+                      <Ionicons name="chevron-down" size={10} color={sessionInfo.color} style={{ marginLeft: 1, opacity: 0.8 }} />
+                    </TouchableOpacity>
                   </View>
 
-                  <Text style={styles.topicText}>{c.topic || `${subjectTitle} Scheduled Session`}</Text>
+                  <Text style={styles.topicText}>
+                    {c.topic || (
+                      sessionInfo.type === 'TP'
+                        ? `${subjectTitle} TP Session`
+                        : sessionInfo.type === 'QuestionBank'
+                        ? `${subjectTitle} Question Bank Discussion`
+                        : `${subjectTitle} Scheduled Session`
+                    )}
+                  </Text>
 
                   <View style={styles.classCardFooter}>
                     <View style={styles.timeWrap}>
                       <Ionicons name="time-outline" size={13} color={Colors.textMuted} />
-                      <Text style={styles.timeText}>{(c.time || 'Today').split('•')[0].trim()}</Text>
-                      {c.status?.includes('fac-') && (
-                        <View style={styles.allottedPill}>
-                          <Text style={styles.allottedPillText}>Admin Allotted ✓</Text>
+                      <Text style={styles.timeText}>
+                        {(c.time || (dateOffset === 1 ? 'Tomorrow' : 'Today')).split('•')[0].trim()}
+                      </Text>
+                      {dateOffset === 1 && (
+                        <View style={styles.tomorrowCardTag}>
+                          <Text style={styles.tomorrowCardTagText}>Tomorrow</Text>
                         </View>
                       )}
                     </View>
-                    <TouchableOpacity
-                      style={styles.markAttendanceLink}
-                      onPress={() =>
-                        router.push({
-                          pathname: '/(teacher)/attendance',
-                          params: {
-                            classGrade: classTitle,
-                            subject: subjectTitle,
-                          },
-                        })
-                      }
-                    >
+                    <View style={styles.markAttendanceLink}>
                       <Text style={styles.markAttendanceLinkText}>Attendance &gt;</Text>
-                    </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-              </View>
+              </TouchableOpacity>
             );
           })
         )}
@@ -1047,6 +1397,95 @@ export default function TeacherHomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Select Session Format Modal */}
+      <Modal visible={sessionTypeModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Session Format</Text>
+                {selectedClassForSessionType && (
+                  <Text style={styles.modalSub}>
+                    {selectedClassForSessionType.class_grade || selectedClassForSessionType.roll_no} • {selectedClassForSessionType.subject || activeTeacher.subject} ({(selectedClassForSessionType.time || '').split('•')[0].trim()})
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={() => setSessionTypeModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+              {[
+                {
+                  type: 'Regular' as const,
+                  title: 'Regular Class',
+                  desc: 'Standard curriculum lecture, theory & concept explanation',
+                  icon: 'school-outline' as const,
+                  color: '#0284C7',
+                  bg: '#F0F9FF',
+                  border: '#BAE6FD',
+                },
+                {
+                  type: 'QuestionBank' as const,
+                  title: 'Question Bank',
+                  desc: 'PYQ problem solving, exemplar drills & doubt clearing',
+                  icon: 'library-outline' as const,
+                  color: '#7C3AED',
+                  bg: '#F5F3FF',
+                  border: '#DDD6FE',
+                },
+                {
+                  type: 'TP' as const,
+                  title: 'TP (Test Paper)',
+                  desc: 'Timed evaluation, unit test, mock or chapter paper',
+                  icon: 'document-text-outline' as const,
+                  color: '#DC2626',
+                  bg: '#FEF2F2',
+                  border: '#FECACA',
+                },
+              ].map((opt) => {
+                const isSelected = selectedClassForSessionType
+                  ? getTeacherSessionType(selectedClassForSessionType).type === opt.type
+                  : false;
+
+                return (
+                  <TouchableOpacity
+                    key={opt.type}
+                    style={[
+                      styles.sessionTypeOption,
+                      isSelected && [styles.sessionTypeOptionActive, { borderColor: opt.color, backgroundColor: opt.bg }],
+                    ]}
+                    onPress={() => handleUpdateSessionType(opt.type)}
+                    activeOpacity={0.75}
+                  >
+                    <View style={[styles.sessionTypeIconBox, { backgroundColor: isSelected ? opt.color : opt.bg }]}>
+                      <Ionicons name={opt.icon} size={20} color={isSelected ? '#fff' : opt.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.sessionTypeOptionTitle, isSelected && { color: opt.color }]}>
+                        {opt.title}
+                      </Text>
+                      <Text style={styles.sessionTypeOptionDesc}>{opt.desc}</Text>
+                    </View>
+                    {isSelected && (
+                      <Ionicons name="checkmark-circle" size={22} color={opt.color} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={[styles.opinionDisclaimerBox, { marginTop: 12, marginBottom: 4 }]}>
+              <Ionicons name="sync-outline" size={14} color="#0284C7" />
+              <Text style={styles.opinionDisclaimerText}>
+                Selecting a format updates the timetable live across all faculty and student portals.
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1179,6 +1618,110 @@ const styles = StyleSheet.create({
   sectionCount: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
   newNoticeBtn: { fontSize: 13, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
 
+  scheduleHeaderContainer: {
+    marginBottom: 12,
+  },
+  scheduleTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  scheduleTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  scheduleSubRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+    flexWrap: 'wrap',
+  },
+  scheduleSubDate: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  autoTomorrowBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+  },
+  autoTomorrowBadgeText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#1D4ED8',
+  },
+  daySwitchContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 20,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    flexShrink: 0,
+    marginLeft: 4,
+  },
+  daySwitchBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 16,
+  },
+  daySwitchBtnActive: {
+    backgroundColor: '#0284C7',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  daySwitchBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#64748B',
+  },
+  daySwitchBtnTextActive: {
+    color: '#FFFFFF',
+    fontFamily: 'Inter_700Bold',
+  },
+  tomorrowCardTag: {
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    marginLeft: 4,
+  },
+  tomorrowCardTagText: {
+    fontSize: 9,
+    fontFamily: 'Inter_700Bold',
+    color: '#1D4ED8',
+  },
+  switchDateHintBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  switchDateHintText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+
   classCard: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -1205,6 +1748,20 @@ const styles = StyleSheet.create({
   classBadgeName: { fontSize: 13, fontFamily: 'Inter_700Bold' },
   subjectDot: { fontSize: 12, color: Colors.textMuted },
   subjectText: { fontSize: 12, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  sessionTypePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  sessionTypeText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    letterSpacing: 0.1,
+  },
   roomPill: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1215,30 +1772,63 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   roomText: { fontSize: 11, fontFamily: 'Inter_500Medium', color: Colors.textSecondary },
+  sessionTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    marginBottom: 8,
+    gap: 12,
+    backgroundColor: '#fff',
+  },
+  sessionTypeOptionActive: {
+    borderWidth: 1.5,
+  },
+  sessionTypeIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionTypeOptionTitle: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  sessionTypeOptionDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
   topicText: { fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary, marginBottom: 8 },
   classCardFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: 8,
   },
-  timeWrap: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  timeText: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textMuted },
-  allottedPill: {
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+  timeWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    flexShrink: 1,
+  },
+  timeText: { fontSize: 11.5, fontFamily: 'Inter_500Medium', color: Colors.textMuted },
+  markAttendanceLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F9FF',
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#A7F3D0',
-    marginLeft: 4,
+    borderColor: '#BAE6FD',
   },
-  allottedPillText: {
-    fontSize: 9,
-    fontFamily: 'Inter_700Bold',
-    color: '#059669',
-  },
-  markAttendanceLink: { paddingHorizontal: 4, paddingVertical: 2 },
-  markAttendanceLinkText: { fontSize: 12, fontFamily: 'Inter_600SemiBold', color: '#0284C7' },
+  markAttendanceLinkText: { fontSize: 11.5, fontFamily: 'Inter_700Bold', color: '#0284C7' },
 
   batchSummaryCard: {
     backgroundColor: '#fff',

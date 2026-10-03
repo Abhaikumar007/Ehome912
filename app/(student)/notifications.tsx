@@ -36,7 +36,7 @@ const defaultNotifs = [
     iconBg: Colors.amberLight,
     iconColor: Colors.amber,
     title: 'Fee Reminder: ₹4,000 due on 15 Sep',
-    body: 'Please pay before the due date to maintain your loyalty streak and avoid late fees.',
+    body: 'Please pay your tuition fee before the due date to avoid late charges.',
     time: '1 day ago',
     unread: false,
   },
@@ -78,9 +78,10 @@ export default function NotificationsScreen() {
   const [items, setItems] = useState(defaultNotifs);
   const [refreshing, setRefreshing] = useState(false);
 
-  const rollNo = student?.rollNo || '2024-JEE-0842';
+  const rollNo = student?.rollNo || '';
 
   const loadData = async () => {
+    if (!rollNo) return;
     try {
       const res = await DataService.getNotifications(rollNo);
       if (res && res.length > 0) {
