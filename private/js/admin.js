@@ -2649,13 +2649,18 @@ if (document.getElementById('timetableTableBody')) {
                 let timeStr = (startTime && endTime) ? (`${_format12Hr(startTime)} - ${_format12Hr(endTime)}`) : _format12Hr(startTime || 'Scheduled');
                 const sessType = (sessionType || 'Regular').trim();
                 const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
-                    ? 'TP'
+                    ? 'Test Paper'
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'Question Bank'
-                    : 'Regular';
-                const statusStr = 'upcoming' + (sessType && sessType !== 'Regular' ? ':' + sessType : '') + (facultyId ? ':' + facultyId : '');
+                    : 'Regular Class';
+                const statusTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'TP'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'QuestionBank'
+                    : '';
+                const statusStr = 'upcoming' + (statusTag ? ':' + statusTag : '') + (facultyId ? ':' + facultyId : '');
                 const timeParts = [timeStr];
-                if (sessType && sessType !== 'Regular') {
+                if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                     timeParts.push(sessionTag);
                 }
                 if (facultyName) {
@@ -2763,21 +2768,25 @@ if (document.getElementById('timetableTableBody')) {
     }
 
     function getSessionBadge(sessionType) {
-        switch (sessionType) {
-            case 'TP':           return '<span class="badge-session badge-tp">🎯 TP Session</span>';
-            case 'QuestionBank': return '<span class="badge-session badge-qb">📝 Question Bank</span>';
-            case 'Regular':
-            default:             return '<span class="badge-session badge-regular">📖 Regular</span>';
+        const s = (sessionType || '').toLowerCase();
+        if (s === 'tp' || s.includes('tp') || s.includes('test')) {
+            return '<span class="badge-session badge-tp">🎯 Test Paper</span>';
         }
+        if (s === 'questionbank' || s.includes('question') || s.includes('qb')) {
+            return '<span class="badge-session badge-qb">📝 Question Bank</span>';
+        }
+        return '<span class="badge-session badge-regular">📖 Regular Class</span>';
     }
 
     function getSessionEmoji(sessionType) {
-        switch (sessionType) {
-            case 'TP':           return '🎯 TP Session';
-            case 'QuestionBank': return '📝 Question Bank';
-            case 'Regular':
-            default:             return '📖 Regular Class';
+        const s = (sessionType || '').toLowerCase();
+        if (s === 'tp' || s.includes('tp') || s.includes('test')) {
+            return '🎯 Test Paper';
         }
+        if (s === 'questionbank' || s.includes('question') || s.includes('qb')) {
+            return '📝 Question Bank';
+        }
+        return '📖 Regular Class';
     }
 
     function getBoardEmoji(board) {
@@ -2963,6 +2972,7 @@ if (document.getElementById('timetableTableBody')) {
 
             function to12Hr(t) {
                 if (!t) return '';
+                if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) return t;
                 const parts = t.split(':');
                 const h = parseInt(parts[0], 10);
                 const m = parseInt(parts[1] || '0', 10);
@@ -3019,13 +3029,18 @@ if (document.getElementById('timetableTableBody')) {
                 // 2. Insert exactly 1 clean class session with session type preserved
                 const sessType = (entry.sessionType || 'Regular').trim();
                 const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
-                    ? 'TP'
+                    ? 'Test Paper'
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'Question Bank'
-                    : 'Regular';
-                const statusStr = 'upcoming' + (sessType && sessType !== 'Regular' ? ':' + sessType : '') + (entry.facultyId ? ':' + entry.facultyId : '');
+                    : 'Regular Class';
+                const statusTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'TP'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'QuestionBank'
+                    : '';
+                const statusStr = 'upcoming' + (statusTag ? ':' + statusTag : '') + (entry.facultyId ? ':' + entry.facultyId : '');
                 const timeParts = [timeStr];
-                if (sessType && sessType !== 'Regular') {
+                if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                     timeParts.push(sessionTag);
                 }
                 if (entry.facultyName) {

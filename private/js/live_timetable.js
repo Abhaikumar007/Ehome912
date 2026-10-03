@@ -582,7 +582,7 @@
                                                 const nStat = (item.status || '').toLowerCase();
                                                 const nTime = (item.time || '').toLowerCase();
                                                 if (nStat.split(':').includes('tp') || nStat.includes(':tp') || nStat.includes('test') || nTime.includes('test paper') || nTime.includes('• tp')) {
-                                                    return '<span class="badge badge-danger ml-1" style="font-size:0.72rem; font-weight:600;"><i class="fas fa-file-alt mr-1"></i>TP</span>';
+                                                    return '<span class="badge badge-danger ml-1" style="font-size:0.72rem; font-weight:600;"><i class="fas fa-file-alt mr-1"></i>Test Paper</span>';
                                                 } else if (nStat.split(':').includes('questionbank') || nStat.split(':').includes('qb') || nStat.includes(':qb') || nTime.includes('question bank') || nTime.includes('• qb')) {
                                                     return '<span class="badge ml-1 text-white" style="font-size:0.72rem; font-weight:600; background:#7c3aed;"><i class="fas fa-book-open mr-1"></i>Question Bank</span>';
                                                 } else {
@@ -708,7 +708,7 @@
                             <label class="font-weight-bold text-dark small mb-1">Session Type *</label>
                             <select class="form-control" id="editClassSessionType">
                                 <option value="Regular">📖 Regular Class</option>
-                                <option value="TP">🎯 TP</option>
+                                <option value="TP">🎯 Test Paper</option>
                                 <option value="QuestionBank">📝 Question Bank</option>
                             </select>
                         </div>
@@ -998,13 +998,18 @@
             const sessTypeEl = document.getElementById('editClassSessionType');
             const sessType = sessTypeEl ? sessTypeEl.value : 'Regular';
             const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
-                ? 'TP'
+                ? 'Test Paper'
                 : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                 ? 'Question Bank'
-                : 'Regular';
+                : 'Regular Class';
+            const statusTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                ? 'TP'
+                : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                ? 'QuestionBank'
+                : '';
 
             const timeParts = [timeStr];
-            if (sessType && sessType !== 'Regular') {
+            if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                 timeParts.push(sessionTag);
             }
             if (facultyName) {
@@ -1012,8 +1017,8 @@
             }
 
             const finalTime = timeParts.join(' • ');
-            const finalStatus = (sessType && sessType !== 'Regular')
-                ? `${status}:${sessType}${facultyId ? ':' + facultyId : ''}`
+            const finalStatus = (statusTag)
+                ? `${status}:${statusTag}${facultyId ? ':' + facultyId : ''}`
                 : (facultyId ? `${status}:${facultyId}` : (facultyName ? `${status}:fac` : status));
 
             // 1. Update in Supabase classes table
