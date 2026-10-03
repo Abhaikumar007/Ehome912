@@ -139,18 +139,19 @@
         .broadcast-item,
         .broadcast-card-item {
             display: flex !important;
-            flex-direction: row !important;
-            justify-content: space-between !important;
-            align-items: flex-start !important;
+            flex-direction: column !important;
+            align-items: stretch !important;
+            justify-content: flex-start !important;
             width: 100% !important;
             background: #ffffff !important;
             border: 1px solid #e2e8f0 !important;
             border-left: 5px solid #0284c7 !important;
-            border-radius: 8px !important;
-            padding: 14px 18px !important;
-            margin-bottom: 12px !important;
+            border-radius: 10px !important;
+            padding: 16px 18px !important;
+            margin-bottom: 14px !important;
             box-sizing: border-box !important;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05) !important;
+            gap: 10px !important;
         }
 
         .broadcast-card-item.exam-alert-item,
@@ -160,48 +161,129 @@
         }
 
         .broadcast-card-item.pending-approval-item {
-            border-left-color: #f59e0b !important;
+            border-left: 6px solid #f59e0b !important;
             background: #ffffff !important;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.1) !important;
+            border-radius: 10px !important;
+        }
+
+        .broadcast-card-header {
+            width: 100% !important;
+            min-width: 0 !important;
+        }
+
+        .broadcast-card-body {
+            width: 100% !important;
+            min-width: 0 !important;
         }
 
         .broadcast-content-area {
-            flex: 1 1 auto !important;
-            min-width: 0 !important;
             width: 100% !important;
-            padding-right: 18px !important;
-            overflow-wrap: break-word !important;
-            word-wrap: break-word !important;
-            word-break: normal !important;
+            min-width: 0 !important;
         }
 
         .broadcast-content-title {
-            font-size: 1rem !important;
+            font-size: 1.05rem !important;
             font-weight: 700 !important;
             color: #0f172a !important;
-            display: inline-block !important;
-            margin-bottom: 4px !important;
             line-height: 1.4 !important;
-            word-break: normal !important;
-            overflow-wrap: break-word !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
         }
 
         .broadcast-content-text {
-            font-size: 0.9rem !important;
+            font-size: 0.92rem !important;
             color: #475569 !important;
-            line-height: 1.5 !important;
-            margin-bottom: 6px !important;
-            white-space: pre-line !important;
-            word-break: normal !important;
-            overflow-wrap: break-word !important;
+            line-height: 1.55 !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        .pending-test-details-box {
+            background: #f8fafc !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 8px !important;
+            padding: 12px 14px !important;
+        }
+
+        .pending-test-meta-label {
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            letter-spacing: 0.5px !important;
+            color: #64748b !important;
+            text-transform: uppercase !important;
+            margin-bottom: 2px !important;
+            display: block !important;
+        }
+
+        .pending-test-meta-value {
+            font-size: 0.92rem !important;
+            color: #0f172a !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+        }
+
+        .broadcast-card-footer {
+            width: 100% !important;
+            border-top: 1px solid #f1f5f9 !important;
+            padding-top: 10px !important;
+            margin-top: 4px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            flex-wrap: wrap !important;
+            gap: 10px !important;
         }
 
         .broadcast-actions-area {
             display: flex !important;
             flex-direction: row !important;
             align-items: center !important;
+            justify-content: flex-end !important;
             gap: 8px !important;
-            flex-shrink: 0 !important;
             margin-left: auto !important;
+        }
+
+        .broadcast-actions-area .btn {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+            font-weight: 600 !important;
+            border-radius: 6px !important;
+        }
+
+        /* Responsive alignment for mobile devices and narrow screens */
+        @media (max-width: 768px) {
+            .broadcast-item,
+            .broadcast-card-item {
+                padding: 12px 14px !important;
+                gap: 8px !important;
+            }
+
+            .broadcast-card-footer {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+
+            .broadcast-actions-area {
+                width: 100% !important;
+                margin-left: 0 !important;
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 8px !important;
+            }
+
+            .pending-approval-item .broadcast-actions-area .btn {
+                flex: 1 1 0 !important;
+                min-width: 0 !important;
+                text-align: center !important;
+                justify-content: center !important;
+                padding: 10px 12px !important;
+                font-size: 0.88rem !important;
+            }
         }
     </style>
 </head>
@@ -745,7 +827,7 @@
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
     <script src="js/admin.js?v=20260921_fee"></script>
-    <script src="js/master_hub.js?v=20260926_realtime"></script>
+    <script src="js/master_hub.js?v=20261001_approval_align"></script>
     <script src="js/live_timetable.js"></script>
 
     <script>

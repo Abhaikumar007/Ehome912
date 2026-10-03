@@ -254,6 +254,7 @@ window.sb_loadFromCloud = async function () {
 
             const { data: feeRows, error: fErr } = await sb.from('fees_records').select('*');
             if (!fErr && feeRows && loadedStudents) {
+                const feesObj = {};
                 loadedStudents.forEach(st => {
                     const fr = feeRows.find(f => f.roll_no === st.id || f.roll_no === st.rollNo);
                     if (fr) {
@@ -261,8 +262,21 @@ window.sb_loadFromCloud = async function () {
                         if (fr.subjects) {
                             st.subjects = fr.subjects.split(',').map(s => s.trim());
                         }
+                        const payments = Array.isArray(fr.recent_payments) ? fr.recent_payments : [];
+                        const subs = Array.isArray(st.subjects) && st.subjects.length > 0 ? st.subjects : ['General'];
+                        payments.forEach(p => {
+                            if (p.status !== 'pending_verification') {
+                                const m = p.fullMonth ? p.fullMonth.split(' ')[0] : (p.month === 'OCT' ? 'October' : (p.month === 'SEP' ? 'September' : p.month));
+                                const y = p.fullMonth ? (p.fullMonth.split(' ')[1] || '2026') : '2026';
+                                subs.forEach(sub => {
+                                    feesObj[`${st.id}_${sub}_${m}_${y}`] = 'Paid';
+                                    if (st.rollNo) feesObj[`${st.rollNo}_${sub}_${m}_${y}`] = 'Paid';
+                                });
+                            }
+                        });
                     }
                 });
+                loadedFees = feesObj;
             }
         } catch (e) {
             console.warn('[Supabase] Pull failed:', e);
@@ -395,16 +409,20 @@ window.sb_saveStudent = async function (student) {
                 console.log('[DualSync] Student upserted in Supabase ✓:', rollNo);
             }
 
-            // B. Upsert into fees_records
-            const { error: feeError } = await sb.from('fees_records').upsert({
-                roll_no: rollNo,
-                current_due: monthlyFee,
-                due_date: '25th of month',
-                days_left: 5,
-                months_paid_on_time: 0,
-                loyalty_months: [],
-                recent_payments: []
-            }, { onConflict: 'roll_no' });
+            // B. Upsert into fees_records (preserve existing payments & dues!)
+            const { data: existingFee } = await sb.from('fees_records').select('*').eq('roll_no', rollNo).maybeSingle();
+            if (!existingFee) {
+                const { error: feeError } = await sb.from('fees_records').upsert({
+                    roll_no: rollNo,
+                    current_due: monthlyFee,
+                    due_date: '25th of month',
+                    days_left: 5,
+                    months_paid_on_time: 0,
+                    loyalty_months: [],
+                    recent_payments: []
+                }, { onConflict: 'roll_no' });
+                if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
+            }
 
             if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
 

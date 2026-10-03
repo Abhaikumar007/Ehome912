@@ -321,7 +321,14 @@
             }
 
             // Date Filter
-            if (_activeFilterDate === 'today' && item.class_date !== todayStr) return false;
+            if (_activeFilterDate === 'today') {
+                // If exam/test paper is tomorrow, show it 1 day before in today's view!
+                const isTomorrowExam = item.class_date === tomorrowStr && (
+                    (item.status && (item.status.includes('TP') || item.status.includes('test'))) ||
+                    (item.time && item.time.toLowerCase().includes('test paper'))
+                );
+                if (item.class_date !== todayStr && !isTomorrowExam) return false;
+            }
             if (_activeFilterDate === 'tomorrow' && item.class_date !== tomorrowStr) return false;
             if (_activeFilterDate === 'upcoming' && item.class_date < todayStr) return false;
             if (_activeFilterDate === 'custom' && _activeCustomDate && item.class_date !== _activeCustomDate) return false;
@@ -542,6 +549,17 @@
                                             <span class="badge px-2 py-1 font-weight-bold" style="background:${meta.bg}; color:${meta.color}; border-radius:6px; font-size:0.85rem;">
                                                 ${meta.emoji} ${item.subject || 'General'}
                                             </span>
+                                            ${(() => {
+                                                const nStat = (item.status || '').toLowerCase();
+                                                const nTime = (item.time || '').toLowerCase();
+                                                if (nStat.includes('tp') || nStat.includes('test') || nTime.includes('test paper') || nTime.includes('• tp')) {
+                                                    return '<span class="badge badge-danger ml-1" style="font-size:0.72rem; font-weight:600;"><i class="fas fa-file-alt mr-1"></i>Test Paper</span>';
+                                                } else if (nStat.includes('question') || nStat.includes('qb') || nTime.includes('question bank') || nTime.includes('• qb')) {
+                                                    return '<span class="badge ml-1 text-white" style="font-size:0.72rem; font-weight:600; background:#7c3aed;"><i class="fas fa-book-open mr-1"></i>Question Bank</span>';
+                                                } else {
+                                                    return '<span class="badge badge-light border ml-1 text-muted" style="font-size:0.72rem; font-weight:600;">📖 Regular</span>';
+                                                }
+                                            })()}
                                         </td>
 
                                         <!-- Time & Faculty -->
@@ -651,13 +669,25 @@
                         </div>
                     </div>
 
-                    <!-- Date & Status Row -->
+                    <!-- Date & Session Type Row -->
                     <div class="form-row mb-3">
                         <div class="col-md-6">
                             <label class="font-weight-bold text-dark small mb-1">Scheduled Date *</label>
                             <input type="date" class="form-control" id="editClassDate" required>
                         </div>
                         <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Session Type *</label>
+                            <select class="form-control" id="editClassSessionType">
+                                <option value="Regular">📖 Regular Class</option>
+                                <option value="TP">🎯 TP Session / Test Paper</option>
+                                <option value="QuestionBank">📝 Question Bank</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Status Row -->
+                    <div class="form-row mb-3">
+                        <div class="col-md-12">
                             <label class="font-weight-bold text-dark small mb-1">Session Status</label>
                             <select class="form-control" id="editClassStatus">
                                 <option value="upcoming">📖 Upcoming</option>
@@ -822,6 +852,17 @@
 
         const statusInfo = _parseStatus(item.status);
         document.getElementById('editClassStatus').value = statusInfo.status || 'upcoming';
+
+        const normStatus = (item.status || '').toLowerCase();
+        const normTime = (item.time || '').toLowerCase();
+        let detectedType = 'Regular';
+        if (normStatus.includes('tp') || normStatus.includes('test') || normTime.includes('test paper') || normTime.includes('• tp')) {
+            detectedType = 'TP';
+        } else if (normStatus.includes('question') || normStatus.includes('qb') || normTime.includes('question bank') || normTime.includes('• qb')) {
+            detectedType = 'QuestionBank';
+        }
+        const sessionTypeEl = document.getElementById('editClassSessionType');
+        if (sessionTypeEl) sessionTypeEl.value = detectedType;
         document.getElementById('editClassPublished').checked = item.published !== false;
 
         // Display modal
@@ -925,8 +966,26 @@
                 timeStr = `${startTime} - ${endTime}`;
             }
 
-            const finalTime = facultyName ? `${timeStr} • ${facultyName}` : timeStr;
-            const finalStatus = facultyId ? `${status}:${facultyId}` : (facultyName ? `${status}:fac` : status);
+            const sessTypeEl = document.getElementById('editClassSessionType');
+            const sessType = sessTypeEl ? sessTypeEl.value : 'Regular';
+            const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                ? 'Test Paper'
+                : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                ? 'Question Bank'
+                : 'Regular';
+
+            const timeParts = [timeStr];
+            if (sessType && sessType !== 'Regular') {
+                timeParts.push(sessionTag);
+            }
+            if (facultyName) {
+                timeParts.push(facultyName);
+            }
+
+            const finalTime = timeParts.join(' • ');
+            const finalStatus = (sessType && sessType !== 'Regular')
+                ? `${status}:${sessType}${facultyId ? ':' + facultyId : ''}`
+                : (facultyId ? `${status}:${facultyId}` : (facultyName ? `${status}:fac` : status));
 
             // 1. Update in Supabase classes table
             const { error: updErr } = await sb.from('classes').update({

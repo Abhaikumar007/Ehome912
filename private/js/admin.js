@@ -2327,6 +2327,71 @@ if (document.getElementById('timetableTableBody')) {
         }
         renderTimetable();
 
+        // Instantly sync slot to Supabase classes table so it reflects in student & teacher apps in real-time
+        (async () => {
+            try {
+                const sb = _getSupabaseClient();
+                if (!sb) return;
+
+                function _format12Hr(t) {
+                    if (!t) return '';
+                    if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) return t;
+                    const parts = t.split(':');
+                    const h = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1] || '0', 10);
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    const h12 = h % 12 || 12;
+                    return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
+                }
+
+                const gradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
+                let timeStr = (startTime && endTime) ? (`${_format12Hr(startTime)} - ${_format12Hr(endTime)}`) : _format12Hr(startTime || 'Scheduled');
+                const sessType = (sessionType || 'Regular').trim();
+                const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'Test Paper'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'Question Bank'
+                    : 'Regular';
+                const statusStr = 'upcoming' + (sessType ? ':' + sessType : '') + (facultyId ? ':' + facultyId : '');
+                const timeParts = [timeStr];
+                if (sessType && sessType !== 'Regular') {
+                    timeParts.push(sessionTag);
+                }
+                if (facultyName) {
+                    timeParts.push(facultyName);
+                }
+                const finalTime = timeParts.join(' • ');
+
+                // Clean duplicate slot for same class, date, subject and time prefix
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', gradeStr)
+                    .eq('class_date', date)
+                    .eq('subject', subject)
+                    .ilike('time', timeStr + '%');
+
+                await sb.from('classes')
+                    .delete()
+                    .eq('roll_no', gradeStr)
+                    .eq('class_date', date)
+                    .eq('subject', subject)
+                    .ilike('time', timeStr + '%');
+
+                await sb.from('classes').insert({
+                    roll_no: gradeStr,
+                    class_grade: gradeStr,
+                    subject: subject,
+                    time: finalTime,
+                    status: statusStr,
+                    published: true,
+                    class_date: date,
+                });
+                console.log('[Timetable] Synced to Supabase:', gradeStr, subject, finalTime);
+            } catch (syncErr) {
+                console.warn('[Timetable] Auto-sync to Supabase warning:', syncErr);
+            }
+        })();
+
         // Don't clear date to make adding multiple slots for same day easier
         document.getElementById('timetableStartTime').value = '';
         document.getElementById('timetableEndTime').value = '';
@@ -2650,13 +2715,28 @@ if (document.getElementById('timetableTableBody')) {
                     .eq('subject', entry.subject)
                     .ilike('time', timeStr + '%');
 
-                // 2. Insert exactly 1 clean class session
+                // 2. Insert exactly 1 clean class session with session type preserved
+                const sessType = (entry.sessionType || 'Regular').trim();
+                const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
+                    ? 'Test Paper'
+                    : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
+                    ? 'Question Bank'
+                    : 'Regular';
+                const statusStr = 'upcoming' + (sessType ? ':' + sessType : '') + (entry.facultyId ? ':' + entry.facultyId : '');
+                const timeParts = [timeStr];
+                if (sessType && sessType !== 'Regular') {
+                    timeParts.push(sessionTag);
+                }
+                if (entry.facultyName) {
+                    timeParts.push(entry.facultyName);
+                }
+
                 rowsToInsert.push({
                     roll_no: gradeStr,
                     class_grade: gradeStr,
                     subject: entry.subject,
-                    time: entry.facultyName ? (timeStr + ' • ' + entry.facultyName) : timeStr,
-                    status: entry.facultyId ? ('upcoming:' + entry.facultyId) : 'upcoming',
+                    time: timeParts.join(' • '),
+                    status: statusStr,
                     published: true,
                     class_date: entry.date,
                 });
@@ -3399,13 +3479,37 @@ window.approvePendingTest = async function(testId, rowId, classTag, subject) {
     if (!sb) return;
     try {
         await sb.from('pending_tests').update({ status: 'approved', approved_at: new Date().toISOString(), time_str: timeStr, venue_str: venueStr }).eq('id', rowId);
-        // Publish as academic alert to student dashboard
+        
+        // 1. Fetch test details for clean sync
+        const { data: ptData } = await sb.from('pending_tests').select('*').eq('id', rowId).maybeSingle();
+        const examDate = (ptData && ptData.date_str) || new Date().toISOString().split('T')[0];
+        const teacherName = (ptData && ptData.faculty_name) || 'Faculty Member';
+        const marks = (ptData && ptData.max_marks) || 100;
+        const syl = Array.isArray(ptData?.syllabus) ? ptData.syllabus.join(', ') : (ptData?.syllabus || 'Full Syllabus');
+
+        // 2. Publish as academic alert to student dashboard
         await sb.from('announcements').insert({
-            title: '📝 Test Scheduled: ' + classTag + ' ' + subject,
-            description: 'A test has been scheduled for ' + classTag + '. Date: TBD, Time: ' + timeStr + ', Venue: ' + venueStr + '. Check with your faculty for syllabus.',
-            author: 'Center Admin',
+            title: '[' + classTag + '] ' + (ptData?.title || 'Test Paper') + ' (' + subject + ')',
+            description: 'Exam Date: ' + examDate + '\nMax Marks: ' + marks + '\nVenue: ' + venueStr + '\nSyllabus: ' + syl + '\nSubmitted by: ' + teacherName,
+            time_label: 'Exam: ' + examDate,
+            author: teacherName,
+            icon: 'calendar',
+            icon_bg: '#EFF6FF',
+            icon_color: '#1A56DB',
             tag: 'Test Alert',
             important: true,
+        });
+
+        // 3. Sync to classes table as Test Paper slot so it appears in student & faculty timetables
+        await sb.from('classes').delete().eq('class_grade', classTag).eq('class_date', examDate).eq('subject', subject);
+        await sb.from('classes').insert({
+            roll_no: classTag,
+            class_grade: classTag,
+            subject: subject,
+            class_date: examDate,
+            time: (timeStr && timeStr !== 'TBD' ? timeStr : '11:30 AM - 12:00 PM') + ' • Test Paper • ' + teacherName,
+            status: 'upcoming:TP',
+            published: true,
         });
         alert('Test approved and broadcast to students!');
         window.loadPendingTests();
