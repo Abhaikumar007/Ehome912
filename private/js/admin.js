@@ -2611,15 +2611,14 @@ if (document.getElementById('timetableTableBody')) {
 
         const entry = { date, startTime, endTime, class: studentClass, subject, location, board, sessionType, facultyId, facultyName };
 
-        // Only replace if ALL fields are identical (exact duplicate). Otherwise always add as a new entry.
+        // Only replace if slot matches: grade, date, time, subject, board
         const existingIdx = timetableEntries.findIndex(e =>
-            e.class === studentClass &&
+            String(e.class).trim() === String(studentClass).trim() &&
             e.date === date &&
             e.startTime === startTime &&
             e.endTime === endTime &&
             (e.subject || '').toLowerCase().trim() === (subject || '').toLowerCase().trim() &&
-            (e.board || 'Both') === (board || 'Both') &&
-            (e.sessionType || 'Regular') === (sessionType || 'Regular')
+            (e.board || 'Both') === (board || 'Both')
         );
         if (existingIdx !== -1) {
             timetableEntries[existingIdx] = entry;
@@ -2636,7 +2635,10 @@ if (document.getElementById('timetableTableBody')) {
 
                 function _format12Hr(t) {
                     if (!t) return '';
-                    if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) return t;
+                    t = String(t).replace(/[\u2013\u2014]/g, '-').trim();
+                    if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) {
+                        return t.replace(/^0(\d:)/, '$1');
+                    }
                     const parts = t.split(':');
                     const h = parseInt(parts[0], 10);
                     const m = parseInt(parts[1] || '0', 10);
@@ -2669,6 +2671,10 @@ if (document.getElementById('timetableTableBody')) {
                 const finalTime = timeParts.join(' • ');
 
                 // Clean duplicate slot for same class, date, subject and time prefix
+                const sTimeClean = _format12Hr(startTime);
+                const sTimeWith0 = sTimeClean.length < 8 ? '0' + sTimeClean : sTimeClean;
+                const sTimeNo0 = sTimeClean.replace(/^0/, '');
+
                 await sb.from('classes')
                     .delete()
                     .eq('class_grade', gradeStr)
@@ -2682,6 +2688,20 @@ if (document.getElementById('timetableTableBody')) {
                     .eq('class_date', date)
                     .eq('subject', subject)
                     .ilike('time', timeStr + '%');
+
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', gradeStr)
+                    .eq('class_date', date)
+                    .eq('subject', subject)
+                    .ilike('time', sTimeNo0 + '%');
+
+                await sb.from('classes')
+                    .delete()
+                    .eq('roll_no', gradeStr)
+                    .eq('class_date', date)
+                    .eq('subject', subject)
+                    .ilike('time', sTimeWith0 + '%');
 
                 await sb.from('classes').insert({
                     roll_no: gradeStr,
@@ -2972,7 +2992,10 @@ if (document.getElementById('timetableTableBody')) {
 
             function to12Hr(t) {
                 if (!t) return '';
-                if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) return t;
+                t = String(t).replace(/[\u2013\u2014]/g, '-').trim();
+                if (t.includes('AM') || t.includes('PM') || t.includes('am') || t.includes('pm')) {
+                    return t.replace(/^0(\d:)/, '$1');
+                }
                 const parts = t.split(':');
                 const h = parseInt(parts[0], 10);
                 const m = parseInt(parts[1] || '0', 10);
@@ -2981,16 +3004,15 @@ if (document.getElementById('timetableTableBody')) {
                 return h12 + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
             }
 
-            // Deduplicate entries: key must include ALL distinguishing fields so different boards/session types are preserved
+            // Deduplicate entries: key uniquely identifies the slot so updating session type replaces previous entry
             const entriesMap = new Map();
             rawEntries.forEach(e => {
                 const rawCls = String(e.class || '').trim();
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
                 const normSub = (e.subject || '').trim().toLowerCase();
                 const boardVal = (e.board || 'Both').trim();
-                const sessVal = (e.sessionType || 'Regular').trim();
-                // Key includes ALL fields so multiple sessions with same time but different board/type are NEVER dropped
-                const key = gradeStr + '_' + normSub + '_' + e.date + '_' + (e.startTime || '') + '_' + (e.endTime || '') + '_' + boardVal + '_' + sessVal;
+                // Key based on slot: grade, subject, date, time, board so updated session type correctly replaces old entry
+                const key = gradeStr + '_' + normSub + '_' + e.date + '_' + (e.startTime || '') + '_' + (e.endTime || '') + '_' + boardVal;
                 entriesMap.set(key, e);
             });
             const deduplicatedEntries = Array.from(entriesMap.values());
@@ -3012,6 +3034,10 @@ if (document.getElementById('timetableTableBody')) {
                 const gradeStr = rawCls.startsWith('Class') ? rawCls : 'Class ' + rawCls;
 
                 // 1. Delete only matching slot if already present with same time to prevent duplicates
+                const sTimeClean = to12Hr(entry.startTime);
+                const sTimeWith0 = sTimeClean.length < 8 ? '0' + sTimeClean : sTimeClean;
+                const sTimeNo0 = sTimeClean.replace(/^0/, '');
+
                 await sb.from('classes')
                     .delete()
                     .eq('class_grade', gradeStr)
@@ -3025,6 +3051,20 @@ if (document.getElementById('timetableTableBody')) {
                     .eq('class_date', entry.date)
                     .eq('subject', entry.subject)
                     .ilike('time', timeStr + '%');
+
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', gradeStr)
+                    .eq('class_date', entry.date)
+                    .eq('subject', entry.subject)
+                    .ilike('time', sTimeNo0 + '%');
+
+                await sb.from('classes')
+                    .delete()
+                    .eq('roll_no', gradeStr)
+                    .eq('class_date', entry.date)
+                    .eq('subject', entry.subject)
+                    .ilike('time', sTimeWith0 + '%');
 
                 // 2. Insert exactly 1 clean class session with session type preserved
                 const sessType = (entry.sessionType || 'Regular').trim();

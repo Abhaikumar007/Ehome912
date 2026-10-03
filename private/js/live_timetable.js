@@ -991,9 +991,11 @@
                 }
             }
 
-            let timeStr = startTime;
-            if (startTime && endTime) {
-                timeStr = `${startTime} - ${endTime}`;
+            const cleanStartTime = startTime.replace(/•.*$/, '').replace(/[\u2013\u2014]/g, '-').trim();
+            const cleanEndTime = endTime.replace(/•.*$/, '').replace(/[\u2013\u2014]/g, '-').trim();
+            let timeStr = cleanStartTime;
+            if (cleanStartTime && cleanEndTime) {
+                timeStr = `${cleanStartTime} - ${cleanEndTime}`;
             }
 
             const sessTypeEl = document.getElementById('editClassSessionType');
