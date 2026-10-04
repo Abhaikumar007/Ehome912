@@ -3714,6 +3714,7 @@ function showPendingNotice(message, type = 'success') {
     areas.forEach(el => {
         el.innerHTML = alertHtml;
     });
+    if (type !== 'info' && areas[0] && areas[0].scrollIntoView) { try { areas[0].scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }
     if (type === 'success' || type === 'info') {
         setTimeout(() => {
             areas.forEach(el => {
@@ -3778,8 +3779,28 @@ window.loadPendingVerifications = async function() {
     }
 };
 
+// Inline two-tap confirm: native confirm()/alert() are blocked/unreliable in the mobile WebView,
+// which made Approve silently do nothing.
+function _tapToConfirm(btn, html) {
+    if (!btn) return window.confirm('Are you sure?');
+    if (btn.dataset.confirming === '1') {
+        clearTimeout(btn._confirmTimer);
+        btn.dataset.confirming = '';
+        return true;
+    }
+    const orig = btn.innerHTML;
+    btn.dataset.confirming = '1';
+    btn.innerHTML = html;
+    btn._confirmTimer = setTimeout(function () {
+        btn.dataset.confirming = '';
+        btn.innerHTML = orig;
+    }, 6000);
+    return false;
+}
+window._tapToConfirm = _tapToConfirm;
+
 window.approveStudentFee = async function(rollNo, studentName, amount, utr, btnEl) {
-    if (!confirm('Approve ₹' + Number(amount).toLocaleString('en-IN') + ' from ' + studentName + ' (' + rollNo + ')?\nThis will mark the payment as Verified and update fee records.')) {
+    if (!_tapToConfirm(btnEl, '<i class="fas fa-check mr-1"></i> Tap again to confirm')) {
         return;
     }
 
@@ -3982,7 +4003,6 @@ window.approveStudentFee = async function(rollNo, studentName, amount, utr, btnE
     } catch (e) {
         console.error('[approveStudentFee]', e);
         showPendingNotice('Failed to approve fee: ' + (e.message || e), 'danger');
-        alert('Failed to approve: ' + (e.message || e));
         if (btnEl) {
             btnEl.disabled = false;
             btnEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Approve';
@@ -3993,7 +4013,9 @@ window.approveStudentFee = async function(rollNo, studentName, amount, utr, btnE
 };
 
 window.rejectStudentFee = async function(rollNo, pendingAmount, btnEl) {
-    if (!confirm('Reject fee verification for ' + rollNo + '?\nThe student will remain in Due status.')) return;
+    if (!_tapToConfirm(btnEl, '<i class="fas fa-times mr-1"></i> Tap again')) {
+        return;
+    }
 
     if (btnEl) {
         btnEl.disabled = true;
@@ -4043,7 +4065,6 @@ window.rejectStudentFee = async function(rollNo, pendingAmount, btnEl) {
     } catch (e) {
         console.error('[rejectStudentFee]', e);
         showPendingNotice('Failed to reject: ' + (e.message || e), 'danger');
-        alert('Failed to reject: ' + (e.message || e));
         if (btnEl) { btnEl.disabled = false; btnEl.innerHTML = '<i class="fas fa-times mr-1"></i> Reject'; }
     }
 };
