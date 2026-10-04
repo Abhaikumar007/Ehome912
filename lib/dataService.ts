@@ -133,6 +133,26 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
   return 'Both';
 }
 
+/**
+ * Robust helper to extract and resolve syllabus for a student
+ * Returns 'State Syllabus' or 'CBSE'
+ */
+export function resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' {
+  if (student?.syllabus === 'CBSE' || student?.syllabus === 'State Syllabus') {
+    return student.syllabus;
+  }
+  const batchLower = (student?.batch || '').toLowerCase();
+  const schoolLower = (student?.school || '').toLowerCase();
+  if (batchLower.includes('cbse') || schoolLower.includes('cbse')) return 'CBSE';
+  if (batchLower.includes('state') || schoolLower.includes('state')) return 'State Syllabus';
+
+  const roll = (student?.rollNo || student?.roll_no || student?.roll || student?.id || '').toUpperCase();
+  const matched = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === roll);
+  if (matched?.syllabus) return matched.syllabus;
+
+  return 'State Syllabus';
+}
+
 export interface AcademicAlert {
   id: string;
   type?: 'test_paper' | 'top_scorer' | 'special_notice';

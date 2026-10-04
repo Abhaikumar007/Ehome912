@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { teacherData } from '../../constants/mockData';
-import { DataService } from '../../lib/dataService';
+import { DataService, resolveClassTargetSyllabus, resolveStudentSyllabus } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import {
   getActiveTeacher,
@@ -33,6 +33,7 @@ interface StudentRoster {
   subjects: string;
   school?: string;
   note?: string;
+  syllabus?: 'State Syllabus' | 'CBSE';
 }
 
 const INITIAL_CLASSES = [
@@ -92,6 +93,7 @@ export default function FacultyAttendanceScreen() {
     sessionType?: string;
     classDate?: string;
     dateOffset?: string;
+    targetSyllabus?: string;
   }>();
   const [roster, setRoster] = useState<TeacherProfile[]>([]);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
@@ -200,6 +202,7 @@ export default function FacultyAttendanceScreen() {
             name: remote.name || s.name,
             class: remote.class_name || s.class,
             batch: remote.batch || remote.class_name || s.batch,
+            syllabus: resolveStudentSyllabus(remote || s),
             phone: remote.phone || s.phone,
             school: remote.school || s.school,
             subjects: (attSubjects && attSubjects.length > 0)
@@ -227,6 +230,7 @@ export default function FacultyAttendanceScreen() {
               name: d.name || '',
               class: d.class_name || 'Class 10',
               batch: d.batch || d.class_name || 'Class 10',
+              syllabus: resolveStudentSyllabus(d),
               avatar: (d.name || 'ST').slice(0, 2).toUpperCase(),
               phone: d.phone || '',
               school: d.school || 'EduHome',
@@ -386,6 +390,35 @@ export default function FacultyAttendanceScreen() {
     return list.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
   }, [adminClasses, selectedClassId, selectedSubject, targetDateIso, dateOffset]);
 
+  // Active Session & Syllabus Resolution
+  const activeSession = useMemo(() => {
+    if (activeClassId) {
+      const match = sessionsForSelectedClassAndSubject.find((s) => s.id === activeClassId);
+      if (match) return match;
+      const adminMatch = adminClasses.find((c) => c.id === activeClassId);
+      if (adminMatch) return adminMatch;
+    }
+    if (activeSessionTime) {
+      const normTime = activeSessionTime.split('•')[0].trim().toLowerCase();
+      const match = sessionsForSelectedClassAndSubject.find((s) => {
+        const sTime = (s.time || '').split('•')[0].trim().toLowerCase();
+        return sTime === normTime || sTime.includes(normTime) || normTime.includes(sTime);
+      });
+      if (match) return match;
+    }
+    return sessionsForSelectedClassAndSubject[0] || null;
+  }, [sessionsForSelectedClassAndSubject, adminClasses, activeClassId, activeSessionTime]);
+
+  const activeSessionSyllabus = useMemo<'State Syllabus' | 'CBSE' | 'Both'>(() => {
+    if (!activeSession) {
+      if (params.targetSyllabus === 'CBSE' || params.targetSyllabus === 'State Syllabus') {
+        return params.targetSyllabus;
+      }
+      return 'Both';
+    }
+    return resolveClassTargetSyllabus(activeSession);
+  }, [activeSession, params.targetSyllabus]);
+
   useEffect(() => {
     if (sessionsForSelectedClassAndSubject.length > 0) {
       const preferredId = params.classId || activeClassId;
@@ -422,6 +455,10 @@ export default function FacultyAttendanceScreen() {
           : 'Regular Class';
         setActiveSessionType(sType);
       }
+    } else {
+      setActiveClassId('');
+      setActiveSessionTime('');
+      setActiveSessionType('Regular Class');
     }
   }, [sessionsForSelectedClassAndSubject, params.classId, params.timeSlot]);
 
@@ -591,7 +628,23 @@ export default function FacultyAttendanceScreen() {
       isStudentEnrolledInSubject(s.subjects, targetSubject)
     );
 
-    const rosterStudents: StudentRoster[] = subjectFiltered.map((s, idx) => {
+    // Filter students strictly by selected session syllabus:
+    // - If CBSE session: ONLY CBSE students
+    // - If State Syllabus session: ONLY State Syllabus students
+    // - If Both/Shared session (or no specific session): all eligible students
+    const syllabusFiltered = subjectFiltered.filter((s) => {
+      if (activeSessionSyllabus === 'Both') return true;
+      const studentSyllabus = resolveStudentSyllabus(s);
+      if (activeSessionSyllabus === 'CBSE') {
+        return studentSyllabus === 'CBSE';
+      }
+      if (activeSessionSyllabus === 'State Syllabus') {
+        return studentSyllabus === 'State Syllabus';
+      }
+      return true;
+    });
+
+    const rosterStudents: StudentRoster[] = syllabusFiltered.map((s, idx) => {
       let initialAttendance: 'P' | 'A' = 'P';
       const studentAtt = attRecords.find((a) => (a.roll_no || '').toUpperCase() === s.rollNo.toUpperCase());
       if (studentAtt) {
@@ -638,12 +691,13 @@ export default function FacultyAttendanceScreen() {
         attendance: initialAttendance,
         subjects: s.subjects || 'General',
         school: s.school,
+        syllabus: resolveStudentSyllabus(s),
       };
     });
 
     setStudents(rosterStudents);
     setSubmitted(false);
-  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents, activeClassId, activeSessionTime, attRecords]);
+  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents, activeClassId, activeSessionTime, activeSessionSyllabus, attRecords]);
 
   // Format date display
   const getDateLabel = () => {
@@ -842,7 +896,7 @@ export default function FacultyAttendanceScreen() {
               <Ionicons name="funnel" size={11} color="#0284C7" /> Allotted Subject Filter:
             </Text>
             <Text style={styles.subjectFilterCount}>
-              {totalCount} student{totalCount !== 1 ? 's' : ''} {selectedSubject === 'All Students' ? 'enrolled' : `taking ${selectedSubject}`}
+              {totalCount} student{totalCount !== 1 ? 's' : ''} {selectedSubject === 'All Students' ? 'enrolled' : `taking ${selectedSubject}`}{activeSessionSyllabus !== 'Both' ? ` (${activeSessionSyllabus})` : ''}
             </Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.subjectsScroll}>
@@ -885,6 +939,7 @@ export default function FacultyAttendanceScreen() {
                 const sTime = (sess.time || '').split('•')[0].trim();
                 const isSessActive = (activeClassId && sess.id === activeClassId) || (activeSessionTime && sTime === activeSessionTime);
                 const sType = sess.time?.toLowerCase().includes('test paper') ? 'Test Paper' : sess.time?.toLowerCase().includes('question bank') ? 'Question Bank' : 'Regular Class';
+                const sSyllabus = resolveClassTargetSyllabus(sess);
                 return (
                   <TouchableOpacity
                     key={sess.id}
@@ -903,7 +958,7 @@ export default function FacultyAttendanceScreen() {
                       color={isSessActive ? "#fff" : "#0284C7"}
                     />
                     <Text style={[styles.sessionChipText, isSessActive && styles.sessionChipTextActive]}>
-                      {sTime} • {sType}
+                      {sTime} • {sSyllabus !== 'Both' ? `${sSyllabus === 'State Syllabus' ? 'State' : 'CBSE'} • ` : ''}{sType}
                     </Text>
                   </TouchableOpacity>
                 );
@@ -922,7 +977,7 @@ export default function FacultyAttendanceScreen() {
               <View>
                 <Text style={styles.summaryTitle}>Attendance Summary</Text>
                 <Text style={styles.summarySub}>
-                  {currentClass.batch} • {selectedSubject}
+                  {currentClass.batch} • {selectedSubject}{activeSessionSyllabus !== 'Both' ? ` • ${activeSessionSyllabus}` : ''}
                   {activeSessionTime ? ` • ${activeSessionTime}` : ''}
                   {activeSessionType ? ` (${activeSessionType})` : ''}
                 </Text>
@@ -991,10 +1046,10 @@ export default function FacultyAttendanceScreen() {
             <View style={{ padding: 24, alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.border }}>
               <Ionicons name="person-remove-outline" size={32} color={Colors.textMuted} style={{ marginBottom: 8 }} />
               <Text style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
-                No students enrolled in {selectedSubject}
+                {activeSessionSyllabus !== 'Both' ? `No ${activeSessionSyllabus} students enrolled in ${selectedSubject || 'this subject'}` : `No students enrolled in ${selectedSubject || 'this subject'}`}
               </Text>
               <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, textAlign: 'center', marginTop: 4 }}>
-                Switch subject filter to "All Subjects" or select another class.
+                {activeSessionSyllabus !== 'Both' ? `No students in ${currentClass.label} are enrolled under ${activeSessionSyllabus}. Switch session or select another class.` : 'Switch subject filter to "All Subjects" or select another class.'}
               </Text>
             </View>
           ) : (
@@ -1021,7 +1076,7 @@ export default function FacultyAttendanceScreen() {
                       )}
                     </View>
                     <Text style={styles.studentSub}>
-                      {item.roll} • {item.school || 'EduHome'}
+                      {item.roll} • {item.school || 'EduHome'}{item.syllabus ? ` • ${item.syllabus}` : ''}
                     </Text>
                     {item.subjects ? (
                       <View style={styles.studentSubsBadge}>

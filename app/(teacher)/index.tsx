@@ -972,6 +972,7 @@ export default function TeacherHomeScreen() {
                       sessionType: sessionInfo.label,
                       classDate: c.class_date || targetDateInfo.iso,
                       dateOffset: String(dateOffset),
+                      targetSyllabus: resolveClassTargetSyllabus(c),
                     },
                   })
                 }
