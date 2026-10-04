@@ -597,6 +597,21 @@ export default function FeesScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+
+            {/* Parent Notice Note at Bottom of Fees Box */}
+            <TouchableOpacity
+              style={styles.dueNoteBox}
+              onPress={handleOpenApprovalModal}
+              activeOpacity={0.8}
+            >
+              <View style={styles.dueNoteIconWrap}>
+                <Ionicons name="information-circle" size={16} color="#0284C7" />
+              </View>
+              <Text style={styles.dueNoteText}>
+                Please inform Edu Home by clicking the{' '}
+                <Text style={styles.dueNoteHighlight}>Confirm button</Text> if you have paid the fees.
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -1163,6 +1178,37 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontFamily: 'Inter_600SemiBold',
     color: Colors.primary,
+  },
+  dueNoteBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  dueNoteIconWrap: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dueNoteText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: 'Inter_500Medium',
+    color: '#0369A1',
+    lineHeight: 17,
+  },
+  dueNoteHighlight: {
+    fontFamily: 'Inter_700Bold',
+    color: '#0284C7',
   },
   resetPendingBtn: {
     flexDirection: 'row',
