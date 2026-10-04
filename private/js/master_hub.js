@@ -1,14 +1,35 @@
 function cleanApprovedTitle(rawTitle) {
     if (!rawTitle) return 'Community Announcement';
-    let t = rawTitle;
-    if (/^\[PENDING APPROVAL\s*-\s*All Classes\]/i.test(t)) {
-        t = t.replace(/^\[PENDING APPROVAL\s*-\s*All Classes\]\s*/i, '');
-    } else if (/^\[PENDING APPROVAL\s*-\s*([^\]]+)\]/i.test(t)) {
-        t = t.replace(/^\[PENDING APPROVAL\s*-\s*([^\]]+)\]\s*/i, '[$1] ');
-    } else {
-        t = t.replace(/^\[PENDING APPROVAL\s*-\s*/i, '').replace(/^\[PENDING APPROVAL\]\s*/i, '');
+    let t = String(rawTitle);
+
+    // Extract class if formatted as [Class X] or [PENDING APPROVAL - Class X]
+    let classTag = '';
+    const classMatch = t.match(/\[(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i)
+                    || t.match(/\[PENDING APPROVAL\s*-\s*(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i);
+    if (classMatch) {
+        classTag = classMatch[1];
     }
-    return t.replace(/\s{2,}/g, ' ').trim();
+
+    // Strip all pending approval tags anywhere in the title
+    t = t.replace(/\[PENDING APPROVAL[^\]]*\]/gi, '')
+         .replace(/\[Test Alert\]/gi, '')
+         .replace(/\[Exam Alert\]/gi, '');
+
+    // Strip class tag from title body so we can format cleanly
+    if (classTag) {
+        const escapedClass = classTag.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        t = t.replace(new RegExp('\\[' + escapedClass + '\\]', 'gi'), '');
+    }
+
+    // Clean whitespace
+    t = t.replace(/\s{2,}/g, ' ').trim();
+    if (!t) t = 'Test Paper';
+
+    // Prefix class tag if present and not "All Classes"
+    if (classTag && !classTag.toLowerCase().includes('all classes')) {
+        return '[' + classTag + '] ' + t;
+    }
+    return t;
 }
 
 function escapeHtml(str) {
@@ -867,25 +888,26 @@ window.requestApproveAnnouncement = async function (id, btn, e) {
 
         const { data: item, error: fetchErr } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
         if (fetchErr) throw fetchErr;
+        if (!item) throw new Error('Announcement not found in database.');
 
-        let cleanTitle = 'Community Announcement';
-        if (item && item.title) {
-            cleanTitle = cleanApprovedTitle(item.title);
-        }
+        const cleanTitle = cleanApprovedTitle(item.title);
+        const desc = item.description || '';
 
-        const isTestOrExam = (item && item.title && (item.title.toLowerCase().includes('test') || item.title.toLowerCase().includes('exam')))
-            || (item && item.description && (item.description.includes('Exam Date:') || item.description.includes('Max Marks:') || item.description.includes('Syllabus:')));
+        const isTestOrExam = (item && item.title && (item.title.toLowerCase().includes('test') || item.title.toLowerCase().includes('exam') || item.title.toLowerCase().includes('unit')))
+            || (desc.includes('Exam Date:') || desc.includes('Max Marks:') || desc.includes('Syllabus:'))
+            || (item && item.icon === 'calendar');
 
         let approvedTitle = cleanTitle;
-        if (isTestOrExam && !approvedTitle.includes('[Exam Alert') && !approvedTitle.includes('[Test Alert')) {
-            const classMatch = approvedTitle.match(/^\[Class\s*[^\]]+\]/i);
+        if (isTestOrExam) {
+            const classMatch = approvedTitle.match(/^\[(Class\s*[^ \]]+)\]\s*(.*)$/i);
             if (classMatch) {
-                approvedTitle = approvedTitle.replace(/^(\[Class\s*[^\]]+\])\s*/i, '$1 [Test Alert] ');
+                approvedTitle = '[' + classMatch[1] + '] [Test Alert] ' + classMatch[2];
             } else {
                 approvedTitle = '[Test Alert] ' + approvedTitle;
             }
         }
 
+        // 1. Update announcement in Supabase removing [PENDING APPROVAL]
         const { error: updateErr } = await sb.from('announcements').update({
             title: approvedTitle,
             time_label: 'Just now',
@@ -897,36 +919,87 @@ window.requestApproveAnnouncement = async function (id, btn, e) {
 
         if (updateErr) throw updateErr;
 
-        // Also if it's an exam alert, sync to academic_alerts table if possible
+        // 2. If it's a test/exam, sync to Timetable (classes table)
         if (isTestOrExam) {
             try {
-                const desc = (item && item.description) || '';
-                const dateMatch = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i);
-                const marksMatch = desc.match(/(?:Max|Total)\s*Marks:\s*([^\n\r|]+)/i);
-                const syllabusMatch = desc.match(/Syllabus:\s*([^\n\r]+)/i);
-                const classMatch = approvedTitle.match(/\[Class\s*([^\]]+)\]/i);
+                const examDateMatch = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i);
+                const timeMatch = desc.match(/Time\s*:\s*([^\n\r|]+)/i);
+                const venueMatch = desc.match(/(?:Venue|Room)\s*:\s*([^\n\r|]+)/i);
+                const subMatch = (item.title || '').match(/\(([^)]+)\)/) || desc.match(/Subject:\s*([^\n\r|]+)/i);
+                const classMatch = approvedTitle.match(/\[(Class\s*[^ \]]+)\]/i);
+                const authorMatch = desc.match(/(?:Submitted\s*by|Faculty|Teacher|By)\s*:\s*([^\n\r|]+)/i);
 
-                await sb.from('academic_alerts').upsert({
-                    title: approvedTitle.replace(/^\[[^\]]+\]\s*/g, ''),
-                    class_label: classMatch ? ('Class ' + classMatch[1].trim()) : 'All',
-                    exam_date: dateMatch ? dateMatch[1].trim() : '',
-                    max_marks: marksMatch ? marksMatch[1].trim() : '',
-                    syllabus: syllabusMatch ? syllabusMatch[1].trim() : '',
-                    published: true,
-                    is_active: true,
-                    created_at: new Date().toISOString()
+                const classTag = classMatch ? classMatch[1].trim() : 'Class 10';
+                const subject = subMatch ? subMatch[1].trim() : 'General';
+                const teacherName = authorMatch ? authorMatch[1].trim() : 'Faculty Member';
+                const timeStr = timeMatch ? timeMatch[1].trim() : '11:30 AM - 12:00 PM';
+                const venueStr = venueMatch ? venueMatch[1].trim() : 'Exam Hall 1';
+
+                // Format ISO date YYYY-MM-DD
+                let examDateIso = '';
+                if (examDateMatch) {
+                    const parsedD = new Date(examDateMatch[1].trim());
+                    if (!isNaN(parsedD.getTime())) {
+                        const y = parsedD.getFullYear();
+                        const m = String(parsedD.getMonth() + 1).padStart(2, '0');
+                        const d = String(parsedD.getDate()).padStart(2, '0');
+                        examDateIso = `${y}-${m}-${d}`;
+                    }
+                }
+                if (!examDateIso) {
+                    examDateIso = new Date().toISOString().split('T')[0];
+                }
+
+                // Delete duplicate slot if any
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', classTag)
+                    .eq('class_date', examDateIso)
+                    .eq('subject', subject);
+
+                // Insert into classes table as Test Paper slot for student and faculty timetable
+                const timeString = `${timeStr} • Test Paper • ${teacherName}`;
+                await sb.from('classes').insert({
+                    roll_no: classTag,
+                    class_grade: classTag,
+                    subject: subject,
+                    class_date: examDateIso,
+                    time: timeString,
+                    status: 'upcoming:TP',
+                    published: true
                 });
-            } catch (ignore) {}
+
+                // Update pending_tests table if entry exists
+                try {
+                    await sb.from('pending_tests').update({
+                        status: 'approved',
+                        approved_at: new Date().toISOString(),
+                        time_str: timeStr,
+                        venue_str: venueStr,
+                        class_tag: classTag,
+                        subject: subject,
+                        date_str: examDateIso
+                    }).ilike('title', '%' + cleanTitle.replace(/^\[[^\]]+\]\s*/, '') + '%');
+                } catch (_) {}
+            } catch (clsErr) {
+                console.warn('[MasterHub] Error syncing approved test to timetable:', clsErr);
+            }
         }
 
         showBroadcastStatus('✅ Announcement / Test "' + cleanTitle + '" approved and broadcasted to student & faculty apps!');
         await loadActiveBroadcasts();
+
+        // Refresh timetable on page if present
+        if (typeof window.initLiveAppTimetable === 'function') {
+            window.initLiveAppTimetable('hubTimetablePlatform');
+            window.initLiveAppTimetable('liveTimetablePlatform');
+        }
     } catch (err) {
         console.error('[MasterHub] Failed to approve announcement:', err);
         showBroadcastStatus('Failed to approve announcement: ' + (err.message || err), true);
         if (btn) {
             btn.disabled = false;
-            btn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Approve & Publish';
+            btn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Quick Approve';
         }
     }
 };
@@ -947,7 +1020,7 @@ window.requestDeleteAnnouncement = function (id, btnElement, evt) {
         window.executeDeleteAnnouncement(id, btnElement, e);
     };
 
-    // Auto-revert after 5 seconds if not clicked
+    // Auto-revert after 6 seconds if not clicked
     setTimeout(function () {
         if (btnElement && btnElement.innerHTML.includes('Confirm')) {
             if (isReject) {
@@ -961,7 +1034,7 @@ window.requestDeleteAnnouncement = function (id, btnElement, evt) {
                 window.requestDeleteAnnouncement(id, btnElement, e);
             };
         }
-    }, 5000);
+    }, 6000);
 };
 
 window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
@@ -977,12 +1050,57 @@ window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
         return;
     }
 
+    const isReject = btnElement && (btnElement.innerHTML.includes('Reject') || btnElement.getAttribute('data-action') === 'reject');
+
     if (btnElement) {
         btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> ' + (isReject ? 'Rejecting...' : 'Deleting...');
     }
 
     try {
+        if (isReject) {
+            const reason = prompt('Please enter rejection feedback/reason for faculty (or click OK to proceed):', 'Schedule or syllabus needs review.');
+            if (reason === null) {
+                if (btnElement) {
+                    btnElement.disabled = false;
+                    btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2 font-weight-bold';
+                    btnElement.innerHTML = '<i class="fas fa-times mr-1"></i> Reject';
+                    btnElement.onclick = function (e) { window.requestDeleteAnnouncement(id, btnElement, e); };
+                }
+                return;
+            }
+
+            const { data: item } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+            let cleanTitle = 'Test Schedule';
+            if (item && item.title) {
+                cleanTitle = cleanApprovedTitle(item.title);
+            }
+
+            // Update pending_tests table if row exists
+            try {
+                await sb.from('pending_tests').update({
+                    status: 'rejected',
+                    rejected_at: new Date().toISOString(),
+                    rejection_reason: reason
+                }).ilike('title', '%' + cleanTitle + '%');
+            } catch (_) {}
+
+            // Update announcement to show Rejected status
+            await sb.from('announcements').update({
+                title: '[REJECTED] ' + cleanTitle,
+                description: 'Status: REJECTED by Admin\nFeedback: ' + reason + '\n\nOriginal Details:\n' + (item?.description || ''),
+                time_label: 'Rejected',
+                important: false,
+                icon: 'close-circle',
+                icon_bg: '#FEE2E2',
+                icon_color: '#DC2626'
+            }).eq('id', id);
+
+            showBroadcastStatus('❌ Test submission rejected and marked as Rejected with feedback.');
+            await loadActiveBroadcasts();
+            return;
+        }
+
         const { error } = await sb.from('announcements').delete().eq('id', id);
         if (error) {
             showBroadcastStatus('Failed to delete announcement: ' + error.message, true);
@@ -1012,6 +1130,7 @@ window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
         }
     }
 };
+
 
 window.requestClearAll = function (btnElement, evt) {
     if (evt) {
@@ -1831,7 +1950,7 @@ document.addEventListener('DOMContentLoaded', function () {
 window.openEditApprovalModal = async function(id, btn, e) {
     if (e) { e.preventDefault(); e.stopPropagation(); }
     const sb = _getMasterHubSupabase();
-    if (!sb) { alert('Supabase client not ready.'); return; }
+    if (!sb) { alert('Supabase client not ready. Please refresh.'); return; }
 
     const { data: item, error } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
     if (error || !item) { alert('Failed to fetch details for approval: ' + (error?.message || 'Item not found')); return; }
@@ -1846,13 +1965,13 @@ window.openEditApprovalModal = async function(id, btn, e) {
         modalEl.setAttribute('role', 'dialog');
         modalEl.setAttribute('aria-hidden', 'true');
         modalEl.innerHTML = `
-        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px; overflow: hidden;">
-                <div class="modal-header text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
-                    <h5 class="modal-title font-weight-bold d-flex align-items-center">
-                        <i class="fas fa-edit mr-2 text-primary"></i> Review, Edit & Approve Exam / Alert
+                <div class="modal-header bg-primary text-white py-3 px-4">
+                    <h5 class="modal-title font-weight-bold d-flex align-items-center mb-0">
+                        <i class="fas fa-edit mr-2"></i> Review, Edit & Schedule Exam Paper
                     </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="window.closeEditApprovalModal()">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -1864,11 +1983,11 @@ window.openEditApprovalModal = async function(id, btn, e) {
                             <div class="col-md-6 form-group">
                                 <label class="font-weight-bold small text-secondary">Target Class / Grade</label>
                                 <select class="form-control" id="edit_approval_class" required>
-                                    <option value="Class 10">Class 10</option>
                                     <option value="Class 6">Class 6</option>
                                     <option value="Class 7">Class 7</option>
                                     <option value="Class 8">Class 8</option>
                                     <option value="Class 9">Class 9</option>
+                                    <option value="Class 10">Class 10</option>
                                     <option value="Class 11">Class 11</option>
                                     <option value="Class 12">Class 12</option>
                                     <option value="All Classes">All Classes</option>
@@ -1876,13 +1995,13 @@ window.openEditApprovalModal = async function(id, btn, e) {
                             </div>
                             <div class="col-md-6 form-group">
                                 <label class="font-weight-bold small text-secondary">Subject</label>
-                                <input type="text" class="form-control" id="edit_approval_subject" placeholder="e.g. Physics" required />
+                                <input type="text" class="form-control" id="edit_approval_subject" placeholder="e.g. Mathematics" required />
                             </div>
                         </div>
 
                         <div class="form-group">
                             <label class="font-weight-bold small text-secondary">Exam / Alert Title</label>
-                            <input type="text" class="form-control font-weight-bold" id="edit_approval_title" placeholder="e.g. Chapter 2: Sound" required />
+                            <input type="text" class="form-control font-weight-bold" id="edit_approval_title" placeholder="e.g. Unit 1: Algebra" required />
                         </div>
 
                         <div class="row">
@@ -1909,7 +2028,7 @@ window.openEditApprovalModal = async function(id, btn, e) {
 
                         <div class="form-group">
                             <label class="font-weight-bold small text-secondary">📚 Prescribed Syllabus</label>
-                            <textarea class="form-control" id="edit_approval_syllabus" rows="2" placeholder="e.g. Sound, Wave Motion, Reflection"></textarea>
+                            <textarea class="form-control" id="edit_approval_syllabus" rows="2" placeholder="e.g. Real Numbers, Polynomials"></textarea>
                         </div>
 
                         <!-- Visibility Schedule Controls -->
@@ -1933,11 +2052,11 @@ window.openEditApprovalModal = async function(id, btn, e) {
 
                         <div class="form-group mb-0">
                             <label class="font-weight-bold small text-secondary">Faculty Member / Submitted By</label>
-                            <input type="text" class="form-control" id="edit_approval_author" placeholder="e.g. Mr. Akshay Kumar M" />
+                            <input type="text" class="form-control" id="edit_approval_author" placeholder="e.g. Ms. Devi" />
                         </div>
 
                         <div class="modal-footer px-0 pb-0 pt-3 border-top mt-3">
-                            <button type="button" class="btn btn-secondary px-3" data-dismiss="modal">Cancel</button>
+                            <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="window.closeEditApprovalModal()">Cancel</button>
                             <button type="submit" class="btn btn-success px-4 font-weight-bold" id="submitApprovalBtn">
                                 <i class="fas fa-check-circle mr-1"></i> Approve & Sync to Timetable
                             </button>
@@ -1952,9 +2071,10 @@ window.openEditApprovalModal = async function(id, btn, e) {
     // Parse existing details
     const rawTitle = item.title || '';
     const desc = item.description || '';
-    const classMatch = rawTitle.match(/\[(Class\s*\d{1,2}|All Classes)\]/i);
+    const classMatch = rawTitle.match(/\[(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i)
+                    || rawTitle.match(/\[PENDING APPROVAL\s*-\s*(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i);
     const subMatch = rawTitle.match(/\(([^)]+)\)/) || desc.match(/Subject:\s*([^\n|]+)/i);
-    const cleanTitle = rawTitle.replace(/\[[^\]]+\]\s*/g, '').replace(/\([^)]+\)/g, '').trim();
+    const cleanTitle = cleanApprovedTitle(rawTitle).replace(/^\[[^\]]+\]\s*/g, '').replace(/\([^)]+\)/g, '').trim();
 
     const examDateMatch = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i);
     const timeMatch = desc.match(/Time\s*:\s*([^\n\r|]+)/i);
@@ -2001,22 +2121,71 @@ window.openEditApprovalModal = async function(id, btn, e) {
 
     // Populate form fields
     document.getElementById('edit_approval_id').value = item.id;
-    document.getElementById('edit_approval_class').value = classMatch ? classMatch[1] : 'Class 10';
-    document.getElementById('edit_approval_subject').value = subMatch ? subMatch[1].trim() : 'Physics';
+
+    // Class selection with dynamic option support
+    const targetClass = classMatch ? classMatch[1] : 'Class 10';
+    const classSelect = document.getElementById('edit_approval_class');
+    if (classSelect) {
+        let found = false;
+        for (let i = 0; i < classSelect.options.length; i++) {
+            if (classSelect.options[i].value.toLowerCase() === targetClass.toLowerCase()) {
+                classSelect.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            const opt = document.createElement('option');
+            opt.value = targetClass;
+            opt.textContent = targetClass;
+            opt.selected = true;
+            classSelect.appendChild(opt);
+        }
+    }
+
+    document.getElementById('edit_approval_subject').value = subMatch ? subMatch[1].trim() : 'Mathematics';
     document.getElementById('edit_approval_title').value = cleanTitle || 'Test Paper';
     document.getElementById('edit_approval_exam_date').value = examDateIso;
     document.getElementById('edit_approval_time').value = timeMatch ? timeMatch[1].trim() : '11:30 AM - 12:00 PM';
     document.getElementById('edit_approval_venue').value = venueMatch ? venueMatch[1].trim() : 'Exam Hall 1';
     document.getElementById('edit_approval_marks').value = marksMatch ? parseInt(marksMatch[1].trim(), 10) || 100 : 100;
-    document.getElementById('edit_approval_syllabus').value = syllabusMatch ? syllabusMatch[1].trim() : 'Sound';
+    document.getElementById('edit_approval_syllabus').value = syllabusMatch ? syllabusMatch[1].trim() : '';
     document.getElementById('edit_approval_show_from').value = showFromIso;
     document.getElementById('edit_approval_stop_date').value = stopDateIso;
-    document.getElementById('edit_approval_author').value = authorMatch ? authorMatch[1].trim() : 'Mr. Akshay Kumar M';
+    document.getElementById('edit_approval_author').value = authorMatch ? authorMatch[1].trim() : 'Faculty Member';
 
-    // Show modal using jQuery / Bootstrap
-    if (typeof $ !== 'undefined' && $('#editApprovalModal').modal) {
+    // Show modal using jQuery or Vanilla JS
+    if (typeof $ !== 'undefined' && typeof $('#editApprovalModal').modal === 'function') {
         $('#editApprovalModal').modal('show');
+    } else {
+        const m = document.getElementById('editApprovalModal');
+        if (m) {
+            m.style.display = 'block';
+            m.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('editApprovalBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'editApprovalBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
     }
+};
+
+window.closeEditApprovalModal = function() {
+    if (typeof $ !== 'undefined' && typeof $('#editApprovalModal').modal === 'function') {
+        $('#editApprovalModal').modal('hide');
+    }
+    const m = document.getElementById('editApprovalModal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('editApprovalBackdrop');
+    if (backdrop) backdrop.remove();
 };
 
 window.submitEditedApproval = async function(e) {
@@ -2044,7 +2213,7 @@ window.submitEditedApproval = async function(e) {
         const sb = _getMasterHubSupabase();
         if (!sb) throw new Error('Database client not ready.');
 
-        // Format friendly exam date (e.g. Fri, Oct 2, 2026)
+        // Format friendly exam date (e.g. Sun, Oct 4, 2026)
         let friendlyExamDate = examDate;
         try {
             const parts = examDate.split('-');
@@ -2052,9 +2221,9 @@ window.submitEditedApproval = async function(e) {
             friendlyExamDate = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
         } catch (_) {}
 
-        // 1. Update announcement with edited metadata and visibility rules
-        const fullTitle = `[${targetClass}] ${title} (${subject})`;
-        const fullDesc = `Exam Date: ${friendlyExamDate}\nMax Marks: ${maxMarks}\nVenue: ${venue}\nSyllabus: ${syllabus}\nShow From: ${showFrom}\nValid Until: ${stopDate}\nSubmitted by: ${author}`;
+        // 1. Update announcement with edited metadata without [PENDING APPROVAL]
+        const fullTitle = `[${targetClass}] [Test Alert] ${title} (${subject})`;
+        const fullDesc = `Exam Date: ${friendlyExamDate}\nSubject: ${subject}\nMax Marks: ${maxMarks}\nVenue: ${venue}\nSyllabus: ${syllabus}\nShow From: ${showFrom}\nValid Until: ${stopDate}\nSubmitted by: ${author}`;
 
         const { error: annErr } = await sb.from('announcements').update({
             title: fullTitle,
@@ -2068,7 +2237,6 @@ window.submitEditedApproval = async function(e) {
         if (annErr) throw annErr;
 
         // 2. Add / Sync to Supabase 'classes' table as a Test Paper slot
-        // Remove previous slot for same class, date, and subject
         await sb.from('classes')
             .delete()
             .eq('class_grade', targetClass)
@@ -2101,11 +2269,9 @@ window.submitEditedApproval = async function(e) {
         } catch (_) {}
 
         // Hide modal
-        if (typeof $ !== 'undefined' && $('#editApprovalModal').modal) {
-            $('#editApprovalModal').modal('hide');
-        }
+        window.closeEditApprovalModal();
 
-        showBroadcastStatus('✅ Exam "' + title + '" successfully approved and synced to Timetable! Students will see it according to the visibility schedule.');
+        showBroadcastStatus('✅ Exam "' + title + '" successfully approved and synced to Timetable! Students will see it on their portal.');
         await loadActiveBroadcasts();
 
         // Refresh live timetable platform if active
