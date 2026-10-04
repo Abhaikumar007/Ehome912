@@ -4,6 +4,7 @@ export interface EduStudent {
   name: string;
   class: string;
   batch: string;
+  syllabus?: 'State Syllabus' | 'CBSE';
   avatar: string;
   phone: string;
   school?: string;
@@ -78,11 +79,16 @@ const RAW_STUDENTS: Omit<EduStudent, 'recentScore' | 'avatarColor'>[] = [
   { rollNo: 'EDU-2026-049', pin: '1234', name: 'Sivananda', class: 'Class 6', batch: 'Class 6', avatar: 'SI', phone: '5555555555', school: 'MTGHS', streak: 7, accuracy: 78, testsCompleted: 16, topPercent: 18, monthlyFee: 1000, currentDue: 1000, dueDate: '01 Sep 2026', daysLeft: -19, joiningDate: '01 Jun 2026', joiningDateIso: '2026-06-01', monthsPaidOnTime: 2, subjects: 'Physics, Chemistry, Maths, Biology' },
 ];
 
-export const EDUSYNC_STUDENTS: EduStudent[] = RAW_STUDENTS.map((s, idx) => ({
-  ...s,
-  recentScore: `${s.accuracy}%`,
-  avatarColor: AVATAR_COLORS[idx % AVATAR_COLORS.length],
-}));
+export const EDUSYNC_STUDENTS: EduStudent[] = RAW_STUDENTS.map((s, idx) => {
+  const isCBSE = (s.school && /cbse/i.test(s.school)) || (s.batch && /cbse/i.test(s.batch));
+  const syllabus: 'State Syllabus' | 'CBSE' = isCBSE ? 'CBSE' : 'State Syllabus';
+  return {
+    ...s,
+    syllabus,
+    recentScore: `${s.accuracy}%`,
+    avatarColor: AVATAR_COLORS[idx % AVATAR_COLORS.length],
+  };
+});
 
 export const EDUSYNC_FEES: Record<string, {
   name: string;

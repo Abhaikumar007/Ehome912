@@ -57,6 +57,7 @@ export interface StudentProfile {
   name: string;
   class: string;
   batch: string;
+  syllabus?: 'State Syllabus' | 'CBSE';
   avatar: string;
   photoUrl?: string;
   phone?: string;
@@ -66,6 +67,56 @@ export interface StudentProfile {
   accuracy: number;
   testsCompleted: number;
   topPercent: number;
+}
+
+/**
+ * Robust helper to extract and resolve target syllabus for any timetable class or test
+ * Returns 'CBSE', 'State Syllabus', or 'Both'
+ */
+export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' | 'Both' {
+  const status = (cls?.status || '').toLowerCase();
+  const time = (cls?.time || '').toLowerCase();
+  const roll = (cls?.roll_no || '').toLowerCase();
+  const grade = (cls?.class_grade || '').toLowerCase();
+  const board = (cls?.board || cls?.target_syllabus || cls?.targetSyllabus || cls?.syllabus || '').toLowerCase();
+
+  // 1. Explicit CBSE indicators
+  if (
+    board === 'cbse' ||
+    board === 'cbse only' ||
+    status.split(':').includes('cbse') ||
+    status.includes(':cbse') ||
+    status.includes('cbse:') ||
+    status === 'cbse' ||
+    time.includes('• cbse') ||
+    time.includes('(cbse)') ||
+    time.includes('cbse only') ||
+    roll.includes('cbse') ||
+    grade.includes('cbse')
+  ) {
+    return 'CBSE';
+  }
+
+  // 2. Explicit State Syllabus indicators
+  if (
+    board === 'state' ||
+    board === 'state only' ||
+    board === 'state syllabus' ||
+    status.split(':').includes('state') ||
+    status.includes(':state') ||
+    status.includes('state:') ||
+    status.includes('state syllabus') ||
+    time.includes('• state') ||
+    time.includes('(state)') ||
+    time.includes('state syllabus') ||
+    roll.includes('state') ||
+    grade.includes('state')
+  ) {
+    return 'State Syllabus';
+  }
+
+  // 3. Default: Shared between both syllabuses
+  return 'Both';
 }
 
 export interface AcademicAlert {
@@ -386,11 +437,22 @@ export const DataService = {
       ) as any;
 
       if (!error && data) {
+        const batchLower = (data.batch || '').toLowerCase();
+        const schoolLower = (data.school || '').toLowerCase();
+        const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === String(targetRoll).toUpperCase());
+        const resolvedSyllabus: 'State Syllabus' | 'CBSE' =
+          data.syllabus ||
+          (batchLower.includes('cbse') ? 'CBSE' : batchLower.includes('state') ? 'State Syllabus' : undefined) ||
+          (schoolLower.includes('cbse') ? 'CBSE' : undefined) ||
+          matchedRoster?.syllabus ||
+          'State Syllabus';
+
         const updated: StudentProfile = {
           rollNo: data.roll_no || targetRoll,
           name: data.name || current?.name || targetRoll,
           class: data.class_name || current?.class || 'Class 10',
           batch: data.batch || data.class_name || current?.batch || 'Batch A',
+          syllabus: resolvedSyllabus,
           phone: data.phone || current?.phone || '9876543210',
           avatar: data.avatar || current?.avatar || 'ST',
           photoUrl: data.photo_url || current?.photoUrl || undefined,
@@ -421,6 +483,7 @@ export const DataService = {
         name: mockStudent.name,
         class: mockStudent.class,
         batch: mockStudent.batch,
+        syllabus: 'State Syllabus',
         avatar: mockStudent.avatar,
         streak: mockStudent.streak,
         accuracy: mockStudent.accuracy,
@@ -445,12 +508,23 @@ export const DataService = {
       const { data, error } = await withTimeout(queryPromise, 3000) as any;
 
       if (data && !error) {
+        const batchLower = (data.batch || '').toLowerCase();
+        const schoolLower = (data.school || '').toLowerCase();
+        const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase());
+        const resolvedSyllabus: 'State Syllabus' | 'CBSE' =
+          data.syllabus ||
+          (batchLower.includes('cbse') ? 'CBSE' : batchLower.includes('state') ? 'State Syllabus' : undefined) ||
+          (schoolLower.includes('cbse') ? 'CBSE' : undefined) ||
+          matchedRoster?.syllabus ||
+          'State Syllabus';
+
         const student: StudentProfile = {
           id: data.id,
           rollNo: data.roll_no,
           name: data.name,
           class: data.class_name,
           batch: data.batch,
+          syllabus: resolvedSyllabus,
           avatar: data.avatar || 'ST',
           photoUrl: data.photo_url || undefined,
           phone: data.phone || '9876543210',
@@ -478,6 +552,7 @@ export const DataService = {
         name: mockStudent.name,
         class: mockStudent.class,
         batch: mockStudent.batch,
+        syllabus: 'State Syllabus',
         avatar: mockStudent.avatar,
         streak: mockStudent.streak,
         accuracy: mockStudent.accuracy,
@@ -501,6 +576,7 @@ export const DataService = {
         name: matchedEduStudent.name,
         class: matchedEduStudent.class,
         batch: matchedEduStudent.batch,
+        syllabus: matchedEduStudent.syllabus || 'State Syllabus',
         avatar: matchedEduStudent.avatar,
         streak: matchedEduStudent.streak || 0,
         accuracy: matchedEduStudent.accuracy || 0,
@@ -588,9 +664,24 @@ export const DataService = {
     return { success: true, student: mergedStudent };
   },
 
-  // Fetch Classes with Cache & 2.5s Timeout
-  async getClasses(rollNo: string, studentClass?: string) {
-    const cacheKey = `classes_${rollNo}`;
+  // Fetch Classes with Cache & 2.5s Timeout — Filtered strictly by Student Syllabus
+  async getClasses(rollNo: string, studentClass?: string, studentSyllabus?: string) {
+    let effectiveSyllabus = studentSyllabus;
+    if (!effectiveSyllabus) {
+      try {
+        const cur = await this.getCurrentStudent();
+        if (cur && cur.rollNo === rollNo && cur.syllabus) {
+          effectiveSyllabus = cur.syllabus;
+        } else {
+          const r = EDUSYNC_STUDENTS.find((s) => s.rollNo === rollNo);
+          effectiveSyllabus = r?.syllabus || 'State Syllabus';
+        }
+      } catch {
+        effectiveSyllabus = 'State Syllabus';
+      }
+    }
+
+    const cacheKey = `classes_${rollNo}_${effectiveSyllabus}`;
     const cached = await getCached<any[]>(cacheKey);
 
     try {
@@ -607,10 +698,24 @@ export const DataService = {
       const { data, error } = await withTimeout(query, 2500) as any;
 
       if (!error && Array.isArray(data)) {
+        // Filter strictly by target syllabus:
+        // State Syllabus timetable entries appear ONLY for State Syllabus students
+        // CBSE timetable entries appear ONLY for CBSE students
+        // Entries assigned to Both appear for students from both syllabuses
+        const syllabusFiltered = data.filter((c: any) => {
+          const target = resolveClassTargetSyllabus(c);
+          if (target === 'Both') return true;
+          if (effectiveSyllabus === 'CBSE') {
+            return target === 'CBSE';
+          } else {
+            return target === 'State Syllabus';
+          }
+        });
+
         // Deduplicate so each subject on a given date appears EXACTLY ONCE (latest schedule takes precedence)
         const seen = new Set<string>();
         const deduplicated: any[] = [];
-        const reversed = [...data].reverse();
+        const reversed = [...syllabusFiltered].reverse();
         for (const c of reversed) {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
@@ -633,6 +738,7 @@ export const DataService = {
           published: c.published !== false,
           class_date: c.class_date,
           class_grade: c.class_grade,
+          target_syllabus: resolveClassTargetSyllabus(c),
           session_type: resolveSessionType(c),
         }));
         await setCached(cacheKey, mapped);
@@ -645,8 +751,13 @@ export const DataService = {
     if (cached && Array.isArray(cached)) {
       const isOldFakeMock = cached.some((c) => c.id === '1' && c.time === '5:00 PM – 6:00 PM');
       if (!isOldFakeMock) {
+        const filteredCached = cached.filter((c: any) => {
+          const target = resolveClassTargetSyllabus(c);
+          if (target === 'Both') return true;
+          return effectiveSyllabus === 'CBSE' ? target === 'CBSE' : target === 'State Syllabus';
+        });
         const seen = new Set<string>();
-        const list = [...cached].reverse().filter((c: any) => {
+        const list = [...filteredCached].reverse().filter((c: any) => {
           const normSubject = (c.subject || '').trim().toLowerCase();
           const normDate = (c.class_date || '').trim();
           const normTime = (c.time || '').trim().toLowerCase();
@@ -660,6 +771,87 @@ export const DataService = {
     }
 
     return [];
+  },
+
+  // Faculty Portal: Schedule a class session with target syllabus
+  async scheduleTeacherClassSession(sessionData: {
+    classGrade: string;
+    subject: string;
+    classDate: string;
+    startTime: string;
+    endTime: string;
+    sessionType?: string;
+    targetSyllabus: 'Both' | 'State Syllabus' | 'CBSE';
+    facultyId?: string;
+    facultyName?: string;
+  }) {
+    const {
+      classGrade,
+      subject,
+      classDate,
+      startTime,
+      endTime,
+      sessionType = 'Regular Class',
+      targetSyllabus = 'Both',
+      facultyId = '',
+      facultyName = '',
+    } = sessionData;
+
+    const formattedGrade = classGrade.startsWith('Class') ? classGrade : `Class ${classGrade}`;
+    const cleanStartTime = startTime.replace(/•.*$/, '').trim();
+    const cleanEndTime = endTime.replace(/•.*$/, '').trim();
+    const timeSlot = cleanStartTime && cleanEndTime ? `${cleanStartTime} - ${cleanEndTime}` : cleanStartTime || 'Scheduled';
+
+    const timeParts = [timeSlot];
+    if (targetSyllabus === 'CBSE') {
+      timeParts.push('CBSE');
+    } else if (targetSyllabus === 'State Syllabus') {
+      timeParts.push('State Syllabus');
+    }
+
+    const sessTypeLower = sessionType.toLowerCase();
+    const isTP = sessTypeLower.includes('tp') || sessTypeLower.includes('test');
+    const isQB = sessTypeLower.includes('question') || sessTypeLower.includes('qb');
+    const sessionTag = isTP ? 'Test Paper' : isQB ? 'Question Bank' : 'Regular Class';
+    const statusTag = isTP ? 'TP' : isQB ? 'QuestionBank' : '';
+
+    if (sessionTag !== 'Regular Class') {
+      timeParts.push(sessionTag);
+    }
+    if (facultyName) {
+      timeParts.push(facultyName);
+    }
+    const finalTime = timeParts.join(' • ');
+
+    const sylTag = targetSyllabus === 'CBSE' ? 'CBSE' : targetSyllabus === 'State Syllabus' ? 'State' : '';
+    const finalStatus = [
+      'upcoming',
+      sylTag,
+      statusTag,
+      facultyId || (facultyName ? 'fac' : ''),
+    ].filter(Boolean).join(':');
+
+    // 1. Insert into Supabase classes table
+    const { data, error } = await supabase.from('classes').insert({
+      roll_no: formattedGrade,
+      class_grade: formattedGrade,
+      subject,
+      class_date: classDate,
+      time: finalTime,
+      status: finalStatus,
+      published: true,
+    }).select().single();
+
+    if (error) {
+      throw error;
+    }
+
+    // 2. Clear cached classes
+    try {
+      await AppStorage.removeItem('classes_cached_admin');
+    } catch {}
+
+    return data;
   },
 
   // Fetch Announcements — Network-First with Cache Fallback (Optionally filtered by student class)
@@ -1356,10 +1548,11 @@ export const DataService = {
     ];
   },
 
-  // Academic / Test Paper Alert (Shown on Student Home above Attendance - Optionally filtered by student class)
-  async getAcademicAlert(studentClass?: string) {
+  // Academic / Test Paper Alert (Shown on Student Home above Attendance - Optionally filtered by student class and syllabus)
+  async getAcademicAlert(studentClass?: string, studentSyllabus?: string) {
     const classSuffix = studentClass ? `_${studentClass.replace(/\s+/g, '_').toLowerCase()}` : '';
-    const key = `academic_alert_active${classSuffix}`;
+    const sylSuffix = studentSyllabus ? `_${studentSyllabus.replace(/\s+/g, '_').toLowerCase()}` : '';
+    const key = `academic_alert_active${classSuffix}${sylSuffix}`;
 
     // 1. First, check dedicated academic_alerts table (guaranteed test papers from admin & faculty)
     try {
@@ -1395,6 +1588,22 @@ export const DataService = {
           }
           if (studentClass && !isTargetedToClass(top, studentClass)) {
             return false;
+          }
+          // Filter by syllabus
+          if (studentSyllabus) {
+            const rawSyl = (top.syllabus_tag || top.target_syllabus || top.targetSyllabus || '').toLowerCase();
+            const rawTitle = (top.title || '').toLowerCase();
+            const rawDesc = (top.short_desc || '').toLowerCase();
+            let targetSyl = 'Both';
+            if (rawSyl.includes('cbse') || rawTitle.includes('[cbse]') || rawTitle.includes('(cbse)') || rawDesc.includes('cbse only')) {
+              targetSyl = 'CBSE';
+            } else if (rawSyl.includes('state') || rawTitle.includes('[state') || rawTitle.includes('(state') || rawDesc.includes('state syllabus only')) {
+              targetSyl = 'State Syllabus';
+            }
+            if (targetSyl !== 'Both') {
+              if (studentSyllabus === 'CBSE' && targetSyl !== 'CBSE') return false;
+              if (studentSyllabus === 'State Syllabus' && targetSyl !== 'State Syllabus') return false;
+            }
           }
           return true;
         });

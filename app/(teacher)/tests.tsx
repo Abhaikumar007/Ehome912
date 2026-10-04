@@ -30,6 +30,7 @@ interface ExamItem {
   title: string;
   subject: FacultySubject;
   classTag: string;
+  targetSyllabus?: 'Both' | 'State Syllabus' | 'CBSE';
   dateStr: string;
   timeStr: string;
   roomStr: string;
@@ -191,12 +192,14 @@ export default function TeacherTestsScreen() {
   const [newDate, setNewDate] = useState('');
   const [newMaxMarks, setNewMaxMarks] = useState('100');
   const [newSyllabus, setNewSyllabus] = useState('');
+  const [targetSyllabus, setTargetSyllabus] = useState<'Both' | 'State Syllabus' | 'CBSE'>('Both');
   const [publishAsAlert, setPublishAsAlert] = useState(true);
   const [showUntilDate, setShowUntilDate] = useState('');
   const [datePickerVisible, setDatePickerVisible] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'examDate' | 'expiryDate'>('examDate');
 
   const openScheduleModal = (targetClass?: string) => {
+    setTargetSyllabus('Both');
     const assigned = getTeacherAssignedSubjects(activeTeacher);
     if (assigned.length > 0) {
       setNewSubject(assigned[0]);
@@ -429,11 +432,13 @@ export default function TeacherTestsScreen() {
       const maxVal = parseInt(newMaxMarks, 10) || 100;
       const genuineStudents = getEnrolledStudentsForClassAndSubject(newClass, newSubject);
 
+      const sylPrefix = targetSyllabus !== 'Both' ? `[${targetSyllabus}] ` : '';
       const newTestObj: ExamItem = {
         id: 'test-' + Date.now(),
         title: newTitle.trim(),
         subject: newSubject,
         classTag: newClass,
+        targetSyllabus: targetSyllabus,
         dateStr: newDate.trim() || 'Upcoming Session',
         timeStr: 'TBD (Admin will confirm)',
         roomStr: 'TBD (Admin will assign)',
@@ -453,8 +458,8 @@ export default function TeacherTestsScreen() {
       // 2. Submit request to Supabase announcements for admin review & approval
       try {
         const insAnnPromise = supabase.from('announcements').insert({
-          title: `[${newClass}] [PENDING APPROVAL] ${newTitle.trim()} (${newSubject})`,
-          description: `Exam Date: ${newDate.trim()}\nSubject: ${newSubject}\nMax Marks: ${maxVal}\nSyllabus: ${newTestObj.syllabus.join(', ')}\nSubmitted by: ${activeTeacher?.name || 'Faculty Member'}`,
+          title: `[${newClass}] ${sylPrefix}[PENDING APPROVAL] ${newTitle.trim()} (${newSubject})`,
+          description: `Target Syllabus: ${targetSyllabus}\nExam Date: ${newDate.trim()}\nSubject: ${newSubject}\nMax Marks: ${maxVal}\nSyllabus: ${newTestObj.syllabus.join(', ')}\nSubmitted by: ${activeTeacher?.name || 'Faculty Member'}`,
           icon: 'calendar',
           icon_bg: '#EBF3FF',
           icon_color: '#1A56DB',
@@ -832,6 +837,22 @@ export default function TeacherTestsScreen() {
                   >
                     <Text style={[styles.smallChipText, newClass === cls && styles.smallChipTextActive]}>
                       {cls}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Target Syllabus Selector */}
+              <Text style={styles.formLabel}>Target Syllabus</Text>
+              <View style={styles.selectorRow}>
+                {(['Both', 'State Syllabus', 'CBSE'] as const).map((syl) => (
+                  <TouchableOpacity
+                    key={syl}
+                    style={[styles.smallChip, targetSyllabus === syl && styles.smallChipActive]}
+                    onPress={() => setTargetSyllabus(syl)}
+                  >
+                    <Text style={[styles.smallChipText, targetSyllabus === syl && styles.smallChipTextActive]}>
+                      {syl === 'Both' ? 'Both (State & CBSE)' : syl}
                     </Text>
                   </TouchableOpacity>
                 ))}

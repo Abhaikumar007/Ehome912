@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
-import { DataService, compareClassTimes } from '../../lib/dataService';
+import { DataService, compareClassTimes, resolveClassTargetSyllabus } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import { supabase } from '../../lib/supabase';
 import {
@@ -113,7 +113,8 @@ export function getTeacherSessionType(cls: any): TeacherSessionInfo {
 function formatUpdatedSession(
   currentClass: any,
   newType: 'Regular' | 'QuestionBank' | 'TP',
-  teacher: TeacherProfile
+  teacher: TeacherProfile,
+  newSyllabus?: 'Both' | 'State Syllabus' | 'CBSE'
 ) {
   const typeTag = newType === 'TP' ? 'Test Paper' : newType === 'QuestionBank' ? 'Question Bank' : 'Regular Class';
 
@@ -121,10 +122,12 @@ function formatUpdatedSession(
   const timeTokens = rawTime.split('•').map((s: string) => s.trim()).filter(Boolean);
   const baseSlot = timeTokens[0] || '';
 
+  const effectiveSyllabus = newSyllabus || resolveClassTargetSyllabus(currentClass);
+
   const teacherName = teacher?.name || '';
   const facultyToken = timeTokens.find((tok: string) => {
     const l = tok.toLowerCase();
-    if (l === 'test paper' || l === 'tp' || l === 'question bank' || l === 'qb' || l === 'regular') return false;
+    if (l === 'test paper' || l === 'tp' || l === 'question bank' || l === 'qb' || l === 'regular' || l === 'cbse' || l === 'state' || l === 'state syllabus') return false;
     return (
       l.includes('mr.') ||
       l.includes('ms.') ||
@@ -135,6 +138,12 @@ function formatUpdatedSession(
   }) || (teacherName ? teacherName : undefined);
 
   const newTimeParts: string[] = [baseSlot];
+  if (effectiveSyllabus === 'CBSE') {
+    newTimeParts.push('CBSE');
+  } else if (effectiveSyllabus === 'State Syllabus') {
+    newTimeParts.push('State Syllabus');
+  }
+
   if (newType !== 'Regular') {
     newTimeParts.push(typeTag);
   }
@@ -147,14 +156,12 @@ function formatUpdatedSession(
   const statusParts = rawStatus.split(':').map((s: string) => s.trim()).filter(Boolean);
   const facId = statusParts.find((p: string) => p.startsWith('fac-')) || teacher?.id || 'fac-math';
 
-  let newStatus: string;
-  if (newType === 'Regular') {
-    newStatus = `upcoming:${facId}`;
-  } else {
-    newStatus = `upcoming:${newType}:${facId}`;
-  }
+  const sylPart = effectiveSyllabus === 'CBSE' ? 'CBSE' : effectiveSyllabus === 'State Syllabus' ? 'State' : '';
+  const typePart = newType === 'Regular' ? '' : newType;
 
-  return { newTime, newStatus, typeTag };
+  const newStatus = ['upcoming', sylPart, typePart, facId].filter(Boolean).join(':');
+
+  return { newTime, newStatus, typeTag, effectiveSyllabus };
 }
 
 export default function TeacherHomeScreen() {
@@ -194,6 +201,17 @@ export default function TeacherHomeScreen() {
   // Session Format Switching workflow (Regular Class / Question Bank / Test Paper)
   const [sessionTypeModalVisible, setSessionTypeModalVisible] = useState(false);
   const [selectedClassForSessionType, setSelectedClassForSessionType] = useState<any>(null);
+  const [editSessionSyllabus, setEditSessionSyllabus] = useState<'Both' | 'State Syllabus' | 'CBSE'>('Both');
+
+  // Schedule New Class Session modal state
+  const [scheduleClassModalVisible, setScheduleClassModalVisible] = useState(false);
+  const [schedClassGrade, setSchedClassGrade] = useState('Class 10');
+  const [schedSyllabus, setSchedSyllabus] = useState<'Both' | 'State Syllabus' | 'CBSE'>('Both');
+  const [schedSubject, setSchedSubject] = useState('');
+  const [schedStartTime, setSchedStartTime] = useState('04:00 PM');
+  const [schedEndTime, setSchedEndTime] = useState('05:30 PM');
+  const [schedSessionType, setSchedSessionType] = useState('Regular Class');
+  const [isSavingSchedClass, setIsSavingSchedClass] = useState(false);
 
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
@@ -569,12 +587,55 @@ export default function TeacherHomeScreen() {
     }
   };
 
+  const handleOpenScheduleClass = () => {
+    setSchedSubject(activeTeacher.subject || 'Physics');
+    setSchedClassGrade(activeTeacher.allowedGrades?.[0] && activeTeacher.allowedGrades[0] !== '*' ? `Class ${activeTeacher.allowedGrades[0]}` : 'Class 10');
+    setSchedSyllabus('Both');
+    setSchedSessionType('Regular Class');
+    setSchedStartTime('04:00 PM');
+    setSchedEndTime('05:30 PM');
+    setScheduleClassModalVisible(true);
+  };
+
+  const handleSaveScheduledClass = async () => {
+    if (!schedClassGrade || !schedSubject || !schedStartTime || !schedEndTime) {
+      Alert.alert('Missing Details', 'Please fill in Class, Subject, Start Time and End Time.');
+      return;
+    }
+    setIsSavingSchedClass(true);
+    try {
+      const targetDate = targetDateInfo.iso;
+      await DataService.scheduleTeacherClassSession({
+        classGrade: schedClassGrade,
+        subject: schedSubject,
+        classDate: targetDate,
+        startTime: schedStartTime,
+        endTime: schedEndTime,
+        sessionType: schedSessionType,
+        targetSyllabus: schedSyllabus,
+        facultyId: activeTeacher.id,
+        facultyName: activeTeacher.name,
+      });
+
+      setScheduleClassModalVisible(false);
+      Alert.alert(
+        'Session Scheduled ✓',
+        `${schedClassGrade} (${schedSyllabus}) ${schedSubject} has been successfully scheduled for ${targetDateInfo.label}.`
+      );
+      loadTimetable();
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to schedule session. Please try again.');
+    } finally {
+      setIsSavingSchedClass(false);
+    }
+  };
+
   const handleUpdateSessionType = async (newType: 'Regular' | 'QuestionBank' | 'TP') => {
     if (!selectedClassForSessionType) return;
     const targetClass = selectedClassForSessionType;
     setSessionTypeModalVisible(false);
 
-    const { newTime, newStatus, typeTag } = formatUpdatedSession(targetClass, newType, activeTeacher);
+    const { newTime, newStatus, typeTag } = formatUpdatedSession(targetClass, newType, activeTeacher, editSessionSyllabus);
 
     // Optimistically update adminClasses state immediately
     setAdminClasses((prev) =>
@@ -795,7 +856,7 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Teaching Schedule Header with Day Toggle (Today vs Tomorrow) */}
+                {/* Teaching Schedule Header with Day Toggle & Schedule Class */}
         <View style={styles.scheduleHeaderContainer}>
           <View style={styles.scheduleTopRow}>
             <View style={{ flex: 1, paddingRight: 6 }}>
@@ -838,6 +899,18 @@ export default function TeacherHomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Quick Schedule Class Action Bar */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 8 }}>
+            <TouchableOpacity
+              style={styles.scheduleClassBtn}
+              onPress={handleOpenScheduleClass}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add" size={15} color="#ffffff" />
+              <Text style={styles.scheduleClassBtnText}>Schedule Class</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -1480,6 +1553,129 @@ export default function TeacherHomeScreen() {
           </View>
         </View>
       </Modal>
+      {/* Schedule Class Session Modal */}
+      <Modal visible={scheduleClassModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { maxHeight: '90%' }]}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.modalTitle}>Schedule Class Session</Text>
+                <Text style={styles.modalSub}>
+                  {activeTeacher.name} • {activeTeacher.subject}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setScheduleClassModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10 }}>
+              {/* Target Class */}
+              <Text style={styles.modalFieldLabel}>Target Class</Text>
+              <View style={styles.chipRow}>
+                {['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'].map((cls) => (
+                  <TouchableOpacity
+                    key={cls}
+                    style={[styles.modalSelectChip, schedClassGrade === cls && styles.modalSelectChipActive]}
+                    onPress={() => setSchedClassGrade(cls)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedClassGrade === cls && styles.modalSelectChipTextActive]}>
+                      {cls}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Target Syllabus */}
+              <Text style={styles.modalFieldLabel}>Target Syllabus</Text>
+              <View style={styles.chipRow}>
+                {(['Both', 'State Syllabus', 'CBSE'] as const).map((syl) => (
+                  <TouchableOpacity
+                    key={syl}
+                    style={[styles.modalSelectChip, schedSyllabus === syl && styles.modalSelectChipActive]}
+                    onPress={() => setSchedSyllabus(syl)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedSyllabus === syl && styles.modalSelectChipTextActive]}>
+                      {syl === 'Both' ? 'Both (State & CBSE)' : syl}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Session Format */}
+              <Text style={styles.modalFieldLabel}>Session Format</Text>
+              <View style={styles.chipRow}>
+                {['Regular Class', 'Question Bank', 'Test Paper'].map((fmt) => (
+                  <TouchableOpacity
+                    key={fmt}
+                    style={[styles.modalSelectChip, schedSessionType === fmt && styles.modalSelectChipActive]}
+                    onPress={() => setSchedSessionType(fmt)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedSessionType === fmt && styles.modalSelectChipTextActive]}>
+                      {fmt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Subject */}
+              <Text style={styles.modalFieldLabel}>Subject</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={schedSubject}
+                onChangeText={setSchedSubject}
+                placeholder="e.g. Mathematics"
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              {/* Time Slots */}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalFieldLabel}>Start Time</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={schedStartTime}
+                    onChangeText={setSchedStartTime}
+                    placeholder="e.g. 04:00 PM"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalFieldLabel}>End Time</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={schedEndTime}
+                    onChangeText={setSchedEndTime}
+                    placeholder="e.g. 05:30 PM"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+              </View>
+
+              <View style={[styles.opinionDisclaimerBox, { marginTop: 12, marginBottom: 12 }]}>
+                <Ionicons name="information-circle-outline" size={15} color="#0284C7" />
+                <Text style={styles.opinionDisclaimerText}>
+                  Scheduled for {targetDateInfo.label}. Students enrolled in {schedSyllabus === 'Both' ? 'State or CBSE syllabus' : schedSyllabus} will see this in their timetable.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.modalSubmitBtn, isSavingSchedClass && { opacity: 0.7 }]}
+                onPress={handleSaveScheduledClass}
+                disabled={isSavingSchedClass}
+                activeOpacity={0.8}
+              >
+                {isSavingSchedClass ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalSubmitBtnText}>Confirm & Schedule Session</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
@@ -2399,5 +2595,102 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 14,
   },
+  scheduleClassBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  scheduleClassBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  syllabusBadgePill: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    borderWidth: 1,
+    marginLeft: 4,
+  },
+  cbseBadgePill: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#BAE6FD',
+  },
+  stateBadgePill: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  bothBadgePill: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
+  syllabusBadgeText: {
+    fontSize: 9,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  cbseBadgeText: {
+    color: '#0369A1',
+  },
+  stateBadgeText: {
+    color: '#15803D',
+  },
+  bothBadgeText: {
+    color: '#64748B',
+  },
+  modalFieldLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+    marginBottom: 4,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  modalSelectChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    backgroundColor: '#F8FAFC',
+  },
+  modalSelectChipActive: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0284C7',
+  },
+  modalSelectChipText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  modalSelectChipTextActive: {
+    color: '#0284C7',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  modalSubmitBtn: {
+    backgroundColor: '#0284C7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  modalSubmitBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+  },
 });
-

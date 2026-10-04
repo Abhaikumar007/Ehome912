@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
-import { DataService, compareClassTimes, resolveSessionType } from '../../lib/dataService';
+import { DataService, compareClassTimes, resolveSessionType, resolveClassTargetSyllabus } from '../../lib/dataService';
 import { todaysClasses as defaultClasses, attendanceData as defaultAtt, feesData as defaultFees } from '../../constants/mockData';
 import { supabase } from '../../lib/supabase';
 
@@ -163,11 +163,11 @@ export default function DashboardScreen() {
   const loadData = async () => {
     try {
       const [cls, anns, att, fees, alert, opinions, notifs] = await Promise.all([
-        DataService.getClasses(rollNo, student?.class),
+        DataService.getClasses(rollNo, student?.class, student?.syllabus),
         DataService.getAnnouncements(false, student?.class),
         DataService.getAttendance(rollNo),
         DataService.getFees(rollNo),
-        DataService.getAcademicAlert(student?.class),
+        DataService.getAcademicAlert(student?.class, student?.syllabus),
         DataService.getStudentTeacherOpinions(rollNo),
         DataService.getNotifications(rollNo),
       ]);
@@ -188,7 +188,7 @@ export default function DashboardScreen() {
   useEffect(() => {
     loadData();
 
-    // Supabase Realtime listener: instant updates when admin/faculty submits attendance, announcements or alerts
+    // Supabase Realtime listener: instant updates when admin/faculty submits attendance, announcements, classes or student profile updates
     const channel = supabase
       .channel('student_dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
@@ -196,7 +196,7 @@ export default function DashboardScreen() {
         DataService.getAnnouncements(true, student?.class).then((anns) => {
           setAnnouncementsList(anns || []);
         });
-        DataService.getAcademicAlert(student?.class).then((alt) => {
+        DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
           setAcademicAlert(alt || null);
         });
       })
@@ -206,14 +206,24 @@ export default function DashboardScreen() {
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
-        DataService.getClasses(rollNo, student?.class).then((cls) => {
+        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
           if (cls) setClasses(cls);
         });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'students', filter: `roll_no=eq.${rollNo}` }, () => {
+        console.log('[Realtime] Student record updated in Supabase, refreshing session');
+        refreshAuth();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records', filter: `roll_no=eq.${rollNo}` }, () => {
         DataService.getFees(rollNo).then((f) => {
           if (f) setFeesSummary(f);
         });
+      })
+      .on('broadcast', { event: 'student_updated' }, (event) => {
+        if (!event?.payload || event.payload.rollNo === rollNo) {
+          console.log('[Realtime] Student profile/syllabus broadcast received:', event.payload);
+          refreshAuth();
+        }
       })
       .on('broadcast', { event: 'fee_approved' }, (event) => {
         if (!event?.payload || event.payload.rollNo === rollNo) {
@@ -234,7 +244,7 @@ export default function DashboardScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [rollNo, student?.class]);
+  }, [rollNo, student?.class, student?.syllabus]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -243,7 +253,7 @@ export default function DashboardScreen() {
         loadData(),
         refreshAuth(),
         DataService.getAnnouncements(true, student?.class),
-        DataService.getAcademicAlert(student?.class),
+        DataService.getAcademicAlert(student?.class, student?.syllabus),
       ]);
     } catch (e) {
       console.warn('[DashboardScreen] Refresh error:', e);
@@ -280,6 +290,13 @@ export default function DashboardScreen() {
     const result: any[] = [];
     for (const cls of reversed) {
       if (cls.published === false) continue;
+      // Filter strictly by student syllabus
+      const targetSyllabus = resolveClassTargetSyllabus(cls);
+      const studentSyllabus = student?.syllabus || 'State Syllabus';
+      if (targetSyllabus !== 'Both') {
+        if (studentSyllabus === 'CBSE' && targetSyllabus !== 'CBSE') continue;
+        if (studentSyllabus === 'State Syllabus' && targetSyllabus !== 'State Syllabus') continue;
+      }
       const matchesDate = cls.class_date ? (cls.class_date === targetIso) : (offset === 0);
       if (!matchesDate) continue;
       const normSubject = (cls.subject || '').trim().toLowerCase();
@@ -326,10 +343,28 @@ export default function DashboardScreen() {
           </View>
         </View>
         <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.classPill}>
+          <View style={styles.classPill}>
             <Text style={styles.classPillText}>{student?.class || 'Class 12'}</Text>
-            <Ionicons name="chevron-down" size={13} color={Colors.textSecondary} />
-          </TouchableOpacity>
+          </View>
+          <View
+            style={[
+              styles.classPill,
+              {
+                backgroundColor: student?.syllabus === 'CBSE' ? '#E0F2FE' : '#F0FDF4',
+                borderColor: student?.syllabus === 'CBSE' ? '#BAE6FD' : '#BBF7D0',
+                marginLeft: 4,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.classPillText,
+                { color: student?.syllabus === 'CBSE' ? '#0369A1' : '#15803D', fontFamily: 'Inter_600SemiBold' },
+              ]}
+            >
+              {student?.syllabus || 'State Syllabus'}
+            </Text>
+          </View>
           <TouchableOpacity
             style={styles.refreshBtn}
             onPress={onRefresh}
@@ -658,13 +693,41 @@ export default function DashboardScreen() {
                     <View style={styles.classSubjectCenter}>
                       <View style={styles.classSubjectCenterRow}>
                         <Text style={styles.classSubjectEmoji}>{getSubjectEmoji(cls.subject)}</Text>
-                        <Text
-                          style={[styles.classSubject, isActive && { color: accent }]}
-                          numberOfLines={1}
-                          ellipsizeMode="tail"
-                        >
-                          {cls.subject}
-                        </Text>
+                        <View style={{ flex: 1 }}>
+                          <Text
+                            style={[styles.classSubject, isActive && { color: accent }]}
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                          >
+                            {cls.subject}
+                          </Text>
+                          {(() => {
+                            const syl = resolveClassTargetSyllabus(cls);
+                            if (syl === 'Both') return null;
+                            const isCBSE = syl === 'CBSE';
+                            return (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                                <View style={{
+                                  backgroundColor: isCBSE ? '#E0F2FE' : '#F0FDF4',
+                                  borderColor: isCBSE ? '#BAE6FD' : '#BBF7D0',
+                                  borderWidth: 1,
+                                  borderRadius: 4,
+                                  paddingHorizontal: 4,
+                                  paddingVertical: 1,
+                                  alignSelf: 'flex-start',
+                                }}>
+                                  <Text style={{
+                                    fontSize: 8.5,
+                                    fontFamily: 'Inter_600SemiBold',
+                                    color: isCBSE ? '#0369A1' : '#15803D',
+                                  }}>
+                                    {syl}
+                                  </Text>
+                                </View>
+                              </View>
+                            );
+                          })()}
+                        </View>
                       </View>
                     </View>
 
