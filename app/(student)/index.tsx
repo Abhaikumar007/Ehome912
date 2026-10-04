@@ -346,25 +346,6 @@ export default function DashboardScreen() {
           <View style={styles.classPill}>
             <Text style={styles.classPillText}>{student?.class || 'Class 12'}</Text>
           </View>
-          <View
-            style={[
-              styles.classPill,
-              {
-                backgroundColor: student?.syllabus === 'CBSE' ? '#E0F2FE' : '#F0FDF4',
-                borderColor: student?.syllabus === 'CBSE' ? '#BAE6FD' : '#BBF7D0',
-                marginLeft: 4,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.classPillText,
-                { color: student?.syllabus === 'CBSE' ? '#0369A1' : '#15803D', fontFamily: 'Inter_600SemiBold' },
-              ]}
-            >
-              {student?.syllabus || 'State Syllabus'}
-            </Text>
-          </View>
           <TouchableOpacity
             style={styles.refreshBtn}
             onPress={onRefresh}
@@ -693,41 +674,13 @@ export default function DashboardScreen() {
                     <View style={styles.classSubjectCenter}>
                       <View style={styles.classSubjectCenterRow}>
                         <Text style={styles.classSubjectEmoji}>{getSubjectEmoji(cls.subject)}</Text>
-                        <View style={{ flex: 1 }}>
-                          <Text
-                            style={[styles.classSubject, isActive && { color: accent }]}
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                          >
-                            {cls.subject}
-                          </Text>
-                          {(() => {
-                            const syl = resolveClassTargetSyllabus(cls);
-                            if (syl === 'Both') return null;
-                            const isCBSE = syl === 'CBSE';
-                            return (
-                              <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
-                                <View style={{
-                                  backgroundColor: isCBSE ? '#E0F2FE' : '#F0FDF4',
-                                  borderColor: isCBSE ? '#BAE6FD' : '#BBF7D0',
-                                  borderWidth: 1,
-                                  borderRadius: 4,
-                                  paddingHorizontal: 4,
-                                  paddingVertical: 1,
-                                  alignSelf: 'flex-start',
-                                }}>
-                                  <Text style={{
-                                    fontSize: 8.5,
-                                    fontFamily: 'Inter_600SemiBold',
-                                    color: isCBSE ? '#0369A1' : '#15803D',
-                                  }}>
-                                    {syl}
-                                  </Text>
-                                </View>
-                              </View>
-                            );
-                          })()}
-                        </View>
+                        <Text
+                          style={[styles.classSubject, isActive && { color: accent }]}
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                        >
+                          {cls.subject}
+                        </Text>
                       </View>
                     </View>
 
