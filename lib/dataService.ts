@@ -1947,7 +1947,7 @@ export const DataService = {
   },
 
   // Save new test or update existing test paper
-  async saveTest(testItem: any) {
+  async saveTest(testItem: any, broadcastAlert: boolean = false) {
     const key = 'teacher_tests';
     const all = (await getCached<any[]>(key)) || [];
     const idx = all.findIndex((t) => t.id === testItem.id);
@@ -1960,28 +1960,30 @@ export const DataService = {
     }
     await setCached(key, updated);
 
-    // Broadcast test alert to student home dashboard
-    try {
-      await this.saveAcademicAlert({
-        id: 'alert-' + testItem.id,
-        type: 'test_paper',
-        badge: 'TEST PAPER ALERT',
-        title: testItem.title,
-        shortDesc: Array.isArray(testItem.syllabus) ? testItem.syllabus.slice(0, 2).join(' • ') : testItem.syllabus,
-        date: testItem.dateStr,
-        time: testItem.timeStr,
-        room: testItem.roomStr,
-        syllabus: testItem.syllabus,
-        maxMarks: testItem.maxMarks,
-        instructions: [
-          'Reporting time is strictly 15 minutes before test commencement.',
-          'Bring geometry box and scientific calculator if required.',
-          'Syllabus verified by Super Admin Mr. Abhai Kumar.',
-        ],
-        updatedBy: 'Mr. Abhai Kumar (Super Admin)',
-        updatedAt: 'Just now',
-      });
-    } catch {}
+    // Broadcast test alert to student home dashboard only when approved/instructed
+    if (broadcastAlert) {
+      try {
+        await this.saveAcademicAlert({
+          id: 'alert-' + testItem.id,
+          type: 'test_paper',
+          badge: 'TEST PAPER ALERT',
+          title: testItem.title,
+          shortDesc: Array.isArray(testItem.syllabus) ? testItem.syllabus.slice(0, 2).join(' • ') : testItem.syllabus,
+          date: testItem.dateStr,
+          time: testItem.timeStr,
+          room: testItem.roomStr,
+          syllabus: testItem.syllabus,
+          maxMarks: testItem.maxMarks,
+          instructions: [
+            'Reporting time is strictly 15 minutes before test commencement.',
+            'Bring geometry box and scientific calculator if required.',
+            'Syllabus verified by Super Admin Mr. Abhai Kumar.',
+          ],
+          updatedBy: 'Mr. Abhai Kumar (Super Admin)',
+          updatedAt: 'Just now',
+        });
+      } catch {}
+    }
 
     return updated;
   },

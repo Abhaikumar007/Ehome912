@@ -444,19 +444,17 @@ export default function TeacherTestsScreen() {
         author: activeTeacher?.name || 'Faculty Member',
       };
 
-      // Save locally so faculty sees their draft test paper
+      // 1. Save locally so faculty sees their draft test paper in the portal
       setTests((prev) => [newTestObj, ...prev]);
       setActiveTestId(newTestObj.id);
       setSelectedClass(newClass);
-      await DataService.saveTest(newTestObj);
+      await DataService.saveTest(newTestObj, false);
 
-      // Submit request to Supabase for admin review & approval
+      // 2. Submit request to Supabase announcements for admin review & approval
       try {
-        const { supabase: sb } = await import('../../lib/supabase');
-        // 1. Send to announcements table which triggers admin Master Hub approval queue
-        const insAnnPromise = sb.from('announcements').insert({
-          title: `[PENDING APPROVAL - ${newClass}] ${newTitle.trim()} (${newSubject})`,
-          description: `Exam Date: ${newDate.trim()}\nMax Marks: ${maxVal}\nSyllabus: ${newTestObj.syllabus.join(', ')}\nSubmitted by: ${activeTeacher?.name || 'Faculty Member'}`,
+        const insAnnPromise = supabase.from('announcements').insert({
+          title: `[${newClass}] [PENDING APPROVAL] ${newTitle.trim()} (${newSubject})`,
+          description: `Exam Date: ${newDate.trim()}\nSubject: ${newSubject}\nMax Marks: ${maxVal}\nSyllabus: ${newTestObj.syllabus.join(', ')}\nSubmitted by: ${activeTeacher?.name || 'Faculty Member'}`,
           icon: 'calendar',
           icon_bg: '#EBF3FF',
           icon_color: '#1A56DB',
@@ -464,21 +462,23 @@ export default function TeacherTestsScreen() {
           important: true,
         });
 
-        // 2000ms safety timeout so slow/offline networks never freeze the loading spinner
+        // 2500ms safety timeout so slow/offline networks never freeze the loading spinner
         await Promise.race([
           insAnnPromise,
-          new Promise((resolve) => setTimeout(resolve, 2000)),
+          new Promise((resolve) => setTimeout(resolve, 2500)),
         ]);
       } catch (err) {
         console.warn('Supabase approval submission notice:', err);
       }
 
+      // 3. Close modal and reset fields
       setCreateModalVisible(false);
       setNewTitle('');
       setNewSyllabus('');
       setNewDate('');
       setShowUntilDate('');
 
+      // 4. Confirmation dialog for the faculty
       Alert.alert(
         'Submitted for Admin Approval ✓',
         `Your test request "${newTestObj.title}" for ${newClass} (${newSubject}) has been submitted to the admin.\n\nOnce approved by the admin, it will be scheduled and broadcast to students.`

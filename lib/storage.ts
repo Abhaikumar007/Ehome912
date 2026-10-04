@@ -57,21 +57,31 @@ export const AppStorage = {
     try {
       if (value.length <= CHUNK_SIZE) {
         // Clear any previous chunks if transitioning from large to small value
-        const prev = await SecureStore.getItemAsync(key);
-        if (prev && prev.startsWith(CHUNK_PREFIX)) {
-          const prevCount = parseInt(prev.slice(CHUNK_PREFIX.length), 10);
-          for (let i = 0; i < prevCount; i++) {
-            try { await SecureStore.deleteItemAsync(`${key}__c${i}`); } catch {}
+        try {
+          const prev = await SecureStore.getItemAsync(key);
+          if (prev && prev.startsWith(CHUNK_PREFIX)) {
+            const prevCount = parseInt(prev.slice(CHUNK_PREFIX.length), 10);
+            for (let i = 0; i < prevCount; i++) {
+              try { await SecureStore.deleteItemAsync(`${key}__c${i}`); } catch {}
+            }
           }
-        }
+        } catch {}
         await SecureStore.setItemAsync(key, value);
       } else {
-        const numChunks = Math.ceil(value.length / CHUNK_SIZE);
+        const MAX_CHUNKS = 15;
+        const totalChunks = Math.ceil(value.length / CHUNK_SIZE);
+        const numChunks = Math.min(totalChunks, MAX_CHUNKS);
         for (let i = 0; i < numChunks; i++) {
           const chunk = value.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-          await SecureStore.setItemAsync(`${key}__c${i}`, chunk);
+          try {
+            await SecureStore.setItemAsync(`${key}__c${i}`, chunk);
+          } catch (chunkErr) {
+            console.warn(`[AppStorage] Failed writing chunk ${i}:`, chunkErr);
+          }
         }
-        await SecureStore.setItemAsync(key, `${CHUNK_PREFIX}${numChunks}`);
+        try {
+          await SecureStore.setItemAsync(key, `${CHUNK_PREFIX}${numChunks}`);
+        } catch {}
       }
     } catch (e) {
       console.warn('[AppStorage] setItem SecureStore error:', e);
