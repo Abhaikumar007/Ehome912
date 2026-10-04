@@ -1345,6 +1345,7 @@ if (document.getElementById('addStudentForm')) {
         const id = document.getElementById('studentId').value;
         const name = document.getElementById('name').value;
         const studentClass = document.getElementById('class').value;
+        const syllabusType = document.getElementById('syllabusType') ? document.getElementById('syllabusType').value : 'State Syllabus';
         const school = document.getElementById('school').value;
         const phone = document.getElementById('phone').value;
         const joiningDate = document.getElementById('joiningDate').value;
@@ -1359,6 +1360,11 @@ if (document.getElementById('addStudentForm')) {
         const students = getStudents();
         let studentToSync = null;
 
+        if (!syllabusType) {
+            alert('Please select a Syllabus Type (State Syllabus or CBSE).');
+            return;
+        }
+
         if (id) {
             // EDIT MODE: Preserve original admission/joining date if input is blank or unchanged
             const index = students.findIndex(s => s.id === id || (s.rollNo && s.rollNo === id) || (s.roll_no && s.roll_no === id));
@@ -1366,10 +1372,13 @@ if (document.getElementById('addStudentForm')) {
                 const existingDate = students[index].joiningDate || students[index].joining_date || '';
                 const finalJoiningDate = joiningDate ? joiningDate : (existingDate || new Date().toISOString().slice(0, 10));
 
+                const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
                 students[index] = {
                     ...students[index],
                     name,
                     class: studentClass,
+                    syllabus: syllabusType,
+                    batch: `${classGradeStr} (${syllabusType})`,
                     school,
                     phone,
                     joiningDate: finalJoiningDate,
@@ -1382,10 +1391,13 @@ if (document.getElementById('addStudentForm')) {
         } else {
             // ADD MODE: Default to today if left blank
             const finalJoiningDate = joiningDate || new Date().toISOString().slice(0, 10);
+            const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
             const newStudent = {
                 id: Date.now().toString(),
                 name,
                 class: studentClass,
+                syllabus: syllabusType,
+                batch: `${classGradeStr} (${syllabusType})`,
                 school,
                 phone,
                 joiningDate: finalJoiningDate,
@@ -1404,6 +1416,7 @@ if (document.getElementById('addStudentForm')) {
 
         e.target.reset();
         document.getElementById('studentId').value = '';
+        if (document.getElementById('syllabusType')) document.getElementById('syllabusType').value = '';
         document.getElementById('submitStudentBtn').innerText = 'Add Student';
         document.querySelectorAll('input[name="subject"]').forEach(cb => cb.checked = false);
         
@@ -2297,14 +2310,7 @@ if (document.getElementById('timetableTableBody')) {
     const boardSelect = document.getElementById('timetableBoard');
 
     function updateBoardVisibility() {
-        const cls = classSelect.value;
-        const isHigher = (cls === '11' || cls === '12');
-        if (isHigher) {
-            boardGroup.classList.add('hidden-smooth');
-            boardSelect.value = 'Both'; // default for 11/12
-        } else {
-            boardGroup.classList.remove('hidden-smooth');
-        }
+        if (boardGroup) boardGroup.classList.remove('hidden-smooth');
     }
 
     classSelect.addEventListener('change', updateBoardVisibility);
@@ -2660,8 +2666,14 @@ if (document.getElementById('timetableTableBody')) {
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'QuestionBank'
                     : '';
-                const statusStr = 'upcoming' + (statusTag ? ':' + statusTag : '') + (facultyId ? ':' + facultyId : '');
+                const boardTag = (board === 'CBSE') ? 'CBSE' : (board === 'State Syllabus' || board === 'State') ? 'State' : 'Both';
+                const statusStr = 'upcoming' + (boardTag !== 'Both' ? ':' + boardTag : '') + (statusTag ? ':' + statusTag : '') + (facultyId ? ':' + facultyId : '');
                 const timeParts = [timeStr];
+                if (board === 'CBSE') {
+                    timeParts.push('CBSE');
+                } else if (board === 'State Syllabus' || board === 'State') {
+                    timeParts.push('State Syllabus');
+                }
                 if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                     timeParts.push(sessionTag);
                 }
@@ -3446,7 +3458,15 @@ if (document.getElementById('studentListBody')) {
                     ${s.rollNo ? `<br><small class="badge badge-light border text-muted" style="font-size:0.7rem;">${s.rollNo}</small>` : ''}
                     ${joinText ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${joinText}</small>` : ''}
                 </td>
-                <td>Class ${s.class}</td>
+                <td>
+                    Class ${s.class}
+                    ${(() => {
+                        const sSyl = s.syllabus || (s.batch && /cbse/i.test(s.batch) ? 'CBSE' : (s.school && /cbse/i.test(s.school) ? 'CBSE' : 'State Syllabus'));
+                        return sSyl === 'CBSE'
+                            ? '<br><span class="badge" style="font-size:0.7rem; background-color:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; margin-top:3px; padding:2px 6px;">CBSE</span>'
+                            : '<br><span class="badge" style="font-size:0.7rem; background-color:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; margin-top:3px; padding:2px 6px;">State Syllabus</span>';
+                    })()}
+                </td>
                 <td class="font-weight-bold" style="color:#1a7a3c;">₹${feeVal}</td>
                 <td>${phoneVal}</td>
                 <td>${subStr}</td>
@@ -3596,6 +3616,19 @@ if (document.getElementById('studentListBody')) {
         document.getElementById('studentId').value = student.id;
         document.getElementById('name').value = student.name;
         document.getElementById('class').value = student.class;
+        // Populate syllabusType
+        const sylSelect = document.getElementById('syllabusType');
+        if (sylSelect) {
+            let syl = student.syllabus;
+            if (!syl && student.batch) {
+                if (/cbse/i.test(student.batch)) syl = 'CBSE';
+                else if (/state/i.test(student.batch)) syl = 'State Syllabus';
+            }
+            if (!syl && student.school && /cbse/i.test(student.school)) {
+                syl = 'CBSE';
+            }
+            sylSelect.value = syl || 'State Syllabus';
+        }
         document.getElementById('school').value = student.school;
         document.getElementById('phone').value = student.phone;
         document.getElementById('joiningDate').value = _formatToDateInputValue(student.joiningDate || student.joining_date);

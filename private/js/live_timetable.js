@@ -857,6 +857,17 @@
         document.getElementById('editClassGrade').value = formattedGrade;
         document.getElementById('editClassSubject').value = item.subject || 'Physics';
         document.getElementById('editClassDate').value = item.class_date || '';
+        // Populate editClassSyllabus
+        const normSylStatus = (item.status || '').toLowerCase();
+        const normSylTime = (item.time || '').toLowerCase();
+        let detectedSyl = 'Both';
+        if (normSylStatus.includes(':cbse') || normSylStatus.includes('cbse:') || normSylTime.includes('• cbse') || normSylTime.includes('(cbse)')) {
+            detectedSyl = 'CBSE';
+        } else if (normSylStatus.includes(':state') || normSylStatus.includes('state:') || normSylTime.includes('• state') || normSylTime.includes('(state)')) {
+            detectedSyl = 'State Syllabus';
+        }
+        const sylInput = document.getElementById('editClassSyllabus');
+        if (sylInput) sylInput.value = detectedSyl;
 
         const timeInfo = _parseTimeDetails(item.time);
         let sTime = '';
@@ -998,6 +1009,7 @@
                 timeStr = `${cleanStartTime} - ${cleanEndTime}`;
             }
 
+            const targetSyl = document.getElementById('editClassSyllabus') ? document.getElementById('editClassSyllabus').value : 'Both';
             const sessTypeEl = document.getElementById('editClassSessionType');
             const sessType = sessTypeEl ? sessTypeEl.value : 'Regular';
             const sessionTag = (sessType === 'TP' || sessType.toLowerCase().includes('tp') || sessType.toLowerCase().includes('test'))
@@ -1012,6 +1024,11 @@
                 : '';
 
             const timeParts = [timeStr];
+            if (targetSyl === 'CBSE') {
+                timeParts.push('CBSE');
+            } else if (targetSyl === 'State Syllabus') {
+                timeParts.push('State Syllabus');
+            }
             if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                 timeParts.push(sessionTag);
             }
@@ -1020,9 +1037,13 @@
             }
 
             const finalTime = timeParts.join(' • ');
-            const finalStatus = (statusTag)
-                ? `${status}:${statusTag}${facultyId ? ':' + facultyId : ''}`
-                : (facultyId ? `${status}:${facultyId}` : (facultyName ? `${status}:fac` : status));
+            const sylTag = targetSyl === 'CBSE' ? 'CBSE' : targetSyl === 'State Syllabus' ? 'State' : '';
+            const finalStatus = [
+                status,
+                sylTag,
+                statusTag,
+                facultyId || (facultyName ? 'fac' : '')
+            ].filter(Boolean).join(':');
 
             // 1. Update in Supabase classes table
             const { error: updErr } = await sb.from('classes').update({

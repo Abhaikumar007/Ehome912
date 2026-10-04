@@ -69,12 +69,12 @@
 
                     <!-- Board Type (auto-hides for 11/12) -->
                     <div class="form-group board-group" id="boardGroup">
-                        <label>Board <small class="text-muted">(Classes 6–10)</small></label>
-                        <select class="form-control" id="timetableBoard">
-                            <option value="Both">Both (CBSE & State)</option>
-                            <option value="CBSE">CBSE Only</option>
-                            <option value="State">State Only</option>
-                        </select>
+                        <label>Target Syllabus <span class="text-danger">*</span></label>
+                            <select class="form-control" id="timetableBoard">
+                                <option value="Both">Both (State & CBSE)</option>
+                                <option value="State Syllabus">State Syllabus</option>
+                                <option value="CBSE">CBSE</option>
+                            </select>
                     </div>
 
                     <div class="form-group">
@@ -182,8 +182,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=20261004_v1"></script>
-    <script src="js/live_timetable.js?v=20261004_v1"></script>
+    <script src="js/admin.js?v=20261004_v2"></script>
+    <script src="js/live_timetable.js?v=20261004_v2"></script>
 
     <script>
         function switchTimetableMode(mode) {

@@ -424,7 +424,14 @@ window.sb_saveStudent = async function (student) {
                 roll_no: rollNo,
                 name: name,
                 class_name: className,
-                batch: student.batch || className,
+                // Syllabus-aware batch formatting
+                batch: (() => {
+                    const syl = student.syllabus || (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch)) ? 'CBSE' : 'State Syllabus');
+                    let b = student.batch || '';
+                    if (!b || b === className) return `${className} (${syl})`;
+                    if (!b.includes(syl)) return `${b} (${syl})`;
+                    return b;
+                })(),
                 avatar: avatar,
                 phone: phone,
                 pin: student.pin || '1234',
