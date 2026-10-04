@@ -10,6 +10,13 @@
     let _realtimeChannel = null;
     let _activeFilterClass = 'all';
     let _activeFilterSyllabus = 'all';
+    let _currentPlatformContainerId = 'liveTimetablePlatform';
+
+    function _getContainer() {
+        return document.getElementById(_currentPlatformContainerId) ||
+               document.getElementById('liveTimetablePlatform') ||
+               document.getElementById('hubTimetablePlatform');
+    }
 
     function _resolveLiveItemSyllabus(item) {
         if (!item) return 'Both';
@@ -313,7 +320,9 @@
     // ── Load classes from Supabase ──────────────────────────────────────
     async function loadLiveClasses(containerId) {
         const sb = _getSb();
-        const container = document.getElementById(containerId || 'liveTimetablePlatform');
+        if (containerId) _currentPlatformContainerId = containerId;
+        const container = _getContainer();
+        if (container) _currentPlatformContainerId = container.id;
         if (!container) return;
 
         if (!sb) {
@@ -369,7 +378,9 @@
 
     // ── Render Platform UI ──────────────────────────────────────────────
     function renderPlatform(containerId) {
-        const container = document.getElementById(containerId || 'liveTimetablePlatform');
+        if (containerId) _currentPlatformContainerId = containerId;
+        const container = _getContainer();
+        if (container) _currentPlatformContainerId = container.id;
         if (!container) return;
 
         // Compute statistics
@@ -728,7 +739,11 @@
 
     // ── Inject Edit Modal DOM ───────────────────────────────────────────
     function _injectEditModalDOM() {
-        if (document.getElementById('editLiveClassModal')) return;
+        const existing = document.getElementById('editLiveClassModal');
+        if (existing) {
+            if (document.getElementById('editClassSyllabus')) return;
+            existing.remove();
+        }
 
         const modalDiv = document.createElement('div');
         modalDiv.id = 'editLiveClassModal';
@@ -1174,8 +1189,8 @@
                 }
             }
 
-            // Update local memory
-            const idx = _liveClasses.findIndex(c => c.id === classId);
+            // Update local memory immediately
+            const idx = _liveClasses.findIndex(c => String(c.id) === String(classId));
             if (idx !== -1) {
                 _liveClasses[idx] = {
                     ..._liveClasses[idx],
@@ -1185,14 +1200,24 @@
                     class_date: classDate,
                     time: finalTime,
                     status: finalStatus,
-                    published: published
+                    published: published,
+                    board: targetSyl,
+                    target_syllabus: targetSyl,
+                    syllabus: targetSyl
                 };
             }
 
             window.closeEditClassModal();
             _showToast('Class session updated successfully in Supabase!');
-            renderPlatform();
+            renderPlatform(_currentPlatformContainerId);
             updateBadgeCounters();
+
+            // Refresh from Supabase to guarantee complete multi-client sync
+            try {
+                await loadLiveClasses(_currentPlatformContainerId);
+            } catch (refErr) {
+                console.warn('[LiveTimetable] Refetch warning:', refErr);
+            }
         } catch (err) {
             alert('Failed to update class: ' + (err.message || err));
         } finally {

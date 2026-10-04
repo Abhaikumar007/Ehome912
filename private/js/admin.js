@@ -2791,12 +2791,10 @@ if (document.getElementById('timetableTableBody')) {
     }
 
     function getBoardBadge(board) {
-        switch (board) {
-            case 'CBSE':  return '<span class="badge-board badge-cbse">CBSE</span>';
-            case 'State': return '<span class="badge-board badge-state">State</span>';
-            case 'Both':
-            default:      return '<span class="badge-board badge-both">Both</span>';
-        }
+        const b = (board || '').toLowerCase();
+        if (b === 'cbse') return '<span class="badge-board badge-cbse">CBSE</span>';
+        if (b.includes('state')) return '<span class="badge-board badge-state">State Syllabus</span>';
+        return '<span class="badge-board badge-both">Both (State & CBSE)</span>';
     }
 
     function getSessionBadge(sessionType) {
@@ -2822,12 +2820,10 @@ if (document.getElementById('timetableTableBody')) {
     }
 
     function getBoardEmoji(board) {
-        switch (board) {
-            case 'CBSE':  return '🔵 CBSE';
-            case 'State': return '🟢 State';
-            case 'Both':
-            default:      return '🟣 Both';
-        }
+        const b = (board || '').toLowerCase();
+        if (b === 'cbse') return '🔵 CBSE';
+        if (b.includes('state')) return '🟢 State Syllabus';
+        return '🟣 Both (State & CBSE)';
     }
 
     // ── Render Table ──────────────────────────────────────────────────
@@ -3090,8 +3086,15 @@ if (document.getElementById('timetableTableBody')) {
                     : (sessType === 'QuestionBank' || sessType.toLowerCase().includes('question') || sessType.toLowerCase().includes('qb'))
                     ? 'QuestionBank'
                     : '';
-                const statusStr = 'upcoming' + (statusTag ? ':' + statusTag : '') + (entry.facultyId ? ':' + entry.facultyId : '');
+                const boardNorm = (entry.board || 'Both').trim();
+                const boardTag = (boardNorm === 'CBSE') ? 'CBSE' : (boardNorm.toLowerCase().includes('state')) ? 'State' : '';
+                const statusStr = 'upcoming' + (boardTag ? ':' + boardTag : '') + (statusTag ? ':' + statusTag : '') + (entry.facultyId ? ':' + entry.facultyId : '');
                 const timeParts = [timeStr];
+                if (boardNorm === 'CBSE') {
+                    timeParts.push('CBSE');
+                } else if (boardNorm.toLowerCase().includes('state')) {
+                    timeParts.push('State Syllabus');
+                }
                 if (sessionTag && sessionTag !== 'Regular' && sessionTag !== 'Regular Class') {
                     timeParts.push(sessionTag);
                 }
