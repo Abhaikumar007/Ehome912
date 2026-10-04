@@ -9,6 +9,49 @@
     let _liveClasses = [];
     let _realtimeChannel = null;
     let _activeFilterClass = 'all';
+    let _activeFilterSyllabus = 'all';
+
+    function _resolveLiveItemSyllabus(item) {
+        if (!item) return 'Both';
+        const status = (item.status || '').toLowerCase();
+        const time = (item.time || '').toLowerCase();
+        const board = (item.board || item.target_syllabus || item.targetSyllabus || item.syllabus || '').toLowerCase();
+        const roll = (item.roll_no || '').toLowerCase();
+        const grade = (item.class_grade || '').toLowerCase();
+
+        // 0. Explicit Both / Shared
+        if (
+            board === 'both' || board.includes('both') ||
+            status.split(':').includes('both') || status.includes(':both') || status.includes('both:') ||
+            time.includes('both') || time.includes('state & cbse') || time.includes('cbse & state')
+        ) {
+            return 'Both';
+        }
+
+        // 1. Explicit CBSE
+        if (
+            board === 'cbse' || board === 'cbse only' ||
+            status.split(':').includes('cbse') || status.includes(':cbse') || status.includes('cbse:') || status === 'cbse' ||
+            (time.includes('• cbse') && !time.includes('state & cbse') && !time.includes('cbse & state')) ||
+            time.includes('(cbse)') || time.includes('cbse only') || /\bcbse\b/i.test(time) ||
+            roll.includes('cbse') || grade.includes('cbse')
+        ) {
+            return 'CBSE';
+        }
+
+        // 2. Explicit State Syllabus
+        if (
+            board === 'state' || board === 'state only' || board === 'state syllabus' ||
+            status.split(':').includes('state') || status.includes(':state') || status.includes('state:') || status.includes('state syllabus') ||
+            (time.includes('• state') && !time.includes('state & cbse') && !time.includes('cbse & state')) ||
+            time.includes('(state)') || time.includes('state syllabus') || /\bstate\b/i.test(time) ||
+            roll.includes('state') || grade.includes('state')
+        ) {
+            return 'State Syllabus';
+        }
+
+        return 'Both';
+    }
     let _activeFilterDate = 'all';
     let _activeCustomDate = '';
     let _searchQuery = '';
@@ -349,6 +392,18 @@
                 if (itemGrade !== filterGrade) return false;
             }
 
+            // Syllabus Filter
+            if (_activeFilterSyllabus !== 'all') {
+                const itemSyl = _resolveLiveItemSyllabus(item);
+                if (_activeFilterSyllabus === 'State Syllabus') {
+                    if (itemSyl !== 'State Syllabus' && itemSyl !== 'Both') return false;
+                } else if (_activeFilterSyllabus === 'CBSE') {
+                    if (itemSyl !== 'CBSE' && itemSyl !== 'Both') return false;
+                } else if (_activeFilterSyllabus === 'Both') {
+                    if (itemSyl !== 'Both') return false;
+                }
+            }
+
             // Date Filter
             if (_activeFilterDate === 'today') {
                 // If exam/test paper is tomorrow, show it 1 day before in today's view!
@@ -406,9 +461,9 @@
                             <button class="btn btn-sm btn-outline-light" onclick="window.refreshLiveTimetable('${containerId}')" id="refreshLiveBtn">
                                 <i class="fas fa-sync-alt mr-1"></i> Refresh Data
                             </button>
-                            <a href="#timetable-container" class="btn btn-sm btn-primary" style="font-weight:600; border-radius:8px;">
-                                <i class="fas fa-plus mr-1"></i> Post New
-                            </a>
+                            <button class="btn btn-sm btn-primary font-weight-bold shadow-sm" onclick="window.openCreateClassModal()" style="border-radius:8px;" title="Schedule a new live class session with target syllabus">
+                                <i class="fas fa-plus-circle mr-1"></i> Schedule Session
+                            </button>
                         </div>
                     </div>
 
@@ -459,6 +514,17 @@
                                     <option value="10" ${_activeFilterClass === '10' ? 'selected' : ''}>Class 10</option>
                                     <option value="11" ${_activeFilterClass === '11' ? 'selected' : ''}>Class 11</option>
                                     <option value="12" ${_activeFilterClass === '12' ? 'selected' : ''}>Class 12</option>
+                                </select>
+                            </div>
+
+                            <!-- Syllabus Filter -->
+                            <div class="d-flex align-items-center">
+                                <label class="small text-muted font-weight-bold mr-2 mb-0" style="white-space:nowrap;"><i class="fas fa-book-reader mr-1"></i>Syllabus:</label>
+                                <select class="form-control form-control-sm" id="liveFilterSyllabus" style="width:130px; border-radius:6px;" onchange="window.filterLiveSyllabus(this.value, '${containerId}')">
+                                    <option value="all" ${_activeFilterSyllabus === 'all' ? 'selected' : ''}>All</option>
+                                    <option value="State Syllabus" ${_activeFilterSyllabus === 'State Syllabus' ? 'selected' : ''}>State Only</option>
+                                    <option value="CBSE" ${_activeFilterSyllabus === 'CBSE' ? 'selected' : ''}>CBSE Only</option>
+                                    <option value="Both" ${_activeFilterSyllabus === 'Both' ? 'selected' : ''}>Both (Shared)</option>
                                 </select>
                             </div>
 
@@ -566,11 +632,21 @@
                                             <small class="text-muted">${item.class_date || ''}</small>
                                         </td>
 
-                                        <!-- Grade -->
+                                        <!-- Grade & Syllabus -->
                                         <td style="vertical-align:middle;">
                                             <span class="badge px-2 py-1" style="background:#e0f2fe; color:#0369a1; font-weight:700; border-radius:6px; font-size:0.8rem;">
                                                 ${item.class_grade || item.roll_no || 'Class'}
                                             </span>
+                                            ${(() => {
+                                                const syl = _resolveLiveItemSyllabus(item);
+                                                if (syl === 'CBSE') {
+                                                    return '<div class="mt-1"><span class="badge" style="background:#e0f2fe; color:#0284c7; border:1px solid #bae6fd; font-size:0.72rem; font-weight:600;"><i class="fas fa-book mr-1"></i>CBSE</span></div>';
+                                                } else if (syl === 'State Syllabus') {
+                                                    return '<div class="mt-1"><span class="badge" style="background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; font-size:0.72rem; font-weight:600;"><i class="fas fa-landmark mr-1"></i>State Syllabus</span></div>';
+                                                } else {
+                                                    return '<div class="mt-1"><span class="badge" style="background:#f1f5f9; color:#475569; border:1px solid #cbd5e1; font-size:0.72rem; font-weight:600;"><i class="fas fa-users mr-1"></i>State & CBSE</span></div>';
+                                                }
+                                            })()}
                                         </td>
 
                                         <!-- Subject -->
@@ -715,9 +791,17 @@
                         </div>
                     </div>
 
-                    <!-- Status Row -->
+                    <!-- Target Syllabus & Status Row -->
                     <div class="form-row mb-3">
-                        <div class="col-md-12">
+                        <div class="col-md-6">
+                            <label class="font-weight-bold text-dark small mb-1">Target Syllabus *</label>
+                            <select class="form-control" id="editClassSyllabus" required>
+                                <option value="Both">Both (State & CBSE)</option>
+                                <option value="State Syllabus">State Syllabus</option>
+                                <option value="CBSE">CBSE</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
                             <label class="font-weight-bold text-dark small mb-1">Session Status</label>
                             <select class="form-control" id="editClassStatus">
                                 <option value="upcoming">📖 Upcoming</option>
@@ -851,6 +935,16 @@
         _currentEditId = classId;
         document.getElementById('editClassId').value = classId;
 
+        const modalTitle = document.querySelector('#editLiveClassModal h5');
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-edit mr-2"></i>Edit Scheduled Class Session';
+        }
+        const saveBtn = document.getElementById('saveClassEditBtn');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Changes';
+        }
+
         // Populate fields
         const rawGrade = String(item.class_grade || item.roll_no || 'Class 10');
         const formattedGrade = rawGrade.startsWith('Class') ? rawGrade : 'Class ' + rawGrade;
@@ -858,14 +952,8 @@
         document.getElementById('editClassSubject').value = item.subject || 'Physics';
         document.getElementById('editClassDate').value = item.class_date || '';
         // Populate editClassSyllabus
-        const normSylStatus = (item.status || '').toLowerCase();
-        const normSylTime = (item.time || '').toLowerCase();
-        let detectedSyl = 'Both';
-        if (normSylStatus.includes(':cbse') || normSylStatus.includes('cbse:') || normSylTime.includes('• cbse') || normSylTime.includes('(cbse)')) {
-            detectedSyl = 'CBSE';
-        } else if (normSylStatus.includes(':state') || normSylStatus.includes('state:') || normSylTime.includes('• state') || normSylTime.includes('(state)')) {
-            detectedSyl = 'State Syllabus';
-        }
+        // Populate editClassSyllabus
+        const detectedSyl = _resolveLiveItemSyllabus(item);
         const sylInput = document.getElementById('editClassSyllabus');
         if (sylInput) sylInput.value = detectedSyl;
 
@@ -952,7 +1040,6 @@
     // ── Save Class Edit to Supabase ─────────────────────────────────────
     window.saveLiveClassEdit = async function () {
         const classId = _currentEditId || document.getElementById('editClassId').value;
-        if (!classId) return;
 
         const sb = _getSb();
         if (!sb) {
@@ -1045,8 +1132,8 @@
                 facultyId || (facultyName ? 'fac' : '')
             ].filter(Boolean).join(':');
 
-            // 1. Update in Supabase classes table
-            const { error: updErr } = await sb.from('classes').update({
+            // 1. Save (Update or Insert) in Supabase classes table
+            const recordPayload = {
                 class_grade: classGrade,
                 roll_no: classGrade,
                 subject: subject,
@@ -1054,11 +1141,22 @@
                 time: finalTime,
                 status: finalStatus,
                 published: published
-            }).eq('id', classId);
+            };
 
-            if (updErr) {
-                console.error('[LiveTimetable] Update error:', updErr);
-                throw updErr;
+            if (classId) {
+                const { error: updErr } = await sb.from('classes').update(recordPayload).eq('id', classId);
+                if (updErr) {
+                    console.error('[LiveTimetable] Update error:', updErr);
+                    throw updErr;
+                }
+                _showToast(`✅ Updated ${classGrade} ${subject} (${targetSyl})!`);
+            } else {
+                const { error: insErr } = await sb.from('classes').insert([recordPayload]);
+                if (insErr) {
+                    console.error('[LiveTimetable] Insert error:', insErr);
+                    throw insErr;
+                }
+                _showToast(`✅ Scheduled new ${classGrade} ${subject} (${targetSyl})!`);
             }
 
             // 2. Broadcast announcement if requested
@@ -1372,6 +1470,11 @@
     };
 
     // ── Filter Handlers ─────────────────────────────────────────────────
+    window.filterLiveSyllabus = function (val, containerId) {
+        _activeFilterSyllabus = val;
+        renderPlatform(containerId);
+    };
+
     window.filterLiveClass = function (val, containerId) {
         _activeFilterClass = val;
         renderPlatform(containerId);
