@@ -80,6 +80,20 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
   const grade = (cls?.class_grade || '').toLowerCase();
   const board = (cls?.board || cls?.target_syllabus || cls?.targetSyllabus || cls?.syllabus || '').toLowerCase();
 
+  // 0. Explicit Both / Shared indicators
+  if (
+    board === 'both' ||
+    board.includes('both') ||
+    status.split(':').includes('both') ||
+    status.includes(':both') ||
+    status.includes('both:') ||
+    time.includes('both') ||
+    time.includes('state & cbse') ||
+    time.includes('cbse & state')
+  ) {
+    return 'Both';
+  }
+
   // 1. Explicit CBSE indicators
   if (
     board === 'cbse' ||
@@ -88,7 +102,7 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
     status.includes(':cbse') ||
     status.includes('cbse:') ||
     status === 'cbse' ||
-    time.includes('• cbse') ||
+    (time.includes('• cbse') && !time.includes('state & cbse') && !time.includes('cbse & state')) ||
     time.includes('(cbse)') ||
     time.includes('cbse only') ||
     roll.includes('cbse') ||
@@ -106,7 +120,7 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
     status.includes(':state') ||
     status.includes('state:') ||
     status.includes('state syllabus') ||
-    time.includes('• state') ||
+    (time.includes('• state') && !time.includes('state & cbse') && !time.includes('cbse & state')) ||
     time.includes('(state)') ||
     time.includes('state syllabus') ||
     roll.includes('state') ||
