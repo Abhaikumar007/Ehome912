@@ -968,50 +968,146 @@ export default function FacultyAttendanceScreen() {
         )}
 
         {/* Attendance Summary Card */}
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryTopRow}>
-            <View style={styles.summaryHeaderLeft}>
-              <View style={styles.summaryIconBox}>
-                <Ionicons name="clipboard" size={16} color="#fff" />
-              </View>
-              <View>
-                <Text style={styles.summaryTitle}>Attendance Summary</Text>
-                <Text style={styles.summarySub}>
-                  {currentClass.batch} • {selectedSubject}{activeSessionSyllabus !== 'Both' ? ` • ${activeSessionSyllabus}` : ''}
-                  {activeSessionTime ? ` • ${activeSessionTime}` : ''}
-                  {activeSessionType ? ` (${activeSessionType})` : ''}
-                </Text>
-              </View>
-            </View>
+        {(() => {
+          const totalFormatted = totalCount < 10 ? `0${totalCount}` : String(totalCount);
+          const presentFormatted = presentCount < 10 ? `0${presentCount}` : String(presentCount);
+          const absentFormatted = absentCount < 10 ? `0${absentCount}` : String(absentCount);
+          const attendancePercent = totalCount > 0 ? Math.round((presentCount / totalCount) * 100) : 0;
+          const absentPercent = totalCount > 0 ? Math.round((absentCount / totalCount) * 100) : 0;
 
-            <View style={[styles.readyBadge, submitted && styles.submittedBadge]}>
-              <View style={[styles.readyDot, submitted && { backgroundColor: Colors.green }]} />
-              <Text style={[styles.readyText, submitted && { color: Colors.green }]}>
-                {submitted ? 'Submitted' : 'Ready to Submit'}
-              </Text>
-            </View>
-          </View>
+          return (
+            <View style={styles.summaryCard}>
+              {/* 1. Header Row: Title & Status Badge */}
+              <View style={styles.summaryTopRow}>
+                <View style={styles.summaryHeaderLeft}>
+                  <View style={styles.summaryIconBox}>
+                    <Ionicons name="clipboard" size={17} color="#fff" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.summaryTitle}>Attendance Summary</Text>
+                    <Text style={styles.summarySubTitle}>Live batch attendance & session turnout</Text>
+                  </View>
+                </View>
 
-          {/* 3 Metric Cards */}
-          <View style={styles.metricGrid}>
-            <View style={[styles.metricBox, { backgroundColor: '#F8FAFC' }]}>
-              <Text style={styles.metricLabel}>TOTAL</Text>
-              <Text style={[styles.metricValue, { color: Colors.textPrimary }]}>{totalCount}</Text>
+                <View style={[styles.readyBadge, submitted && styles.submittedBadge]}>
+                  <View style={[styles.readyDot, submitted && { backgroundColor: Colors.green }]} />
+                  <Text style={[styles.readyText, submitted && { color: Colors.green }]}>
+                    {submitted ? 'Submitted ✓' : 'Ready to Submit'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* 2. Structured Metadata Badges: Class, Subject, Syllabus, Time & Type */}
+              <View style={styles.summaryMetaContainer}>
+                <View style={styles.metaBadge}>
+                  <Ionicons name="school-outline" size={12} color="#0369A1" />
+                  <Text style={styles.metaBadgeText}>{currentClass.label}</Text>
+                </View>
+
+                {selectedSubject ? (
+                  <View style={styles.metaBadge}>
+                    <Ionicons name="book-outline" size={12} color="#0369A1" />
+                    <Text style={styles.metaBadgeText}>{selectedSubject}</Text>
+                  </View>
+                ) : null}
+
+                {activeSessionSyllabus !== 'Both' ? (
+                  <View style={[styles.metaBadge, styles.metaBadgeSyllabus]}>
+                    <Ionicons name="ribbon-outline" size={12} color={activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D'} />
+                    <Text style={[styles.metaBadgeText, { color: activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D' }]}>
+                      {activeSessionSyllabus}
+                    </Text>
+                  </View>
+                ) : null}
+
+                {activeSessionTime ? (
+                  <View style={styles.metaBadge}>
+                    <Ionicons name="time-outline" size={12} color="#475569" />
+                    <Text style={[styles.metaBadgeText, { color: '#334155' }]}>{activeSessionTime}</Text>
+                  </View>
+                ) : null}
+
+                {activeSessionType ? (
+                  <View style={[styles.metaBadge, styles.metaBadgeType]}>
+                    <Ionicons name="pricetag-outline" size={11} color="#6366F1" />
+                    <Text style={[styles.metaBadgeText, { color: '#4F46E5' }]}>{activeSessionType}</Text>
+                  </View>
+                ) : null}
+              </View>
+
+              {/* 3. 3-Column Metrics Grid (Count, Label & Percentage) */}
+              <View style={styles.metricGrid}>
+                {/* Total */}
+                <View style={[styles.metricBox, styles.metricBoxTotal]}>
+                  <View style={styles.metricLabelRow}>
+                    <Ionicons name="people-outline" size={13} color="#475569" />
+                    <Text style={styles.metricLabel}>TOTAL</Text>
+                  </View>
+                  <Text style={[styles.metricValue, { color: '#0F172A' }]}>{totalFormatted}</Text>
+                  <View style={styles.metricPercentBadgeTotal}>
+                    <Text style={styles.metricPercentTextTotal}>100% Roster</Text>
+                  </View>
+                </View>
+
+                {/* Present */}
+                <View style={[styles.metricBox, styles.metricBoxPresent]}>
+                  <View style={styles.metricLabelRow}>
+                    <Ionicons name="checkmark-circle-outline" size={13} color="#059669" />
+                    <Text style={[styles.metricLabel, { color: '#047857' }]}>PRESENT</Text>
+                  </View>
+                  <Text style={[styles.metricValue, { color: '#059669' }]}>{presentFormatted}</Text>
+                  <View style={styles.metricPercentBadgePresent}>
+                    <Text style={styles.metricPercentTextPresent}>{attendancePercent}% Turnout</Text>
+                  </View>
+                </View>
+
+                {/* Absent */}
+                <View style={[styles.metricBox, styles.metricBoxAbsent]}>
+                  <View style={styles.metricLabelRow}>
+                    <Ionicons name="close-circle-outline" size={13} color="#DC2626" />
+                    <Text style={[styles.metricLabel, { color: '#B91C1C' }]}>ABSENT</Text>
+                  </View>
+                  <Text style={[styles.metricValue, { color: '#DC2626' }]}>{absentFormatted}</Text>
+                  <View style={styles.metricPercentBadgeAbsent}>
+                    <Text style={styles.metricPercentTextAbsent}>{absentPercent}% Absent</Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* 4. Progress / Turnout Rate Bar */}
+              <View style={styles.turnoutContainer}>
+                <View style={styles.turnoutInfoRow}>
+                  <View style={styles.turnoutLeft}>
+                    <Ionicons
+                      name={attendancePercent >= 75 ? "trending-up" : "alert-circle-outline"}
+                      size={14}
+                      color={attendancePercent >= 75 ? "#059669" : "#D97706"}
+                    />
+                    <Text style={styles.turnoutRateLabel}>Attendance Rate:</Text>
+                    <Text style={[styles.turnoutRateValue, { color: attendancePercent >= 75 ? '#059669' : '#D97706' }]}>
+                      {attendancePercent}%
+                    </Text>
+                  </View>
+                  <Text style={styles.turnoutCountSub}>
+                    {presentCount} of {totalCount} students present
+                  </Text>
+                </View>
+
+                <View style={styles.turnoutTrack}>
+                  <View
+                    style={[
+                      styles.turnoutFill,
+                      {
+                        width: `${Math.min(Math.max(attendancePercent, 0), 100)}%`,
+                        backgroundColor: attendancePercent >= 75 ? '#10B981' : attendancePercent >= 50 ? '#0284C7' : '#F59E0B',
+                      },
+                    ]}
+                  />
+                </View>
+              </View>
             </View>
-            <View style={[styles.metricBox, { backgroundColor: '#ECFDF3' }]}>
-              <Text style={[styles.metricLabel, { color: Colors.green }]}>PRESENT</Text>
-              <Text style={[styles.metricValue, { color: Colors.green }]}>
-                {presentCount < 10 ? `0${presentCount}` : presentCount}
-              </Text>
-            </View>
-            <View style={[styles.metricBox, { backgroundColor: '#FEF3F2' }]}>
-              <Text style={[styles.metricLabel, { color: Colors.red }]}>ABSENT</Text>
-              <Text style={[styles.metricValue, { color: Colors.red }]}>
-                {absentCount < 10 ? `0${absentCount}` : absentCount}
-              </Text>
-            </View>
-          </View>
-        </View>
+          );
+        })()}
 
         {/* Search & Quick Controls */}
         <View style={styles.searchBarRow}>
@@ -1444,24 +1540,30 @@ const styles = StyleSheet.create({
 
   summaryCard: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 18,
     padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: Colors.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 6,
-    elevation: 2,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
   summaryTopRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 14,
+    marginBottom: 10,
+    gap: 8,
   },
-  summaryHeaderLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  summaryHeaderLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
   summaryIconBox: {
     width: 36,
     height: 36,
@@ -1469,9 +1571,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#0284C7',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  summaryTitle: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.textPrimary },
-  summarySub: { fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 1 },
+  summaryTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: '#0F172A',
+    letterSpacing: -0.2,
+  },
+  summarySubTitle: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: '#64748B',
+    marginTop: 1,
+  },
 
   readyBadge: {
     flexDirection: 'row',
@@ -1481,21 +1598,186 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: 10,
     paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
-  submittedBadge: { backgroundColor: '#ECFDF3' },
-  readyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#D97706' },
-  readyText: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: '#B45309' },
+  submittedBadge: {
+    backgroundColor: '#ECFDF3',
+    borderColor: '#A7F3D0',
+  },
+  readyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#D97706',
+  },
+  readyText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#B45309',
+  },
 
-  metricGrid: { flexDirection: 'row', gap: 8 },
+  // Structured Metadata Badges
+  summaryMetaContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+  },
+  metaBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 3.5,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  metaBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0369A1',
+  },
+  metaBadgeSyllabus: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  metaBadgeType: {
+    backgroundColor: '#EEF2FF',
+    borderColor: '#C7D2FE',
+  },
+
+  // 3 Metric Boxes
+  metricGrid: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
   metricBox: {
     flex: 1,
     borderRadius: 12,
-    paddingVertical: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 6,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
   },
-  metricLabel: { fontSize: 11, fontFamily: 'Inter_600SemiBold', color: Colors.textSecondary, marginBottom: 2 },
-  metricValue: { fontSize: 24, fontFamily: 'Inter_700Bold' },
+  metricBoxTotal: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
+  },
+  metricBoxPresent: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  metricBoxAbsent: {
+    backgroundColor: '#FEF2F2',
+    borderColor: '#FECACA',
+  },
+  metricLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 2,
+  },
+  metricLabel: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: '#64748B',
+    letterSpacing: 0.5,
+  },
+  metricValue: {
+    fontSize: 24,
+    fontFamily: 'Inter_700Bold',
+    marginVertical: 1,
+  },
+  metricPercentBadgeTotal: {
+    backgroundColor: '#E2E8F0',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    marginTop: 2,
+  },
+  metricPercentTextTotal: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#334155',
+  },
+  metricPercentBadgePresent: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    marginTop: 2,
+  },
+  metricPercentTextPresent: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#15803D',
+  },
+  metricPercentBadgeAbsent: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+    marginTop: 2,
+  },
+  metricPercentTextAbsent: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#B91C1C',
+  },
+
+  // Turnout Rate Progress Bar
+  turnoutContainer: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  turnoutInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  turnoutLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  turnoutRateLabel: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#334155',
+  },
+  turnoutRateValue: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+  },
+  turnoutCountSub: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_500Medium',
+    color: '#64748B',
+  },
+  turnoutTrack: {
+    height: 6,
+    backgroundColor: '#E2E8F0',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  turnoutFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
 
   searchBarRow: {
     flexDirection: 'row',
