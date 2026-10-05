@@ -588,20 +588,13 @@ export default function DashboardScreen() {
                 {dateOffset === 0 ? "TODAY'S CLASSES" : dateOffset === 1 ? "TOMORROW'S CLASSES" : dateOffset === -1 ? "YESTERDAY'S CLASSES" : "CLASSES SCHEDULE"}
               </Text>
             </View>
-            {isTimetablePublished && displayedClasses.length === 0 ? (
-              <View style={styles.publishedHeaderBadge}>
-                <Ionicons name="checkmark-circle" size={12} color="#059669" />
-                <Text style={styles.publishedHeaderBadgeText}>Timetable Published</Text>
-              </View>
-            ) : (
-              <Text style={[
-                styles.dayIndicatorDateSub,
-                dateOffset === 0 && { color: '#047857' },
-                dateOffset === 1 && { color: '#4338CA' },
-              ]}>
-                {dateOffset === 0 ? 'Active Today' : dateOffset === 1 ? 'Next Day Schedule' : dateLabel}
-              </Text>
-            )}
+            <Text style={[
+              styles.dayIndicatorDateSub,
+              dateOffset === 0 && { color: '#047857' },
+              dateOffset === 1 && { color: '#4338CA' },
+            ]}>
+              {dateOffset === 0 ? 'Active Today' : dateOffset === 1 ? 'Next Day Schedule' : dateLabel}
+            </Text>
           </View>
 
           {/* 1-Day Advance Notice for Tomorrow's Exam */}
@@ -792,16 +785,6 @@ export default function DashboardScreen() {
                   ? `Tomorrow's timetable has been published, and there are no classes scheduled for ${student?.class ? (String(student.class).toLowerCase().includes('class') ? student.class : `Class ${student.class}`) : 'your class'}.`
                   : `Today's timetable has been published, and there are no sessions scheduled for your class.`}
               </Text>
-
-              <View style={styles.noSessionStudyBox}>
-                <Ionicons name="book-outline" size={16} color="#4338CA" style={{ marginTop: 2 }} />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.noSessionStudyTitle}>Self-Study & Revision Time</Text>
-                  <Text style={styles.noSessionStudyText}>
-                    Take advantage of this session-free day to review your chapter notes, complete pending assignments, and practice mock test questions.
-                  </Text>
-                </View>
-              </View>
             </View>
           ) : (
             <View style={styles.noClassWrap}>
@@ -1507,26 +1490,10 @@ const styles = StyleSheet.create({
   },
 
   // Scenario 1: Timetable Published but No Session Tomorrow
-  publishedHeaderBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: '#ECFDF5',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#A7F3D0',
-  },
-  publishedHeaderBadgeText: {
-    fontSize: 11,
-    fontFamily: 'Inter_700Bold',
-    color: '#065F46',
-  },
   noSessionPublishedBox: {
     alignItems: 'center',
-    paddingVertical: 22,
-    paddingHorizontal: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 20,
     backgroundColor: '#F8FAFC',
     borderRadius: 16,
     marginVertical: 4,
@@ -1573,32 +1540,8 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 14,
+    lineHeight: 19,
     maxWidth: 320,
-  },
-  noSessionStudyBox: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    backgroundColor: '#EEF2FF',
-    padding: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#C7D2FE',
-    width: '100%',
-  },
-  noSessionStudyTitle: {
-    fontSize: 12,
-    fontFamily: 'Inter_700Bold',
-    color: '#3730A3',
-    marginBottom: 2,
-  },
-  noSessionStudyText: {
-    fontSize: 11,
-    fontFamily: 'Inter_400Regular',
-    color: '#4338CA',
-    lineHeight: 16,
   },
 
   noClassWrap: { alignItems: 'center', paddingVertical: 20, gap: 6 },
