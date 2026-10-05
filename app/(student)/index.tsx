@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, Redirect } from 'expo-router';
+import { useRouter, Redirect, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
 import { DataService, compareClassTimes, resolveSessionType, resolveClassTargetSyllabus } from '../../lib/dataService';
@@ -139,6 +139,23 @@ const HOME_TEACHER_OPINIONS = [
   },
 ];
 
+/**
+ * Dynamic Greeting based on local time:
+ * - Morning: “Good Morning” — 5:00 AM to 11:59 AM
+ * - Afternoon: “Good Afternoon” — 12:00 PM to 4:59 PM
+ * - Evening: “Good Evening” — 5:00 PM to 4:59 AM
+ */
+function getDynamicGreeting(date: Date = new Date()): string {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) {
+    return 'Good Morning';
+  }
+  if (hour >= 12 && hour < 17) {
+    return 'Good Afternoon';
+  }
+  return 'Good Evening';
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { student, loading: authLoading, refresh: refreshAuth } = useAuth();
@@ -157,10 +174,19 @@ export default function DashboardScreen() {
   const [teacherOpinionIndex, setTeacherOpinionIndex] = useState(0);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [greeting, setGreeting] = useState<string>(getDynamicGreeting());
+
+  // Automatically recalculate dynamic greeting when student opens or switches to Home tab
+  useFocusEffect(
+    React.useCallback(() => {
+      setGreeting(getDynamicGreeting());
+    }, [])
+  );
 
   const rollNo = student?.rollNo || '';
 
   const loadData = async () => {
+    setGreeting(getDynamicGreeting());
     try {
       const [cls, anns, att, fees, alert, opinions, notifs] = await Promise.all([
         DataService.getClasses(rollNo, student?.class, student?.syllabus),
@@ -246,8 +272,18 @@ export default function DashboardScreen() {
     };
   }, [rollNo, student?.class, student?.syllabus]);
 
+  // Keep dynamic greeting accurate if screen remains open over time boundary
+  useEffect(() => {
+    setGreeting(getDynamicGreeting());
+    const interval = setInterval(() => {
+      setGreeting(getDynamicGreeting());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
   const onRefresh = async () => {
     setRefreshing(true);
+    setGreeting(getDynamicGreeting());
     try {
       await Promise.all([
         loadData(),
@@ -390,7 +426,7 @@ export default function DashboardScreen() {
         {/* Greeting */}
         <View style={styles.greetRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.greetSmall}>Good Afternoon,</Text>
+            <Text style={styles.greetSmall}>{greeting},</Text>
             <Text style={styles.greetName}>{student?.name || 'Student'}</Text>
             <Text style={styles.greetMotivation}>Keep going, every step counts!</Text>
           </View>
