@@ -807,6 +807,34 @@ export const DataService = {
     return [];
   },
 
+
+  // Check which dates have published timetables across the tuition centre
+  async getPublishedTimetableDates(): Promise<string[]> {
+    const cacheKey = 'published_timetable_dates';
+    try {
+      const { data, error } = await supabase
+        .from('classes')
+        .select('class_date')
+        .eq('published', true);
+
+      if (!error && Array.isArray(data)) {
+        const dates = Array.from(
+          new Set(
+            data
+              .map((d: any) => (d.class_date || '').trim())
+              .filter(Boolean)
+          )
+        );
+        await setCached(cacheKey, dates);
+        return dates;
+      }
+    } catch (e) {
+      console.warn('Error fetching published timetable dates:', e);
+    }
+    const cached = await getCached<string[]>(cacheKey);
+    return cached || [];
+  },
+
   // Access Control: Enforce timetable scheduling restrictions (Admin Portal only)
   async scheduleTeacherClassSession(_sessionData: {
     classGrade: string;

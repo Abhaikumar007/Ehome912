@@ -171,6 +171,7 @@ export default function DashboardScreen() {
   const [communityModalVisible, setCommunityModalVisible] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
   const [teacherOpinions, setTeacherOpinions] = useState<any[]>(HOME_TEACHER_OPINIONS);
+  const [publishedDates, setPublishedDates] = useState<string[]>([]);
   const [teacherOpinionIndex, setTeacherOpinionIndex] = useState(0);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -188,7 +189,7 @@ export default function DashboardScreen() {
   const loadData = async () => {
     setGreeting(getDynamicGreeting());
     try {
-      const [cls, anns, att, fees, alert, opinions, notifs] = await Promise.all([
+      const [cls, anns, att, fees, alert, opinions, notifs, pubDates] = await Promise.all([
         DataService.getClasses(rollNo, student?.class, student?.syllabus),
         DataService.getAnnouncements(false, student?.class),
         DataService.getAttendance(rollNo),
@@ -196,8 +197,10 @@ export default function DashboardScreen() {
         DataService.getAcademicAlert(student?.class, student?.syllabus),
         DataService.getStudentTeacherOpinions(rollNo),
         DataService.getNotifications(rollNo),
+        DataService.getPublishedTimetableDates(),
       ]);
       if (cls) setClasses(cls);
+      if (pubDates) setPublishedDates(pubDates);
       setAnnouncementsList(anns || []);
       if (att) setAttSummary(att);
       if (fees) setFeesSummary(fees);
@@ -232,8 +235,12 @@ export default function DashboardScreen() {
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
+        console.log('[Realtime] Classes change detected in Supabase');
         DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
           if (cls) setClasses(cls);
+        });
+        DataService.getPublishedTimetableDates().then((dates) => {
+          if (dates) setPublishedDates(dates);
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'students', filter: `roll_no=eq.${rollNo}` }, () => {
@@ -348,8 +355,16 @@ export default function DashboardScreen() {
   };
 
   const displayedClasses = getDayClasses(dateOffset);
-  const isSunday = today.getDay() === 0;
+  const targetDateForOffset = new Date();
+  targetDateForOffset.setDate(targetDateForOffset.getDate() + dateOffset);
+  const targetIsoYear = targetDateForOffset.getFullYear();
+  const targetIsoMonth = String(targetDateForOffset.getMonth() + 1).padStart(2, '0');
+  const targetIsoDay = String(targetDateForOffset.getDate()).padStart(2, '0');
+  const targetDateIsoStr = `${targetIsoYear}-${targetIsoMonth}-${targetIsoDay}`;
+
+  const isSunday = targetDateForOffset.getDay() === 0;
   const isFuture = dateOffset > 0;
+  const isTimetablePublished = publishedDates.includes(targetDateIsoStr);
 
   if (authLoading) {
     return (
@@ -556,13 +571,20 @@ export default function DashboardScreen() {
                 {dateOffset === 0 ? "TODAY'S CLASSES" : dateOffset === 1 ? "TOMORROW'S CLASSES" : dateOffset === -1 ? "YESTERDAY'S CLASSES" : "CLASSES SCHEDULE"}
               </Text>
             </View>
-            <Text style={[
-              styles.dayIndicatorDateSub,
-              dateOffset === 0 && { color: '#047857' },
-              dateOffset === 1 && { color: '#4338CA' },
-            ]}>
-              {dateOffset === 0 ? 'Active Today' : dateOffset === 1 ? 'Next Day Schedule' : dateLabel}
-            </Text>
+            {isTimetablePublished && displayedClasses.length === 0 ? (
+              <View style={styles.publishedHeaderBadge}>
+                <Ionicons name="checkmark-circle" size={12} color="#059669" />
+                <Text style={styles.publishedHeaderBadgeText}>Timetable Published</Text>
+              </View>
+            ) : (
+              <Text style={[
+                styles.dayIndicatorDateSub,
+                dateOffset === 0 && { color: '#047857' },
+                dateOffset === 1 && { color: '#4338CA' },
+              ]}>
+                {dateOffset === 0 ? 'Active Today' : dateOffset === 1 ? 'Next Day Schedule' : dateLabel}
+              </Text>
+            )}
           </View>
 
           {/* 1-Day Advance Notice for Tomorrow's Exam */}
@@ -728,6 +750,42 @@ export default function DashboardScreen() {
                 </View>
               );
             })
+          ) : isTimetablePublished && !isSunday ? (
+            /* Scenario 1: Timetable Published but No Session for this Student / Class */
+            <View style={styles.noSessionPublishedBox}>
+              <View style={styles.publishedStatusPill}>
+                <Ionicons name="checkmark-circle" size={15} color="#059669" />
+                <Text style={styles.publishedStatusPillText}>Timetable Published</Text>
+              </View>
+
+              <View style={styles.noSessionIconCircle}>
+                <Ionicons name="school-outline" size={28} color="#0284C7" />
+              </View>
+
+              <Text style={styles.noSessionMainTitle}>
+                {dateOffset === 1
+                  ? "No Session Tomorrow"
+                  : dateOffset === 0
+                  ? "No Session Today"
+                  : "No Session Scheduled"}
+              </Text>
+
+              <Text style={styles.noSessionSubText}>
+                {dateOffset === 1
+                  ? `Tomorrow's timetable has been published, and there are no classes scheduled for ${student?.class ? (String(student.class).toLowerCase().includes('class') ? student.class : `Class ${student.class}`) : 'your class'}.`
+                  : `Today's timetable has been published, and there are no sessions scheduled for your class.`}
+              </Text>
+
+              <View style={styles.noSessionStudyBox}>
+                <Ionicons name="book-outline" size={16} color="#4338CA" style={{ marginTop: 2 }} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.noSessionStudyTitle}>Self-Study & Revision Time</Text>
+                  <Text style={styles.noSessionStudyText}>
+                    Take advantage of this session-free day to review your chapter notes, complete pending assignments, and practice mock test questions.
+                  </Text>
+                </View>
+              </View>
+            </View>
           ) : (
             <View style={styles.noClassWrap}>
               <Ionicons name={isSunday ? "sunny-outline" : "calendar-outline"} size={28} color={Colors.textMuted} />
@@ -1427,6 +1485,101 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_500Medium',
     color: '#B91C1C',
     marginTop: 1,
+  },
+
+  // Scenario 1: Timetable Published but No Session Tomorrow
+  publishedHeaderBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  publishedHeaderBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#065F46',
+  },
+  noSessionPublishedBox: {
+    alignItems: 'center',
+    paddingVertical: 22,
+    paddingHorizontal: 16,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    marginVertical: 4,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  publishedStatusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#D1FAE5',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#6EE7B7',
+    marginBottom: 12,
+  },
+  publishedStatusPillText: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#065F46',
+  },
+  noSessionIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: '#E0F2FE',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  noSessionMainTitle: {
+    fontSize: 17,
+    fontFamily: 'Inter_700Bold',
+    color: '#1E293B',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  noSessionSubText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    color: '#64748B',
+    textAlign: 'center',
+    lineHeight: 18,
+    marginBottom: 14,
+    maxWidth: 320,
+  },
+  noSessionStudyBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#EEF2FF',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#C7D2FE',
+    width: '100%',
+  },
+  noSessionStudyTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#3730A3',
+    marginBottom: 2,
+  },
+  noSessionStudyText: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: '#4338CA',
+    lineHeight: 16,
   },
 
   noClassWrap: { alignItems: 'center', paddingVertical: 20, gap: 6 },
