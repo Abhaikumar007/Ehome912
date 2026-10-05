@@ -2405,49 +2405,8 @@ export const DataService = {
       console.warn('Error fetching student opinions from Supabase:', e);
     }
 
-    if (cached && Array.isArray(cached)) return cached;
-
-    const defaultOpinions = [
-      {
-        id: 'to-1',
-        rollNo,
-        studentName: 'Arjun S',
-        teacher: 'Mr. Abhai Kumar',
-        role: 'Super Admin & Physics Head',
-        subject: 'Physics',
-        remark: 'Arjun is showing remarkable consistency in Optics and Wave theory. Needs slight attention on numerical step derivations.',
-        status: 'approved',
-        submittedAt: '12 Sep 2026',
-        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
-      },
-      {
-        id: 'to-2',
-        rollNo,
-        studentName: 'Arjun S',
-        teacher: 'Dr. Sunita Rao',
-        role: 'Faculty Member',
-        subject: 'Chemistry',
-        remark: 'Good progress in chemical kinetics and balancing complex equations. Keep practicing previous years’ board papers.',
-        status: 'approved',
-        submittedAt: '14 Sep 2026',
-        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
-      },
-      {
-        id: 'to-3',
-        rollNo,
-        studentName: 'Arjun S',
-        teacher: 'Prof. K V Nair',
-        role: 'Faculty Member',
-        subject: 'Mathematics',
-        remark: 'Attended 100% of calculus & integration classes this term. Solid conceptual foundation for entrance examinations.',
-        status: 'approved',
-        submittedAt: '16 Sep 2026',
-        approvedBy: 'Mr. Abhai Kumar (Main Admin)',
-      },
-    ];
-
-    await setCached(key, defaultOpinions);
-    return defaultOpinions;
+    if (cached && Array.isArray(cached) && cached.length > 0) return cached;
+    return [];
   },
 
   async addTeacherOpinion(opinion: {

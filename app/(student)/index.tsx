@@ -121,24 +121,6 @@ function getClassSessionInfo(cls: any, academicAlert?: any): SessionTypeInfo {
   };
 }
 
-const HOME_TEACHER_OPINIONS = [
-  {
-    teacher: 'Mr. Abhai Kumar',
-    subject: 'Physics (Senior Faculty)',
-    remark: 'Welcome to EduHome! Academic sessions and daily attendance will commence as per your schedule.',
-  },
-  {
-    teacher: 'Dr. Sunita Rao',
-    subject: 'Chemistry',
-    remark: 'Lab experiments, concept clarifications, and chapter discussions will begin soon. Stay focused!',
-  },
-  {
-    teacher: 'Prof. K V Nair',
-    subject: 'Mathematics',
-    remark: 'Daily attendance and continuous evaluation will be updated here as regular sessions begin.',
-  },
-];
-
 /**
  * Dynamic Greeting based on local time:
  * - Morning: “Good Morning” — 5:00 AM to 11:59 AM
@@ -170,7 +152,7 @@ export default function DashboardScreen() {
   const [alertModalVisible, setAlertModalVisible] = useState(false);
   const [communityModalVisible, setCommunityModalVisible] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState<any>(null);
-  const [teacherOpinions, setTeacherOpinions] = useState<any[]>(HOME_TEACHER_OPINIONS);
+  const [teacherOpinions, setTeacherOpinions] = useState<any[]>([]);
   const [publishedDates, setPublishedDates] = useState<string[]>([]);
   const [teacherOpinionIndex, setTeacherOpinionIndex] = useState(0);
   const [hasUnreadNotifs, setHasUnreadNotifs] = useState(true);
