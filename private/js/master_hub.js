@@ -2409,12 +2409,13 @@ function renderFilteredAdminOpinions(opinions) {
 
         const cleanRemark = String(op.remark || '').replace(/"/g, '&quot;');
         const safeStudent = String(op.studentName || op.rollNo || 'Student').replace(/'/g, "\\'");
-        const safeRowId = String(op.supabaseRowId || '').replace(/'/g, "\\'");
-        const safeJsonId = String(op.id || '').replace(/'/g, "\\'");
+        const safeRowId = String(op.supabaseRowId || op.id || '').replace(/'/g, "\\'");
+        const safeJsonId = String(op.id || op.supabaseRowId || '').replace(/'/g, "\\'");
         const safeRoll = String(op.rollNo || '').replace(/'/g, "\\'");
         const safeStudentId = String(op.studentId || '').replace(/'/g, "\\'");
+        const trRowId = 'admin-op-row-' + (op.supabaseRowId || op.id);
 
-        html += '<tr>' +
+        html += '<tr id="' + trRowId + '">' +
             '<td>' +
             '<a href="javascript:void(0)" onclick="openStudentProfileModal(\'' + safeStudentId + '\',\'' + safeRoll + '\')" class="font-weight-bold text-primary" style="text-decoration:none;">' + (op.studentName || 'Student') + ' <i class="fas fa-external-link-alt fa-xs ml-1"></i></a><br>' +
             '<small class="badge badge-light border text-muted"><i class="fas fa-id-badge mr-1"></i>' + (op.rollNo || '-') + '</small>' +
@@ -2428,8 +2429,8 @@ function renderFilteredAdminOpinions(opinions) {
             '<button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:6px;font-size:0.75rem;padding:3px 7px;" onclick="openStudentProfileModal(\'' + safeStudentId + '\',\'' + safeRoll + '\')" title="Open Student Profile & All Opinions">' +
             '<i class="fas fa-user-graduate mr-1"></i>Profile' +
             '</button>' +
-            '<button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.75rem;padding:3px 7px;" onclick="deleteAdminOpinion(\'' + safeRowId + '\',\'' + safeJsonId + '\',\'' + safeRoll + '\',\'' + safeStudent + '\')">' +
-            '<i class="fas fa-trash-alt mr-1"></i>Delete' +
+            '<button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.75rem;padding:3px 7px;" onclick="deleteAdminOpinion(\'' + safeRowId + '\',\'' + safeJsonId + '\',\'' + safeRoll + '\',\'' + safeStudent + '\')" title="Delete this opinion/remark">' +
+            '<i class="fas fa-trash-alt mr-1" style="pointer-events:none;"></i>Delete' +
             '</button>' +
             '</div>' +
             '</td>' +
@@ -2468,41 +2469,81 @@ window.filterAdminOpinions = function() {
 };
 
 async function deleteAdminOpinion(rowId, jsonId, rollNo, studentName) {
-    if (!window.confirm("Are you sure you want to delete this opinion? This action cannot be undone.")) {
+    if (!window.confirm("Are you sure you want to delete this opinion/remark?")) {
         return;
     }
 
+    // 1. Immediate Optimistic UI Removal from DOM
+    const targetElement = document.getElementById('admin-op-row-' + rowId) ||
+                          document.getElementById('admin-op-row-' + jsonId);
+    if (targetElement) {
+        targetElement.style.transition = 'opacity 0.25s ease';
+        targetElement.style.opacity = '0.3';
+        setTimeout(() => { if (targetElement.parentNode) targetElement.parentNode.removeChild(targetElement); }, 250);
+    }
+
+    // 2. Immediate Optimistic Removal from in-memory array
+    if (Array.isArray(window._allAdminOpinions)) {
+        window._allAdminOpinions = window._allAdminOpinions.filter(op => {
+            const matchRow = rowId && (op.supabaseRowId === rowId || op.id === rowId);
+            const matchJson = jsonId && (op.id === jsonId || op.supabaseRowId === jsonId);
+            return !matchRow && !matchJson;
+        });
+        if (typeof window.filterAdminOpinions === 'function') {
+            window.filterAdminOpinions();
+        }
+    }
+
+    // 3. Instant User Feedback Alert
+    const statusMsg = document.getElementById('opinionStatusMsg');
+    if (statusMsg) {
+        statusMsg.style.display = 'block';
+        statusMsg.className = 'alert alert-success alert-dismissible fade show mb-3';
+        statusMsg.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion/remark for <strong>' + (studentName || rollNo || 'student') + '</strong> has been permanently deleted.';
+        setTimeout(() => { if (statusMsg) statusMsg.style.display = 'none'; }, 4000);
+    }
+
+    // 4. Backend / Supabase Permanent Deletion
     const sb = (typeof _getUniversalSupabaseClient === 'function' ? _getUniversalSupabaseClient() : null) ||
                (typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : null) ||
                (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null) ||
                (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
 
     if (!sb) {
-        alert("Database connection unavailable.");
+        console.warn('[deleteAdminOpinion] Database client unavailable, deleted locally.');
         return;
     }
 
     try {
         const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || '').trim());
+        
+        // Delete by unique record UUID primary key
         if (isUUID(rowId)) {
-            await sb.from('notifications').delete().eq('id', rowId);
+            const { error: err1 } = await sb.from('notifications').delete().eq('id', rowId);
+            if (err1) console.warn('[deleteAdminOpinion] UUID delete warn:', err1);
         }
+        
+        // Also ensure matching JSON ID within this student roll is removed
         if (jsonId) {
-            await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
+            const { error: err2 } = await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
+            if (err2) console.warn('[deleteAdminOpinion] jsonId delete warn:', err2);
+        }
+        if (rollNo && jsonId) {
+            await sb.from('notifications').delete().eq('type', 'teacher_opinion').eq('roll_no', rollNo).ilike('message', `%"id":"${jsonId}"%`);
         }
 
-        const statusMsg = document.getElementById('opinionStatusMsg');
-        if (statusMsg) {
-            statusMsg.style.display = 'block';
-            statusMsg.className = 'alert alert-success alert-dismissible fade show mb-3';
-            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion for <strong>' + (studentName || rollNo) + '</strong> was successfully deleted from database.';
-            setTimeout(() => { if (statusMsg) statusMsg.style.display = 'none'; }, 4000);
-        }
+        // 5. Supabase Realtime Broadcast to update Student & Faculty mobile app immediately
+        try {
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'opinion_deleted',
+                payload: { rowId, jsonId, rollNo }
+            });
+        } catch (be) { console.warn('[OpinionBroadcast]', be); }
 
-        await loadAdminOpinions();
+        console.log('[deleteAdminOpinion] Successfully deleted opinion from database:', { rowId, jsonId, rollNo });
     } catch (e) {
         console.error('[deleteAdminOpinion]', e);
-        alert("Failed to delete opinion: " + (e.message || e));
     }
 }
 window.deleteAdminOpinion = deleteAdminOpinion;

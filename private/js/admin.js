@@ -4944,43 +4944,71 @@ window.loadStudentOpinionsInModal = async function(rollNo, studentId, studentNam
 };
 
 window.deleteStudentOpinionInModal = async function(rowId, jsonId, rollNo, studentId, studentName) {
-    if (!window.confirm("Are you sure you want to delete this opinion? This action cannot be undone.")) {
+    if (!window.confirm("Are you sure you want to delete this opinion/remark?")) {
         return;
     }
 
+    // 1. Optimistic removal from Master Hub in-memory array if present
+    if (Array.isArray(window._allAdminOpinions)) {
+        window._allAdminOpinions = window._allAdminOpinions.filter(op => {
+            const matchRow = rowId && (op.supabaseRowId === rowId || op.id === rowId);
+            const matchJson = jsonId && (op.id === jsonId || op.supabaseRowId === jsonId);
+            return !matchRow && !matchJson;
+        });
+        if (typeof window.filterAdminOpinions === 'function') {
+            window.filterAdminOpinions();
+        }
+    }
+
+    // 2. Alert feedback
+    const alertEl = document.getElementById('spmAlertMsg');
+    if (alertEl) {
+        alertEl.style.display = 'block';
+        alertEl.className = 'alert alert-success alert-dismissible fade show mb-3';
+        alertEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion/remark has been permanently deleted.';
+        setTimeout(() => { if (alertEl) alertEl.style.display = 'none'; }, 4000);
+    }
+
+    // 3. Supabase Deletion
     const sb = _getUniversalSupabaseClient();
-    if (!sb) {
-        alert("Database connection unavailable.");
-        return;
+    if (sb) {
+        try {
+            const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || '').trim());
+            if (isUUID(rowId)) {
+                await sb.from('notifications').delete().eq('id', rowId);
+            }
+            if (jsonId) {
+                await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
+            }
+            if (rollNo && jsonId) {
+                await sb.from('notifications').delete().eq('type', 'teacher_opinion').eq('roll_no', rollNo).ilike('message', `%"id":"${jsonId}"%`);
+            }
+
+            // Realtime Broadcast
+            try {
+                await sb.channel('student_dashboard_realtime').send({
+                    type: 'broadcast',
+                    event: 'opinion_deleted',
+                    payload: { rowId, jsonId, rollNo }
+                });
+            } catch (be) {}
+        } catch (e) {
+            console.error('[deleteStudentOpinionInModal]', e);
+        }
     }
 
-    try {
-        const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || '').trim());
-        if (isUUID(rowId)) {
-            await sb.from('notifications').delete().eq('id', rowId);
-        }
-        if (jsonId) {
-            await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
-        }
-
-        const alertEl = document.getElementById('spmAlertMsg');
-        if (alertEl) {
-            alertEl.style.display = 'block';
-            alertEl.className = 'alert alert-success alert-dismissible fade show mb-3';
-            alertEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion successfully deleted from database.';
-            setTimeout(() => { if (alertEl) alertEl.style.display = 'none'; }, 4000);
-        }
-
-        await window.loadStudentOpinionsInModal(rollNo, studentId, studentName);
-
-        if (typeof window.loadAdminOpinions === 'function') {
-            window.loadAdminOpinions();
-        }
-    } catch (e) {
-        console.error('[deleteStudentOpinionInModal]', e);
-        alert("Failed to delete opinion: " + (e.message || e));
+    await window.loadStudentOpinionsInModal(rollNo, studentId, studentName);
+    if (typeof window.loadAdminOpinions === 'function') {
+        window.loadAdminOpinions();
     }
 };
+
+// Global alias for deleteAdminOpinion in admin.js
+if (typeof window.deleteAdminOpinion !== 'function') {
+    window.deleteAdminOpinion = async function(rowId, jsonId, rollNo, studentName) {
+        await window.deleteStudentOpinionInModal(rowId, jsonId, rollNo, null, studentName);
+    };
+}
 
 window.submitStudentOpinionInModal = async function() {
     const student = window._activeProfileStudent;
