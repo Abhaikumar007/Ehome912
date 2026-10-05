@@ -3761,6 +3761,349 @@ function showPendingNotice(message, type = 'success') {
 }
 window.showPendingNotice = showPendingNotice;
 
+// ── RECEIPT PROOF LIGHTBOX & ZOOM VIEWER (MODERN HIGH-RES INSPECTION) ──
+window._pendingReceiptMap = window._pendingReceiptMap || {};
+let _receiptLightboxState = {
+    zoom: 1,
+    rotation: 0,
+    panX: 0,
+    panY: 0,
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialPinchDist: 0,
+    isImage: true
+};
+
+function _ensureReceiptLightboxModal() {
+    let modal = document.getElementById('receiptProofLightboxModal');
+    if (modal) return modal;
+
+    modal = document.createElement('div');
+    modal.id = 'receiptProofLightboxModal';
+    modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;width:100vw;height:100vh;background:rgba(15,23,42,0.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:999999;display:none;align-items:center;justify-content:center;padding:12px;box-sizing:border-box;';
+
+    modal.innerHTML = `
+        <div id="receiptModalCard" style="background:#ffffff;border-radius:18px;max-width:960px;width:100%;height:92vh;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 25px 60px rgba(0,0,0,0.6);border:1px solid #e2e8f0;position:relative;">
+            <!-- Header -->
+            <div style="padding:14px 20px;background:#f8fafc;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;">
+                <div style="flex:1;min-width:0;padding-right:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:1.05rem;font-weight:700;color:#0f172a;display:inline-flex;align-items:center;">
+                            <i class="fas fa-file-invoice text-primary mr-2"></i> Receipt Proof:
+                        </span>
+                        <span id="receiptModalStudentName" style="font-size:1.05rem;font-weight:700;color:#0284c7;"></span>
+                        <span id="receiptModalClassBadge" class="badge badge-info" style="font-size:0.78rem;padding:4px 8px;"></span>
+                        <span id="receiptModalRollBadge" class="badge badge-light" style="border:1px solid #cbd5e1;color:#475569;font-size:0.78rem;padding:4px 8px;"></span>
+                        <span id="receiptModalAmountBadge" class="badge badge-success" style="font-size:0.82rem;padding:4px 9px;font-weight:700;"></span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;margin-top:4px;flex-wrap:wrap;font-size:0.82rem;color:#64748b;">
+                        <span><i class="fas fa-hashtag text-muted mr-1"></i>UTR: <code id="receiptModalUtr" style="background:#e2e8f0;color:#0f172a;padding:2px 6px;border-radius:4px;font-weight:600;"></code></span>
+                        <span><i class="fas fa-clock text-muted mr-1"></i>Submitted: <span id="receiptModalSubmittedAt"></span></span>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    <button type="button" class="btn btn-sm btn-light border" onclick="window.closeReceiptProofLightbox()" style="border-radius:8px;padding:6px 14px;font-weight:600;color:#475569;" title="Close preview (Esc)">
+                        <i class="fas fa-times mr-1"></i> Close
+                    </button>
+                </div>
+            </div>
+
+            <!-- Toolbar (Zoom, Rotate, Reset, Download) -->
+            <div id="receiptImageToolbar" style="background:#0f172a;padding:8px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #1e293b;flex-shrink:0;gap:8px;flex-wrap:wrap;">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                    <button type="button" class="btn btn-sm btn-dark" style="background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:4px 11px;font-size:0.82rem;border-radius:6px;font-weight:600;" onclick="window.zoomReceiptProof(-0.25)" title="Zoom Out (-)">
+                        <i class="fas fa-search-minus mr-1"></i> Zoom -
+                    </button>
+                    <span id="receiptZoomIndicator" style="color:#38bdf8;font-size:0.84rem;font-weight:700;min-width:54px;text-align:center;">100%</span>
+                    <button type="button" class="btn btn-sm btn-dark" style="background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:4px 11px;font-size:0.82rem;border-radius:6px;font-weight:600;" onclick="window.zoomReceiptProof(0.25)" title="Zoom In (+)">
+                        <i class="fas fa-search-plus mr-1"></i> Zoom +
+                    </button>
+                    <button type="button" class="btn btn-sm btn-dark" style="background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:4px 11px;font-size:0.82rem;border-radius:6px;font-weight:600;" onclick="window.resetReceiptZoom()" title="Reset to Fit (100%)">
+                        <i class="fas fa-undo mr-1"></i> Reset Fit
+                    </button>
+                    <button type="button" class="btn btn-sm btn-dark" style="background:#1e293b;border:1px solid #334155;color:#f8fafc;padding:4px 11px;font-size:0.82rem;border-radius:6px;font-weight:600;" onclick="window.rotateReceiptProof()" title="Rotate 90° Clockwise">
+                        <i class="fas fa-redo mr-1"></i> Rotate 90°
+                    </button>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span style="font-size:0.75rem;color:#94a3b8;"><i class="fas fa-arrows-alt mr-1"></i>Drag to pan &bull; Pinch/Wheel to zoom</span>
+                    <a id="receiptDownloadBtn" href="#" target="_blank" download="receipt-proof" class="btn btn-sm btn-outline-info" style="font-size:0.78rem;padding:3px 10px;border-radius:6px;">
+                        <i class="fas fa-external-link-alt mr-1"></i> Open Raw
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Viewer Canvas -->
+            <div id="receiptViewerContainer" style="flex:1;background:#090d16;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;cursor:grab;user-select:none;-webkit-user-select:none;touch-action:none;min-height:300px;">
+                <img id="receiptModalImg" src="" alt="Payment Receipt Proof" style="max-width:100%;max-height:100%;object-fit:contain;transition:transform 0.12s ease-out;display:block;transform-origin:center center;" />
+                <div id="receiptPdfContainer" style="display:none;width:100%;height:100%;flex-direction:column;background:#f8fafc;">
+                    <div style="padding:8px 16px;background:#e2e8f0;display:flex;justify-content:space-between;align-items:center;">
+                        <span style="font-size:0.82rem;color:#334155;font-weight:600;"><i class="fas fa-file-pdf text-danger mr-1"></i> PDF Document Receipt</span>
+                        <a id="receiptPdfExternalLink" href="#" target="_blank" class="btn btn-xs btn-outline-danger" style="font-weight:600;padding:2px 10px;font-size:0.78rem;">
+                            <i class="fas fa-external-link-alt mr-1"></i> Open in New Tab
+                        </a>
+                    </div>
+                    <iframe id="receiptPdfIframe" src="" style="width:100%;flex:1;border:none;"></iframe>
+                </div>
+            </div>
+
+            <!-- Footer Action Bar -->
+            <div style="padding:12px 20px;background:#f8fafc;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;flex-wrap:wrap;gap:10px;">
+                <div style="display:flex;align-items:center;gap:6px;font-size:0.82rem;color:#475569;">
+                    <i class="fas fa-shield-alt text-primary"></i>
+                    <span>Verify UTR reference and amount before approving or rejecting.</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <button type="button" class="btn btn-sm btn-secondary" style="border-radius:6px;font-weight:600;padding:6px 16px;" onclick="window.closeReceiptProofLightbox()">
+                        <i class="fas fa-arrow-left mr-1"></i> Back to List
+                    </button>
+                    <button type="button" id="receiptModalRejectBtn" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-weight:600;padding:6px 14px;">
+                        <i class="fas fa-times mr-1"></i> Reject
+                    </button>
+                    <button type="button" id="receiptModalApproveBtn" class="btn btn-sm btn-success" style="border-radius:6px;font-weight:600;padding:6px 18px;box-shadow:0 2px 6px rgba(16,185,129,0.3);">
+                        <i class="fas fa-check-circle mr-1"></i> Approve Fee
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on backdrop click (click outside the card)
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            window.closeReceiptProofLightbox();
+        }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'flex') {
+            window.closeReceiptProofLightbox();
+        }
+    });
+
+    // Wire pan and zoom handlers on container
+    const container = document.getElementById('receiptViewerContainer');
+    const img = document.getElementById('receiptModalImg');
+
+    function applyTransform() {
+        const { zoom, rotation, panX, panY } = _receiptLightboxState;
+        img.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom}) rotate(${rotation}deg)`;
+        const ind = document.getElementById('receiptZoomIndicator');
+        if (ind) ind.innerText = Math.round(zoom * 100) + '%';
+        container.style.cursor = _receiptLightboxState.isDragging ? 'grabbing' : (zoom > 1 ? 'grab' : 'default');
+    }
+    window._applyReceiptTransform = applyTransform;
+
+    // Mouse drag
+    container.addEventListener('mousedown', function(e) {
+        if (e.button !== 0 || !_receiptLightboxState.isImage) return;
+        _receiptLightboxState.isDragging = true;
+        _receiptLightboxState.startX = e.clientX - _receiptLightboxState.panX;
+        _receiptLightboxState.startY = e.clientY - _receiptLightboxState.panY;
+        applyTransform();
+    });
+
+    window.addEventListener('mousemove', function(e) {
+        if (!_receiptLightboxState.isDragging) return;
+        _receiptLightboxState.panX = e.clientX - _receiptLightboxState.startX;
+        _receiptLightboxState.panY = e.clientY - _receiptLightboxState.startY;
+        applyTransform();
+    });
+
+    window.addEventListener('mouseup', function() {
+        if (_receiptLightboxState.isDragging) {
+            _receiptLightboxState.isDragging = false;
+            applyTransform();
+        }
+    });
+
+    // Touch drag & pinch-to-zoom for mobile screens
+    container.addEventListener('touchstart', function(e) {
+        if (!_receiptLightboxState.isImage) return;
+        if (e.touches.length === 1) {
+            _receiptLightboxState.isDragging = true;
+            _receiptLightboxState.startX = e.touches[0].clientX - _receiptLightboxState.panX;
+            _receiptLightboxState.startY = e.touches[0].clientY - _receiptLightboxState.panY;
+        } else if (e.touches.length === 2) {
+            _receiptLightboxState.isDragging = false;
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            _receiptLightboxState.initialPinchDist = Math.hypot(dx, dy);
+        }
+    }, { passive: true });
+
+    container.addEventListener('touchmove', function(e) {
+        if (!_receiptLightboxState.isImage) return;
+        if (e.touches.length === 1 && _receiptLightboxState.isDragging) {
+            _receiptLightboxState.panX = e.touches[0].clientX - _receiptLightboxState.startX;
+            _receiptLightboxState.panY = e.touches[0].clientY - _receiptLightboxState.startY;
+            applyTransform();
+        } else if (e.touches.length === 2 && _receiptLightboxState.initialPinchDist > 0) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.hypot(dx, dy);
+            const factor = dist / _receiptLightboxState.initialPinchDist;
+            _receiptLightboxState.zoom = Math.min(Math.max(_receiptLightboxState.zoom * factor, 0.5), 4.0);
+            _receiptLightboxState.initialPinchDist = dist;
+            applyTransform();
+        }
+    }, { passive: true });
+
+    container.addEventListener('touchend', function() {
+        _receiptLightboxState.isDragging = false;
+        _receiptLightboxState.initialPinchDist = 0;
+        applyTransform();
+    });
+
+    // Mouse wheel zoom
+    container.addEventListener('wheel', function(e) {
+        if (!_receiptLightboxState.isImage) return;
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.15 : -0.15;
+        window.zoomReceiptProof(delta);
+    }, { passive: false });
+
+    // Double-click to toggle 100% / 200%
+    container.addEventListener('dblclick', function() {
+        if (!_receiptLightboxState.isImage) return;
+        if (_receiptLightboxState.zoom > 1.2) {
+            window.resetReceiptZoom();
+        } else {
+            _receiptLightboxState.zoom = 2.0;
+            applyTransform();
+        }
+    });
+
+    return modal;
+}
+
+window.openReceiptProofLightbox = function(keyOrRollNo) {
+    let item = window._pendingReceiptMap && (window._pendingReceiptMap[keyOrRollNo] || window._pendingReceiptMap[String(keyOrRollNo)]);
+    if (!item && window._pendingReceiptMap) {
+        // Fallback scan by rollNo or key match
+        for (const k of Object.keys(window._pendingReceiptMap)) {
+            const v = window._pendingReceiptMap[k];
+            if (v && (v.rollNo === keyOrRollNo || v.key === keyOrRollNo)) {
+                item = v;
+                break;
+            }
+        }
+    }
+    if (!item || !item.screenshot) {
+        alert("No payment receipt proof is attached to this verification request.");
+        return;
+    }
+
+    const modal = _ensureReceiptLightboxModal();
+
+    // Populate header info
+    document.getElementById('receiptModalStudentName').innerText = item.studentName || 'Student';
+    document.getElementById('receiptModalClassBadge').innerText = item.studentClass ? 'Class ' + String(item.studentClass).replace(/Class\s*/i, '') : 'Class';
+    document.getElementById('receiptModalRollBadge').innerText = item.rollNo || '';
+    document.getElementById('receiptModalAmountBadge').innerHTML = '&#8377;' + Number(item.amount || 4000).toLocaleString('en-IN');
+    document.getElementById('receiptModalUtr').innerText = item.utr || 'UPI-APP';
+    document.getElementById('receiptModalSubmittedAt').innerText = item.submittedAt || 'Recent';
+
+    // Download/Open Original button
+    const dlBtn = document.getElementById('receiptDownloadBtn');
+    dlBtn.href = item.screenshot;
+    dlBtn.download = 'receipt_' + (item.rollNo || 'proof') + (item.isPdf ? '.pdf' : '.jpg');
+
+    // Reset zoom state
+    _receiptLightboxState = {
+        zoom: 1,
+        rotation: 0,
+        panX: 0,
+        panY: 0,
+        isDragging: false,
+        startX: 0,
+        startY: 0,
+        initialPinchDist: 0,
+        isImage: !item.isPdf
+    };
+
+    const img = document.getElementById('receiptModalImg');
+    const pdfBox = document.getElementById('receiptPdfContainer');
+    const pdfIframe = document.getElementById('receiptPdfIframe');
+    const pdfExternalLink = document.getElementById('receiptPdfExternalLink');
+    const imgToolbar = document.getElementById('receiptImageToolbar');
+
+    if (item.isPdf) {
+        img.style.display = 'none';
+        pdfBox.style.display = 'flex';
+        pdfIframe.src = item.screenshot + '#toolbar=1&navpanes=0';
+        if (pdfExternalLink) pdfExternalLink.href = item.screenshot;
+        imgToolbar.style.display = 'none';
+    } else {
+        pdfBox.style.display = 'none';
+        img.style.display = 'block';
+        img.src = item.screenshot;
+        imgToolbar.style.display = 'flex';
+        window._applyReceiptTransform();
+    }
+
+    // Configure Footer Quick Action buttons
+    const approveBtn = document.getElementById('receiptModalApproveBtn');
+    const rejectBtn = document.getElementById('receiptModalRejectBtn');
+
+    approveBtn.onclick = function() {
+        window.closeReceiptProofLightbox();
+        const rowApproveBtn = document.getElementById('btn-approve-' + rollNo);
+        if (typeof window.approveStudentFee === 'function') {
+            window.approveStudentFee(rollNo, item.safeStudentName, item.amount, item.safeUtr, rowApproveBtn);
+        }
+    };
+
+    rejectBtn.onclick = function() {
+        window.closeReceiptProofLightbox();
+        const rowRejectBtn = document.getElementById('btn-reject-' + rollNo);
+        if (typeof window.rejectStudentFee === 'function') {
+            window.rejectStudentFee(rollNo, item.amount, rowRejectBtn);
+        }
+    };
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeReceiptProofLightbox = function() {
+    const modal = document.getElementById('receiptProofLightboxModal');
+    if (modal) {
+        modal.style.display = 'none';
+        const pdfIframe = document.getElementById('receiptPdfIframe');
+        if (pdfIframe) pdfIframe.src = '';
+    }
+    document.body.style.overflow = '';
+};
+
+window.zoomReceiptProof = function(delta) {
+    _receiptLightboxState.zoom = Math.min(Math.max(_receiptLightboxState.zoom + delta, 0.5), 4.0);
+    if (typeof window._applyReceiptTransform === 'function') {
+        window._applyReceiptTransform();
+    }
+};
+
+window.resetReceiptZoom = function() {
+    _receiptLightboxState.zoom = 1;
+    _receiptLightboxState.rotation = 0;
+    _receiptLightboxState.panX = 0;
+    _receiptLightboxState.panY = 0;
+    if (typeof window._applyReceiptTransform === 'function') {
+        window._applyReceiptTransform();
+    }
+};
+
+window.rotateReceiptProof = function() {
+    _receiptLightboxState.rotation = (_receiptLightboxState.rotation + 90) % 360;
+    if (typeof window._applyReceiptTransform === 'function') {
+        window._applyReceiptTransform();
+    }
+};
+
 window.loadPendingVerifications = async function() {
     const tbody = document.getElementById('pendingVerificationBody');
     if (!tbody) return;
@@ -3770,15 +4113,19 @@ window.loadPendingVerifications = async function() {
         const { data, error } = await sb.from('fees_records').select('*');
         if (error) throw error;
         const pending = [];
+        window._pendingReceiptMap = {};
+
         (data || []).forEach(record => {
             const payments = Array.isArray(record.recent_payments) ? record.recent_payments : [];
             const pItem = payments.find(p => p.status === 'pending_verification');
             if (pItem) pending.push({ record, payment: pItem });
         });
+
         if (pending.length === 0) {
             tbody.innerHTML = '<tr><td colspan="7" class="text-center text-success py-4" style="font-weight:600;"><i class="fas fa-check-circle text-success mr-2"></i> All fees cleared! No pending verifications.</td></tr>';
             return;
         }
+
         tbody.innerHTML = '';
         pending.forEach(({ record, payment }, index) => {
             const tr = document.createElement('tr');
@@ -3789,19 +4136,69 @@ window.loadPendingVerifications = async function() {
             const utr = payment.utr || 'UPI-APP';
             const submittedAt = payment.submittedAt ? new Date(payment.submittedAt).toLocaleString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Recent';
             const studentClass = payment.studentClass || record.student_class || '';
-            const hasScreenshot = payment.screenshot && (payment.screenshot.startsWith('data:image') || payment.screenshot.startsWith('http'));
-            const screenshotHtml = hasScreenshot 
-                ? '<img src="' + payment.screenshot + '" style="width:48px;height:48px;object-fit:cover;border-radius:6px;border:1.5px solid #cbd5e1;cursor:pointer;transition:transform 0.15s ease;" onmouseover="this.style.transform=\'scale(1.15)\'" onmouseout="this.style.transform=\'scale(1)\'" onclick="window.open(this.src,\'_blank\')" title="Click to view full receipt" />' 
-                : '<span class="text-muted small">No receipt image</span>';
-            const classBadge = studentClass ? ('<span class="badge badge-info mr-1">Class ' + String(studentClass).replace(/Class\s*/i, '') + '</span> ') : '';
+
+            const rawScreenshot = payment.screenshot || null;
+            const isPdf = rawScreenshot && (rawScreenshot.startsWith('data:application/pdf') || rawScreenshot.toLowerCase().includes('.pdf') || rawScreenshot.includes('application/pdf'));
+            const hasProof = Boolean(rawScreenshot && (rawScreenshot.startsWith('data:') || rawScreenshot.startsWith('http') || rawScreenshot.startsWith('blob:')));
+
             const safeStudentName = String(studentName).replace(/'/g, "\\'");
             const safeUtr = String(utr).replace(/'/g, "\\'");
-            
+
+            const receiptKey = 'rcpt_' + index + '_' + String(rollNo).replace(/[^a-zA-Z0-9_-]/g, '_');
+            if (hasProof) {
+                const itemData = {
+                    key: receiptKey,
+                    rollNo: rollNo,
+                    studentName: studentName,
+                    studentClass: studentClass,
+                    amount: amount,
+                    utr: utr,
+                    submittedAt: submittedAt,
+                    screenshot: rawScreenshot,
+                    isPdf: isPdf,
+                    safeStudentName: safeStudentName,
+                    safeUtr: safeUtr
+                };
+                window._pendingReceiptMap[receiptKey] = itemData;
+                window._pendingReceiptMap[rollNo] = itemData;
+            }
+
+            let screenshotHtml = '';
+            if (hasProof) {
+                if (isPdf) {
+                    screenshotHtml = 
+                        '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;">' +
+                            '<div onclick="window.openReceiptProofLightbox(\'' + rollNo + '\')" title="Click to view PDF receipt" style="width:48px;height:48px;border-radius:8px;border:2px solid #ef4444;background:#fef2f2;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform 0.15s ease;" onmouseover="this.style.transform=\'scale(1.1)\'" onmouseout="this.style.transform=\'scale(1)\'">' +
+                                '<i class="fas fa-file-pdf text-danger" style="font-size:1.3rem;"></i>' +
+                                '<span style="font-size:8px;font-weight:700;color:#b91c1c;">PDF</span>' +
+                            '</div>' +
+                            '<button type="button" class="btn btn-xs btn-outline-danger" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;font-weight:600;" onclick="window.openReceiptProofLightbox(\'' + rollNo + '\')">' +
+                                '<i class="fas fa-search mr-1"></i>View' +
+                            '</button>' +
+                        '</div>';
+                } else {
+                    screenshotHtml = 
+                        '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:3px;">' +
+                            '<div onclick="window.openReceiptProofLightbox(\'' + rollNo + '\')" title="Click to inspect full receipt proof" style="position:relative;cursor:pointer;display:inline-block;">' +
+                                '<img src="' + rawScreenshot + '" alt="Receipt Proof" style="width:48px;height:48px;object-fit:cover;border-radius:8px;border:2px solid #0284c7;box-shadow:0 2px 6px rgba(2,132,199,0.25);transition:transform 0.15s ease,box-shadow 0.15s ease;" onmouseover="this.style.transform=\'scale(1.1)\';this.style.boxShadow=\'0 4px 12px rgba(2,132,199,0.4)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 2px 6px rgba(2,132,199,0.25)\'" />' +
+                                '<span style="position:absolute;bottom:2px;right:2px;background:#0284c7;color:#fff;border-radius:3px;padding:1px 3px;font-size:8px;line-height:1;"><i class="fas fa-search-plus"></i></span>' +
+                            '</div>' +
+                            '<button type="button" class="btn btn-xs btn-outline-primary" style="font-size:0.68rem;padding:1px 6px;border-radius:4px;font-weight:600;" onclick="window.openReceiptProofLightbox(\'' + rollNo + '\')">' +
+                                '<i class="fas fa-search mr-1"></i>View' +
+                            '</button>' +
+                        '</div>';
+                }
+            } else {
+                screenshotHtml = '<span class="text-muted small" style="font-size:0.8rem;"><i class="fas fa-ban mr-1"></i>No proof</span>';
+            }
+
+            const classBadge = studentClass ? ('<span class="badge badge-info mr-1">Class ' + String(studentClass).replace(/Class\s*/i, '') + '</span> ') : '';
+
             tr.innerHTML = '<td><strong>' + studentName + '</strong></td>' +
                 '<td>' + classBadge + '<small class="text-muted">' + rollNo + '</small></td>' +
                 '<td><strong class="text-success" style="font-size:1rem;">&#8377;' + amount.toLocaleString('en-IN') + '</strong></td>' +
                 '<td><code style="background:#f1f5f9;color:#0f172a;padding:2px 6px;border-radius:4px;font-size:0.85rem;">' + utr + '</code></td>' +
-                '<td>' + screenshotHtml + '</td>' +
+                '<td style="text-align:center;vertical-align:middle;">' + screenshotHtml + '</td>' +
                 '<td><small class="text-muted">' + submittedAt + '</small></td>' +
                 '<td>' +
                     '<button class="btn btn-sm btn-success shadow-sm mr-2" id="btn-approve-' + rollNo + '" onclick="approveStudentFee(\'' + rollNo + '\',\'' + safeStudentName + '\',' + amount + ',\'' + safeUtr + '\', this)" style="border-radius:6px;font-weight:600;"><i class="fas fa-check-circle mr-1"></i> Approve</button>' +
