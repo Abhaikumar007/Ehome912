@@ -3455,9 +3455,13 @@ if (document.getElementById('studentListBody')) {
             const subStr = Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' && s.subjects ? s.subjects : 'General');
             const phoneVal = s.phone || '-';
 
+            const safeName = (s.name || 'Student').replace(/'/g, "\\'");
+            const safeRoll = (s.rollNo || s.roll_no || '').replace(/'/g, "\\'");
+            const safeId = (s.id || '').replace(/'/g, "\\'");
+
             tr.innerHTML = `
                 <td>
-                    <span class="font-weight-bold" style="color:#003366;">${s.name || 'Student'}</span>
+                    <a href="javascript:void(0)" onclick="openStudentProfileModal('${safeId}', '${safeRoll}')" class="font-weight-bold" style="color:#003366; text-decoration:none;" title="Click to view complete profile and faculty opinions">${s.name || 'Student'} <i class="fas fa-external-link-alt fa-xs text-primary ml-1" style="font-size:0.68rem;"></i></a>
                     ${s.rollNo ? `<br><small class="badge badge-light border text-muted" style="font-size:0.7rem;">${s.rollNo}</small>` : ''}
                     ${joinText ? `<br><small class="text-muted" style="font-size:0.75rem;">Joined: ${joinText}</small>` : ''}
                 </td>
@@ -3474,9 +3478,14 @@ if (document.getElementById('studentListBody')) {
                 <td>${phoneVal}</td>
                 <td>${subStr}</td>
                 <td>
-                    ${isCloud ? `<span class="badge badge-secondary">Read-only in Cloud View</span>` : `
-                    <button class="btn btn-sm btn-info mb-1" onclick="editStudent('${s.id}')">Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="askDeleteStudent('${s.id}', this)">Delete</button>
+                    <button class="btn btn-sm btn-primary mb-1 d-block w-100 shadow-sm" style="font-size:0.74rem;font-weight:600;padding:3px 6px;white-space:nowrap;" onclick="openStudentProfileModal('${safeId}', '${safeRoll}')">
+                        <i class="fas fa-comment-dots mr-1"></i>Profile & Remarks
+                    </button>
+                    ${isCloud ? `<span class="badge badge-secondary d-block text-center mt-1">Cloud View</span>` : `
+                    <div class="d-flex" style="gap:4px;">
+                        <button class="btn btn-sm btn-info flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="editStudent('${safeId}')">Edit</button>
+                        <button class="btn btn-sm btn-danger flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="askDeleteStudent('${safeId}', this)">Delete</button>
+                    </div>
                     `}
                 </td>
             `;
@@ -3611,6 +3620,8 @@ if (document.getElementById('studentListBody')) {
 
     // Edit Student Function
     window.editStudent = function (id) {
+        const _viewOpBtn = document.getElementById('btnViewStudentOpinionsInForm');
+        if (_viewOpBtn) { _viewOpBtn.style.display = 'inline-block'; }
         const students = getStudents();
         const student = students.find(s => s.id === id);
         if (!student) return;
@@ -4610,5 +4621,477 @@ window.rejectPendingTest = async function(rowId) {
         window.loadPendingTests();
     } catch (e) {
         alert('Failed to reject: ' + (e.message || e));
+    }
+};
+
+
+// ==============================================================================
+// ── STUDENT PROFILE & FACULTY OPINIONS / REMARKS MANAGEMENT (ADMIN PORTAL) ────
+// ==============================================================================
+
+function _getUniversalSupabaseClient() {
+    if (typeof window._supabaseClient !== 'undefined' && window._supabaseClient) {
+        return window._supabaseClient;
+    }
+    if (typeof _getMasterHubSupabase === 'function') {
+        const client = _getMasterHubSupabase();
+        if (client) { window._supabaseClient = client; return client; }
+    }
+    if (typeof _getSafeAdminSupabase === 'function') {
+        const client = _getSafeAdminSupabase();
+        if (client) { window._supabaseClient = client; return client; }
+    }
+    if (typeof _getSupabaseClient === 'function') {
+        const client = _getSupabaseClient();
+        if (client) { window._supabaseClient = client; return client; }
+    }
+    if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL && typeof SUPABASE_ANON_KEY !== 'undefined' && SUPABASE_ANON_KEY) {
+        try {
+            const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window._supabaseClient = client;
+            return client;
+        } catch (e) {
+            console.warn('[SupabaseUniversal] Client creation error:', e);
+        }
+    }
+    return null;
+}
+window._getUniversalSupabaseClient = _getUniversalSupabaseClient;
+
+window.openStudentProfileModal = async function(studentId, rollNo) {
+    let student = null;
+
+    // 1. Search local students
+    if (typeof getStudents === 'function') {
+        const localList = getStudents();
+        student = localList.find(s => String(s.id) === String(studentId) || (rollNo && String(s.rollNo || s.roll_no).toUpperCase() === String(rollNo).toUpperCase()));
+    }
+
+    // 2. Search cloud cache
+    if (!student && typeof window._cloudStudentsCache !== 'undefined' && Array.isArray(window._cloudStudentsCache)) {
+        student = window._cloudStudentsCache.find(s => String(s.id) === String(studentId) || (rollNo && String(s.roll_no || s.rollNo).toUpperCase() === String(rollNo).toUpperCase()));
+    }
+
+    // 3. Search currentStudents in Master Hub
+    if (!student && typeof currentStudents !== 'undefined' && Array.isArray(currentStudents)) {
+        student = currentStudents.find(s => String(s.id) === String(studentId) || (rollNo && String(s.roll_no || s.rollNo).toUpperCase() === String(rollNo).toUpperCase()));
+    }
+
+    // 4. Fallback: Fetch directly from Supabase
+    if (!student && (studentId || rollNo)) {
+        const sb = _getUniversalSupabaseClient();
+        if (sb) {
+            try {
+                let query = sb.from('students').select('*');
+                if (studentId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(studentId)) {
+                    query = query.eq('id', studentId);
+                } else if (rollNo) {
+                    query = query.eq('roll_no', rollNo);
+                }
+                const { data } = await query.maybeSingle();
+                if (data) student = data;
+            } catch (e) {
+                console.warn('[openStudentProfileModal] Supabase student query warning:', e);
+            }
+        }
+    }
+
+    // Fallback baseline
+    if (!student) {
+        student = {
+            id: studentId || ('tmp-' + Date.now()),
+            name: 'Student',
+            rollNo: rollNo || studentId || '-',
+            class: '10',
+            syllabus: 'State Syllabus',
+            phone: '-',
+            amount: '-'
+        };
+    }
+
+    window._activeProfileStudent = student;
+
+    // Header updates
+    const nameEl = document.getElementById('spmStudentName');
+    if (nameEl) nameEl.textContent = student.name || 'Student Profile';
+
+    const badgesEl = document.getElementById('spmBadges');
+    if (badgesEl) {
+        const effRoll = student.rollNo || student.roll_no || rollNo || 'N/A';
+        const effClass = student.class || 'N/A';
+        const effSyl = student.syllabus || (student.batch && /cbse/i.test(student.batch) ? 'CBSE' : (student.school && /cbse/i.test(student.school) ? 'CBSE' : 'State Syllabus'));
+        const sylBadge = effSyl === 'CBSE'
+            ? '<span class="badge" style="background:#e0f2fe;color:#0369a1;border:1px solid #bae6fd;">CBSE</span>'
+            : '<span class="badge" style="background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0;">State Syllabus</span>';
+
+        badgesEl.innerHTML = `
+            <span class="badge badge-light text-dark mr-1"><i class="fas fa-id-badge mr-1"></i>${effRoll}</span>
+            <span class="badge badge-secondary mr-1">Class ${effClass}</span>
+            ${sylBadge}
+        `;
+    }
+
+    // Quick Info Card
+    const quickInfoEl = document.getElementById('spmQuickInfo');
+    if (quickInfoEl) {
+        let joinText = student.joiningDate || student.joining_date || '-';
+        if (joinText !== '-') {
+            try {
+                const parsed = new Date(joinText);
+                if (!isNaN(parsed.getTime())) joinText = parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            } catch(e) {}
+        }
+        const subjects = Array.isArray(student.subjects) ? student.subjects.join(', ') : (student.subjects || 'General Academic');
+        const fee = student.amount || student.monthly_fee || '-';
+        const phone = student.phone || '-';
+
+        quickInfoEl.innerHTML = `
+            <div class="row text-center text-md-left" style="font-size: 0.88rem;">
+                <div class="col-6 col-md-3 mb-2 mb-md-0">
+                    <span class="text-muted d-block small"><i class="fas fa-phone mr-1"></i>Contact</span>
+                    <strong>${phone}</strong>
+                </div>
+                <div class="col-6 col-md-3 mb-2 mb-md-0">
+                    <span class="text-muted d-block small"><i class="fas fa-money-bill-wave mr-1"></i>Monthly Fee</span>
+                    <strong class="text-success">₹${fee}</strong>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block small"><i class="fas fa-calendar-alt mr-1"></i>Joined Date</span>
+                    <strong>${joinText}</strong>
+                </div>
+                <div class="col-6 col-md-3">
+                    <span class="text-muted d-block small"><i class="fas fa-book-reader mr-1"></i>Subjects</span>
+                    <span class="badge badge-info text-truncate d-inline-block" style="max-width: 140px;">${subjects}</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // Reset Form & Alerts
+    toggleAddStudentOpinionForm(false);
+    const alertEl = document.getElementById('spmAlertMsg');
+    if (alertEl) { alertEl.style.display = 'none'; alertEl.innerHTML = ''; }
+
+    // Bind Refresh button
+    const refreshBtn = document.getElementById('spmRefreshBtn');
+    if (refreshBtn) {
+        refreshBtn.onclick = function() {
+            window.loadStudentOpinionsInModal(student.rollNo || student.roll_no || rollNo, student.id, student.name);
+        };
+    }
+
+    // Open Modal
+    const modalEl = document.getElementById('studentProfileModal');
+    if (modalEl) {
+        if (typeof $ !== 'undefined' && typeof $('#studentProfileModal').modal === 'function') {
+            $('#studentProfileModal').modal('show');
+        } else {
+            modalEl.classList.add('show');
+            modalEl.style.display = 'block';
+            modalEl.setAttribute('aria-modal', 'true');
+            modalEl.removeAttribute('aria-hidden');
+            let backdrop = document.getElementById('spmBackdropFallback');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'spmBackdropFallback';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+    }
+
+    // Fetch and display opinions
+    await window.loadStudentOpinionsInModal(student.rollNo || student.roll_no || rollNo, student.id, student.name);
+};
+
+window.closeStudentProfileModal = function() {
+    const modalEl = document.getElementById('studentProfileModal');
+    if (modalEl) {
+        if (typeof $ !== 'undefined' && typeof $('#studentProfileModal').modal === 'function') {
+            $('#studentProfileModal').modal('hide');
+        } else {
+            modalEl.classList.remove('show');
+            modalEl.style.display = 'none';
+            modalEl.setAttribute('aria-hidden', 'true');
+            modalEl.removeAttribute('aria-modal');
+            const backdrop = document.getElementById('spmBackdropFallback');
+            if (backdrop) backdrop.remove();
+        }
+    }
+};
+
+window.loadStudentOpinionsInModal = async function(rollNo, studentId, studentName) {
+    const container = document.getElementById('spmOpinionsListContainer');
+    if (!container) return;
+
+    container.innerHTML = '<div class="p-4 text-center text-muted"><i class="fas fa-spinner fa-spin mr-2"></i>Loading student opinions & remarks from database...</div>';
+
+    const sb = _getUniversalSupabaseClient();
+    if (!sb) {
+        container.innerHTML = '<div class="alert alert-danger py-2"><i class="fas fa-exclamation-triangle mr-1"></i>Database connection unavailable. Please check your internet connection.</div>';
+        return;
+    }
+
+    try {
+        const { data, error } = await sb
+            .from('notifications')
+            .select('*')
+            .eq('type', 'teacher_opinion')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        const normRoll = String(rollNo || '').toUpperCase().trim();
+        const normId = String(studentId || '').trim();
+        const normName = String(studentName || '').toLowerCase().trim();
+
+        const studentOpinions = [];
+        (data || []).forEach(row => {
+            let parsed = null;
+            try {
+                parsed = JSON.parse(row.message);
+            } catch (e) {
+                parsed = {
+                    id: row.id,
+                    rollNo: row.roll_no,
+                    studentName: studentName || 'Student',
+                    teacher: row.title || 'Faculty Member',
+                    subject: 'General Academic',
+                    remark: row.message,
+                    status: 'approved',
+                    submittedAt: row.time_label || 'Recent'
+                };
+            }
+
+            const opRoll = String(parsed.rollNo || row.roll_no || '').toUpperCase().trim();
+            const opId = String(parsed.studentId || '').trim();
+            const opName = String(parsed.studentName || '').toLowerCase().trim();
+
+            const isMatch = (normRoll && opRoll && normRoll === opRoll) ||
+                            (normId && opId && normId === opId) ||
+                            (normName && opName && (normName === opName || opName.includes(normName) || normName.includes(opName)));
+
+            if (isMatch) {
+                studentOpinions.push({
+                    ...parsed,
+                    supabaseRowId: row.id,
+                    dbCreatedAt: row.created_at
+                });
+            }
+        });
+
+        if (studentOpinions.length === 0) {
+            container.innerHTML = `
+                <div class="text-center p-4 bg-white rounded border text-muted">
+                    <i class="fas fa-comment-slash fa-2x mb-2 text-secondary"></i>
+                    <p class="mb-1 font-weight-bold">No academic opinions or remarks recorded yet for this student.</p>
+                    <small>Click <strong>Add Remark</strong> above to record a new faculty opinion or academic observation.</small>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '';
+        studentOpinions.forEach(op => {
+            const isApproved = op.status === 'approved';
+            const statusBadge = isApproved
+                ? '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
+                : '<span class="badge badge-warning px-2 py-1 text-dark"><i class="fas fa-clock mr-1"></i>Pending Review</span>';
+
+            const cleanRemark = String(op.remark || '').replace(/"/g, '&quot;');
+            const safeRowId = String(op.supabaseRowId || '').replace(/'/g, "\\'");
+            const safeJsonId = String(op.id || '').replace(/'/g, "\\'");
+            const safeRoll = String(op.rollNo || rollNo || '').replace(/'/g, "\\'");
+            const safeStudent = String(op.studentName || studentName || '').replace(/'/g, "\\'");
+
+            const facultyName = op.teacher || 'Faculty';
+            const initials = facultyName.replace(/^(Mr\.|Ms\.|Mrs\.|Dr\.|Prof\.)\s*/i, '').trim().substring(0, 2).toUpperCase() || 'FA';
+
+            html += `
+                <div class="bg-white p-3 rounded border shadow-sm mb-3" style="border-left: 4px solid #0055a5 !important;">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle text-white font-weight-bold d-flex align-items-center justify-content-center mr-2" style="width:38px;height:38px;background:linear-gradient(135deg, #003366, #0284c7);font-size:0.85rem;flex-shrink:0;">
+                                ${initials}
+                            </div>
+                            <div>
+                                <strong class="text-dark d-block" style="font-size: 0.95rem;">${facultyName}</strong>
+                                <span class="badge badge-info mr-1">${op.subject || 'Academic'}</span>
+                                ${op.role ? `<small class="text-muted mr-1">${op.role}</small>` : ''}
+                                ${statusBadge}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <small class="text-muted d-block mb-1"><i class="fas fa-calendar-alt mr-1"></i>${op.submittedAt || 'Recent'}</small>
+                            <button type="button" class="btn btn-sm btn-outline-danger" style="font-size:0.75rem;padding:2px 9px;border-radius:6px;font-weight:600;" onclick="deleteStudentOpinionInModal('${safeRowId}', '${safeJsonId}', '${safeRoll}', '${studentId}', '${safeStudent}')">
+                                <i class="fas fa-trash-alt mr-1"></i>Delete
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded bg-light mt-2" style="font-size: 0.92rem; line-height: 1.5; color: #2d3748; border-left: 3px solid #cbd5e1;">
+                        <i class="fas fa-quote-left text-muted mr-2" style="font-size:0.8rem;"></i>${cleanRemark}
+                    </div>
+                    ${op.approvedBy ? `<div class="mt-2 text-right"><small class="text-muted"><i class="fas fa-shield-alt text-success mr-1"></i>Verified by: ${op.approvedBy}</small></div>` : ''}
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    } catch (e) {
+        console.error('[loadStudentOpinionsInModal]', e);
+        container.innerHTML = '<div class="alert alert-danger py-2">Error loading opinions: ' + (e.message || e) + '</div>';
+    }
+};
+
+window.deleteStudentOpinionInModal = async function(rowId, jsonId, rollNo, studentId, studentName) {
+    if (!window.confirm("Are you sure you want to delete this opinion? This action cannot be undone.")) {
+        return;
+    }
+
+    const sb = _getUniversalSupabaseClient();
+    if (!sb) {
+        alert("Database connection unavailable.");
+        return;
+    }
+
+    try {
+        const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || '').trim());
+        if (isUUID(rowId)) {
+            await sb.from('notifications').delete().eq('id', rowId);
+        }
+        if (jsonId) {
+            await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
+        }
+
+        const alertEl = document.getElementById('spmAlertMsg');
+        if (alertEl) {
+            alertEl.style.display = 'block';
+            alertEl.className = 'alert alert-success alert-dismissible fade show mb-3';
+            alertEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion successfully deleted from database.';
+            setTimeout(() => { if (alertEl) alertEl.style.display = 'none'; }, 4000);
+        }
+
+        await window.loadStudentOpinionsInModal(rollNo, studentId, studentName);
+
+        if (typeof window.loadAdminOpinions === 'function') {
+            window.loadAdminOpinions();
+        }
+    } catch (e) {
+        console.error('[deleteStudentOpinionInModal]', e);
+        alert("Failed to delete opinion: " + (e.message || e));
+    }
+};
+
+window.submitStudentOpinionInModal = async function() {
+    const student = window._activeProfileStudent;
+    if (!student) {
+        alert("No active student selected.");
+        return;
+    }
+
+    const teacherInput = document.getElementById('spmInputTeacher');
+    const subjectInput = document.getElementById('spmInputSubject');
+    const categorySelect = document.getElementById('spmInputCategory');
+    const remarkInput = document.getElementById('spmInputRemark');
+    const saveBtn = document.getElementById('spmSaveOpinionBtn');
+
+    const teacher = (teacherInput && teacherInput.value.trim()) || 'Mr. Abhai Kumar (Admin)';
+    const subject = (subjectInput && subjectInput.value.trim()) || 'General Academic';
+    const category = (categorySelect && categorySelect.value) || '';
+    const remark = (remarkInput && remarkInput.value.trim()) || '';
+
+    if (!remark) {
+        alert("Please enter the academic remark / observation for this student.");
+        if (remarkInput) remarkInput.focus();
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Saving to Cloud...';
+    }
+
+    const sb = _getUniversalSupabaseClient();
+    if (!sb) {
+        alert("Database connection unavailable.");
+        if (saveBtn) { saveBtn.disabled = false; saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Save Opinion to Database'; }
+        return;
+    }
+
+    const fullRemark = category ? `[${category}] ${remark}` : remark;
+    const opId = 'top-' + Date.now();
+    const effRoll = student.rollNo || student.roll_no || student.id;
+
+    const newOp = {
+        id: opId,
+        rollNo: effRoll,
+        studentName: student.name || 'Student',
+        studentId: student.id,
+        teacher: teacher,
+        subject: subject,
+        category: category,
+        remark: fullRemark,
+        status: 'approved',
+        submittedAt: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        approvedBy: 'Main Admin',
+        approvedAt: 'Just now'
+    };
+
+    try {
+        const { data, error } = await sb.from('notifications').insert({
+            roll_no: effRoll,
+            title: `${teacher} • ${subject}`,
+            message: JSON.stringify(newOp),
+            type: 'teacher_opinion',
+            time_label: newOp.submittedAt,
+            is_read: false
+        }).select().single();
+
+        if (error) throw error;
+
+        if (remarkInput) remarkInput.value = '';
+        toggleAddStudentOpinionForm(false);
+
+        const alertEl = document.getElementById('spmAlertMsg');
+        if (alertEl) {
+            alertEl.style.display = 'block';
+            alertEl.className = 'alert alert-success alert-dismissible fade show mb-3';
+            alertEl.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Academic opinion successfully recorded and saved in database.';
+            setTimeout(() => { if (alertEl) alertEl.style.display = 'none'; }, 4000);
+        }
+
+        await window.loadStudentOpinionsInModal(effRoll, student.id, student.name);
+
+        if (typeof window.loadAdminOpinions === 'function') {
+            window.loadAdminOpinions();
+        }
+    } catch (e) {
+        console.error('[submitStudentOpinionInModal]', e);
+        alert("Failed to save opinion: " + (e.message || e));
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i>Save Opinion to Database';
+        }
+    }
+};
+
+window.toggleAddStudentOpinionForm = function(forceState) {
+    const form = document.getElementById('spmAddOpinionForm');
+    const btn = document.getElementById('spmToggleAddBtn');
+    if (!form) return;
+    const isVisible = form.style.display !== 'none';
+    const show = typeof forceState === 'boolean' ? forceState : !isVisible;
+    form.style.display = show ? 'block' : 'none';
+    if (btn) {
+        btn.innerHTML = show ? '<i class="fas fa-times mr-1"></i>Close Form' : '<i class="fas fa-plus-circle mr-1"></i>Add Remark';
+        btn.className = show ? 'btn btn-sm btn-secondary ml-2' : 'btn btn-sm btn-success ml-2';
+    }
+};
+
+window.refreshCurrentStudentModalOpinions = function() {
+    if (window._activeProfileStudent) {
+        const s = window._activeProfileStudent;
+        window.loadStudentOpinionsInModal(s.rollNo || s.roll_no, s.id, s.name);
     }
 };

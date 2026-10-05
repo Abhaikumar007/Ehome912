@@ -728,19 +728,132 @@
                         <h5 class="font-weight-bold mb-0 text-dark">
                             <i class="fas fa-comment-dots text-primary mr-2"></i>Faculty Academic Opinions & Student Remarks
                         </h5>
-                        <button class="btn btn-sm btn-outline-primary" onclick="loadAdminOpinions()">
-                            <i class="fas fa-sync-alt mr-1"></i> Refresh Opinions
-                        </button>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="loadAdminOpinions()">
+                                <i class="fas fa-sync-alt mr-1"></i> Refresh Opinions
+                            </button>
+                        </div>
                     </div>
                     <p class="text-muted small">
-                        Review and manage academic opinions submitted by faculty members across all students. As Admin, you have full authority to delete any past opinion, immediately removing it from student and faculty records.
+                        Review, inspect, and manage academic opinions submitted by faculty members across all students. You can filter by student or faculty, open the complete student profile & remarks history, or delete obsolete opinions after confirmation.
                     </p>
+
+                    <!-- Instant Filter Bar -->
+                    <div class="row mb-3">
+                        <div class="col-md-8 col-12 mb-2 mb-md-0">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                                </div>
+                                <input type="text" id="adminOpinionSearchInput" class="form-control" placeholder="Search by student name, roll number, faculty, subject..." oninput="filterAdminOpinions()">
+                            </div>
+                        </div>
+                        <div class="col-md-4 col-12">
+                            <select id="adminOpinionStatusFilter" class="form-control" onchange="filterAdminOpinions()">
+                                <option value="all">All Opinions & Remarks</option>
+                                <option value="approved">Approved Only</option>
+                                <option value="pending">Pending Review Only</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div id="opinionStatusMsg" style="display: none;" class="alert alert-success alert-dismissible fade show mb-3" role="alert"></div>
                     <div id="adminOpinionsContainer">
                         <p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Loading faculty opinions...</p>
                     </div>
                 </div>
             </div>
+
+            
+<!-- Modal: Student Profile & Faculty Opinions / Remarks History -->
+<div class="modal fade" id="studentProfileModal" tabindex="-1" role="dialog" aria-labelledby="studentProfileModalLabel" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header text-white" style="background: linear-gradient(135deg, #003366 0%, #0055a5 100%); padding: 16px 20px;">
+                <div>
+                    <h5 class="modal-title font-weight-bold mb-1" id="studentProfileModalLabel" style="font-size: 1.25rem;">
+                        <i class="fas fa-user-graduate mr-2"></i><span id="spmStudentName">Student Profile</span>
+                    </h5>
+                    <div id="spmBadges" class="d-flex align-items-center flex-wrap" style="gap: 6px;">
+                        <!-- Badges populated by JS -->
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="closeStudentProfileModal()" style="opacity: 0.9; outline: none; font-size: 1.5rem;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="background-color: #f8fafc;">
+                <!-- Student Quick Info Box -->
+                <div class="bg-white p-3 rounded shadow-sm border mb-4" id="spmQuickInfo">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Section Header -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="font-weight-bold text-dark mb-0" style="font-size: 1.05rem;">
+                        <i class="fas fa-comment-dots text-primary mr-2"></i>Faculty Academic Opinions & Student Remarks
+                    </h6>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="spmRefreshBtn">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success ml-2" id="spmToggleAddBtn" onclick="toggleAddStudentOpinionForm()">
+                            <i class="fas fa-plus-circle mr-1"></i>Add Remark
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Notice inside modal -->
+                <div id="spmAlertMsg" style="display: none;" class="alert alert-success alert-dismissible fade show mb-3" role="alert"></div>
+
+                <!-- Form: Record New Academic Opinion / Remark -->
+                <div id="spmAddOpinionForm" style="display: none; border-top: 3px solid #28a745 !important;" class="bg-white p-3 rounded border shadow-sm mb-4">
+                    <h6 class="font-weight-bold text-success mb-3">
+                        <i class="fas fa-pen-nib mr-2"></i>Record New Academic Opinion / Remark
+                    </h6>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label class="small font-weight-bold">Faculty Member / Teacher</label>
+                            <input type="text" class="form-control form-control-sm" id="spmInputTeacher" value="Mr. Abhai Kumar (Admin)" placeholder="e.g. Mr. Abhai Kumar">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label class="small font-weight-bold">Subject</label>
+                            <input type="text" class="form-control form-control-sm" id="spmInputSubject" placeholder="e.g. Physics, Chemistry, Mathematics">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="small font-weight-bold">Academic Assessment / Category</label>
+                        <select class="form-control form-control-sm" id="spmInputCategory">
+                            <option value="Outstanding Progress">Outstanding (Exceeding Expectations)</option>
+                            <option value="Consistent Progress" selected>Good Progress (Consistent Performance)</option>
+                            <option value="Needs Academic Support">Needs Improvement (Targeted Academic Support Required)</option>
+                            <option value="General Academic Remark">General Academic Remark / Conduct</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="small font-weight-bold">Detailed Academic Remark / Opinion</label>
+                        <textarea class="form-control form-control-sm" id="spmInputRemark" rows="3" placeholder="Provide specific feedback on student comprehension, problem-solving skills, homework submissions, or areas for improvement..."></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button type="button" class="btn btn-sm btn-secondary mr-2" onclick="toggleAddStudentOpinionForm(false)">Cancel</button>
+                        <button type="button" class="btn btn-sm btn-success" id="spmSaveOpinionBtn" onclick="submitStudentOpinionInModal()">
+                            <i class="fas fa-save mr-1"></i>Save Opinion to Database
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Opinions & Remarks History Container -->
+                <div id="spmOpinionsListContainer">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 d-flex justify-content-between">
+                <small class="text-muted"><i class="fas fa-database text-success mr-1"></i>Persisted live in Supabase cloud database</small>
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal" onclick="closeStudentProfileModal()">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
             <!-- TAB 3: MONTHLY FEES AUTOMATION -->
             <div class="tab-pane fade" id="tab-fees" role="tabpanel">
@@ -1016,14 +1129,15 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=1791213164252"></script>
-    <script src="js/master_hub.js?v=1791213892845"></script>
+    <script src="js/admin.js?v=1791215471808"></script>
+    <script src="js/master_hub.js?v=1791215471808"></script>
     <script src="js/live_timetable.js?v=20261004_v4"></script>
 
     <script>
         $(document).ready(function() {
             // Check hash on load
             if (typeof window.loadPendingVerifications === 'function') { window.loadPendingVerifications(); } // OnLoad
+            if (typeof window.loadAdminOpinions === 'function') { window.loadAdminOpinions(); }
             if (window.location.hash === '#tab-timetable') {
                 $('#tab-timetable-link').tab('show');
                 if (typeof window.initLiveAppTimetable === 'function') {

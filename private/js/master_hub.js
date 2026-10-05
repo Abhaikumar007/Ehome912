@@ -91,6 +91,11 @@ function setupMasterHubRealtime() {
                 console.log('[MasterHub Realtime] Students changed:', payload.eventType);
                 refreshMasterData(true);
             })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, (payload) => {
+                console.log('[MasterHub Realtime] Notifications changed:', payload.eventType);
+                if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+                if (typeof window.refreshCurrentStudentModalOpinions === 'function') window.refreshCurrentStudentModalOpinions();
+            })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records' }, (payload) => {
                 console.log('[MasterHub Realtime] Fees records changed:', payload.eventType);
                 if (typeof updateFeeSummary === 'function') updateFeeSummary();
@@ -125,6 +130,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     console.log('[MasterHub] Initializing Super Admin Master Control Hub...');
     await refreshMasterData();
     testCloudHealth();
+    if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
     loadActiveBroadcasts();
     if (typeof updateBulkPaidRangePreview === 'function') updateBulkPaidRangePreview();
 
@@ -151,9 +157,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     if (broadcastTabLink) {
         broadcastTabLink.addEventListener('shown.bs.tab', function () {
             loadActiveBroadcasts();
+            if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
         });
         broadcastTabLink.addEventListener('click', function () {
-            setTimeout(loadActiveBroadcasts, 100);
+            setTimeout(function() {
+                loadActiveBroadcasts();
+                if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+            }, 100);
         });
     }
 });
@@ -1814,6 +1824,7 @@ async function forcePushAllToClouds() {
         const res = await sb_migrateFromLocalStorage();
         alert(res.msg || 'Sync completed.');
         testCloudHealth();
+    if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
     }
 }
 
@@ -1824,6 +1835,7 @@ async function forcePullAllFromClouds() {
         alert(res.msg || 'Data refreshed from cloud.');
         await refreshMasterData();
         testCloudHealth();
+    if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
     }
 }
 
@@ -2290,16 +2302,29 @@ window.submitEditedApproval = async function(e) {
 };
 
 
+
 // ── FACULTY OPINIONS MANAGEMENT (ADMIN FULL CONTROL) ───────────────
-async function loadAdminOpinions() {
+window._allAdminOpinions = [];
+
+async function loadAdminOpinions(retryCount = 0) {
     const container = document.getElementById('adminOpinionsContainer');
     if (!container) return;
 
-    container.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Fetching faculty opinions from cloud...</p>';
+    if (!container.innerHTML.includes('table') && !container.innerHTML.includes('table-responsive')) {
+        container.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Fetching faculty opinions from cloud...</p>';
+    }
 
-    const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null);
+    const sb = (typeof _getUniversalSupabaseClient === 'function' ? _getUniversalSupabaseClient() : null) ||
+               (typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : null) ||
+               (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null) ||
+               (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
+
     if (!sb) {
-        container.innerHTML = '<div class="alert alert-danger py-2">Database connection unavailable.</div>';
+        if (retryCount < 4) {
+            setTimeout(() => loadAdminOpinions(retryCount + 1), 600);
+            return;
+        }
+        container.innerHTML = '<div class="alert alert-danger py-2"><i class="fas fa-exclamation-circle mr-1"></i>Database connection unavailable. Please refresh the page.</div>';
         return;
     }
 
@@ -2311,7 +2336,7 @@ async function loadAdminOpinions() {
             .order('created_at', { ascending: false });
 
         if (error) {
-            container.innerHTML = '<div class="alert alert-danger py-2">Error loading opinions: ' + (error.message || error) + '</div>';
+            container.innerHTML = '<div class="alert alert-danger py-2"><i class="fas fa-exclamation-triangle mr-1"></i>Error loading opinions: ' + (error.message || error) + '</div>';
             return;
         }
 
@@ -2321,99 +2346,168 @@ async function loadAdminOpinions() {
                 const parsed = JSON.parse(row.message);
                 opinions.push({
                     ...parsed,
-                    supabaseId: row.id,
+                    supabaseRowId: row.id,
                     id: parsed.id || row.id,
+                    rollNo: parsed.rollNo || row.roll_no || '',
+                    studentName: parsed.studentName || 'Student',
+                    teacher: parsed.teacher || row.title || 'Faculty',
+                    subject: parsed.subject || 'General',
+                    remark: parsed.remark || row.message,
+                    status: parsed.status || 'approved',
+                    submittedAt: parsed.submittedAt || row.time_label || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : 'Recent'),
                     dbCreatedAt: row.created_at
                 });
             } catch {
                 opinions.push({
                     id: row.id,
-                    supabaseId: row.id,
+                    supabaseRowId: row.id,
                     rollNo: row.roll_no,
                     studentName: 'Student',
                     teacher: row.title || 'Faculty',
                     subject: 'General',
                     remark: row.message,
                     status: 'approved',
-                    submittedAt: row.time_label || 'Recent'
+                    submittedAt: row.time_label || (row.created_at ? new Date(row.created_at).toLocaleDateString('en-GB') : 'Recent'),
+                    dbCreatedAt: row.created_at
                 });
             }
         });
 
-        if (opinions.length === 0) {
-            container.innerHTML = '<div class="p-4 text-center text-muted bg-light rounded"><i class="fas fa-comment-slash fa-2x mb-2 text-secondary"></i><br>No faculty opinions recorded yet.</div>';
-            return;
-        }
-
-        let html = '<div class="table-responsive"><table class="table table-bordered table-hover bg-white mb-0" style="font-size:0.88rem;">' +
-            '<thead class="thead-light"><tr>' +
-            '<th>Student</th>' +
-            '<th>Faculty & Subject</th>' +
-            '<th>Academic Remark</th>' +
-            '<th style="width:130px;">Status</th>' +
-            '<th style="width:120px;">Submitted</th>' +
-            '<th style="width:100px;text-align:center;">Action</th>' +
-            '</tr></thead><tbody>';
-
-        opinions.forEach(op => {
-            const isApproved = op.status === 'approved';
-            const statusBadge = isApproved
-                ? '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
-                : '<span class="badge badge-warning px-2 py-1 text-dark"><i class="fas fa-clock mr-1"></i>Pending Review</span>';
-
-            const cleanRemark = String(op.remark || '').replace(/"/g, '&quot;');
-            const safeStudent = String(op.studentName || op.rollNo).replace(/'/g, "\\'");
-            const safeId = String(op.supabaseId || op.id).replace(/'/g, "\\'");
-            const safeRoll = String(op.rollNo || '').replace(/'/g, "\\'");
-
-            html += '<tr>' +
-                '<td><strong>' + (op.studentName || 'Student') + '</strong><br><small class="text-muted"><i class="fas fa-id-badge mr-1"></i>' + (op.rollNo || '-') + '</small></td>' +
-                '<td><strong>' + (op.teacher || 'Faculty') + '</strong><br><span class="badge badge-info">' + (op.subject || 'Subject') + '</span></td>' +
-                '<td><div style="max-height:80px;overflow-y:auto;line-height:1.4;">' + cleanRemark + '</div></td>' +
-                '<td>' + statusBadge + '</td>' +
-                '<td><small class="text-muted">' + (op.submittedAt || 'Recent') + '</small></td>' +
-                '<td style="text-align:center;vertical-align:middle;">' +
-                '<button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.8rem;padding:3px 9px;" onclick="deleteAdminOpinion(\'' + safeId + '\',\'' + safeRoll + '\',\'' + safeStudent + '\')">' +
-                '<i class="fas fa-trash-alt mr-1"></i>Delete' +
-                '</button>' +
-                '</td>' +
-                '</tr>';
-        });
-
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
+        window._allAdminOpinions = opinions;
+        renderFilteredAdminOpinions(opinions);
     } catch (e) {
         console.error('[loadAdminOpinions]', e);
-        container.innerHTML = '<div class="alert alert-danger py-2">Exception: ' + e.message + '</div>';
+        container.innerHTML = '<div class="alert alert-danger py-2"><i class="fas fa-bug mr-1"></i>Exception: ' + e.message + '</div>';
     }
 }
 window.loadAdminOpinions = loadAdminOpinions;
 
-async function deleteAdminOpinion(opinionId, rollNo, studentName) {
+function renderFilteredAdminOpinions(opinions) {
+    const container = document.getElementById('adminOpinionsContainer');
+    if (!container) return;
+
+    if (!opinions || opinions.length === 0) {
+        container.innerHTML = '<div class="p-4 text-center text-muted bg-light rounded border"><i class="fas fa-comment-slash fa-2x mb-2 text-secondary"></i><br>No faculty opinions or student remarks recorded yet.</div>';
+        return;
+    }
+
+    let html = '<div class="table-responsive"><table class="table table-bordered table-hover bg-white mb-0" style="font-size:0.88rem;">' +
+        '<thead class="thead-light"><tr>' +
+        '<th>Student Profile</th>' +
+        '<th>Faculty Member & Subject</th>' +
+        '<th>Academic Remark / Opinion</th>' +
+        '<th style="width:120px;text-align:center;">Status</th>' +
+        '<th style="width:110px;">Submitted</th>' +
+        '<th style="width:130px;text-align:center;">Actions</th>' +
+        '</tr></thead><tbody>';
+
+    opinions.forEach(op => {
+        const isApproved = op.status === 'approved';
+        const statusBadge = isApproved
+            ? '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
+            : '<span class="badge badge-warning px-2 py-1 text-dark"><i class="fas fa-clock mr-1"></i>Pending Review</span>';
+
+        const cleanRemark = String(op.remark || '').replace(/"/g, '&quot;');
+        const safeStudent = String(op.studentName || op.rollNo || 'Student').replace(/'/g, "\\'");
+        const safeRowId = String(op.supabaseRowId || '').replace(/'/g, "\\'");
+        const safeJsonId = String(op.id || '').replace(/'/g, "\\'");
+        const safeRoll = String(op.rollNo || '').replace(/'/g, "\\'");
+        const safeStudentId = String(op.studentId || '').replace(/'/g, "\\'");
+
+        html += '<tr>' +
+            '<td>' +
+            '<a href="javascript:void(0)" onclick="openStudentProfileModal(\'' + safeStudentId + '\',\'' + safeRoll + '\')" class="font-weight-bold text-primary" style="text-decoration:none;">' + (op.studentName || 'Student') + ' <i class="fas fa-external-link-alt fa-xs ml-1"></i></a><br>' +
+            '<small class="badge badge-light border text-muted"><i class="fas fa-id-badge mr-1"></i>' + (op.rollNo || '-') + '</small>' +
+            '</td>' +
+            '<td><strong>' + (op.teacher || 'Faculty') + '</strong><br><span class="badge badge-info">' + (op.subject || 'Subject') + '</span></td>' +
+            '<td><div style="max-height:85px;overflow-y:auto;line-height:1.45;color:#2d3748;" class="p-1 rounded bg-light border-left">' + cleanRemark + '</div></td>' +
+            '<td style="text-align:center;vertical-align:middle;">' + statusBadge + '</td>' +
+            '<td style="vertical-align:middle;"><small class="text-muted"><i class="fas fa-calendar-alt mr-1"></i>' + (op.submittedAt || 'Recent') + '</small></td>' +
+            '<td style="text-align:center;vertical-align:middle;">' +
+            '<div class="d-flex justify-content-center" style="gap:4px;">' +
+            '<button type="button" class="btn btn-sm btn-outline-primary" style="border-radius:6px;font-size:0.75rem;padding:3px 7px;" onclick="openStudentProfileModal(\'' + safeStudentId + '\',\'' + safeRoll + '\')" title="Open Student Profile & All Opinions">' +
+            '<i class="fas fa-user-graduate mr-1"></i>Profile' +
+            '</button>' +
+            '<button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.75rem;padding:3px 7px;" onclick="deleteAdminOpinion(\'' + safeRowId + '\',\'' + safeJsonId + '\',\'' + safeRoll + '\',\'' + safeStudent + '\')">' +
+            '<i class="fas fa-trash-alt mr-1"></i>Delete' +
+            '</button>' +
+            '</div>' +
+            '</td>' +
+            '</tr>';
+    });
+
+    html += '</tbody></table></div>';
+    container.innerHTML = html;
+}
+window.renderFilteredAdminOpinions = renderFilteredAdminOpinions;
+
+window.filterAdminOpinions = function() {
+    const searchInput = document.getElementById('adminOpinionSearchInput');
+    const statusSelect = document.getElementById('adminOpinionStatusFilter');
+
+    const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const statusFilter = statusSelect ? statusSelect.value : 'all';
+
+    const all = window._allAdminOpinions || [];
+    const filtered = all.filter(op => {
+        const matchesQuery = !query ||
+            (op.studentName && op.studentName.toLowerCase().includes(query)) ||
+            (op.rollNo && op.rollNo.toLowerCase().includes(query)) ||
+            (op.teacher && op.teacher.toLowerCase().includes(query)) ||
+            (op.subject && op.subject.toLowerCase().includes(query)) ||
+            (op.remark && op.remark.toLowerCase().includes(query));
+
+        const matchesStatus = statusFilter === 'all' ||
+            (statusFilter === 'approved' && op.status === 'approved') ||
+            (statusFilter === 'pending' && op.status !== 'approved');
+
+        return matchesQuery && matchesStatus;
+    });
+
+    renderFilteredAdminOpinions(filtered);
+};
+
+async function deleteAdminOpinion(rowId, jsonId, rollNo, studentName) {
     if (!window.confirm("Are you sure you want to delete this opinion? This action cannot be undone.")) {
         return;
     }
 
-    const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null);
+    const sb = (typeof _getUniversalSupabaseClient === 'function' ? _getUniversalSupabaseClient() : null) ||
+               (typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : null) ||
+               (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null) ||
+               (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
+
     if (!sb) {
         alert("Database connection unavailable.");
         return;
     }
 
     try {
-        await sb.from('notifications').delete().eq('id', opinionId);
-        await sb.from('notifications').delete().ilike('message', `%"id":"${opinionId}"%`);
+        const isUUID = (str) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(str || '').trim());
+        if (isUUID(rowId)) {
+            await sb.from('notifications').delete().eq('id', rowId);
+        }
+        if (jsonId) {
+            await sb.from('notifications').delete().ilike('message', `%"id":"${jsonId}"%`);
+        }
 
         const statusMsg = document.getElementById('opinionStatusMsg');
         if (statusMsg) {
             statusMsg.style.display = 'block';
-            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion for <strong>' + (studentName || rollNo) + '</strong> was successfully deleted.';
+            statusMsg.className = 'alert alert-success alert-dismissible fade show mb-3';
+            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion for <strong>' + (studentName || rollNo) + '</strong> was successfully deleted from database.';
             setTimeout(() => { if (statusMsg) statusMsg.style.display = 'none'; }, 4000);
         }
 
         await loadAdminOpinions();
     } catch (e) {
+        console.error('[deleteAdminOpinion]', e);
         alert("Failed to delete opinion: " + (e.message || e));
     }
 }
 window.deleteAdminOpinion = deleteAdminOpinion;
+
+// Auto-run if DOM ready
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(loadAdminOpinions, 350);
+}
