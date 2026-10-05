@@ -2397,22 +2397,15 @@ export const DataService = {
           })
           .filter((o) => o && o.status === 'approved');
 
-        if (cloudOpinions.length > 0) {
-          const map = new Map<string, any>();
-          cloudOpinions.forEach((o) => map.set(o.id, o));
-          (cached || []).forEach((o) => {
-            if (!map.has(o.id)) map.set(o.id, o);
-          });
-          const merged = Array.from(map.values());
-          await setCached(key, merged);
-          return merged;
-        }
+        // Directly update cache to match Supabase cloud truth; do not resurrect deleted opinions
+        await setCached(key, cloudOpinions);
+        return cloudOpinions;
       }
     } catch (e) {
       console.warn('Error fetching student opinions from Supabase:', e);
     }
 
-    if (cached && cached.length > 0) return cached;
+    if (cached && Array.isArray(cached)) return cached;
 
     const defaultOpinions = [
       {

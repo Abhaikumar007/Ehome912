@@ -205,7 +205,7 @@ export default function DashboardScreen() {
       if (att) setAttSummary(att);
       if (fees) setFeesSummary(fees);
       setAcademicAlert(alert || null);
-      if (opinions && opinions.length > 0) setTeacherOpinions(opinions);
+      if (opinions) setTeacherOpinions(opinions);
       if (notifs) {
         setHasUnreadNotifs(notifs.some((n: any) => n.unread));
       }
@@ -251,6 +251,23 @@ export default function DashboardScreen() {
         DataService.getFees(rollNo).then((f) => {
           if (f) setFeesSummary(f);
         });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `roll_no=eq.${rollNo}` }, () => {
+        console.log('[Realtime] Notifications / Teacher opinions change detected in Supabase');
+        DataService.getStudentTeacherOpinions(rollNo).then((ops) => {
+          setTeacherOpinions(ops || []);
+        });
+        DataService.getNotifications(rollNo).then((notifs) => {
+          if (notifs) setHasUnreadNotifs(notifs.some((n: any) => n.unread));
+        });
+      })
+      .on('broadcast', { event: 'opinion_deleted' }, (event) => {
+        if (!event?.payload || event.payload.rollNo === rollNo) {
+          console.log('[Realtime] Opinion deleted broadcast received:', event.payload);
+          DataService.getStudentTeacherOpinions(rollNo).then((ops) => {
+            setTeacherOpinions(ops || []);
+          });
+        }
       })
       .on('broadcast', { event: 'student_updated' }, (event) => {
         if (!event?.payload || event.payload.rollNo === rollNo) {
@@ -919,6 +936,7 @@ export default function DashboardScreen() {
         </TouchableOpacity>
 
         {/* Teacher's Remarks Under Overall Attendance */}
+        {teacherOpinions && teacherOpinions.length > 0 && (
         <View style={styles.opinionMiniSection}>
           <View style={styles.opinionMiniHeader}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
@@ -949,6 +967,7 @@ export default function DashboardScreen() {
             </Text>
           </View>
         </View>
+        )}
 
         {/* Community Announcements: Showing ONLY the first 3 */}
         <View style={styles.card}>
