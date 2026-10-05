@@ -807,8 +807,8 @@ export const DataService = {
     return [];
   },
 
-  // Faculty Portal: Schedule a class session with target syllabus
-  async scheduleTeacherClassSession(sessionData: {
+  // Access Control: Enforce timetable scheduling restrictions (Admin Portal only)
+  async scheduleTeacherClassSession(_sessionData: {
     classGrade: string;
     subject: string;
     classDate: string;
@@ -819,73 +819,7 @@ export const DataService = {
     facultyId?: string;
     facultyName?: string;
   }) {
-    const {
-      classGrade,
-      subject,
-      classDate,
-      startTime,
-      endTime,
-      sessionType = 'Regular Class',
-      targetSyllabus = 'Both',
-      facultyId = '',
-      facultyName = '',
-    } = sessionData;
-
-    const formattedGrade = classGrade.startsWith('Class') ? classGrade : `Class ${classGrade}`;
-    const cleanStartTime = startTime.replace(/•.*$/, '').trim();
-    const cleanEndTime = endTime.replace(/•.*$/, '').trim();
-    const timeSlot = cleanStartTime && cleanEndTime ? `${cleanStartTime} - ${cleanEndTime}` : cleanStartTime || 'Scheduled';
-
-    const timeParts = [timeSlot];
-    if (targetSyllabus === 'CBSE') {
-      timeParts.push('CBSE');
-    } else if (targetSyllabus === 'State Syllabus') {
-      timeParts.push('State Syllabus');
-    }
-
-    const sessTypeLower = sessionType.toLowerCase();
-    const isTP = sessTypeLower.includes('tp') || sessTypeLower.includes('test');
-    const isQB = sessTypeLower.includes('question') || sessTypeLower.includes('qb');
-    const sessionTag = isTP ? 'Test Paper' : isQB ? 'Question Bank' : 'Regular Class';
-    const statusTag = isTP ? 'TP' : isQB ? 'QuestionBank' : '';
-
-    if (sessionTag !== 'Regular Class') {
-      timeParts.push(sessionTag);
-    }
-    if (facultyName) {
-      timeParts.push(facultyName);
-    }
-    const finalTime = timeParts.join(' • ');
-
-    const sylTag = targetSyllabus === 'CBSE' ? 'CBSE' : targetSyllabus === 'State Syllabus' ? 'State' : '';
-    const finalStatus = [
-      'upcoming',
-      sylTag,
-      statusTag,
-      facultyId || (facultyName ? 'fac' : ''),
-    ].filter(Boolean).join(':');
-
-    // 1. Insert into Supabase classes table
-    const { data, error } = await supabase.from('classes').insert({
-      roll_no: formattedGrade,
-      class_grade: formattedGrade,
-      subject,
-      class_date: classDate,
-      time: finalTime,
-      status: finalStatus,
-      published: true,
-    }).select().single();
-
-    if (error) {
-      throw error;
-    }
-
-    // 2. Clear cached classes
-    try {
-      await AppStorage.removeItem('classes_cached_admin');
-    } catch {}
-
-    return data;
+    throw new Error('Access Denied: Timetable management and class scheduling are restricted strictly to Administrators through the Admin Portal. Faculty members do not have permission to schedule classes.');
   },
 
   // Fetch Announcements — Network-First with Cache Fallback (Optionally filtered by student class)
