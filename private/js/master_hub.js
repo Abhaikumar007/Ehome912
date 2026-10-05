@@ -2288,3 +2288,132 @@ window.submitEditedApproval = async function(e) {
         }
     }
 };
+
+
+// ── FACULTY OPINIONS MANAGEMENT (ADMIN FULL CONTROL) ───────────────
+async function loadAdminOpinions() {
+    const container = document.getElementById('adminOpinionsContainer');
+    if (!container) return;
+
+    container.innerHTML = '<p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Fetching faculty opinions from cloud...</p>';
+
+    const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null);
+    if (!sb) {
+        container.innerHTML = '<div class="alert alert-danger py-2">Database connection unavailable.</div>';
+        return;
+    }
+
+    try {
+        const { data, error } = await sb
+            .from('notifications')
+            .select('*')
+            .eq('type', 'teacher_opinion')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            container.innerHTML = '<div class="alert alert-danger py-2">Error loading opinions: ' + (error.message || error) + '</div>';
+            return;
+        }
+
+        const opinions = [];
+        (data || []).forEach(row => {
+            try {
+                const parsed = JSON.parse(row.message);
+                opinions.push({
+                    ...parsed,
+                    supabaseId: row.id,
+                    id: parsed.id || row.id,
+                    dbCreatedAt: row.created_at
+                });
+            } catch {
+                opinions.push({
+                    id: row.id,
+                    supabaseId: row.id,
+                    rollNo: row.roll_no,
+                    studentName: 'Student',
+                    teacher: row.title || 'Faculty',
+                    subject: 'General',
+                    remark: row.message,
+                    status: 'approved',
+                    submittedAt: row.time_label || 'Recent'
+                });
+            }
+        });
+
+        if (opinions.length === 0) {
+            container.innerHTML = '<div class="p-4 text-center text-muted bg-light rounded"><i class="fas fa-comment-slash fa-2x mb-2 text-secondary"></i><br>No faculty opinions recorded yet.</div>';
+            return;
+        }
+
+        let html = '<div class="table-responsive"><table class="table table-bordered table-hover bg-white mb-0" style="font-size:0.88rem;">' +
+            '<thead class="thead-light"><tr>' +
+            '<th>Student</th>' +
+            '<th>Faculty & Subject</th>' +
+            '<th>Academic Remark</th>' +
+            '<th style="width:130px;">Status</th>' +
+            '<th style="width:120px;">Submitted</th>' +
+            '<th style="width:100px;text-align:center;">Action</th>' +
+            '</tr></thead><tbody>';
+
+        opinions.forEach(op => {
+            const isApproved = op.status === 'approved';
+            const statusBadge = isApproved
+                ? '<span class="badge badge-success px-2 py-1"><i class="fas fa-check-circle mr-1"></i>Approved</span>'
+                : '<span class="badge badge-warning px-2 py-1 text-dark"><i class="fas fa-clock mr-1"></i>Pending Review</span>';
+
+            const cleanRemark = String(op.remark || '').replace(/"/g, '&quot;');
+            const safeStudent = String(op.studentName || op.rollNo).replace(/'/g, "\\'");
+            const safeId = String(op.supabaseId || op.id).replace(/'/g, "\\'");
+            const safeRoll = String(op.rollNo || '').replace(/'/g, "\\'");
+
+            html += '<tr>' +
+                '<td><strong>' + (op.studentName || 'Student') + '</strong><br><small class="text-muted"><i class="fas fa-id-badge mr-1"></i>' + (op.rollNo || '-') + '</small></td>' +
+                '<td><strong>' + (op.teacher || 'Faculty') + '</strong><br><span class="badge badge-info">' + (op.subject || 'Subject') + '</span></td>' +
+                '<td><div style="max-height:80px;overflow-y:auto;line-height:1.4;">' + cleanRemark + '</div></td>' +
+                '<td>' + statusBadge + '</td>' +
+                '<td><small class="text-muted">' + (op.submittedAt || 'Recent') + '</small></td>' +
+                '<td style="text-align:center;vertical-align:middle;">' +
+                '<button type="button" class="btn btn-sm btn-outline-danger" style="border-radius:6px;font-size:0.8rem;padding:3px 9px;" onclick="deleteAdminOpinion(\'' + safeId + '\',\'' + safeRoll + '\',\'' + safeStudent + '\')">' +
+                '<i class="fas fa-trash-alt mr-1"></i>Delete' +
+                '</button>' +
+                '</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+        container.innerHTML = html;
+    } catch (e) {
+        console.error('[loadAdminOpinions]', e);
+        container.innerHTML = '<div class="alert alert-danger py-2">Exception: ' + e.message + '</div>';
+    }
+}
+window.loadAdminOpinions = loadAdminOpinions;
+
+async function deleteAdminOpinion(opinionId, rollNo, studentName) {
+    if (!window.confirm("Are you sure you want to delete this opinion? This action cannot be undone.")) {
+        return;
+    }
+
+    const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : null);
+    if (!sb) {
+        alert("Database connection unavailable.");
+        return;
+    }
+
+    try {
+        await sb.from('notifications').delete().eq('id', opinionId);
+        await sb.from('notifications').delete().ilike('message', `%"id":"${opinionId}"%`);
+
+        const statusMsg = document.getElementById('opinionStatusMsg');
+        if (statusMsg) {
+            statusMsg.style.display = 'block';
+            statusMsg.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Opinion for <strong>' + (studentName || rollNo) + '</strong> was successfully deleted.';
+            setTimeout(() => { if (statusMsg) statusMsg.style.display = 'none'; }, 4000);
+        }
+
+        await loadAdminOpinions();
+    } catch (e) {
+        alert("Failed to delete opinion: " + (e.message || e));
+    }
+}
+window.deleteAdminOpinion = deleteAdminOpinion;

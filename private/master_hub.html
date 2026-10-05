@@ -721,6 +721,25 @@
                         <p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Loading active broadcasts...</p>
                     </div>
                 </div>
+
+                <!-- Faculty Academic Opinions & Remarks Management -->
+                <div class="hub-card mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="font-weight-bold mb-0 text-dark">
+                            <i class="fas fa-comment-dots text-primary mr-2"></i>Faculty Academic Opinions & Student Remarks
+                        </h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="loadAdminOpinions()">
+                            <i class="fas fa-sync-alt mr-1"></i> Refresh Opinions
+                        </button>
+                    </div>
+                    <p class="text-muted small">
+                        Review and manage academic opinions submitted by faculty members across all students. As Admin, you have full authority to delete any past opinion, immediately removing it from student and faculty records.
+                    </p>
+                    <div id="opinionStatusMsg" style="display: none;" class="alert alert-success alert-dismissible fade show mb-3" role="alert"></div>
+                    <div id="adminOpinionsContainer">
+                        <p class="text-muted"><i class="fas fa-spinner fa-spin mr-1"></i>Loading faculty opinions...</p>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB 3: MONTHLY FEES AUTOMATION -->
@@ -998,7 +1017,7 @@
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
     <script src="js/admin.js?v=1791213164252"></script>
-    <script src="js/master_hub.js?v=20261004_test_approval_fix"></script>
+    <script src="js/master_hub.js?v=1791213892845"></script>
     <script src="js/live_timetable.js?v=20261004_v4"></script>
 
     <script>
