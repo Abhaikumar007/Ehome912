@@ -153,6 +153,7 @@ export default function TeacherHomeScreen() {
   const [opinionRemark, setOpinionRemark] = useState('');
   const [opinionRating, setOpinionRating] = useState('Outstanding');
   const [pendingOpinions, setPendingOpinions] = useState<any[]>([]);
+  const [allOpinions, setAllOpinions] = useState<any[]>([]);
 
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
@@ -201,10 +202,12 @@ export default function TeacherHomeScreen() {
     }
   };
 
-  const loadPendingOpinions = async () => {
+  const loadOpinions = async () => {
     try {
-      const list = await DataService.getPendingTeacherOpinions();
-      setPendingOpinions(list || []);
+      const list = await DataService.getAllTeacherOpinions();
+      setAllOpinions(list || []);
+      const pending = (list || []).filter((o) => o.status === 'pending_review');
+      setPendingOpinions(pending);
     } catch {}
   };
 
@@ -319,7 +322,7 @@ export default function TeacherHomeScreen() {
         loadActiveFaculty(),
         loadTimetable(),
         loadAnnouncements(),
-        loadPendingOpinions(),
+        loadOpinions(),
         fetchLiveStudents(),
       ]);
     } catch (e) {
@@ -334,7 +337,7 @@ export default function TeacherHomeScreen() {
       loadActiveFaculty();
       loadTimetable();
       loadAnnouncements();
-      loadPendingOpinions();
+      loadOpinions();
       fetchLiveStudents();
     }, [fetchLiveStudents])
   );
@@ -342,7 +345,7 @@ export default function TeacherHomeScreen() {
   useEffect(() => {
     loadActiveFaculty();
     loadAnnouncements();
-    loadPendingOpinions();
+    loadOpinions();
     loadTimetable();
     fetchLiveStudents();
 
@@ -543,7 +546,7 @@ export default function TeacherHomeScreen() {
         remark: `[${opinionRating}] ${opinionRemark.trim()}`,
       });
       setOpinionModalVisible(false);
-      await loadPendingOpinions();
+      await loadOpinions();
       Alert.alert(
         'Submitted for Main Admin Review ✓',
         `Your remark for ${selectedStudentForOpinion.name} in ${opinionSubject} has been routed to Main Admin (Mr. Abhai Kumar). Once approved, it will automatically appear in the student's carousel!`
@@ -553,10 +556,53 @@ export default function TeacherHomeScreen() {
     }
   };
 
+  const confirmDeleteOpinion = (op: any) => {
+    const isSuperAdmin =
+      Boolean((activeTeacher as any)?.role?.toLowerCase().includes('admin')) ||
+      activeTeacher?.id === 'fac-admin' ||
+      Boolean(activeTeacher?.name?.includes('Abhai'));
+
+    const isMyOpinion =
+      Boolean(
+        op.teacher &&
+        activeTeacher?.name &&
+        op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
+      ) || op.facultyId === activeTeacher?.id;
+
+    if (!isSuperAdmin && !isMyOpinion) {
+      Alert.alert(
+        'Access Denied',
+        'Faculty members can only delete opinions they have submitted.'
+      );
+      return;
+    }
+
+    Alert.alert(
+      'Delete Opinion',
+      'Are you sure you want to delete this opinion? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await DataService.deleteTeacherOpinion(op.id, op.rollNo, activeTeacher);
+              await loadOpinions();
+              Alert.alert('Deleted', 'Opinion has been permanently deleted.');
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || 'Failed to delete opinion.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleApproveOpinion = async (opId: string, studentName: string) => {
     try {
       await DataService.approveTeacherOpinion(opId);
-      await loadPendingOpinions();
+      await loadOpinions();
       Alert.alert(
         'Opinion Approved & Published ✓',
         `Main Admin approval granted! Remark for ${studentName} has been synchronized directly to the student dashboard carousel.`
@@ -960,43 +1006,105 @@ export default function TeacherHomeScreen() {
               ) : (
                 filteredRosterStudents.map((stu, idx) => {
                   const avatarText = stu.avatar || (stu.name ? stu.name.trim().slice(0, 2).toUpperCase() : 'ST');
+                  const stuOpinions = allOpinions.filter((o) => o.rollNo === stu.rollNo);
+
                   return (
-                    <View key={stu.rollNo ? `${stu.rollNo}_${idx}` : `stu-${idx}`} style={styles.studentCard}>
-                      <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
-                        <Text style={styles.studentAvatarText}>{avatarText}</Text>
-                      </View>
-                      <View style={styles.studentInfoWrap}>
-                        <View style={styles.studentNameRow}>
-                          <Text style={styles.studentNameText}>{stu.name || 'Student'}</Text>
-                          <View style={styles.syncBadge}>
-                            <Ionicons name="sync-circle" size={11} color="#0284C7" />
-                            <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
+                    <View key={stu.rollNo ? `${stu.rollNo}_${idx}` : `stu-${idx}`} style={styles.studentCardWrapper}>
+                      <View style={styles.studentCard}>
+                        <View style={[styles.studentAvatarBox, { backgroundColor: stu.avatarColor || '#0284C7' }]}>
+                          <Text style={styles.studentAvatarText}>{avatarText}</Text>
+                        </View>
+                        <View style={styles.studentInfoWrap}>
+                          <View style={styles.studentNameRow}>
+                            <Text style={styles.studentNameText}>{stu.name || 'Student'}</Text>
+                            <View style={styles.syncBadge}>
+                              <Ionicons name="sync-circle" size={11} color="#0284C7" />
+                              <Text style={styles.syncBadgeText}>Main Admin Synced</Text>
+                            </View>
+                          </View>
+                          <Text style={styles.studentClassText}>
+                            {stu.class || 'Class 12'} • Roll No: {stu.rollNo || '-'}
+                          </Text>
+                          <Text style={styles.studentMetaSubText} numberOfLines={1}>
+                            Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
+                          </Text>
+                          {(stu as any).subjects && (
+                            <Text style={styles.studentSubjectsText} numberOfLines={1}>
+                              📚 {(stu as any).subjects}
+                            </Text>
+                          )}
+                          <View style={styles.scoreRow}>
+                            <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
+                            <Text style={styles.scoreVal}>{stu.recentScore || '90%'}</Text>
                           </View>
                         </View>
-                        <Text style={styles.studentClassText}>
-                          {stu.class || 'Class 12'} • Roll No: {stu.rollNo || '-'}
-                        </Text>
-                        <Text style={styles.studentMetaSubText} numberOfLines={1}>
-                          Batch: {(stu as any).batch || 'Regular'} • Joined: {(stu as any).joiningDate || '15 Jan 2026'}
-                        </Text>
-                        {(stu as any).subjects && (
-                          <Text style={styles.studentSubjectsText} numberOfLines={1}>
-                            📚 {(stu as any).subjects}
-                          </Text>
-                        )}
-                        <View style={styles.scoreRow}>
-                          <Text style={styles.scoreLabel}>Recent Evaluation: </Text>
-                          <Text style={styles.scoreVal}>{stu.recentScore || '90%'}</Text>
-                        </View>
+                        <TouchableOpacity
+                          style={styles.addOpinionBtn}
+                          onPress={() => handleOpenOpinionModal(stu)}
+                          activeOpacity={0.85}
+                        >
+                          <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
+                          <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
+                        </TouchableOpacity>
                       </View>
-                      <TouchableOpacity
-                        style={styles.addOpinionBtn}
-                        onPress={() => handleOpenOpinionModal(stu)}
-                        activeOpacity={0.85}
-                      >
-                        <Ionicons name="chatbox-ellipses-outline" size={14} color="#0284C7" />
-                        <Text style={styles.addOpinionBtnText}>+ Opinion</Text>
-                      </TouchableOpacity>
+
+                      {/* Display Previously Submitted Opinions with Delete Option */}
+                      {stuOpinions.length > 0 && (
+                        <View style={styles.studentOpinionsContainer}>
+                          <View style={styles.stuOpinionHeaderRow}>
+                            <Ionicons name="chatbubbles-outline" size={13} color="#0284C7" />
+                            <Text style={styles.stuOpinionHeaderTitle}>
+                              Past Opinions & Remarks ({stuOpinions.length})
+                            </Text>
+                          </View>
+                          {stuOpinions.map((op) => {
+                            const isSuperAdmin =
+                              Boolean((activeTeacher as any)?.role?.toLowerCase().includes('admin')) ||
+                              activeTeacher?.id === 'fac-admin' ||
+                              Boolean(activeTeacher?.name?.includes('Abhai'));
+                            const isMyOp =
+                              Boolean(
+                                op.teacher &&
+                                activeTeacher?.name &&
+                                op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
+                              ) || op.facultyId === activeTeacher?.id;
+                            const canDelete = isSuperAdmin || isMyOp;
+
+                            return (
+                              <View key={op.id} style={styles.stuOpinionRow}>
+                                <View style={{ flex: 1, paddingRight: 6 }}>
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                                    <View style={styles.opinionSubBadge}>
+                                      <Text style={styles.opinionSubBadgeText}>{op.subject}</Text>
+                                    </View>
+                                    <Text style={[styles.opinionStatusBadge, op.status === 'approved' ? styles.opApprovedBadge : styles.opPendingBadge]}>
+                                      {op.status === 'approved' ? '✓ Live on Student App' : '⏳ Awaiting Admin Approval'}
+                                    </Text>
+                                  </View>
+                                  <Text style={styles.opinionRemarkText} numberOfLines={2}>
+                                    "{op.remark}"
+                                  </Text>
+                                  <Text style={styles.opinionByText}>
+                                    By {op.teacher} • {op.submittedAt || 'Recent'}
+                                  </Text>
+                                </View>
+
+                                {canDelete && (
+                                  <TouchableOpacity
+                                    style={styles.deleteOpinionBtn}
+                                    onPress={() => confirmDeleteOpinion(op)}
+                                    activeOpacity={0.7}
+                                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                                  >
+                                    <Ionicons name="trash-outline" size={13} color="#EF4444" />
+                                    <Text style={styles.deleteOpinionBtnText}>Delete</Text>
+                                  </TouchableOpacity>
+                                )}
+                              </View>
+                            );
+                          })}
+                        </View>
+                      )}
                     </View>
                   );
                 })
@@ -1030,14 +1138,24 @@ export default function TeacherHomeScreen() {
                   </View>
                 </View>
                 <Text style={styles.pendingOpRemark}>"{op.remark}"</Text>
-                <TouchableOpacity
-                  style={styles.approveOpBtn}
-                  onPress={() => handleApproveOpinion(op.id, op.studentName)}
-                  activeOpacity={0.85}
-                >
-                  <Ionicons name="paper-plane" size={14} color="#fff" />
-                  <Text style={styles.approveOpBtnText}>Approve & Send to Student</Text>
-                </TouchableOpacity>
+                <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+                  <TouchableOpacity
+                    style={[styles.approveOpBtn, { flex: 1 }]}
+                    onPress={() => handleApproveOpinion(op.id, op.studentName)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="paper-plane" size={14} color="#fff" />
+                    <Text style={styles.approveOpBtnText}>Approve & Send to Student</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deleteQueueOpBtn}
+                    onPress={() => confirmDeleteOpinion(op)}
+                    activeOpacity={0.85}
+                  >
+                    <Ionicons name="trash-outline" size={14} color="#EF4444" />
+                    <Text style={styles.deleteQueueOpBtnText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ))}
           </View>
@@ -1181,6 +1299,60 @@ export default function TeacherHomeScreen() {
                 </Text>
               </View>
             )}
+
+            {/* Previously Submitted Opinions Section in Modal */}
+            {(() => {
+              const modalStuOpinions = allOpinions.filter(
+                (o) => o.rollNo === selectedStudentForOpinion?.rollNo
+              );
+              if (modalStuOpinions.length === 0) return null;
+              return (
+                <View style={styles.modalPastOpinionsBox}>
+                  <View style={styles.modalPastHeader}>
+                    <Ionicons name="time-outline" size={14} color="#0284C7" />
+                    <Text style={styles.modalPastTitle}>Previously Submitted Opinions ({modalStuOpinions.length})</Text>
+                  </View>
+                  {modalStuOpinions.map((op) => {
+                    const isSuperAdmin =
+                      Boolean((activeTeacher as any)?.role?.toLowerCase().includes('admin')) ||
+                      activeTeacher?.id === 'fac-admin' ||
+                      Boolean(activeTeacher?.name?.includes('Abhai'));
+                    const isMyOp =
+                      Boolean(
+                        op.teacher &&
+                        activeTeacher?.name &&
+                        op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
+                      ) || op.facultyId === activeTeacher?.id;
+                    const canDelete = isSuperAdmin || isMyOp;
+
+                    return (
+                      <View key={op.id} style={styles.modalPastItem}>
+                        <View style={{ flex: 1, paddingRight: 6 }}>
+                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <Text style={styles.modalPastSubject}>{op.subject}</Text>
+                            <Text style={[styles.modalPastStatus, op.status === 'approved' ? { color: '#059669', backgroundColor: '#ECFDF5' } : { color: '#D97706', backgroundColor: '#FEF3C7' }]}>
+                              {op.status === 'approved' ? '✓ Approved' : '⏳ Awaiting Approval'}
+                            </Text>
+                          </View>
+                          <Text style={styles.modalPastRemark} numberOfLines={2}>"{op.remark}"</Text>
+                          <Text style={styles.modalPastMeta}>By {op.teacher} • {op.submittedAt || 'Recent'}</Text>
+                        </View>
+                        {canDelete && (
+                          <TouchableOpacity
+                            style={styles.modalPastDeleteBtn}
+                            onPress={() => confirmDeleteOpinion(op)}
+                            activeOpacity={0.7}
+                          >
+                            <Ionicons name="trash-outline" size={13} color="#EF4444" />
+                            <Text style={styles.modalPastDeleteBtnText}>Delete</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    );
+                  })}
+                </View>
+              );
+            })()}
 
             <Text style={styles.inputLabel}>Select Subject (Assigned to {activeTeacher.name})</Text>
             <View style={styles.opinionSubjectRow}>
@@ -1961,16 +2133,189 @@ const styles = StyleSheet.create({
   },
 
   // Student Opinion Roster Styles
-  studentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  studentCardWrapper: {
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 12,
     marginBottom: 10,
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  studentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 12,
+  },
+  studentOpinionsContainer: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#F1F5F9',
+  },
+  stuOpinionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 6,
+  },
+  stuOpinionHeaderTitle: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#0369A1',
+  },
+  stuOpinionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  opinionSubBadge: {
+    backgroundColor: '#E0F2FE',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  opinionSubBadgeText: {
+    fontSize: 10,
+    fontFamily: 'Inter_700Bold',
+    color: '#0369A1',
+  },
+  opinionStatusBadge: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_600SemiBold',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  opApprovedBadge: {
+    backgroundColor: '#ECFDF5',
+    color: '#059669',
+  },
+  opPendingBadge: {
+    backgroundColor: '#FEF3C7',
+    color: '#D97706',
+  },
+  opinionRemarkText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    lineHeight: 16,
+  },
+  opinionByText: {
+    fontSize: 10,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  deleteOpinionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    alignSelf: 'center',
+  },
+  deleteOpinionBtnText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#EF4444',
+  },
+  deleteQueueOpBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+  },
+  deleteQueueOpBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#EF4444',
+  },
+  modalPastOpinionsBox: {
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+    marginBottom: 12,
+  },
+  modalPastHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginBottom: 8,
+  },
+  modalPastTitle: {
+    fontSize: 12,
+    fontFamily: 'Inter_700Bold',
+    color: '#0369A1',
+  },
+  modalPastItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  modalPastSubject: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#0284C7',
+  },
+  modalPastStatus: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_600SemiBold',
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+  },
+  modalPastRemark: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+    marginTop: 2,
+  },
+  modalPastMeta: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  modalPastDeleteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    alignSelf: 'center',
+  },
+  modalPastDeleteBtnText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#EF4444',
   },
   studentAvatarBox: {
     width: 38,

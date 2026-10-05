@@ -2348,6 +2348,42 @@ export const DataService = {
   async getStudentTeacherOpinions(rollNo: string = '2024-JEE-0842') {
     const key = `teacher_opinions_${rollNo}`;
     const cached = await getCached<any[]>(key);
+
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('roll_no', rollNo)
+        .eq('type', 'teacher_opinion')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        const cloudOpinions = data
+          .map((row) => {
+            try {
+              const parsed = JSON.parse(row.message);
+              return { ...parsed, supabaseId: row.id, id: parsed.id || row.id };
+            } catch {
+              return null;
+            }
+          })
+          .filter((o) => o && o.status === 'approved');
+
+        if (cloudOpinions.length > 0) {
+          const map = new Map<string, any>();
+          cloudOpinions.forEach((o) => map.set(o.id, o));
+          (cached || []).forEach((o) => {
+            if (!map.has(o.id)) map.set(o.id, o);
+          });
+          const merged = Array.from(map.values());
+          await setCached(key, merged);
+          return merged;
+        }
+      }
+    } catch (e) {
+      console.warn('Error fetching student opinions from Supabase:', e);
+    }
+
     if (cached && cached.length > 0) return cached;
 
     const defaultOpinions = [
@@ -2397,51 +2433,218 @@ export const DataService = {
     rollNo: string;
     studentName: string;
     teacher: string;
+    facultyId?: string;
     subject: string;
     remark: string;
   }) {
     const pendingKey = 'pending_teacher_opinions';
     const existing = (await getCached<any[]>(pendingKey)) || [];
-    const newOpinion = {
-      id: 'top-' + Date.now(),
+    const opId = 'top-' + Date.now();
+    const newOpinion: any = {
+      id: opId,
       ...opinion,
       status: 'pending_review',
       submittedAt: 'Just now',
     };
     const updatedPending = [newOpinion, ...existing];
     await setCached(pendingKey, updatedPending);
+
+    try {
+      const { data, error } = await supabase.from('notifications').insert({
+        roll_no: opinion.rollNo,
+        title: `${opinion.teacher} • ${opinion.subject}`,
+        message: JSON.stringify(newOpinion),
+        type: 'teacher_opinion',
+        time_label: 'Just now',
+        is_read: false,
+      }).select().single();
+
+      if (!error && data?.id) {
+        newOpinion.supabaseId = data.id;
+      }
+    } catch (e) {
+      console.warn('Error saving opinion to Supabase:', e);
+    }
+
     return newOpinion;
   },
 
-  async getPendingTeacherOpinions() {
+  async getPendingTeacherOpinions(): Promise<any[]> {
     const pendingKey = 'pending_teacher_opinions';
-    const pending = await getCached<any[]>(pendingKey);
-    return pending || [];
+    const cached = (await getCached<any[]>(pendingKey)) || [];
+
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('type', 'teacher_opinion')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        const cloudPending = data
+          .map((row) => {
+            try {
+              const parsed = JSON.parse(row.message);
+              return { ...parsed, supabaseId: row.id, id: parsed.id || row.id };
+            } catch {
+              return null;
+            }
+          })
+          .filter((o) => o && o.status === 'pending_review');
+
+        const map = new Map<string, any>();
+        cloudPending.forEach((o) => map.set(o.id, o));
+        cached.forEach((o) => {
+          if (!map.has(o.id)) map.set(o.id, o);
+        });
+        const merged = Array.from(map.values());
+        await setCached(pendingKey, merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('Error fetching pending opinions from Supabase:', e);
+    }
+
+    return cached;
   },
 
   async approveTeacherOpinion(opinionId: string) {
     const pendingKey = 'pending_teacher_opinions';
     const pending = (await getCached<any[]>(pendingKey)) || [];
-    const target = pending.find((o) => o.id === opinionId);
+    const target = pending.find((o) => o.id === opinionId || o.supabaseId === opinionId);
     if (!target) return null;
 
     // Remove from pending
-    const remaining = pending.filter((o) => o.id !== opinionId);
+    const remaining = pending.filter((o) => o.id !== opinionId && o.supabaseId !== opinionId);
     await setCached(pendingKey, remaining);
 
-    // Add to student approved opinions
-    const studentOpinionsKey = `teacher_opinions_${target.rollNo}`;
-    const studentOpinions = (await this.getStudentTeacherOpinions(target.rollNo)) || [];
     const approvedItem = {
       ...target,
       status: 'approved',
       approvedBy: 'Mr. Abhai Kumar (Main Admin)',
       approvedAt: 'Just now',
     };
-    const updatedStudentOpinions = [approvedItem, ...studentOpinions];
+
+    // Update in Supabase
+    try {
+      if (target.supabaseId) {
+        await supabase
+          .from('notifications')
+          .update({
+            message: JSON.stringify(approvedItem),
+          })
+          .eq('id', target.supabaseId);
+      } else {
+        await supabase
+          .from('notifications')
+          .update({
+            message: JSON.stringify(approvedItem),
+          })
+          .ilike('message', `%"id":"${opinionId}"%`);
+      }
+    } catch (e) {
+      console.warn('Error updating approved opinion in Supabase:', e);
+    }
+
+    // Add to student approved opinions cache
+    const studentOpinionsKey = `teacher_opinions_${target.rollNo}`;
+    const studentOpinions = (await this.getStudentTeacherOpinions(target.rollNo)) || [];
+    const updatedStudentOpinions = [
+      approvedItem,
+      ...studentOpinions.filter((o: any) => o.id !== opinionId && o.supabaseId !== opinionId),
+    ];
     await setCached(studentOpinionsKey, updatedStudentOpinions);
 
     return approvedItem;
+  },
+
+  async getAllTeacherOpinions(): Promise<any[]> {
+    const pending = (await this.getPendingTeacherOpinions()) || [];
+    const opinionsList: any[] = [];
+
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('type', 'teacher_opinion')
+        .order('created_at', { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        data.forEach((row) => {
+          try {
+            const parsed = JSON.parse(row.message);
+            opinionsList.push({ ...parsed, supabaseId: row.id, id: parsed.id || row.id });
+          } catch {}
+        });
+      }
+    } catch (e) {
+      console.warn('Error fetching all opinions from Supabase:', e);
+    }
+
+    const map = new Map<string, any>();
+    opinionsList.forEach((o) => map.set(o.id, o));
+    pending.forEach((o) => map.set(o.id, o));
+    return Array.from(map.values());
+  },
+
+  async deleteTeacherOpinion(
+    opinionId: string,
+    rollNo?: string,
+    requesterTeacher?: { id?: string; name?: string; role?: string }
+  ): Promise<boolean> {
+    // 1. Authorization check
+    if (requesterTeacher) {
+      const isSuperAdmin =
+        Boolean(requesterTeacher.role?.toLowerCase().includes('admin')) ||
+        requesterTeacher.id === 'fac-admin' ||
+        Boolean(requesterTeacher.name?.includes('Abhai'));
+
+      if (!isSuperAdmin) {
+        // Normal faculty: can only delete their own opinion
+        const allOpinions = await this.getAllTeacherOpinions();
+        const target = allOpinions.find(
+          (o) => o.id === opinionId || o.supabaseId === opinionId
+        );
+        if (
+          target &&
+          target.teacher &&
+          requesterTeacher.name &&
+          !target.teacher.toLowerCase().includes(requesterTeacher.name.toLowerCase()) &&
+          target.facultyId !== requesterTeacher.id
+        ) {
+          throw new Error('Access Denied: Faculty members can only delete opinions they have submitted.');
+        }
+      }
+    }
+
+    // 2. Remove from Supabase
+    try {
+      await supabase.from('notifications').delete().eq('id', opinionId);
+      await supabase.from('notifications').delete().ilike('message', `%"id":"${opinionId}"%`);
+    } catch (e) {
+      console.warn('Error deleting opinion from Supabase:', e);
+    }
+
+    // 3. Remove from pending cache
+    const pendingKey = 'pending_teacher_opinions';
+    const pending = (await getCached<any[]>(pendingKey)) || [];
+    const remainingPending = pending.filter(
+      (o) => o.id !== opinionId && o.supabaseId !== opinionId
+    );
+    await setCached(pendingKey, remainingPending);
+
+    // 4. Remove from student approved cache
+    const targetRoll = rollNo || pending.find((o) => o.id === opinionId)?.rollNo;
+    if (targetRoll) {
+      const studentKey = `teacher_opinions_${targetRoll}`;
+      const studentOps = (await getCached<any[]>(studentKey)) || [];
+      const remainingStudentOps = studentOps.filter(
+        (o) => o.id !== opinionId && o.supabaseId !== opinionId
+      );
+      await setCached(studentKey, remainingStudentOps);
+    }
+
+    return true;
   },
 
   // Full Historical Payment Records (For "View All" in Fees)
