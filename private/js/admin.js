@@ -3180,7 +3180,22 @@ if (document.getElementById('timetableTableBody')) {
                 await sb.from('announcements').insert(announcementsToInsert);
             }
 
-            alert('✅ Timetable Successfully Shared to Mobile App!\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
+            // 3. Dispatch live lock-screen push notifications to students of this class
+            let ttPushCount = 0;
+            try {
+                if (typeof sendExpoPushNotification === 'function') {
+                    ttPushCount = await sendExpoPushNotification({
+                        title: '🗓️ Timetable Published: ' + gradeStr,
+                        message: 'New schedule published (' + rowsToInsert.length + ' session' + (rowsToInsert.length > 1 ? 's' : '') + '). Open the app to view your timetable!',
+                        targetClass: gradeStr
+                    });
+                }
+            } catch (ttPushErr) {
+                console.warn('[Push] Error dispatching timetable push:', ttPushErr);
+            }
+
+            const ttPushSummary = ttPushCount > 0 ? ('\n\n📱 Lock-screen push sent to ' + ttPushCount + ' student phone' + (ttPushCount > 1 ? 's' : '') + '.') : '';
+            alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n'\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
             if (typeof switchTimetableMode === 'function') {
                 switchTimetableMode('live');
             } else if (typeof window.initLiveAppTimetable === 'function') {

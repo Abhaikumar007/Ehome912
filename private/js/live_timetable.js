@@ -1184,6 +1184,15 @@
                         tag: 'Timetable',
                         important: true
                     });
+
+                    // Dispatch push notification to students of this class
+                    if (typeof sendExpoPushNotification === 'function') {
+                        await sendExpoPushNotification({
+                            title: `🔄 Schedule Update: ${classGrade} - ${subject}`,
+                            message: `Class date: ${_friendlyDate(classDate)} | Time: ${timeStr}${facultyName ? ' with ' + facultyName : ''}`,
+                            targetClass: classGrade
+                        });
+                    }
                 } catch (bErr) {
                     console.warn('[LiveTimetable] Broadcast announcement failed:', bErr);
                 }
