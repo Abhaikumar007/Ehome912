@@ -1519,6 +1519,9 @@ window.confirmAndExecuteRejectAnnouncement = async function () {
     }
 };
 
+window._pendingDeleteAnnouncementId = null;
+window._pendingDeleteAnnouncementDetails = null;
+
 window.requestDeleteAnnouncement = async function (id, btnElement, evt) {
     if (evt) {
         evt.preventDefault();
@@ -1526,76 +1529,124 @@ window.requestDeleteAnnouncement = async function (id, btnElement, evt) {
     }
     if (!id) return;
 
-    const sb = _getMasterHubSupabase();
-    if (!sb) {
-        showBroadcastStatus('Supabase database client not ready. Please reload the page.', true);
-        return;
-    }
+    window._pendingDeleteAnnouncementId = id;
 
-    // Check item details from loaded announcements
+    const sb = _getMasterHubSupabase();
     let item = null;
     if (window._allLoadedAnnouncements && Array.isArray(window._allLoadedAnnouncements)) {
         item = window._allLoadedAnnouncements.find(a => String(a.id) === String(id));
     }
-    if (!item) {
+    if (!item && sb) {
         try {
             const { data } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
             item = data;
         } catch (_) {}
     }
 
-    const details = _extractExamDetailsFromItem(item);
-    const isExam = details.isExam;
+    const details = _extractExamDetailsFromItem(item || { id });
+    window._pendingDeleteAnnouncementDetails = details;
+    const isExam = !!details.isExam;
+    const cleanTitle = details.cleanTitle || (item ? cleanApprovedTitle(item.title || '') : 'this item');
 
-    // Prompt confirmation before deletion
-    const confirmMessage = isExam
-        ? 'Are you sure you want to delete this approved exam? It will also be completely removed from the Student and Faculty Portals & Timetables.'
-        : 'Are you sure you want to delete this announcement? It will also be removed from the Student and Faculty Portals.';
+    const modalEl = document.getElementById('deleteAnnouncementConfirmModal');
+    const detailsEl = document.getElementById('deleteAnnouncementConfirmDetails');
+    const titleEl = document.getElementById('deleteAnnouncementModalTitle');
 
-    const confirmed = confirm(confirmMessage);
-    if (!confirmed) {
+    if (modalEl && detailsEl) {
+        if (titleEl) {
+            titleEl.textContent = isExam ? 'Delete Academic Exam Alert' : 'Delete Active Announcement';
+        }
+        let descHtml = '<strong>' + escapeHtml(cleanTitle) + '</strong>';
+        if (isExam) {
+            descHtml += '<div class="text-danger mt-1 small"><i class="fas fa-exclamation-circle mr-1"></i>This will also completely remove this exam from Student & Faculty Timetables.</div>';
+        } else {
+            descHtml += '<div class="text-muted mt-1 small"><i class="fas fa-info-circle mr-1"></i>This announcement will immediately vanish from Student and Faculty dashboards.</div>';
+        }
+        detailsEl.innerHTML = descHtml;
+        detailsEl.style.display = 'block';
+
+        if (typeof $ !== 'undefined' && typeof $('#deleteAnnouncementConfirmModal').modal === 'function') {
+            $('#deleteAnnouncementConfirmModal').modal('show');
+        } else {
+            modalEl.style.display = 'block';
+            modalEl.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('deleteAnnBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'deleteAnnBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+    } else {
+        const confirmMessage = isExam
+            ? 'Are you sure you want to delete "' + cleanTitle + '"? It will also be removed from Student and Faculty Timetables.'
+            : 'Are you sure you want to delete "' + cleanTitle + '"?';
+        if (confirm(confirmMessage)) {
+            await window.confirmAndExecuteDeleteAnnouncement();
+        }
+    }
+};
+
+window.closeDeleteAnnouncementModal = function () {
+    if (typeof $ !== 'undefined' && typeof $('#deleteAnnouncementConfirmModal').modal === 'function') {
+        $('#deleteAnnouncementConfirmModal').modal('hide');
+    }
+    const modalEl = document.getElementById('deleteAnnouncementConfirmModal');
+    if (modalEl) {
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('deleteAnnBackdrop');
+    if (backdrop) backdrop.remove();
+    if (typeof $ !== 'undefined') $('.modal-backdrop').remove();
+    window._pendingDeleteAnnouncementId = null;
+    window._pendingDeleteAnnouncementDetails = null;
+};
+
+window.confirmAndExecuteDeleteAnnouncement = async function () {
+    const id = window._pendingDeleteAnnouncementId;
+    if (!id) {
+        window.closeDeleteAnnouncementModal();
         return;
     }
 
-    if (btnElement) {
-        btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
+    const confirmBtn = document.getElementById('confirmExecuteDeleteAnnouncementBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
     }
 
     try {
-        const cleanTitle = details.cleanTitle || cleanApprovedTitle(item?.title || '');
+        const sb = _getMasterHubSupabase();
+        if (!sb) throw new Error('Database client not ready. Please reload the page.');
+
+        const details = window._pendingDeleteAnnouncementDetails || {};
+        const isExam = !!details.isExam;
+        const cleanTitle = details.cleanTitle || '';
 
         // 1. Delete matching timetable slots from classes table
-        await _deleteExamSlotsFromClasses(sb, details);
+        if (typeof _deleteExamSlotsFromClasses === 'function') {
+            await _deleteExamSlotsFromClasses(sb, details);
+        }
 
         // 2. Delete from announcements table
         const { error: delErr } = await sb.from('announcements').delete().eq('id', id);
         if (delErr) throw delErr;
 
-        // 3. Delete from academic_alerts table if present
-        try {
-            await sb.from('academic_alerts').delete().or('id.eq.' + id + ',id.eq.alert-' + id);
-            if (cleanTitle) {
-                await sb.from('academic_alerts').delete().ilike('title', '%' + cleanTitle + '%');
-            }
-        } catch (_) {}
-
-        // 4. Delete from pending_tests table if present
-        try {
-            if (cleanTitle) {
-                await sb.from('pending_tests').delete().ilike('title', '%' + cleanTitle + '%');
-            }
-        } catch (_) {}
-
-        // 5. Delete from notifications table
+        // 3. Delete from notifications table if present
         try {
             await sb.from('notifications').delete().eq('id', id);
         } catch (_) {}
 
-        // 6. Run comprehensive orphan cleanup to purge any lingering or orphaned test paper slots
-        await _purgeOrphanedTestPaperClasses(sb);
+        // 4. Purge orphan test paper rows
+        if (typeof _purgeOrphanedTestPaperClasses === 'function') {
+            await _purgeOrphanedTestPaperClasses(sb);
+        }
 
-        // 7. Broadcast Realtime events to both student and faculty apps
+        // 5. Broadcast Realtime events to both student and faculty apps
         try {
             const payload = {
                 id,
@@ -1605,81 +1656,113 @@ window.requestDeleteAnnouncement = async function (id, btnElement, evt) {
                 subject: details.subject,
                 deleted_at: new Date().toISOString()
             };
-            await sb.channel('student_dashboard_realtime').send({
-                type: 'broadcast',
-                event: 'exam_deleted',
-                payload
-            });
-            await sb.channel('student_dashboard_realtime').send({
-                type: 'broadcast',
-                event: 'announcement_deleted',
-                payload
-            });
-            await sb.channel('student_dashboard_realtime').send({
-                type: 'broadcast',
-                event: 'classes_changed',
-                payload
-            });
-            await sb.channel('teacher_classes_realtime').send({
-                type: 'broadcast',
-                event: 'exam_deleted',
-                payload
-            });
-            await sb.channel('teacher_classes_realtime').send({
-                type: 'broadcast',
-                event: 'classes_changed',
-                payload
-            });
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'exam_deleted', payload });
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'announcement_deleted', payload });
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'classes_changed', payload });
+            await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'exam_deleted', payload });
+            await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload });
         } catch (bcErr) {
             console.warn('[MasterHub] Broadcast error on delete:', bcErr);
         }
 
-        // 8. Remove card from DOM
+        // 6. Remove card from DOM immediately
         const card = document.getElementById('annCard_' + id)
-            || document.getElementById('pendingAnn_' + id)
-            || (btnElement ? btnElement.closest('.broadcast-card-item') : null);
+            || document.getElementById('pendingAnn_' + id);
         if (card) card.remove();
 
+        window.closeDeleteAnnouncementModal();
         showBroadcastStatus(isExam ? 'Exam deleted successfully from Admin, Student, and Faculty Portals & Timetable.' : 'Announcement deleted successfully.');
 
-        // 9. Refresh UI
+        // 7. Refresh UI
         await loadActiveBroadcasts();
 
-        // 10. Refresh live timetable if available
+        // 8. Refresh live timetable
         if (typeof window.initLiveAppTimetable === 'function') {
             window.initLiveAppTimetable('hubTimetablePlatform');
             window.initLiveAppTimetable('liveTimetablePlatform');
         }
     } catch (err) {
-        console.error('[MasterHub] Error deleting exam:', err);
+        console.error('[MasterHub] Error deleting announcement:', err);
         showBroadcastStatus('Failed to delete: ' + (err.message || err), true);
         alert('Failed to delete: ' + (err.message || err));
-        if (btnElement) {
-            btnElement.disabled = false;
-            btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Delete';
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Yes, Delete';
         }
     }
 };
 
-window.requestClearAll = async function (btnElement, evt) {
+window.requestClearAll = function (btnElement, evt) {
     if (evt) { evt.preventDefault(); evt.stopPropagation(); }
-    const confirmed = confirm('Are you sure you want to clear ALL announcements and exam alerts? All scheduled exams will also be removed from Student and Faculty timetables.');
-    if (!confirmed) return;
 
+    const modalEl = document.getElementById('clearAllAnnouncementsConfirmModal');
+    if (modalEl) {
+        if (typeof $ !== 'undefined' && typeof $('#clearAllAnnouncementsConfirmModal').modal === 'function') {
+            $('#clearAllAnnouncementsConfirmModal').modal('show');
+        } else {
+            modalEl.style.display = 'block';
+            modalEl.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('clearAllAnnBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'clearAllAnnBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+    } else {
+        if (confirm('Are you sure you want to clear ALL announcements and exam alerts? All scheduled exams will also be removed from Student and Faculty timetables.')) {
+            window.confirmAndExecuteClearAllAnnouncements();
+        }
+    }
+};
+
+window.closeClearAllAnnouncementsModal = function () {
+    if (typeof $ !== 'undefined' && typeof $('#clearAllAnnouncementsConfirmModal').modal === 'function') {
+        $('#clearAllAnnouncementsConfirmModal').modal('hide');
+    }
+    const modalEl = document.getElementById('clearAllAnnouncementsConfirmModal');
+    if (modalEl) {
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('clearAllAnnBackdrop');
+    if (backdrop) backdrop.remove();
+    if (typeof $ !== 'undefined') $('.modal-backdrop').remove();
+};
+
+window.confirmAndExecuteClearAllAnnouncements = async function () {
     const sb = _getMasterHubSupabase();
-    if (!sb) return;
+    if (!sb) {
+        alert('Database connection unavailable. Please reload the page.');
+        return;
+    }
 
-    if (btnElement) {
-        btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing...';
+    const confirmBtn = document.getElementById('confirmExecuteClearAllBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing Everything...';
     }
 
     try {
-        await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        await sb.from('academic_alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        await sb.from('pending_tests').update({ status: 'rejected' }).eq('status', 'approved');
-        await _purgeOrphanedTestPaperClasses(sb);
+        // 1. Delete all rows from announcements
+        const { error: annErr } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        if (annErr) throw annErr;
 
+        // 2. Delete test paper classes from timetable
+        try {
+            await sb.from('classes').delete().or('time.ilike.%Test Paper%,status.ilike.%TP%');
+        } catch (_) {}
+
+        // 3. Purge orphaned test paper classes if helper exists
+        if (typeof _purgeOrphanedTestPaperClasses === 'function') {
+            await _purgeOrphanedTestPaperClasses(sb);
+        }
+
+        // 4. Send Realtime broadcasts
         try {
             await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'announcement_deleted', payload: { all: true } });
             await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'exam_deleted', payload: { all: true } });
@@ -1687,17 +1770,22 @@ window.requestClearAll = async function (btnElement, evt) {
             await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: { all: true } });
         } catch (_) {}
 
+        window.closeClearAllAnnouncementsModal();
         showBroadcastStatus('All announcements and exam alerts removed successfully.');
+
+        // 5. Refresh UI
         await loadActiveBroadcasts();
         if (typeof window.initLiveAppTimetable === 'function') {
             window.initLiveAppTimetable('hubTimetablePlatform');
             window.initLiveAppTimetable('liveTimetablePlatform');
         }
     } catch (err) {
+        console.error('[MasterHub] Error clearing announcements:', err);
         alert('Failed to clear: ' + (err.message || err));
-        if (btnElement) {
-            btnElement.disabled = false;
-            btnElement.innerHTML = '<i class="fas fa-broom mr-1"></i> Clear All Announcements';
+    } finally {
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-broom mr-1"></i> Yes, Clear All';
         }
     }
 };
@@ -3679,6 +3767,7 @@ window.closeEditAnnouncementModal = function () {
     document.body.classList.remove('modal-open');
     const backdrop = document.getElementById('editAnnBackdrop');
     if (backdrop) backdrop.remove();
+    if (typeof $ !== 'undefined') $('.modal-backdrop').remove();
 };
 
 window.handleSaveEditedAnnouncement = async function (e) {
@@ -3901,7 +3990,7 @@ window.handleSaveEditedAnnouncement = async function (e) {
 // Global click delegation for Edit buttons
 document.addEventListener('click', function (evt) {
     const editBtn = evt.target.closest('.btn-edit-ann');
-    if (editBtn) {
+    if (editBtn && !editBtn.onclick) {
         const annId = editBtn.getAttribute('data-id');
         if (annId) {
             window.openEditAnnouncementModal(annId, editBtn, evt);
