@@ -3195,7 +3195,7 @@ if (document.getElementById('timetableTableBody')) {
             }
 
             const ttPushSummary = ttPushCount > 0 ? ('\n\n📱 Lock-screen push sent to ' + ttPushCount + ' student phone' + (ttPushCount > 1 ? 's' : '') + '.') : '';
-            alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n'\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
+            alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
             if (typeof switchTimetableMode === 'function') {
                 switchTimetableMode('live');
             } else if (typeof window.initLiveAppTimetable === 'function') {

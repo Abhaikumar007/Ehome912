@@ -59,6 +59,14 @@
 
         return 'Both';
     }
+    function _getLocalDateStr(offsetDays = 0) {
+        const d = new Date();
+        if (offsetDays !== 0) d.setDate(d.getDate() + offsetDays);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
     let _activeFilterDate = 'all';
     let _activeCustomDate = '';
     let _searchQuery = '';
@@ -103,6 +111,8 @@
     function _getSb() {
         if (typeof _getSupabaseClient === 'function') return _getSupabaseClient();
         if (typeof window._getSupabaseClient === 'function') return window._getSupabaseClient();
+        if (typeof _getMasterHubSupabase === 'function') return _getMasterHubSupabase();
+        if (typeof window._getMasterHubSupabase === 'function') return window._getMasterHubSupabase();
         if (typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined' && SUPABASE_URL) {
             try {
                 return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -384,10 +394,8 @@
         if (!container) return;
 
         // Compute statistics
-        const todayStr = new Date().toISOString().slice(0, 10);
-        const tomorrowDate = new Date();
-        tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-        const tomorrowStr = tomorrowDate.toISOString().slice(0, 10);
+        const todayStr = _getLocalDateStr(0);
+        const tomorrowStr = _getLocalDateStr(1);
 
         const totalPublished = _liveClasses.filter(c => c.published !== false).length;
         const classesToday = _liveClasses.filter(c => c.class_date === todayStr && c.published !== false).length;
@@ -585,7 +593,10 @@
                                         <div class="py-3">
                                             <i class="fas fa-calendar-times fa-3x mb-3 text-muted" style="opacity:0.4;"></i>
                                             <h6 class="font-weight-bold">No Scheduled Classes Found</h6>
-                                            <p class="small text-muted mb-0">No classes match your current filter criteria or none have been published to the mobile app yet.</p>
+                                            <p class="small text-muted mb-2">No classes match your current filter criteria or none have been published to the mobile app yet.</p>
+                                            <button class="btn btn-sm btn-primary font-weight-bold shadow-sm" onclick="window.openCreateClassModal('${_activeFilterDate === 'custom' && _activeCustomDate ? _activeCustomDate : (_activeFilterDate === 'tomorrow' ? tomorrowStr : todayStr)}')" style="border-radius:6px;">
+                                                <i class="fas fa-plus-circle mr-1"></i> Schedule Class for ${_activeFilterDate === 'custom' && _activeCustomDate ? _friendlyDate(_activeCustomDate) : (_activeFilterDate === 'tomorrow' ? 'Tomorrow' : 'Today')}
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -939,6 +950,73 @@
     }
 
     // ── Open Edit Modal ─────────────────────────────────────────────────
+    // ── Open Create Class Modal ──────────────────────────────────────────
+    window.openCreateClassModal = function (prefilledDate) {
+        _injectEditModalDOM();
+        _currentEditId = null;
+
+        const idInput = document.getElementById('editClassId');
+        if (idInput) idInput.value = '';
+
+        const modalTitle = document.querySelector('#editLiveClassModal h5');
+        if (modalTitle) {
+            modalTitle.innerHTML = '<i class="fas fa-calendar-plus mr-2 text-primary"></i>Schedule New Class Session';
+        }
+        const saveBtn = document.getElementById('saveClassEditBtn');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-plus-circle mr-1"></i> Schedule Session';
+        }
+
+        // Set date: prefilledDate > custom date > today's date
+        const targetDate = prefilledDate || (_activeFilterDate === 'custom' && _activeCustomDate ? _activeCustomDate : _getLocalDateStr(0));
+        const dateInput = document.getElementById('editClassDate');
+        if (dateInput) dateInput.value = targetDate;
+
+        // Grade
+        const gradeInput = document.getElementById('editClassGrade');
+        if (gradeInput) {
+            gradeInput.value = (_activeFilterClass !== 'all' ? _activeFilterClass : 'Class 10');
+        }
+
+        // Subject
+        const subjectInput = document.getElementById('editClassSubject');
+        if (subjectInput) subjectInput.value = 'Physics';
+
+        // Syllabus
+        const sylInput = document.getElementById('editClassSyllabus');
+        if (sylInput) {
+            sylInput.value = (_activeFilterSyllabus !== 'all' ? _activeFilterSyllabus : 'Both');
+        }
+
+        // Session Type
+        const sessType = document.getElementById('editClassSessionType');
+        if (sessType) sessType.value = 'Regular';
+
+        // Status
+        const statusEl = document.getElementById('editClassStatus');
+        if (statusEl) statusEl.value = 'upcoming';
+
+        // Default Times
+        const sTimeEl = document.getElementById('editClassStartTime');
+        if (sTimeEl) sTimeEl.value = '05:30 PM';
+        const eTimeEl = document.getElementById('editClassEndTime');
+        if (eTimeEl) eTimeEl.value = '07:00 PM';
+
+        // Published & Broadcast
+        const pubEl = document.getElementById('editClassPublished');
+        if (pubEl) pubEl.checked = true;
+        const bcEl = document.getElementById('editClassBroadcast');
+        if (bcEl) bcEl.checked = true;
+
+        // Auto Faculty sync
+        window.handleEditSubjectOrGradeChange();
+
+        // Display modal
+        const modal = document.getElementById('editLiveClassModal');
+        if (modal) modal.style.display = 'flex';
+    };
+
     window.openEditClassModal = function (classId) {
         _injectEditModalDOM();
         const item = _liveClasses.find(c => c.id === classId);
@@ -1217,7 +1295,11 @@
             }
 
             window.closeEditClassModal();
-            _showToast('Class session updated successfully in Supabase!');
+            _showToast(classId ? 'Class session updated successfully in Supabase!' : 'New class session scheduled and published live to mobile app!');
+
+            // Immediately reload live classes and refresh UI table
+            await loadLiveClasses(_currentPlatformContainerId);
+            updateBadgeCounters();
             renderPlatform(_currentPlatformContainerId);
             updateBadgeCounters();
 
@@ -1518,6 +1600,8 @@
         _activeFilterDate = type;
         if (type === 'custom') {
             _activeCustomDate = customVal;
+        } else {
+            _activeCustomDate = '';
         }
         renderPlatform(containerId);
     };

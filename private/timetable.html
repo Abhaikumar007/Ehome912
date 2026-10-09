@@ -182,8 +182,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=20261004_v4"></script>
-    <script src="js/live_timetable.js?v=20261004_v4"></script>
+    <script src="js/admin.js?v=1791561607033"></script>
+    <script src="js/live_timetable.js?v=1791561607033"></script>
 
     <script>
         function switchTimetableMode(mode) {
@@ -210,6 +210,15 @@
 
         // Check URL hash on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Set default date to today in timetable builder
+            const dateInp = document.getElementById('timetableDate');
+            if (dateInp && !dateInp.value) {
+                const now = new Date();
+                const y = now.getFullYear();
+                const m = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                dateInp.value = `${y}-${m}-${d}`;
+            }
             if (window.location.hash === '#live' || window.location.hash === '#liveSectionWrapper') {
                 switchTimetableMode('live');
             } else {
