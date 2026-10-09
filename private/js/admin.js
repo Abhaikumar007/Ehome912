@@ -4663,7 +4663,20 @@ window.approvePendingTest = async function(testId, rowId, classTag, subject) {
                 payload: { examDate, subject, classGrade: classTag }
             });
         } catch (_) {}
-        alert('Test approved and broadcast to students!');
+        // Send live lock-screen push notifications to students of this class
+        let pushedCount = 0;
+        try {
+            if (typeof sendExpoPushNotification === 'function') {
+                pushedCount = await sendExpoPushNotification({
+                    title: '📝 Test Scheduled: [' + classTag + '] ' + subject,
+                    message: 'Date: ' + examDate + ' | Time: ' + timeStr + ' | Venue: ' + venueStr + ' | Max: ' + marks + ' marks',
+                    targetClass: classTag
+                });
+            }
+        } catch (_) {}
+
+        const pushSummary = pushedCount > 0 ? (' (Push sent to ' + pushedCount + ' student phones)') : '';
+        alert('Test approved and broadcast to students!' + pushSummary);
         window.loadPendingTests();
     } catch (e) {
         alert('Failed to approve: ' + (e.message || e));

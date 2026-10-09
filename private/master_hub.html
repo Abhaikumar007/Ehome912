@@ -980,6 +980,9 @@
                             <button class="btn btn-warning font-weight-bold" onclick="generateMonthlyFeeCycle()">
                                 <i class="fas fa-bolt mr-1"></i> Generate Cycle Dues
                             </button>
+                            <button class="btn btn-danger font-weight-bold ml-2" onclick="sendFiveDayFeeReminders(this)" title="Send push notifications to all students with dues within 5 days">
+                                <i class="fas fa-bell mr-1"></i> Send 5-Day Due Reminders
+                            </button>
                         </div>
                     </div>
 
@@ -1159,8 +1162,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=1791545332182"></script>
-    <script src="js/master_hub.js?v=1791545332182"></script>
+    <script src="js/admin.js?v=1791545851530"></script>
+    <script src="js/master_hub.js?v=1791545851530"></script>
     <script src="js/live_timetable.js?v=20261004_v4"></script>
 
     <script>
