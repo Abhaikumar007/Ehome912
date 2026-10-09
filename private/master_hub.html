@@ -320,6 +320,36 @@
             gap: 8px !important;
         }
 
+        .broadcast-actions-area {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            gap: 6px !important;
+            width: 100% !important;
+        }
+
+        .broadcast-actions-area .btn,
+        .broadcast-actions-area .btn-view-ann,
+        .broadcast-actions-area .btn-edit-ann,
+        .broadcast-actions-area .btn-delete-ann {
+            flex: 1 1 0 !important;
+            min-width: 0 !important;
+            padding: 8px 6px !important;
+            font-size: 0.85rem !important;
+            font-weight: 600 !important;
+            border-radius: 8px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+        }
+
+        .broadcast-actions-area .btn i {
+            margin-right: 4px !important;
+        }
+
         .broadcast-actions-area .btn,
         .approval-actions-container .btn {
             display: inline-flex !important;
@@ -1129,8 +1159,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=1791292127148"></script>
-    <script src="js/master_hub.js?v=1791292127148"></script>
+    <script src="js/admin.js?v=1791545332182"></script>
+    <script src="js/master_hub.js?v=1791545332182"></script>
     <script src="js/live_timetable.js?v=20261004_v4"></script>
 
     <script>
@@ -1191,6 +1221,318 @@
                 </button>
                 <button type="button" class="btn btn-danger font-weight-bold px-4" id="executeDeleteOpinionBtn" onclick="confirmAndExecuteDeleteOpinion()">
                     <i class="fas fa-trash-alt mr-1"></i> Yes, Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- View Active Announcement & Live Alert Modal -->
+<div class="modal fade" id="viewAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="viewAnnouncementModalLabel" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white py-3">
+                <div class="d-flex align-items-center">
+                    <span style="display:inline-flex; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.15); align-items: center; justify-content: center; margin-right: 12px;">
+                        <i class="fas fa-bullhorn text-white fa-lg"></i>
+                    </span>
+                    <div>
+                        <h5 class="modal-title font-weight-bold mb-0" id="viewAnnouncementModalLabel">Broadcast / Exam Alert Details</h5>
+                        <small class="text-white-50">Currently live and active across all student & faculty portals</small>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="window.closeViewAnnouncementModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto; background-color: #f8fafc;">
+                <!-- Header Card -->
+                <div class="card p-3 mb-3 border-0 shadow-sm" style="border-radius: 10px; background: #ffffff;">
+                    <div class="d-flex align-items-center flex-wrap mb-2" style="gap: 8px;">
+                        <span id="view_ann_type_badge" class="badge badge-primary font-weight-bold"><i class="fas fa-bullhorn mr-1"></i>Global Broadcast</span>
+                        <span id="view_ann_scope_badge" class="badge badge-info font-weight-bold">Class 12</span>
+                        <span id="view_ann_stream_badge" class="badge badge-secondary font-weight-bold">Both</span>
+                        <span class="badge badge-success font-weight-bold"><i class="fas fa-check-circle mr-1"></i>Live & Active</span>
+                    </div>
+                    <h4 class="font-weight-bold text-dark mb-1" id="view_ann_title" style="word-break: break-word;">Exam Title</h4>
+                    <div class="text-muted small">
+                        <i class="fas fa-user-tie mr-1 text-primary"></i>Submitted by: <strong id="view_ann_author" class="text-dark">Faculty Member</strong>
+                        &bull; <i class="far fa-clock ml-2 mr-1"></i>Published: <span id="view_ann_updated_at">Just now</span>
+                    </div>
+                </div>
+
+                <!-- Academic Exam Details Grid (if Exam) -->
+                <div id="view_ann_exam_details" class="card p-3 mb-3 border-0 shadow-sm" style="border-radius: 10px; background: #ffffff; border-left: 4px solid #ef4444 !important;">
+                    <h6 class="font-weight-bold text-danger mb-3"><i class="fas fa-file-signature mr-1"></i> Academic Exam & Test Schedule</h6>
+                    <div class="row text-center mb-3" style="row-gap: 10px;">
+                        <div class="col-sm-3 col-6">
+                            <div class="p-2 rounded bg-light border">
+                                <small class="text-danger font-weight-bold d-block text-uppercase">Exam Date</small>
+                                <span id="view_ann_exam_date" class="font-weight-bold text-dark">-</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-6">
+                            <div class="p-2 rounded bg-light border">
+                                <small class="text-danger font-weight-bold d-block text-uppercase">Subject</small>
+                                <span id="view_ann_subject" class="font-weight-bold text-dark">-</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-6">
+                            <div class="p-2 rounded bg-light border">
+                                <small class="text-danger font-weight-bold d-block text-uppercase">Max Marks</small>
+                                <span id="view_ann_max_marks" class="font-weight-bold text-dark">100</span>
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-6">
+                            <div class="p-2 rounded bg-light border">
+                                <small class="text-danger font-weight-bold d-block text-uppercase">Venue / Room</small>
+                                <span id="view_ann_venue" class="font-weight-bold text-dark">Exam Hall</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <small class="font-weight-bold text-secondary d-block"><i class="far fa-clock mr-1 text-danger"></i>Time Slot:</small>
+                        <span id="view_ann_time_slot" class="text-dark font-weight-bold">-</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="font-weight-bold text-secondary d-block"><i class="fas fa-book-reader mr-1 text-danger"></i>Prescribed Syllabus:</small>
+                        <div id="view_ann_syllabus" class="p-2 bg-light rounded border text-dark mt-1" style="white-space: pre-line;">-</div>
+                    </div>
+                    <div id="view_ann_instructions_box" class="mb-0" style="display: none;">
+                        <small class="font-weight-bold text-secondary d-block"><i class="fas fa-tasks mr-1 text-danger"></i>Instructions & Guidelines:</small>
+                        <div id="view_ann_instructions" class="p-2 bg-light rounded border text-dark mt-1" style="white-space: pre-line;">-</div>
+                    </div>
+                </div>
+
+                <!-- Description / Announcement Message Content -->
+                <div class="card p-3 mb-3 border-0 shadow-sm" style="border-radius: 10px; background: #ffffff;">
+                    <h6 class="font-weight-bold text-secondary mb-2"><i class="fas fa-align-left mr-1 text-primary"></i> Announcement Message / Details</h6>
+                    <div id="view_ann_message" class="text-dark" style="white-space: pre-line; line-height: 1.6;">-</div>
+                    <div id="view_ann_schedule_dates" class="mt-3 pt-2 border-top" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="window.closeViewAnnouncementModal()">
+                    Close
+                </button>
+                <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm" onclick="window.switchToEditFromViewModal()">
+                    <i class="fas fa-edit mr-1"></i> Edit This Item
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Active Announcement & Live Alert Modal -->
+<div class="modal fade" id="editAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="editAnnouncementModalLabel" aria-hidden="true" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+            <div class="modal-header bg-primary text-white py-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-edit fa-lg mr-2"></i>
+                    <div>
+                        <h5 class="modal-title font-weight-bold mb-0" id="editAnnouncementModalLabel">Edit Active Announcement & Live Alert</h5>
+                        <small class="text-white-50">Modify existing alert details and broadcast updates live to students and faculty</small>
+                    </div>
+                </div>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="window.closeEditAnnouncementModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="editAnnouncementForm" onsubmit="window.handleSaveEditedAnnouncement(event)">
+                <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+                    <input type="hidden" id="edit_ann_id" />
+
+                    <!-- Section 1: Classification & Target Scope -->
+                    <div class="card p-3 mb-3 border-0" style="background: #f8fafc; border-radius: 10px; border-left: 4px solid #3b82f6 !important;">
+                        <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-bullseye mr-1 text-primary"></i> Target Audience & Classification</h6>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-secondary">Priority / Alert Type</label>
+                                <select class="form-control" id="edit_ann_type" onchange="window.toggleEditAnnTypeFields()">
+                                    <option value="exam">📅 Academic Exam / Test Alert</option>
+                                    <option value="urgent">🚨 Urgent Alert</option>
+                                    <option value="notice">📢 General Notice</option>
+                                    <option value="holiday">🌴 Holiday / Reschedule</option>
+                                    <option value="event">🏆 Event / Celebration</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-secondary">Target Class / Student Scope</label>
+                                <select class="form-control" id="edit_ann_class">
+                                    <option value="All">All Students & Teachers</option>
+                                    <option value="Class 12">Class 12</option>
+                                    <option value="Class 11">Class 11</option>
+                                    <option value="Class 10">Class 10</option>
+                                    <option value="Class 9">Class 9</option>
+                                    <option value="Class 8">Class 8</option>
+                                    <option value="Class 7">Class 7</option>
+                                    <option value="Class 6">Class 6</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-0">
+                                <label class="font-weight-bold small text-secondary">Syllabus Stream Scope</label>
+                                <select class="form-control" id="edit_ann_syllabus_stream">
+                                    <option value="Both">Both (State Syllabus & CBSE)</option>
+                                    <option value="State Syllabus">State Syllabus Only</option>
+                                    <option value="CBSE">CBSE Only</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 form-group mb-0">
+                                <label class="font-weight-bold small text-secondary">Subject (Optional)</label>
+                                <input type="text" class="form-control" id="edit_ann_subject" placeholder="e.g. Computer Science, Physics, Mathematics" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Alert Title & Content -->
+                    <div class="form-group">
+                        <label class="font-weight-bold small text-secondary">Alert Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control font-weight-bold" id="edit_ann_title" placeholder="e.g. Unit 6 Revision / Physics Test" required />
+                    </div>
+
+                    <div class="form-group" id="edit_ann_msg_group">
+                        <label class="font-weight-bold small text-secondary">Message / Details Content</label>
+                        <textarea class="form-control" id="edit_ann_msg" rows="3" placeholder="Enter full announcement details to be shown on student and faculty dashboards..."></textarea>
+                    </div>
+
+                    <!-- Section 3: Academic Exam Specific Details -->
+                    <div id="edit_ann_exam_section" class="card p-3 mb-3 border-0" style="background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444 !important;">
+                        <h6 class="font-weight-bold text-danger mb-2"><i class="fas fa-file-signature mr-1"></i> Academic Test & Exam Information</h6>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">📅 Exam Date</label>
+                                <input type="date" class="form-control" id="edit_ann_exam_date" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">🎯 Max Marks</label>
+                                <input type="number" class="form-control" id="edit_ann_max_marks" placeholder="100" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">📍 Venue / Room</label>
+                                <input type="text" class="form-control" id="edit_ann_venue" placeholder="e.g. Exam Hall 1, Room 204" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">👨‍🏫 Faculty / Submitted By</label>
+                                <input type="text" class="form-control" id="edit_ann_author" placeholder="e.g. Faculty Member / Center Admin" />
+                            </div>
+                        </div>
+                        <div class="form-group mb-0">
+                            <label class="font-weight-bold small text-dark">📚 Prescribed Syllabus (Chapters / Portion)</label>
+                            <textarea class="form-control" id="edit_ann_syllabus" rows="2" placeholder="e.g. Unit 6: Object Oriented Programming&#10;Unit 7: Data Structures"></textarea>
+                        </div>
+                        <div class="form-group mb-0 mt-2">
+                            <label class="font-weight-bold small text-dark"><i class="fas fa-tasks mr-1 text-danger"></i> Exam Instructions & Guidelines</label>
+                            <textarea class="form-control" id="edit_ann_instructions" rows="2" placeholder="e.g. Reporting time is strictly 15 minutes before exam. Bring stationery."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section 4: Schedule, Timing & Visibility Dates -->
+                    <div class="card p-3 mb-3 border-0 shadow-sm" style="background: #eff6ff; border-radius: 10px; border-left: 4px solid #2563eb !important;">
+                        <h6 class="font-weight-bold text-primary mb-2">
+                            <i class="fas fa-calendar-alt mr-1"></i> Schedule & Alert Visibility Dates
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">Show From Date (Start Date)</label>
+                                <input type="date" class="form-control" id="edit_ann_start_date" />
+                                <small class="text-muted">Alert appears on student devices from this date onwards.</small>
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-dark">Valid Until Date (End Date / Expiry)</label>
+                                <input type="date" class="form-control" id="edit_ann_end_date" />
+                                <small class="text-muted">Alert automatically disappears after this date passes.</small>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 form-group mb-0">
+                                <label class="font-weight-bold small text-dark">⏰ Start Time</label>
+                                <input type="text" class="form-control" id="edit_ann_start_time" placeholder="e.g. 11:30 AM" />
+                            </div>
+                            <div class="col-md-6 form-group mb-0">
+                                <label class="font-weight-bold small text-dark">⏰ End Time</label>
+                                <input type="text" class="form-control" id="edit_ann_end_time" placeholder="e.g. 1:00 PM" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Section 5: Display Settings -->
+                    <div class="row">
+                        <div class="col-md-6 form-group">
+                            <label class="font-weight-bold small text-secondary">Display Badge / Time Label</label>
+                            <input type="text" class="form-control" id="edit_ann_time_label" placeholder="e.g. Just now, Exam: Sat, Oct 10, 2026" />
+                        </div>
+                        <div class="col-md-6 form-group">
+                            <label class="font-weight-bold small text-secondary">Display Icon</label>
+                            <select class="form-control" id="edit_ann_icon">
+                                <option value="calendar">📅 Calendar (Exam / Date)</option>
+                                <option value="megaphone">📢 Megaphone (Notice / Broadcast)</option>
+                                <option value="trophy">🏆 Trophy (Event / Award)</option>
+                                <option value="bell">🔔 Bell (Alert)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="custom-control custom-switch mt-2">
+                        <input type="checkbox" class="custom-control-input" id="edit_ann_important">
+                        <label class="custom-control-label font-weight-bold text-dark" for="edit_ann_important">
+                            Mark as High Priority / Highlighted Alert Banner
+                        </label>
+                        <small class="d-block text-muted">Pins this announcement at the top of the mobile home screen.</small>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="window.closeEditAnnouncementModal()">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" id="saveEditAnnBtn">
+                        <i class="fas fa-save mr-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal: Reject Faculty Announcement Confirmation -->
+<div class="modal fade" id="rejectAnnouncementConfirmModal" tabindex="-1" role="dialog" aria-labelledby="rejectAnnouncementConfirmModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 440px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title font-weight-bold mb-0" id="rejectAnnouncementConfirmModalLabel" style="font-size: 1.1rem;">
+                    <i class="fas fa-times-circle mr-2"></i>Reject Exam Submission
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="window.closeRejectAnnouncementModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="display:inline-flex; width: 62px; height: 62px; border-radius: 50%; background-color: #fee2e2; align-items: center; justify-content: center;">
+                        <i class="fas fa-exclamation-triangle fa-2x text-danger"></i>
+                    </span>
+                </div>
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 1.05rem;">
+                    Are you sure you want to reject this exam?
+                </h6>
+                <div id="rejectAnnouncementConfirmDetails" class="bg-light p-3 rounded text-left border small text-dark my-3" style="display:none; line-height: 1.5;"></div>
+                <p class="text-muted small mb-0">
+                    This exam will be rejected and will not be visible to students. The faculty member will see it marked as Rejected. It will remain in the rejected submissions history.
+                </p>
+            </div>
+            <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="window.closeRejectAnnouncementModal()">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger font-weight-bold px-4" id="confirmExecuteRejectAnnouncementBtn" onclick="window.confirmAndExecuteRejectAnnouncement()">
+                    <i class="fas fa-times mr-1"></i> Yes, Reject
                 </button>
             </div>
         </div>

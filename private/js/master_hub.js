@@ -1,3 +1,77 @@
+
+// ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
+async function sendExpoPushNotification({ title, message, targetClass = 'All' }) {
+    try {
+        let sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : null;
+        if (!sb && typeof _getSupabaseClient === 'function') sb = _getSupabaseClient();
+        if (!sb && typeof window.supabase !== 'undefined' && typeof SUPABASE_URL !== 'undefined') {
+            sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
+
+        if (!sb) {
+            console.warn('[Push] Supabase client unavailable for push tokens query.');
+            return 0;
+        }
+
+        let query = sb.from('push_tokens').select('push_token, class');
+        if (targetClass && targetClass !== 'All') {
+            const cleanTarget = String(targetClass).replace(/[^0-9]/g, '');
+            if (cleanTarget) {
+                query = query.or('class.eq.' + cleanTarget + ',class.ilike.%' + targetClass + '%');
+            }
+        }
+
+        const { data: rows, error: tokenErr } = await query;
+        if (tokenErr) {
+            console.warn('[Push] Error fetching push tokens:', tokenErr);
+            return 0;
+        }
+        if (!rows || rows.length === 0) {
+            console.log('[Push] No registered push tokens found for target:', targetClass);
+            return 0;
+        }
+
+        // Deduplicate tokens
+        const uniqueTokens = Array.from(new Set(rows.map(r => r.push_token).filter(Boolean)));
+        if (uniqueTokens.length === 0) return 0;
+
+        console.log('[Push] Dispatching push notification to ' + uniqueTokens.length + ' devices...');
+
+        // Build messages
+        const messages = uniqueTokens.map(tok => ({
+            to: tok,
+            sound: 'default',
+            title: title,
+            body: message,
+            channelId: 'default',
+            priority: 'high',
+        }));
+
+        // Send in chunks of 100 using CORS-safe text/plain transport
+        const chunkSize = 100;
+        for (let i = 0; i < messages.length; i += chunkSize) {
+            const chunk = messages.slice(i, i + chunkSize);
+            try {
+                await fetch('https://exp.host/--/api/v2/push/send', {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(chunk),
+                });
+                console.log('[Push] Dispatched payload chunk to', chunk.length, 'devices.');
+            } catch (postErr) {
+                console.warn('[Push] Fetch dispatch error:', postErr);
+            }
+        }
+        return uniqueTokens.length;
+    } catch (pushErr) {
+        console.warn('[Push] Push dispatch note:', pushErr);
+        return 0;
+    }
+}
+
 function cleanApprovedTitle(rawTitle) {
     if (!rawTitle) return 'Community Announcement';
     let t = String(rawTitle);
@@ -152,6 +226,23 @@ document.addEventListener('DOMContentLoaded', async function () {
             }, 100);
         });
     }
+
+    // Auto-activate tab from URL hash if provided (e.g. #tab-broadcast)
+    function activateTabFromHash() {
+        const hash = window.location.hash;
+        if (hash) {
+            const hashLink = document.querySelector('a[href="' + hash + '"]');
+            if (hashLink) {
+                if (typeof $ !== 'undefined' && typeof $(hashLink).tab === 'function') {
+                    $(hashLink).tab('show');
+                } else {
+                    hashLink.click();
+                }
+            }
+        }
+    }
+    activateTabFromHash();
+    window.addEventListener('hashchange', activateTabFromHash);
 
     const broadcastTabLink = document.getElementById('tab-broadcast-link');
     if (broadcastTabLink) {
@@ -523,7 +614,18 @@ async function handlePublishAnnouncement(e) {
             if (insErr) console.warn('[MasterHub] Announcement insert warning:', insErr);
         }
 
-        alert('✅ Announcement broadcasted! All student and teacher apps will see it immediately.');
+        // Send live lock-screen push notifications to all phones
+        let pushedCount = 0;
+        try {
+            pushedCount = await sendExpoPushNotification({
+                title: (target !== 'All' ? '[' + target + '] ' : '') + title,
+                message: msg,
+                targetClass: target
+            });
+        } catch (_) {}
+
+        const pushSummary = pushedCount > 0 ? (' (Sent push to ' + pushedCount + ' registered phone' + (pushedCount > 1 ? 's' : '') + ')') : '';
+        alert('✅ Announcement broadcasted!' + pushSummary + ' All student and teacher apps will see it immediately.');
         document.getElementById('announcementForm').reset();
         loadActiveBroadcasts();
     } catch (err) {
@@ -590,6 +692,13 @@ async function handlePublishTestAlert(e) {
             } catch (ae) {}
         }
 
+        // Send live lock-screen push notification to students in this class
+        sendExpoPushNotification({
+            title: '[Exam Alert - ' + className + '] ' + title,
+            message: 'Subject: ' + subject + ' | Date: ' + examDate,
+            targetClass: className
+        });
+
         alert('✅ Academic Exam Alert published! Students in ' + className + ' will see this alert banner on their home screen until ' + expiryDate + '.');
         document.getElementById('testAlertForm').reset();
         loadActiveBroadcasts();
@@ -633,9 +742,11 @@ async function loadActiveBroadcasts() {
             }
 
             if (anns && anns.length > 0) {
-                const pendingAnns = anns.filter(a => a.title && (a.title.includes('[PENDING APPROVAL') || a.time_label === 'Pending Approval'));
-                const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval');
-                const regularAnns = anns.filter(a => (!a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert'))) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval');
+                window._allLoadedAnnouncements = anns;
+                const pendingAnns = anns.filter(a => a.title && (a.title.includes('[PENDING APPROVAL') || a.time_label === 'Pending Approval') && !a.title.includes('[REJECTED') && a.time_label !== 'Rejected');
+                const rejectedAnns = anns.filter(a => a.title && (a.title.includes('[REJECTED') || a.time_label === 'Rejected'));
+                const examAlerts = anns.filter(a => a.title && (a.title.includes('[Exam Alert') || a.title.includes('[Test Alert')) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval' && !a.title.includes('[REJECTED') && a.time_label !== 'Rejected');
+                const regularAnns = anns.filter(a => (!a.title || (!a.title.includes('[Exam Alert') && !a.title.includes('[Test Alert'))) && !a.title.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval' && !a.title.includes('[REJECTED') && a.time_label !== 'Rejected');
 
                 if (pendingAnns.length > 0) {
                     html += '<div class="alert alert-warning pending-approvals-banner mb-4 shadow-sm">'
@@ -776,7 +887,7 @@ async function loadActiveBroadcasts() {
                             + '<button type="button" class="btn btn-sm btn-primary btn-edit-approve font-weight-bold shadow-sm" onclick="window.openEditApprovalModal(\'' + a.id + '\', this, event)" style="cursor: pointer;">'
                             + '<i class="fas fa-edit mr-1"></i> Edit & Approve'
                             + '</button>'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger btn-reject font-weight-bold" data-action="reject" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Reject & Delete" style="cursor: pointer;">'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger btn-reject font-weight-bold" data-action="reject" onclick="window.requestRejectAnnouncement(\'' + a.id + '\', this, event)" title="Reject announcement" style="cursor: pointer;">'
                             + '<i class="fas fa-times mr-1"></i> Reject'
                             + '</button>'
                             + '</div>'
@@ -788,7 +899,7 @@ async function loadActiveBroadcasts() {
                     html += '</div>';
                 }
 
-                if (regularAnns.length > 0) {
+                                if (regularAnns.length > 0) {
                     html += '<h6 class="font-weight-bold text-muted mb-2"><i class="fas fa-bullhorn mr-1 text-primary"></i>Live Community Announcements (' + regularAnns.length + ')</h6>';
                     regularAnns.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
@@ -800,16 +911,23 @@ async function loadActiveBroadcasts() {
                             + '<div class="broadcast-card-body w-100 mb-2">'
                             + '<p class="broadcast-content-text mb-0 text-secondary">' + escapeHtml(a.description || '') + '</p>'
                             + '</div>'
-                            + '<div class="broadcast-card-footer d-flex justify-content-end align-items-center pt-2 border-top">'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-1 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement" style="cursor: pointer;">'
+                            + '<div class="broadcast-card-footer pt-2 border-top w-100" style="margin-top: 6px;">'
+                            + '<div class="broadcast-actions-area d-flex align-items-center w-100" style="gap: 6px; width: 100% !important; display: flex !important;">'
+                            + '<button type="button" class="btn btn-sm btn-outline-info px-2 py-2 btn-view-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.openViewAnnouncementModal(\'' + a.id + '\', this, event)" title="View full details">'
+                            + '<i class="fas fa-eye mr-1" style="pointer-events: none;"></i> View'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-primary px-2 py-2 btn-edit-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.openEditAnnouncementModal(\'' + a.id + '\', this, event)" title="Edit this announcement">'
+                            + '<i class="fas fa-edit mr-1" style="pointer-events: none;"></i> Edit'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-2 py-2 btn-delete-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this announcement">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
+                            + '</div>'
                             + '</div>'
                             + '</div>';
                     });
                 }
-
-                if (examAlerts.length > 0) {
+                                if (examAlerts.length > 0) {
                     html += '<h6 class="font-weight-bold text-muted mt-3 mb-2"><i class="fas fa-calendar-alt mr-1 text-danger"></i>Active Exam / Test Alerts (' + examAlerts.length + ')</h6>';
                     examAlerts.forEach(a => {
                         const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
@@ -847,16 +965,51 @@ async function loadActiveBroadcasts() {
                             + '<div class="broadcast-card-body w-100 mb-2">'
                             + bodyContent
                             + '</div>'
-                            + '<div class="broadcast-card-footer d-flex justify-content-end align-items-center pt-2 border-top">'
-                            + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-1 btn-delete-ann" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert" style="cursor: pointer;">'
+                            + '<div class="broadcast-card-footer pt-2 border-top w-100" style="margin-top: 6px;">'
+                            + '<div class="broadcast-actions-area d-flex align-items-center w-100" style="gap: 6px; width: 100% !important; display: flex !important;">'
+                            + '<button type="button" class="btn btn-sm btn-outline-info px-2 py-2 btn-view-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.openViewAnnouncementModal(\'' + a.id + '\', this, event)" title="View full details">'
+                            + '<i class="fas fa-eye mr-1" style="pointer-events: none;"></i> View'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-primary px-2 py-2 btn-edit-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.openEditAnnouncementModal(\'' + a.id + '\', this, event)" title="Edit this exam alert">'
+                            + '<i class="fas fa-edit mr-1" style="pointer-events: none;"></i> Edit'
+                            + '</button>'
+                            + '<button type="button" class="btn btn-sm btn-outline-danger px-2 py-2 btn-delete-ann flex-grow-1 font-weight-bold" style="flex: 1 1 0 !important; min-width: 0 !important; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.85rem !important;" data-id="' + a.id + '" onclick="window.requestDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Delete this exam alert">'
                             + '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete'
                             + '</button>'
+                            + '</div>'
                             + '</div>'
                             + '</div>';
                     });
                 }
-
                 // Add "Clear All Announcements" button at bottom
+                // Rejected Announcements History
+                if (rejectedAnns.length > 0) {
+                    html += '<div class="mt-4 pt-3 border-top">'
+                        + '<div class="d-flex justify-content-between align-items-center mb-2">'
+                        + '<h6 class="font-weight-bold text-muted mb-0"><i class="fas fa-ban mr-1 text-danger"></i>Rejected Faculty Submissions History (' + rejectedAnns.length + ')</h6>'
+                        + '</div>'
+                        + '<div class="list-group shadow-sm" style="border-radius: 10px; overflow: hidden;">';
+
+                    rejectedAnns.forEach(a => {
+                        const dateStr = a.created_at ? new Date(a.created_at).toLocaleString() : '';
+                        const cleanTitle = cleanApprovedTitle(a.title || '').replace(/^\[REJECTED\]\s*/i, '');
+                        html += '<div class="list-group-item list-group-item-action d-flex justify-content-between align-items-start p-3 bg-light border" style="opacity: 0.9;">'
+                            + '<div class="flex-grow-1 mr-3">'
+                            + '<div class="d-flex align-items-center mb-1" style="gap: 6px;">'
+                            + '<span class="badge badge-danger font-weight-bold"><i class="fas fa-times-circle mr-1"></i>Rejected</span>'
+                            + '<strong class="text-dark">' + escapeHtml(cleanTitle) + '</strong>'
+                            + '</div>'
+                            + '<p class="small text-muted mb-1" style="white-space: pre-line;">' + escapeHtml(a.description || '') + '</p>'
+                            + '<small class="text-muted"><i class="far fa-clock mr-1"></i>' + escapeHtml(dateStr) + '</small>'
+                            + '</div>'
+                            + '<button type="button" class="btn btn-sm btn-outline-secondary px-2 py-1 flex-shrink-0" onclick="window.executeDeleteAnnouncement(\'' + a.id + '\', this, event)" title="Permanently remove from history">'
+                            + '<i class="fas fa-trash-alt mr-1"></i> Remove'
+                            + '</button>'
+                            + '</div>';
+                    });
+                    html += '</div></div>';
+                }
+
                 html += '<div class="mt-3 text-right">'
                     + '<button type="button" class="btn btn-sm btn-outline-danger px-3 py-2" id="btnClearAllAnn" onclick="window.requestClearAll(this, event)" title="Remove all announcements" style="cursor: pointer; z-index: 10; position: relative;">'
                     + '<i class="fas fa-broom mr-1" style="pointer-events: none;"></i> Clear All Announcements'
@@ -1014,40 +1167,359 @@ window.requestApproveAnnouncement = async function (id, btn, e) {
     }
 };
 
-window.requestDeleteAnnouncement = function (id, btnElement, evt) {
+
+
+// ─── REJECT FACULTY ANNOUNCEMENT CONTROLLER & MODAL ───────────────────────────
+
+window._pendingRejectAnnouncementId = null;
+
+window.requestRejectAnnouncement = function (id, btnElement, evt) {
     if (evt) {
         evt.preventDefault();
         evt.stopPropagation();
     }
-    if (!btnElement) return;
+    if (!id) return;
 
-    const isReject = btnElement.getAttribute('data-action') === 'reject' || (btnElement.textContent || '').includes('Reject');
+    window._pendingRejectAnnouncementId = id;
 
-    // First click: Transform button into instant "Confirm Delete?" or "Confirm Reject?"
-    btnElement.className = 'btn btn-sm btn-danger px-3 py-2 flex-shrink-0 font-weight-bold animate__animated animate__pulse';
-    btnElement.innerHTML = '<i class="fas fa-check mr-1" style="pointer-events: none;"></i> ' + (isReject ? 'Confirm Reject?' : 'Confirm?');
-    btnElement.onclick = function (e) {
-        window.executeDeleteAnnouncement(id, btnElement, e);
-    };
+    // Retrieve details for confirmation modal
+    let cleanTitle = 'Faculty Announcement';
+    let author = 'Faculty Member';
+    let classTag = 'All Classes';
 
-    // Auto-revert after 6 seconds if not clicked
-    setTimeout(function () {
-        if (btnElement && btnElement.innerHTML.includes('Confirm')) {
-            if (isReject) {
-                btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2 font-weight-bold';
-                btnElement.innerHTML = '<i class="fas fa-times mr-1"></i> Reject';
-            } else {
-                btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-1 flex-shrink-0 btn-delete-ann';
-                btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1" style="pointer-events: none;"></i> Delete';
-            }
-            btnElement.onclick = function (e) {
-                window.requestDeleteAnnouncement(id, btnElement, e);
-            };
+    if (window._allLoadedAnnouncements && Array.isArray(window._allLoadedAnnouncements)) {
+        const item = window._allLoadedAnnouncements.find(a => String(a.id) === String(id));
+        if (item) {
+            cleanTitle = cleanApprovedTitle(item.title || '');
+            const authorMatch = (item.description || '').match(/(?:Submitted\s*by|Faculty|Teacher|By):\s*([^\n\r|]+)/i);
+            if (authorMatch) author = authorMatch[1].trim();
+            const classMatch = (item.title || '').match(/\[(Class\s*[^ \]]+)\]/i);
+            if (classMatch) classTag = classMatch[1].trim();
         }
-    }, 6000);
+    }
+
+    const detailsBox = document.getElementById('rejectAnnouncementConfirmDetails');
+    if (detailsBox) {
+        detailsBox.innerHTML = '<div><strong>Title:</strong> ' + escapeHtml(cleanTitle) + '</div>'
+            + '<div><strong>Submitted by:</strong> ' + escapeHtml(author) + '</div>'
+            + '<div><strong>Class:</strong> ' + escapeHtml(classTag) + '</div>';
+        detailsBox.style.display = 'block';
+    }
+
+    // Reset button state
+    const confirmBtn = document.getElementById('confirmExecuteRejectAnnouncementBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = false;
+        confirmBtn.innerHTML = '<i class="fas fa-times mr-1"></i> Yes, Reject';
+    }
+
+    // Open confirmation modal
+    if (typeof $ !== 'undefined' && typeof $('#rejectAnnouncementConfirmModal').modal === 'function') {
+        $('#rejectAnnouncementConfirmModal').modal('show');
+    } else {
+        const m = document.getElementById('rejectAnnouncementConfirmModal');
+        if (m) {
+            m.style.display = 'block';
+            m.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('rejectAnnConfirmBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'rejectAnnConfirmBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        } else {
+            // Native fallback
+            if (confirm('Are you sure you want to reject this announcement?')) {
+                window.confirmAndExecuteRejectAnnouncement();
+            }
+        }
+    }
 };
 
-window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
+window.closeRejectAnnouncementModal = function () {
+    if (typeof $ !== 'undefined' && typeof $('#rejectAnnouncementConfirmModal').modal === 'function') {
+        $('#rejectAnnouncementConfirmModal').modal('hide');
+    }
+    const m = document.getElementById('rejectAnnouncementConfirmModal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('rejectAnnConfirmBackdrop');
+    if (backdrop) backdrop.remove();
+    window._pendingRejectAnnouncementId = null;
+};
+
+
+// ─── Timetable & Exam Deletion Synchronisation Helpers ─────────────────────────
+
+function _parseExamDateToIso(str) {
+    if (!str) return '';
+    const clean = String(str).replace(/^(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)[a-z]*[,\s]*/i, '').trim();
+    const fullClean = String(str).trim();
+    const isoM = fullClean.match(/(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/);
+    if (isoM) return `${isoM[1]}-${isoM[2].padStart(2, '0')}-${isoM[3].padStart(2, '0')}`;
+    const dmyM = fullClean.match(/(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})/);
+    if (dmyM) return `${dmyM[3]}-${dmyM[2].padStart(2, '0')}-${dmyM[1].padStart(2, '0')}`;
+    let d = new Date(clean);
+    if (isNaN(d.getTime())) d = new Date(fullClean);
+    if (!isNaN(d.getTime())) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+    return '';
+}
+
+function _extractExamDetailsFromItem(item) {
+    const rawTitle = (item && item.title) || '';
+    const desc = (item && item.description) || '';
+    const timeLabel = (item && item.time_label) || '';
+
+    let targetClass = item?.target_class || item?.targetClass || item?.class_grade || '';
+    if (!targetClass) {
+        const clsM = rawTitle.match(/\[(?:PENDING APPROVAL\s*-\s*)?(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i)
+            || rawTitle.match(/\b(Class\s*\d{1,2})\b/i);
+        if (clsM) targetClass = clsM[1].trim();
+    }
+    if (!targetClass) {
+        const clsDescM = desc.match(/(?:Target\s*Class|Class)\s*:\s*([^\n\r|,]+)/i);
+        if (clsDescM) targetClass = clsDescM[1].trim();
+    }
+    if (targetClass && /^\d{1,2}$/.test(targetClass)) {
+        targetClass = 'Class ' + targetClass;
+    }
+
+    let examDateIso = '';
+    const dateDescM = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i)
+        || timeLabel.match(/(?:Exam|Date)\s*:\s*([^\n\r|]+)/i);
+    if (dateDescM) {
+        examDateIso = _parseExamDateToIso(dateDescM[1]);
+    }
+    if (!examDateIso && item?.exam_date) {
+        examDateIso = _parseExamDateToIso(item.exam_date);
+    }
+
+    let subject = item?.subject || '';
+    if (!subject) {
+        const subDescM = desc.match(/Subject\s*:\s*([^\n\r|,]+)/i);
+        if (subDescM) subject = subDescM[1].trim();
+    }
+    if (!subject) {
+        const subParenM = rawTitle.match(/\(([^)]+)\)/);
+        if (subParenM) subject = subParenM[1].trim();
+    }
+    if (!subject) {
+        const knownSubjects = ['Computer Science', 'Mathematics', 'Maths', 'Physics', 'Chemistry', 'Biology', 'English', 'Accountancy', 'Economics', 'Business Studies'];
+        for (const ks of knownSubjects) {
+            if (new RegExp('\\b' + ks + '\\b', 'i').test(rawTitle) || new RegExp('\\b' + ks + '\\b', 'i').test(desc)) {
+                subject = ks;
+                break;
+            }
+        }
+    }
+
+    let teacherName = item?.author || '';
+    const teacherDescM = desc.match(/(?:Submitted by|By|Teacher|Faculty)\s*:\s*([^\n\r|,]+)/i);
+    if (teacherDescM) teacherName = teacherDescM[1].trim();
+
+    let cleanTitle = rawTitle.replace(/\[PENDING APPROVAL[^\]]*\]/gi, '').replace(/\[Test Alert\]/gi, '').replace(/\[Exam Alert\]/gi, '').replace(/\[Class\s*[^\]]+\]/gi, '').trim();
+
+    const isExam = /exam|test|test alert|exam alert|test paper/i.test(rawTitle)
+        || (item && item.icon === 'calendar')
+        || (timeLabel && timeLabel.includes('Exam'));
+
+    return {
+        targetClass,
+        examDateIso,
+        subject,
+        teacherName,
+        cleanTitle,
+        isExam
+    };
+}
+
+async function _deleteExamSlotsFromClasses(sb, details) {
+    if (!sb || !details) return;
+    const { targetClass, examDateIso, subject, teacherName, cleanTitle } = details;
+    try {
+        if (examDateIso) {
+            if (targetClass && subject) {
+                await sb.from('classes').delete().eq('class_date', examDateIso).eq('class_grade', targetClass).eq('subject', subject);
+                await sb.from('classes').delete().eq('class_date', examDateIso).eq('roll_no', targetClass).eq('subject', subject);
+            }
+            if (subject) {
+                await sb.from('classes').delete().eq('class_date', examDateIso).eq('subject', subject).ilike('time', '%Test Paper%');
+                await sb.from('classes').delete().eq('class_date', examDateIso).ilike('subject', '%' + subject + '%').ilike('time', '%Test Paper%');
+            }
+            if (targetClass) {
+                await sb.from('classes').delete().eq('class_date', examDateIso).eq('class_grade', targetClass).ilike('time', '%Test Paper%');
+                await sb.from('classes').delete().eq('class_date', examDateIso).eq('roll_no', targetClass).ilike('time', '%Test Paper%');
+            }
+            if (teacherName && teacherName !== 'Faculty Member') {
+                await sb.from('classes').delete().eq('class_date', examDateIso).ilike('time', '%' + teacherName + '%').ilike('time', '%Test Paper%');
+            }
+        }
+        if (targetClass && subject) {
+            await sb.from('classes').delete().eq('class_grade', targetClass).eq('subject', subject).ilike('time', '%Test Paper%');
+            await sb.from('classes').delete().eq('roll_no', targetClass).eq('subject', subject).ilike('time', '%Test Paper%');
+        }
+        if (cleanTitle) {
+            await sb.from('classes').delete().ilike('time', '%' + cleanTitle + '%');
+        }
+    } catch (err) {
+        console.warn('[MasterHub] _deleteExamSlotsFromClasses notice:', err);
+    }
+}
+
+async function _purgeOrphanedTestPaperClasses(sb) {
+    if (!sb) return;
+    try {
+        const { data: allAnns } = await sb.from('announcements').select('*');
+        const activeApprovedExams = (allAnns || []).filter(a => {
+            const t = a.title || '';
+            if (t.startsWith('[REJECTED]') || t.startsWith('[PENDING APPROVAL')) return false;
+            return /exam|test|test alert|exam alert|test paper/i.test(t) || a.icon === 'calendar' || (a.time_label && a.time_label.includes('Exam'));
+        });
+
+        const { data: tpClasses } = await sb.from('classes').select('id, class_date, subject, class_grade, time').or('time.ilike.%Test Paper%,status.ilike.%TP%');
+        if (!tpClasses || tpClasses.length === 0) return;
+
+        const orphanIds = [];
+        for (const c of tpClasses) {
+            const classDate = c.class_date;
+            const sub = (c.subject || '').toLowerCase().trim();
+
+            const hasMatchingAnn = activeApprovedExams.some(a => {
+                const dM = (a.description || '').match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i)
+                    || (a.time_label || '').match(/(?:Exam|Date)\s*:\s*([^\n\r|]+)/i);
+                const dIso = dM ? _parseExamDateToIso(dM[1]) : '';
+                if (dIso && classDate && dIso !== classDate) return false;
+
+                const annSubM = (a.description || '').match(/Subject\s*:\s*([^\n\r|,]+)/i);
+                const annSub = annSubM ? annSubM[1].toLowerCase().trim() : '';
+                const inTitle = (a.title || '').toLowerCase().includes(sub);
+                const inDesc = (a.description || '').toLowerCase().includes(sub);
+
+                return (annSub && annSub === sub) || inTitle || inDesc;
+            });
+
+            if (!hasMatchingAnn) {
+                orphanIds.push(c.id);
+            }
+        }
+
+        if (orphanIds.length > 0) {
+            console.log('[MasterHub] Purging orphaned test paper rows from classes:', orphanIds);
+            await sb.from('classes').delete().in('id', orphanIds);
+        }
+    } catch (err) {
+        console.warn('[MasterHub] _purgeOrphanedTestPaperClasses notice:', err);
+    }
+}
+
+window.confirmAndExecuteRejectAnnouncement = async function () {
+    const id = window._pendingRejectAnnouncementId;
+    if (!id) {
+        window.closeRejectAnnouncementModal();
+        return;
+    }
+
+    const confirmBtn = document.getElementById('confirmExecuteRejectAnnouncementBtn');
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Rejecting...';
+    }
+
+    try {
+        const sb = _getMasterHubSupabase();
+        if (!sb) throw new Error('Supabase database client not ready. Please refresh.');
+
+        // 1. Fetch announcement row
+        const { data: item, error: fetchErr } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+        if (fetchErr) throw fetchErr;
+        if (!item) throw new Error('Announcement not found in database.');
+
+        const rawTitle = item.title || '';
+        const cleanTitle = cleanApprovedTitle(rawTitle);
+
+        // 2. Update announcement status to Rejected
+        const { error: updateErr } = await sb.from('announcements').update({
+            title: '[REJECTED] ' + cleanTitle,
+            description: 'Status: Rejected by Admin\nRejected At: ' + new Date().toLocaleString() + '\n\nOriginal Details:\n' + (item.description || ''),
+            time_label: 'Rejected',
+            important: false,
+            icon: 'close-circle',
+            icon_bg: '#FEE2E2',
+            icon_color: '#DC2626'
+        }).eq('id', id);
+
+        if (updateErr) throw updateErr;
+
+        // 3. Update pending_tests table if matching row exists
+        try {
+            await sb.from('pending_tests').update({
+                status: 'rejected',
+                rejected_at: new Date().toISOString()
+            }).ilike('title', '%' + cleanTitle.replace(/^\[[^\]]+\]\s*/, '') + '%');
+        } catch (_) {}
+
+        // 4. Remove any pending or scheduled test slot from classes table
+        try {
+            const details = _extractExamDetailsFromItem(item);
+            await _deleteExamSlotsFromClasses(sb, details);
+            await _purgeOrphanedTestPaperClasses(sb);
+        } catch (_) {}
+
+        // 5. Send Supabase Realtime broadcast so student/faculty devices sync immediately
+        try {
+            const payload = { id, title: cleanTitle, rejected_at: new Date().toISOString() };
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'announcement_rejected',
+                payload
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'exam_deleted',
+                payload
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload
+            });
+        } catch (_) {}
+
+        // 6. Close modal
+        window.closeRejectAnnouncementModal();
+
+        // 7. Show success confirmation message
+        showBroadcastStatus('Announcement rejected successfully.');
+
+        // 8. Refresh UI
+        await loadActiveBroadcasts();
+    } catch (err) {
+        console.error('[MasterHub] Error rejecting announcement:', err);
+        showBroadcastStatus('Failed to reject announcement: ' + (err.message || err), true);
+        alert('Failed to reject announcement: ' + (err.message || err));
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = '<i class="fas fa-times mr-1"></i> Yes, Reject';
+        }
+    }
+};
+
+window.requestDeleteAnnouncement = async function (id, btnElement, evt) {
     if (evt) {
         evt.preventDefault();
         evt.stopPropagation();
@@ -1060,80 +1532,128 @@ window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
         return;
     }
 
-    const isReject = btnElement && (btnElement.innerHTML.includes('Reject') || btnElement.getAttribute('data-action') === 'reject');
+    // Check item details from loaded announcements
+    let item = null;
+    if (window._allLoadedAnnouncements && Array.isArray(window._allLoadedAnnouncements)) {
+        item = window._allLoadedAnnouncements.find(a => String(a.id) === String(id));
+    }
+    if (!item) {
+        try {
+            const { data } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+            item = data;
+        } catch (_) {}
+    }
+
+    const details = _extractExamDetailsFromItem(item);
+    const isExam = details.isExam;
+
+    // Prompt confirmation before deletion
+    const confirmMessage = isExam
+        ? 'Are you sure you want to delete this approved exam? It will also be completely removed from the Student and Faculty Portals & Timetables.'
+        : 'Are you sure you want to delete this announcement? It will also be removed from the Student and Faculty Portals.';
+
+    const confirmed = confirm(confirmMessage);
+    if (!confirmed) {
+        return;
+    }
 
     if (btnElement) {
         btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> ' + (isReject ? 'Rejecting...' : 'Deleting...');
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
     }
 
     try {
-        if (isReject) {
-            const reason = prompt('Please enter rejection feedback/reason for faculty (or click OK to proceed):', 'Schedule or syllabus needs review.');
-            if (reason === null) {
-                if (btnElement) {
-                    btnElement.disabled = false;
-                    btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2 font-weight-bold';
-                    btnElement.innerHTML = '<i class="fas fa-times mr-1"></i> Reject';
-                    btnElement.onclick = function (e) { window.requestDeleteAnnouncement(id, btnElement, e); };
-                }
-                return;
+        const cleanTitle = details.cleanTitle || cleanApprovedTitle(item?.title || '');
+
+        // 1. Delete matching timetable slots from classes table
+        await _deleteExamSlotsFromClasses(sb, details);
+
+        // 2. Delete from announcements table
+        const { error: delErr } = await sb.from('announcements').delete().eq('id', id);
+        if (delErr) throw delErr;
+
+        // 3. Delete from academic_alerts table if present
+        try {
+            await sb.from('academic_alerts').delete().or('id.eq.' + id + ',id.eq.alert-' + id);
+            if (cleanTitle) {
+                await sb.from('academic_alerts').delete().ilike('title', '%' + cleanTitle + '%');
             }
+        } catch (_) {}
 
-            const { data: item } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
-            let cleanTitle = 'Test Schedule';
-            if (item && item.title) {
-                cleanTitle = cleanApprovedTitle(item.title);
+        // 4. Delete from pending_tests table if present
+        try {
+            if (cleanTitle) {
+                await sb.from('pending_tests').delete().ilike('title', '%' + cleanTitle + '%');
             }
+        } catch (_) {}
 
-            // Update pending_tests table if row exists
-            try {
-                await sb.from('pending_tests').update({
-                    status: 'rejected',
-                    rejected_at: new Date().toISOString(),
-                    rejection_reason: reason
-                }).ilike('title', '%' + cleanTitle + '%');
-            } catch (_) {}
+        // 5. Delete from notifications table
+        try {
+            await sb.from('notifications').delete().eq('id', id);
+        } catch (_) {}
 
-            // Update announcement to show Rejected status
-            await sb.from('announcements').update({
-                title: '[REJECTED] ' + cleanTitle,
-                description: 'Status: REJECTED by Admin\nFeedback: ' + reason + '\n\nOriginal Details:\n' + (item?.description || ''),
-                time_label: 'Rejected',
-                important: false,
-                icon: 'close-circle',
-                icon_bg: '#FEE2E2',
-                icon_color: '#DC2626'
-            }).eq('id', id);
+        // 6. Run comprehensive orphan cleanup to purge any lingering or orphaned test paper slots
+        await _purgeOrphanedTestPaperClasses(sb);
 
-            showBroadcastStatus('❌ Test submission rejected and marked as Rejected with feedback.');
-            await loadActiveBroadcasts();
-            return;
+        // 7. Broadcast Realtime events to both student and faculty apps
+        try {
+            const payload = {
+                id,
+                title: cleanTitle,
+                classGrade: details.targetClass,
+                examDate: details.examDateIso,
+                subject: details.subject,
+                deleted_at: new Date().toISOString()
+            };
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'exam_deleted',
+                payload
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'announcement_deleted',
+                payload
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'exam_deleted',
+                payload
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload
+            });
+        } catch (bcErr) {
+            console.warn('[MasterHub] Broadcast error on delete:', bcErr);
         }
 
-        const { error } = await sb.from('announcements').delete().eq('id', id);
-        if (error) {
-            showBroadcastStatus('Failed to delete announcement: ' + error.message, true);
-            if (btnElement) {
-                btnElement.disabled = false;
-                btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Delete';
-            }
-            return;
-        }
-
-        // Clean up matching notification row if any
-        try { await sb.from('notifications').delete().eq('id', id); } catch (_) {}
-
-        // Optimistically remove card from DOM immediately
-        const card = document.getElementById('pendingAnn_' + id)
-            || document.getElementById('annCard_' + id)
-            || (btnElement ? (btnElement.closest('.broadcast-card-item') || btnElement.closest('.broadcast-item')) : null);
+        // 8. Remove card from DOM
+        const card = document.getElementById('annCard_' + id)
+            || document.getElementById('pendingAnn_' + id)
+            || (btnElement ? btnElement.closest('.broadcast-card-item') : null);
         if (card) card.remove();
 
-        showBroadcastStatus('Announcement removed successfully from all student & teacher devices!');
+        showBroadcastStatus(isExam ? 'Exam deleted successfully from Admin, Student, and Faculty Portals & Timetable.' : 'Announcement deleted successfully.');
+
+        // 9. Refresh UI
         await loadActiveBroadcasts();
+
+        // 10. Refresh live timetable if available
+        if (typeof window.initLiveAppTimetable === 'function') {
+            window.initLiveAppTimetable('hubTimetablePlatform');
+            window.initLiveAppTimetable('liveTimetablePlatform');
+        }
     } catch (err) {
-        showBroadcastStatus('Error: ' + (err.message || err), true);
+        console.error('[MasterHub] Error deleting exam:', err);
+        showBroadcastStatus('Failed to delete: ' + (err.message || err), true);
+        alert('Failed to delete: ' + (err.message || err));
         if (btnElement) {
             btnElement.disabled = false;
             btnElement.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Delete';
@@ -1141,63 +1661,40 @@ window.executeDeleteAnnouncement = async function (id, btnElement, evt) {
     }
 };
 
-
-window.requestClearAll = function (btnElement, evt) {
-    if (evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-    }
-    if (!btnElement) return;
-
-    btnElement.className = 'btn btn-sm btn-danger px-3 py-2 font-weight-bold';
-    btnElement.innerHTML = '<i class="fas fa-exclamation-triangle mr-1" style="pointer-events: none;"></i> Really Clear ALL Announcements?';
-    btnElement.onclick = function (e) {
-        window.executeClearAll(btnElement, e);
-    };
-
-    setTimeout(function () {
-        if (btnElement && btnElement.innerHTML.includes('Really Clear')) {
-            btnElement.className = 'btn btn-sm btn-outline-danger px-3 py-2';
-            btnElement.innerHTML = '<i class="fas fa-broom mr-1" style="pointer-events: none;"></i> Clear All Announcements';
-            btnElement.onclick = function (e) {
-                window.requestClearAll(btnElement, e);
-            };
-        }
-    }, 6000);
-};
-
-window.executeClearAll = async function (btnElement, evt) {
-    if (evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-    }
+window.requestClearAll = async function (btnElement, evt) {
+    if (evt) { evt.preventDefault(); evt.stopPropagation(); }
+    const confirmed = confirm('Are you sure you want to clear ALL announcements and exam alerts? All scheduled exams will also be removed from Student and Faculty timetables.');
+    if (!confirmed) return;
 
     const sb = _getMasterHubSupabase();
-    if (!sb) {
-        showBroadcastStatus('Database connection not ready. Please reload the page.', true);
-        return;
-    }
+    if (!sb) return;
 
     if (btnElement) {
         btnElement.disabled = true;
-        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing all...';
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Clearing...';
     }
 
     try {
-        const { error } = await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-        if (error) {
-            showBroadcastStatus('Failed to clear announcements: ' + error.message, true);
-            if (btnElement) {
-                btnElement.disabled = false;
-                btnElement.innerHTML = '<i class="fas fa-broom mr-1"></i> Clear All Announcements';
-            }
-            return;
-        }
+        await sb.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        await sb.from('academic_alerts').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+        await sb.from('pending_tests').update({ status: 'rejected' }).eq('status', 'approved');
+        await _purgeOrphanedTestPaperClasses(sb);
 
-        showBroadcastStatus('All announcements and alerts cleared successfully!');
+        try {
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'announcement_deleted', payload: { all: true } });
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'exam_deleted', payload: { all: true } });
+            await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: { all: true } });
+            await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: { all: true } });
+        } catch (_) {}
+
+        showBroadcastStatus('All announcements and exam alerts removed successfully.');
         await loadActiveBroadcasts();
+        if (typeof window.initLiveAppTimetable === 'function') {
+            window.initLiveAppTimetable('hubTimetablePlatform');
+            window.initLiveAppTimetable('liveTimetablePlatform');
+        }
     } catch (err) {
-        showBroadcastStatus('Error: ' + (err.message || err), true);
+        alert('Failed to clear: ' + (err.message || err));
         if (btnElement) {
             btnElement.disabled = false;
             btnElement.innerHTML = '<i class="fas fa-broom mr-1"></i> Clear All Announcements';
@@ -1205,12 +1702,13 @@ window.executeClearAll = async function (btnElement, evt) {
     }
 };
 
-// Aliases for compatibility with any existing or delegated calls
-window.deleteAnnouncement = function (id, btn, e) { window.executeDeleteAnnouncement(id, btn, e); };
-window.deleteExamAlert = function (id, btn, e) { window.executeDeleteAnnouncement(id, btn, e); };
-window.clearAllAnnouncements = function (btn, e) { window.executeClearAll(btn, e); };
+window.executeDeleteAnnouncement = function (id, btn, e) {
+    window.requestDeleteAnnouncement(id, btn, e);
+};
+
+window.deleteAnnouncement = function (id, btn, e) { window.requestDeleteAnnouncement(id, btn, e); };
+window.deleteExamAlert = function (id, btn, e) { window.requestDeleteAnnouncement(id, btn, e); };
 window._doDeleteAnnouncement = window.deleteAnnouncement;
-window._doDeleteAllAnnouncements = window.clearAllAnnouncements;
 
 // Global fallback event delegation
 document.addEventListener('click', function (evt) {
@@ -2749,3 +3247,867 @@ document.addEventListener('click', function(e) {
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     setTimeout(loadAdminOpinions, 350);
 }
+
+
+// ─── ACTIVE ANNOUNCEMENT & LIVE ALERT EDIT CONTROLLER ────────────────────────
+
+window.ensureEditAnnouncementModalInDOM = function () {
+    if (document.getElementById('editAnnouncementModal')) return;
+
+    const modalHtml = `
+    <div class="modal fade" id="editAnnouncementModal" tabindex="-1" role="dialog" aria-labelledby="editAnnouncementModalLabel" aria-hidden="true" style="z-index: 1065;">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 14px; overflow: hidden;">
+                <div class="modal-header bg-primary text-white py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-edit fa-lg mr-2"></i>
+                        <div>
+                            <h5 class="modal-title font-weight-bold mb-0" id="editAnnouncementModalLabel">Edit Active Announcement & Live Alert</h5>
+                            <small class="text-white-50">Modify existing alert details and broadcast updates live to students and faculty</small>
+                        </div>
+                    </div>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="window.closeEditAnnouncementModal()" style="opacity: 0.9; outline: none;">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form id="editAnnouncementForm" onsubmit="window.handleSaveEditedAnnouncement(event)">
+                    <div class="modal-body p-4" style="max-height: 75vh; overflow-y: auto;">
+                        <input type="hidden" id="edit_ann_id" />
+
+                        <!-- Section 1: Classification & Target Scope -->
+                        <div class="card p-3 mb-3 border-0" style="background: #f8fafc; border-radius: 10px; border-left: 4px solid #3b82f6 !important;">
+                            <h6 class="font-weight-bold text-dark mb-2"><i class="fas fa-bullseye mr-1 text-primary"></i> Target Audience & Classification</h6>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-secondary">Priority / Alert Type</label>
+                                    <select class="form-control" id="edit_ann_type" onchange="window.toggleEditAnnTypeFields()">
+                                        <option value="exam">📅 Academic Exam / Test Alert</option>
+                                        <option value="urgent">🚨 Urgent Alert</option>
+                                        <option value="notice">📢 General Notice</option>
+                                        <option value="holiday">🌴 Holiday / Reschedule</option>
+                                        <option value="event">🏆 Event / Celebration</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-secondary">Target Class / Student Scope</label>
+                                    <select class="form-control" id="edit_ann_class">
+                                        <option value="All">All Students & Teachers</option>
+                                        <option value="Class 12">Class 12</option>
+                                        <option value="Class 11">Class 11</option>
+                                        <option value="Class 10">Class 10</option>
+                                        <option value="Class 9">Class 9</option>
+                                        <option value="Class 8">Class 8</option>
+                                        <option value="Class 7">Class 7</option>
+                                        <option value="Class 6">Class 6</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="font-weight-bold small text-secondary">Syllabus Stream Scope</label>
+                                    <select class="form-control" id="edit_ann_syllabus_stream">
+                                        <option value="Both">Both (State Syllabus & CBSE)</option>
+                                        <option value="State Syllabus">State Syllabus Only</option>
+                                        <option value="CBSE">CBSE Only</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="font-weight-bold small text-secondary">Subject (Optional)</label>
+                                    <input type="text" class="form-control" id="edit_ann_subject" placeholder="e.g. Computer Science, Physics, Mathematics" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Alert Title & Content -->
+                        <div class="form-group">
+                            <label class="font-weight-bold small text-secondary">Alert Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control font-weight-bold" id="edit_ann_title" placeholder="e.g. Unit 6 Revision / Physics Test" required />
+                        </div>
+
+                        <div class="form-group" id="edit_ann_msg_group">
+                            <label class="font-weight-bold small text-secondary">Message / Details Content</label>
+                            <textarea class="form-control" id="edit_ann_msg" rows="3" placeholder="Enter full announcement details to be shown on student and faculty dashboards..."></textarea>
+                        </div>
+
+                        <!-- Section 3: Academic Exam Specific Details -->
+                        <div id="edit_ann_exam_section" class="card p-3 mb-3 border-0" style="background: #fef2f2; border-radius: 10px; border-left: 4px solid #ef4444 !important;">
+                            <h6 class="font-weight-bold text-danger mb-2"><i class="fas fa-file-signature mr-1"></i> Academic Test & Exam Information</h6>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">📅 Exam Date</label>
+                                    <input type="date" class="form-control" id="edit_ann_exam_date" />
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">🎯 Max Marks</label>
+                                    <input type="number" class="form-control" id="edit_ann_max_marks" placeholder="100" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">📍 Venue / Room</label>
+                                    <input type="text" class="form-control" id="edit_ann_venue" placeholder="e.g. Exam Hall 1, Room 204" />
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">👨‍🏫 Faculty / Submitted By</label>
+                                    <input type="text" class="form-control" id="edit_ann_author" placeholder="e.g. Faculty Member / Center Admin" />
+                                </div>
+                            </div>
+                            <div class="form-group mb-0">
+                                <label class="font-weight-bold small text-dark">📚 Prescribed Syllabus (Chapters / Portion)</label>
+                                <textarea class="form-control" id="edit_ann_syllabus" rows="2" placeholder="e.g. Unit 6: Object Oriented Programming&#10;Unit 7: Data Structures"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Schedule, Timing & Visibility Dates -->
+                        <div class="card p-3 mb-3 border-0 shadow-sm" style="background: #eff6ff; border-radius: 10px; border-left: 4px solid #2563eb !important;">
+                            <h6 class="font-weight-bold text-primary mb-2">
+                                <i class="fas fa-calendar-alt mr-1"></i> Schedule & Alert Visibility Dates
+                            </h6>
+                            <div class="row">
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">Show From Date (Start Date)</label>
+                                    <input type="date" class="form-control" id="edit_ann_start_date" />
+                                    <small class="text-muted">Alert appears on student devices from this date onwards.</small>
+                                </div>
+                                <div class="col-md-6 form-group">
+                                    <label class="font-weight-bold small text-dark">Valid Until Date (End Date / Expiry)</label>
+                                    <input type="date" class="form-control" id="edit_ann_end_date" />
+                                    <small class="text-muted">Alert automatically disappears after this date passes.</small>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="font-weight-bold small text-dark">⏰ Start Time</label>
+                                    <input type="text" class="form-control" id="edit_ann_start_time" placeholder="e.g. 11:30 AM" />
+                                </div>
+                                <div class="col-md-6 form-group mb-0">
+                                    <label class="font-weight-bold small text-dark">⏰ End Time</label>
+                                    <input type="text" class="form-control" id="edit_ann_end_time" placeholder="e.g. 1:00 PM" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 5: Display Settings -->
+                        <div class="row">
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-secondary">Display Badge / Time Label</label>
+                                <input type="text" class="form-control" id="edit_ann_time_label" placeholder="e.g. Just now, Exam: Sat, Oct 10, 2026" />
+                            </div>
+                            <div class="col-md-6 form-group">
+                                <label class="font-weight-bold small text-secondary">Display Icon</label>
+                                <select class="form-control" id="edit_ann_icon">
+                                    <option value="calendar">📅 Calendar (Exam / Date)</option>
+                                    <option value="megaphone">📢 Megaphone (Notice / Broadcast)</option>
+                                    <option value="trophy">🏆 Trophy (Event / Award)</option>
+                                    <option value="bell">🔔 Bell (Alert)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="custom-control custom-switch mt-2">
+                            <input type="checkbox" class="custom-control-input" id="edit_ann_important">
+                            <label class="custom-control-label font-weight-bold text-dark" for="edit_ann_important">
+                                Mark as High Priority / Highlighted Alert Banner
+                            </label>
+                            <small class="d-block text-muted">Pins this announcement at the top of the mobile home screen.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="window.closeEditAnnouncementModal()">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary font-weight-bold px-4 shadow-sm" id="saveEditAnnBtn">
+                            <i class="fas fa-save mr-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    `;
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = modalHtml;
+    document.body.appendChild(wrapper.firstElementChild);
+};
+
+window.toggleEditAnnTypeFields = function () {
+    const type = document.getElementById('edit_ann_type')?.value || 'notice';
+    const examSection = document.getElementById('edit_ann_exam_section');
+    const iconSelect = document.getElementById('edit_ann_icon');
+    const importantCheck = document.getElementById('edit_ann_important');
+
+    if (examSection) {
+        if (type === 'exam') {
+            examSection.style.display = 'block';
+            if (iconSelect && (!iconSelect.value || iconSelect.value === 'megaphone')) {
+                iconSelect.value = 'calendar';
+            }
+        } else {
+            // Keep accessible or slightly faded for non-exams
+            examSection.style.display = 'none';
+        }
+    }
+};
+
+window.openEditAnnouncementModal = async function (id, btn, e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (!id) return;
+
+    window.ensureEditAnnouncementModalInDOM();
+
+    const sb = _getMasterHubSupabase();
+    let item = null;
+
+    if (window._allLoadedAnnouncements && Array.isArray(window._allLoadedAnnouncements)) {
+        item = window._allLoadedAnnouncements.find(a => String(a.id) === String(id));
+    }
+
+    if (!item && sb) {
+        try {
+            const { data, error } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+            if (!error && data) item = data;
+        } catch (fetchErr) {
+            console.warn('[MasterHub] Error fetching announcement for edit:', fetchErr);
+        }
+    }
+
+    if (!item) {
+        alert('Could not find announcement details. Please refresh the page.');
+        return;
+    }
+
+    const rawTitle = item.title || '';
+    const desc = item.description || '';
+
+    // Helpers to parse date to YYYY-MM-DD
+    function toIso(dateInput) {
+        if (!dateInput) return '';
+        const clean = String(dateInput).trim();
+        const isoM = clean.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (isoM) {
+            return isoM[1] + '-' + isoM[2].padStart(2, '0') + '-' + isoM[3].padStart(2, '0');
+        }
+        const d = new Date(clean);
+        if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + day;
+        }
+        return '';
+    }
+
+    // 1. Determine Type
+    let type = 'notice';
+    const isExam = /exam|test|unit\s*test|paper/i.test(rawTitle)
+        || /exam\s*date|max\s*marks|syllabus/i.test(desc)
+        || item.icon === 'calendar';
+    if (isExam) type = 'exam';
+    else if (item.important || /urgent/i.test(rawTitle)) type = 'urgent';
+    else if (item.icon === 'calendar' || /holiday/i.test(rawTitle)) type = 'holiday';
+    else if (item.icon === 'trophy' || /event/i.test(rawTitle)) type = 'event';
+
+    // 2. Class Scope
+    let targetClass = 'All';
+    const clsMatch = rawTitle.match(/\[(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i)
+        || rawTitle.match(/\[Exam Alert\s*-\s*(Class\s*\d{1,2})\]/i)
+        || desc.match(/(?:Class|Grade):\s*([^\n\r|,]+)/i);
+    if (clsMatch) {
+        targetClass = clsMatch[1].trim();
+        if (targetClass === 'All Classes') targetClass = 'All';
+    }
+
+    // 3. Syllabus Stream Scope
+    let syllabusStream = 'Both';
+    const sylStreamMatch = rawTitle.match(/\[(State Syllabus|CBSE|Both)\]/i)
+        || desc.match(/(?:Syllabus Stream|Stream):\s*(State Syllabus|CBSE|Both)/i);
+    if (sylStreamMatch) {
+        syllabusStream = sylStreamMatch[1];
+    } else if (/State Syllabus/i.test(desc) && !desc.match(/Syllabus:\s*(?!State Syllabus)/i)) {
+        syllabusStream = 'State Syllabus';
+    } else if (/CBSE/i.test(desc) && !desc.match(/Syllabus:\s*(?!CBSE)/i)) {
+        syllabusStream = 'CBSE';
+    }
+
+    // 4. Subject
+    let subject = '';
+    const subMatch = rawTitle.match(/\(([^)]+)\)$/)
+        || desc.match(/Subject:\s*([^\n\r|]+)/i);
+    if (subMatch) {
+        subject = subMatch[1].trim();
+    }
+
+    // 5. Clean Title
+    let cleanTitle = rawTitle
+        .replace(/\[PENDING APPROVAL[^\]]*\]/gi, '')
+        .replace(/\[Exam Alert[^\]]*\]/gi, '')
+        .replace(/\[Test Alert\]/gi, '')
+        .replace(/\[Class\s*[^\]]+\]/gi, '')
+        .replace(/\[State Syllabus\]/gi, '')
+        .replace(/\[CBSE\]/gi, '')
+        .replace(/\[Both\]/gi, '')
+        .replace(/\[REJECTED[^\]]*\]/gi, '')
+        .trim();
+    if (subject && cleanTitle.endsWith('(' + subject + ')')) {
+        cleanTitle = cleanTitle.slice(0, -(subject.length + 2)).trim();
+    }
+
+    // 6. Dates
+    const examDateMatch = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i);
+    const examDateIso = examDateMatch ? toIso(examDateMatch[1].trim()) : '';
+
+    const showFromMatch = desc.match(/(?:Show From|Start Date|Visible From)\s*:\s*([^\n\r|]+)/i);
+    const showFromIso = showFromMatch ? toIso(showFromMatch[1].trim()) : '';
+
+    const stopDateMatch = desc.match(/(?:Valid Until|Stop Date|Expiry Date|Expiry)\s*:\s*([^\n\r|]+)/i);
+    const stopDateIso = stopDateMatch ? toIso(stopDateMatch[1].trim()) : (examDateIso || '');
+
+    // 7. Times
+    let startTime = '';
+    let endTime = '';
+    const timeMatch = desc.match(/(?:Time|Exam Time):\s*([^\n\r|]+)/i);
+    if (timeMatch) {
+        const timeSlot = timeMatch[1].trim();
+        const parts = timeSlot.split(/\s*[-–]\s*/);
+        if (parts.length >= 1) startTime = parts[0].trim();
+        if (parts.length >= 2) endTime = parts[1].trim();
+    }
+
+    // 8. Venue & Marks & Author & Syllabus
+    const marksMatch = desc.match(/(?:Max|Total)\s*Marks:\s*([^\n\r|]+)/i);
+    const maxMarks = marksMatch ? parseInt(marksMatch[1].trim(), 10) || 100 : 100;
+
+    const venueMatch = desc.match(/(?:Venue|Room):\s*([^\n\r|]+)/i);
+    const venue = venueMatch ? venueMatch[1].trim() : 'Exam Hall 1';
+
+    const authorMatch = desc.match(/(?:Submitted by|Faculty|Author|Teacher|By):\s*([^\n\r|]+)/i);
+    const author = authorMatch ? authorMatch[1].trim() : (item.author || 'Center Admin');
+
+    const sylMatch = desc.match(/Syllabus:\s*([^\n\r]+)/i);
+    let syllabusText = sylMatch ? sylMatch[1].trim() : '';
+    if (syllabusText === 'State Syllabus' || syllabusText === 'CBSE' || syllabusText === 'Both') {
+        // If syllabus field only mirrored the stream name, preserve stream and let chapters be editable
+        if (!sylStreamMatch) syllabusStream = syllabusText;
+    }
+
+    // 9. Clean Message
+    const metaRegex = /(?:Exam\s*Date|Subject|Max\s*Marks|Venue|Syllabus|Show\s*From|Valid\s*Until|Time|Submitted\s*by):[^\n\r]*/gi;
+    let cleanMsg = desc.replace(metaRegex, '').replace(/\|/g, '').trim();
+
+    // Fill form
+    document.getElementById('edit_ann_id').value = item.id;
+    document.getElementById('edit_ann_type').value = type;
+
+    // Target Class dropdown
+    const classSelect = document.getElementById('edit_ann_class');
+    if (classSelect) {
+        let found = false;
+        for (let i = 0; i < classSelect.options.length; i++) {
+            if (classSelect.options[i].value.toLowerCase() === targetClass.toLowerCase()) {
+                classSelect.selectedIndex = i;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            const opt = document.createElement('option');
+            opt.value = targetClass;
+            opt.textContent = targetClass;
+            opt.selected = true;
+            classSelect.appendChild(opt);
+        }
+    }
+
+    document.getElementById('edit_ann_syllabus_stream').value = syllabusStream;
+    document.getElementById('edit_ann_subject').value = subject;
+    document.getElementById('edit_ann_title').value = cleanTitle || rawTitle;
+    document.getElementById('edit_ann_msg').value = cleanMsg;
+
+    document.getElementById('edit_ann_exam_date').value = examDateIso;
+    document.getElementById('edit_ann_max_marks').value = maxMarks;
+    document.getElementById('edit_ann_venue').value = venue;
+    document.getElementById('edit_ann_author').value = author;
+    document.getElementById('edit_ann_syllabus').value = syllabusText;
+    const instrMatch = desc.match(/Instructions?:\s*([^\n\r]+)/i);
+    const instrEl = document.getElementById('edit_ann_instructions');
+    if (instrEl) instrEl.value = instrMatch ? instrMatch[1].trim() : '';
+
+    document.getElementById('edit_ann_start_date').value = showFromIso;
+    document.getElementById('edit_ann_end_date').value = stopDateIso;
+    document.getElementById('edit_ann_start_time').value = startTime;
+    document.getElementById('edit_ann_end_time').value = endTime;
+
+    document.getElementById('edit_ann_time_label').value = item.time_label || 'Just now';
+    document.getElementById('edit_ann_icon').value = item.icon || (type === 'exam' ? 'calendar' : 'megaphone');
+    document.getElementById('edit_ann_important').checked = !!item.important;
+
+    window.toggleEditAnnTypeFields();
+
+    // Show modal using jQuery / Bootstrap or Vanilla fallback
+    if (typeof $ !== 'undefined' && typeof $('#editAnnouncementModal').modal === 'function') {
+        $('#editAnnouncementModal').modal('show');
+    } else {
+        const m = document.getElementById('editAnnouncementModal');
+        if (m) {
+            m.style.display = 'block';
+            m.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('editAnnBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'editAnnBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+    }
+};
+
+window.closeEditAnnouncementModal = function () {
+    if (typeof $ !== 'undefined' && typeof $('#editAnnouncementModal').modal === 'function') {
+        $('#editAnnouncementModal').modal('hide');
+    }
+    const m = document.getElementById('editAnnouncementModal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('editAnnBackdrop');
+    if (backdrop) backdrop.remove();
+};
+
+window.handleSaveEditedAnnouncement = async function (e) {
+    if (e) e.preventDefault();
+
+    const id = document.getElementById('edit_ann_id').value;
+    const type = document.getElementById('edit_ann_type').value;
+    const targetClass = document.getElementById('edit_ann_class').value;
+    const syllabusStream = document.getElementById('edit_ann_syllabus_stream').value;
+    const subject = document.getElementById('edit_ann_subject').value.trim();
+    const title = document.getElementById('edit_ann_title').value.trim();
+    const message = document.getElementById('edit_ann_msg').value.trim();
+
+    const examDate = document.getElementById('edit_ann_exam_date').value;
+    const maxMarks = document.getElementById('edit_ann_max_marks').value || '100';
+    const venue = document.getElementById('edit_ann_venue').value.trim() || 'Exam Hall 1';
+    const author = document.getElementById('edit_ann_author').value.trim() || 'Center Admin';
+    const syllabus = document.getElementById('edit_ann_syllabus').value.trim();
+    const instructions = document.getElementById('edit_ann_instructions') ? document.getElementById('edit_ann_instructions').value.trim() : '';
+
+    const startDate = document.getElementById('edit_ann_start_date').value;
+    const endDate = document.getElementById('edit_ann_end_date').value;
+    const startTime = document.getElementById('edit_ann_start_time').value.trim();
+    const endTime = document.getElementById('edit_ann_end_time').value.trim();
+
+    const timeLabelInput = document.getElementById('edit_ann_time_label').value.trim();
+    const iconInput = document.getElementById('edit_ann_icon').value;
+    const isImportant = document.getElementById('edit_ann_important').checked;
+
+    if (!id) {
+        alert('Missing announcement ID. Please try again.');
+        return;
+    }
+    if (!title) {
+        alert('Please enter an Announcement / Alert Title.');
+        return;
+    }
+
+    const saveBtn = document.getElementById('saveEditAnnBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving Changes...';
+    }
+
+    try {
+        const sb = _getMasterHubSupabase();
+        if (!sb) throw new Error('Supabase client not initialized. Please refresh.');
+
+        // Format friendly exam date (e.g. Sat, Oct 10, 2026)
+        let friendlyExamDate = examDate;
+        if (examDate) {
+            try {
+                const parts = examDate.split('-');
+                const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                friendlyExamDate = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+            } catch (_) {}
+        }
+
+        // Construct combined time slot if both start & end exist
+        let timeSlot = '';
+        if (startTime && endTime) {
+            timeSlot = startTime + ' - ' + endTime;
+        } else if (startTime) {
+            timeSlot = startTime;
+        }
+
+        // Build Title
+        let fullTitle = '';
+        if (type === 'exam') {
+            const classPrefix = targetClass !== 'All' ? '[' + targetClass + ']' : '[All Classes]';
+            const syllabusPrefix = syllabusStream && syllabusStream !== 'Both' ? '[' + syllabusStream + '] ' : '';
+            const subjectSuffix = subject ? ' (' + subject + ')' : '';
+            fullTitle = classPrefix + ' [Test Alert] ' + syllabusPrefix + title + subjectSuffix;
+        } else {
+            const classPrefix = targetClass !== 'All' ? '[' + targetClass + '] ' : '';
+            const syllabusPrefix = syllabusStream && syllabusStream !== 'Both' ? '[' + syllabusStream + '] ' : '';
+            fullTitle = classPrefix + syllabusPrefix + title;
+        }
+
+        // Build Description
+        let fullDesc = '';
+        if (type === 'exam') {
+            const lines = [];
+            if (friendlyExamDate) lines.push('Exam Date: ' + friendlyExamDate);
+            if (subject) lines.push('Subject: ' + subject);
+            lines.push('Max Marks: ' + maxMarks);
+            if (venue) lines.push('Venue: ' + venue);
+            const sylContent = syllabus || (syllabusStream !== 'Both' ? syllabusStream : 'Full Syllabus');
+            lines.push('Syllabus: ' + sylContent);
+            if (instructions) lines.push('Instructions: ' + instructions);
+            if (startDate) lines.push('Show From: ' + startDate);
+            if (endDate) lines.push('Valid Until: ' + endDate);
+            if (timeSlot) lines.push('Time: ' + timeSlot);
+            if (message) lines.push(message);
+            if (author) lines.push('Submitted by: ' + author);
+            fullDesc = lines.join('\n');
+        } else {
+            const lines = [];
+            if (message) lines.push(message);
+            if (startDate) lines.push('Show From: ' + startDate);
+            if (endDate) lines.push('Valid Until: ' + endDate);
+            if (timeSlot) lines.push('Time: ' + timeSlot);
+            fullDesc = lines.join('\n');
+        }
+
+        // Build Icons & Badge
+        let icon = iconInput || 'megaphone';
+        let iconBg = '#F8FAFC';
+        let iconColor = '#475467';
+        let timeLabel = timeLabelInput || 'Just now';
+
+        if (type === 'exam') {
+            icon = 'calendar';
+            iconBg = '#EFF6FF';
+            iconColor = '#1A56DB';
+            if (!timeLabelInput && friendlyExamDate) {
+                timeLabel = 'Exam: ' + friendlyExamDate;
+            }
+        } else if (type === 'urgent') {
+            icon = 'megaphone';
+            iconBg = '#FEF3F2';
+            iconColor = '#F04438';
+            if (!timeLabelInput) timeLabel = 'Urgent Alert';
+        } else if (type === 'holiday') {
+            icon = 'calendar';
+            iconBg = '#ECFDF5';
+            iconColor = '#10B981';
+            if (!timeLabelInput) timeLabel = 'Notice';
+        } else if (type === 'event') {
+            icon = 'trophy';
+            iconBg = '#EFF6FF';
+            iconColor = '#3B82F6';
+            if (!timeLabelInput) timeLabel = 'Event';
+        }
+
+        const updatePayload = {
+            title: fullTitle,
+            description: fullDesc,
+            time_label: timeLabel,
+            icon: icon,
+            icon_bg: iconBg,
+            icon_color: iconColor,
+            important: isImportant
+        };
+        // 1. Update announcement in Supabase
+        const { error: updateErr } = await sb.from('announcements').update(updatePayload).eq('id', id);
+        if (updateErr) throw updateErr;
+
+        // 2. If it's an Exam / Test alert, sync to timetable 'classes' table
+        if (type === 'exam' && examDate) {
+            try {
+                const classTag = targetClass !== 'All' ? targetClass : 'Class 10';
+                const subTag = subject || 'General';
+                const examTimeStr = timeSlot || '11:30 AM - 12:00 PM';
+
+                // Remove previous slot if matching
+                await sb.from('classes')
+                    .delete()
+                    .eq('class_grade', classTag)
+                    .eq('class_date', examDate)
+                    .eq('subject', subTag);
+
+                // Insert updated Test Paper slot
+                await sb.from('classes').insert({
+                    roll_no: classTag,
+                    class_grade: classTag,
+                    subject: subTag,
+                    class_date: examDate,
+                    time: examTimeStr + ' • Test Paper • ' + author,
+                    status: 'upcoming:TP',
+                    published: true
+                });
+            } catch (clsErr) {
+                console.warn('[MasterHub] Error updating classes slot for edited test:', clsErr);
+            }
+        }
+
+        // 3. Send Supabase Realtime broadcast
+        try {
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'announcement_updated',
+                payload: { id, title: fullTitle, updated_at: new Date().toISOString() }
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'exam_updated',
+                payload: { id, title: fullTitle, updated_at: new Date().toISOString() }
+            });
+        } catch (be) {
+            console.warn('[MasterHub] Realtime broadcast error:', be);
+        }
+
+        // Close modal
+        window.closeEditAnnouncementModal();
+
+        // Show confirmation message
+        showBroadcastStatus('✅ Announcement "' + title + '" updated successfully! Changes immediately reflect across all student & faculty portals.');
+
+        // Refresh feed
+        await loadActiveBroadcasts();
+
+        // Refresh live timetable if available
+        if (typeof window.initLiveAppTimetable === 'function') {
+            window.initLiveAppTimetable('hubTimetablePlatform');
+            window.initLiveAppTimetable('liveTimetablePlatform');
+        }
+    } catch (err) {
+        console.error('[MasterHub] Error updating announcement:', err);
+        showBroadcastStatus('Failed to update announcement: ' + (err.message || err), true);
+        alert('Failed to save announcement: ' + (err.message || err));
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Changes';
+        }
+    }
+};
+
+// Global click delegation for Edit buttons
+document.addEventListener('click', function (evt) {
+    const editBtn = evt.target.closest('.btn-edit-ann');
+    if (editBtn) {
+        const annId = editBtn.getAttribute('data-id');
+        if (annId) {
+            window.openEditAnnouncementModal(annId, editBtn, evt);
+        }
+    }
+});
+
+
+// ─── ACTIVE ANNOUNCEMENT & LIVE ALERT VIEW CONTROLLER ────────────────────────
+
+window._currentlyViewedAnnouncementId = null;
+
+window.openViewAnnouncementModal = async function (id, btn, e) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    if (!id) return;
+
+    window._currentlyViewedAnnouncementId = id;
+
+    const sb = _getMasterHubSupabase();
+    let item = null;
+    if (window._allLoadedAnnouncements && Array.isArray(window._allLoadedAnnouncements)) {
+        item = window._allLoadedAnnouncements.find(a => String(a.id) === String(id));
+    }
+    if (!item && sb) {
+        try {
+            const { data } = await sb.from('announcements').select('*').eq('id', id).maybeSingle();
+            if (data) item = data;
+        } catch (_) {}
+    }
+    if (!item) {
+        alert('Could not load announcement details. Please refresh the page.');
+        return;
+    }
+
+    const rawTitle = item.title || '';
+    const desc = item.description || '';
+
+    // Determine type
+    const isExam = /exam|test|test alert|exam alert|test paper/i.test(rawTitle)
+        || /exam\s*date|max\s*marks|syllabus/i.test(desc)
+        || item.icon === 'calendar';
+
+    // Parse class scope
+    let classTag = 'All Classes';
+    const clsMatch = rawTitle.match(/\[(Class\s*\d{1,2}(?:-[A-Za-z0-9]+)?|All Classes)\]/i)
+        || rawTitle.match(/\[Exam Alert\s*-\s*(Class\s*\d{1,2})\]/i)
+        || desc.match(/(?:Class|Grade):\s*([^\n\r|,]+)/i);
+    if (clsMatch) classTag = clsMatch[1].trim();
+
+    // Parse syllabus stream
+    let streamTag = 'Both Streams';
+    const sylStreamMatch = rawTitle.match(/\[(State Syllabus|CBSE|Both)\]/i)
+        || desc.match(/(?:Syllabus Stream|Stream):\s*(State Syllabus|CBSE|Both)/i);
+    if (sylStreamMatch) streamTag = sylStreamMatch[1];
+
+    // Parse subject
+    let subject = '';
+    const subMatch = rawTitle.match(/\(([^)]+)\)$/)
+        || desc.match(/Subject:\s*([^\n\r|]+)/i);
+    if (subMatch) subject = subMatch[1].trim();
+
+    // Clean title
+    let cleanTitle = rawTitle
+        .replace(/\[PENDING APPROVAL[^\]]*\]/gi, '')
+        .replace(/\[Exam Alert[^\]]*\]/gi, '')
+        .replace(/\[Test Alert\]/gi, '')
+        .replace(/\[Class\s*[^\]]+\]/gi, '')
+        .replace(/\[State Syllabus\]/gi, '')
+        .replace(/\[CBSE\]/gi, '')
+        .replace(/\[Both\]/gi, '')
+        .replace(/\[REJECTED[^\]]*\]/gi, '')
+        .trim();
+
+    // Author
+    const authorMatch = desc.match(/(?:Submitted by|Faculty|Author|Teacher|By):\s*([^\n\r|]+)/i);
+    const author = authorMatch ? authorMatch[1].trim() : (item.author || 'Super Admin');
+
+    // Dates & Times
+    const examDateMatch = desc.match(/(?:Exam\s*Date|ExamDate|Date)\s*:\s*([^\n\r|]+)/i);
+    const examDate = examDateMatch ? examDateMatch[1].trim() : '-';
+
+    const marksMatch = desc.match(/(?:Max|Total)\s*Marks:\s*([^\n\r|]+)/i);
+    const maxMarks = marksMatch ? marksMatch[1].trim() : '100';
+
+    const venueMatch = desc.match(/(?:Venue|Room):\s*([^\n\r|]+)/i);
+    const venue = venueMatch ? venueMatch[1].trim() : 'Exam Hall 1';
+
+    const timeMatch = desc.match(/(?:Time|Exam Time):\s*([^\n\r|]+)/i);
+    const timeSlot = timeMatch ? timeMatch[1].trim() : '-';
+
+    const sylMatch = desc.match(/Syllabus:\s*([^\n\r]+)/i);
+    const syllabus = sylMatch ? sylMatch[1].trim() : streamTag;
+
+    const instrMatch = desc.match(/Instructions?:\s*([^\n\r]+)/i);
+
+    // Populate modal DOM elements
+    const titleEl = document.getElementById('view_ann_title');
+    if (titleEl) titleEl.textContent = cleanTitle || rawTitle;
+
+    const authorEl = document.getElementById('view_ann_author');
+    if (authorEl) authorEl.textContent = author;
+
+    const updatedEl = document.getElementById('view_ann_updated_at');
+    if (updatedEl) updatedEl.textContent = item.time_label || (item.created_at ? new Date(item.created_at).toLocaleString() : 'Just now');
+
+    const typeBadge = document.getElementById('view_ann_type_badge');
+    if (typeBadge) {
+        if (isExam) {
+            typeBadge.className = 'badge badge-danger font-weight-bold';
+            typeBadge.innerHTML = '<i class="fas fa-calendar-alt mr-1"></i>Academic Exam Alert';
+        } else {
+            typeBadge.className = 'badge badge-primary font-weight-bold';
+            typeBadge.innerHTML = '<i class="fas fa-bullhorn mr-1"></i>Global Broadcast';
+        }
+    }
+
+    const scopeBadge = document.getElementById('view_ann_scope_badge');
+    if (scopeBadge) scopeBadge.textContent = classTag;
+
+    const streamBadge = document.getElementById('view_ann_stream_badge');
+    if (streamBadge) streamBadge.textContent = streamTag;
+
+    // Exam section
+    const examSec = document.getElementById('view_ann_exam_details');
+    if (examSec) {
+        if (isExam) {
+            examSec.style.display = 'block';
+            const edEl = document.getElementById('view_ann_exam_date');
+            if (edEl) edEl.textContent = examDate;
+            const esEl = document.getElementById('view_ann_subject');
+            if (esEl) esEl.textContent = subject || 'General';
+            const emEl = document.getElementById('view_ann_max_marks');
+            if (emEl) emEl.textContent = maxMarks;
+            const evEl = document.getElementById('view_ann_venue');
+            if (evEl) evEl.textContent = venue;
+            const etEl = document.getElementById('view_ann_time_slot');
+            if (etEl) etEl.textContent = timeSlot;
+            const eyEl = document.getElementById('view_ann_syllabus');
+            if (eyEl) eyEl.textContent = syllabus;
+
+            const instrBox = document.getElementById('view_ann_instructions_box');
+            if (instrBox) {
+                if (instrMatch) {
+                    instrBox.style.display = 'block';
+                    const inEl = document.getElementById('view_ann_instructions');
+                    if (inEl) inEl.textContent = instrMatch[1].trim();
+                } else {
+                    instrBox.style.display = 'none';
+                }
+            }
+        } else {
+            examSec.style.display = 'none';
+        }
+    }
+
+    // Clean Message
+    const metaRegex = /(?:Exam\s*Date|Subject|Max\s*Marks|Venue|Syllabus|Show\s*From|Valid\s*Until|Time|Submitted\s*by|Instructions?):[^\n\r]*/gi;
+    let cleanMsg = desc.replace(metaRegex, '').replace(/\|/g, '').trim();
+    const msgEl = document.getElementById('view_ann_message');
+    if (msgEl) {
+        msgEl.textContent = cleanMsg || (isExam ? 'This academic exam is scheduled and active for students.' : 'General announcement broadcasted to students and teachers.');
+    }
+
+    // Show modal using Bootstrap or Vanilla fallback
+    if (typeof $ !== 'undefined' && typeof $('#viewAnnouncementModal').modal === 'function') {
+        $('#viewAnnouncementModal').modal('show');
+    } else {
+        const m = document.getElementById('viewAnnouncementModal');
+        if (m) {
+            m.style.display = 'block';
+            m.classList.add('show');
+            document.body.classList.add('modal-open');
+            let backdrop = document.getElementById('viewAnnBackdrop');
+            if (!backdrop) {
+                backdrop = document.createElement('div');
+                backdrop.id = 'viewAnnBackdrop';
+                backdrop.className = 'modal-backdrop fade show';
+                document.body.appendChild(backdrop);
+            }
+        }
+    }
+};
+
+window.closeViewAnnouncementModal = function () {
+    if (typeof $ !== 'undefined' && typeof $('#viewAnnouncementModal').modal === 'function') {
+        $('#viewAnnouncementModal').modal('hide');
+    }
+    const m = document.getElementById('viewAnnouncementModal');
+    if (m) {
+        m.style.display = 'none';
+        m.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    const backdrop = document.getElementById('viewAnnBackdrop');
+    if (backdrop) backdrop.remove();
+};
+
+window.switchToEditFromViewModal = function () {
+    const id = window._currentlyViewedAnnouncementId;
+    window.closeViewAnnouncementModal();
+    if (id) {
+        setTimeout(function() {
+            window.openEditAnnouncementModal(id);
+        }, 200);
+    }
+};

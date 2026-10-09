@@ -1,3 +1,50 @@
+
+// ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
+async function sendExpoPushNotification({ title, message, targetClass = 'All' }) {
+    try {
+        const sb = _getSupabaseClient();
+        if (!sb) return;
+
+        let query = sb.from('push_tokens').select('push_token, class');
+        if (targetClass && targetClass !== 'All') {
+            const cleanTarget = String(targetClass).replace(/[^0-9]/g, '');
+            if (cleanTarget) {
+                query = query.or('class.eq.' + cleanTarget + ',class.ilike.%' + targetClass + '%');
+            }
+        }
+
+        const { data: rows, error: tokenErr } = await query;
+        if (tokenErr || !rows || rows.length === 0) return;
+
+        const uniqueTokens = Array.from(new Set(rows.map(r => r.push_token).filter(Boolean)));
+        if (uniqueTokens.length === 0) return;
+
+        console.log('[Push] Dispatching push notification to ' + uniqueTokens.length + ' devices...');
+
+        const messages = uniqueTokens.map(tok => ({
+            to: tok,
+            sound: 'default',
+            title: title,
+            body: message,
+            channelId: 'default',
+            priority: 'high',
+        }));
+
+        const chunkSize = 100;
+        for (let i = 0; i < messages.length; i += chunkSize) {
+            const chunk = messages.slice(i, i + chunkSize);
+            fetch('https://exp.host/--/api/v2/push/send', {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'text/plain',
+                },
+                body: JSON.stringify(chunk),
+            }).catch(() => {});
+        }
+    } catch (_) {}
+}
+
 function _formatToDateInputValue(dateStr) {
     if (!dateStr) return '';
     const trimmed = String(dateStr).trim();
@@ -4604,6 +4651,18 @@ window.approvePendingTest = async function(testId, rowId, classTag, subject) {
             status: 'upcoming:TP',
             published: true,
         });
+        try {
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: { examDate, subject, classGrade: classTag }
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: { examDate, subject, classGrade: classTag }
+            });
+        } catch (_) {}
         alert('Test approved and broadcast to students!');
         window.loadPendingTests();
     } catch (e) {
@@ -4612,12 +4671,62 @@ window.approvePendingTest = async function(testId, rowId, classTag, subject) {
 };
 
 window.rejectPendingTest = async function(rowId) {
-    if (!confirm('Reject this test request?')) return;
+    if (!confirm('Are you sure you want to reject this exam?')) return;
     const sb = _getSupabaseClient();
     if (!sb) return;
     try {
+        const { data: pt } = await sb.from('pending_tests').select('*').eq('id', rowId).maybeSingle();
         await sb.from('pending_tests').update({ status: 'rejected', rejected_at: new Date().toISOString() }).eq('id', rowId);
-        alert('Test request rejected.');
+        
+        // Also update matching announcement to [REJECTED] if any
+        if (pt && pt.title) {
+            try {
+                await sb.from('announcements').update({
+                    title: '[REJECTED] ' + pt.title,
+                    time_label: 'Rejected',
+                    important: false,
+                    icon: 'close-circle',
+                    icon_bg: '#FEE2E2',
+                    icon_color: '#DC2626'
+                }).ilike('title', '%' + pt.title + '%');
+            } catch (_) {}
+        }
+
+        // Clean up matching test slot from classes timetable
+        if (pt) {
+            const sub = pt.subject || '';
+            const cTag = pt.class_tag || pt.class_name || '';
+            if (sub) {
+                await sb.from('classes').delete().eq('subject', sub).ilike('time', '%Test Paper%');
+            }
+            if (cTag && sub) {
+                await sb.from('classes').delete().eq('class_grade', cTag).eq('subject', sub).ilike('time', '%Test Paper%');
+            }
+        }
+
+        try {
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'announcement_rejected',
+                payload: { title: pt?.title, rejected_at: new Date().toISOString() }
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'exam_deleted',
+                payload: { title: pt?.title, rejected_at: new Date().toISOString() }
+            });
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: { rejected_at: new Date().toISOString() }
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: { rejected_at: new Date().toISOString() }
+            });
+        } catch (_) {}
+        alert('Exam rejected successfully.');
         window.loadPendingTests();
     } catch (e) {
         alert('Failed to reject: ' + (e.message || e));
