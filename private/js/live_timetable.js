@@ -1263,12 +1263,14 @@
                         important: true
                     });
 
-                    // Dispatch push notification to students of this class
+                    // Dispatch push notification to students of this class and syllabus
                     if (typeof sendExpoPushNotification === 'function') {
+                        const sylSuffix = targetSyl && targetSyl !== 'Both' ? ' (' + targetSyl + ')' : '';
                         await sendExpoPushNotification({
-                            title: `🔄 Schedule Update: ${classGrade} - ${subject}`,
+                            title: `🔄 Schedule Update: ${classGrade} - ${subject}${sylSuffix}`,
                             message: `Class date: ${_friendlyDate(classDate)} | Time: ${timeStr}${facultyName ? ' with ' + facultyName : ''}`,
-                            targetClass: classGrade
+                            targetClass: classGrade,
+                            targetSyllabus: targetSyl
                         });
                     }
                 } catch (bErr) {

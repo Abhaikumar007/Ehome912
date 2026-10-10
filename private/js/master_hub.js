@@ -1,6 +1,22 @@
 
 // ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
-async function sendExpoPushNotification({ title, message, targetClass = 'All' }) {
+const CBSE_STUDENT_ROLLS = new Set(['EDU-2026-022', 'EDU-2026-036']);
+
+function _isStudentCbse(rollNo) {
+    const r = (rollNo || '').trim().toUpperCase();
+    if (CBSE_STUDENT_ROLLS.has(r)) return true;
+    if (typeof MASTER_STUDENTS_ROSTER !== 'undefined' && Array.isArray(MASTER_STUDENTS_ROSTER)) {
+        const s = MASTER_STUDENTS_ROSTER.find(x => (x.rollNo || x.id || '').trim().toUpperCase() === r);
+        if (s) {
+            const sch = (s.school || '').toLowerCase();
+            const b = (s.batch || '').toLowerCase();
+            return sch.includes('cbse') || b.includes('cbse');
+        }
+    }
+    return false;
+}
+
+async function sendExpoPushNotification({ title, message, targetClass = 'All', targetSyllabus = 'Both' }) {
     try {
         let sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : null;
         if (!sb && typeof _getSupabaseClient === 'function') sb = _getSupabaseClient();
@@ -13,7 +29,7 @@ async function sendExpoPushNotification({ title, message, targetClass = 'All' })
             return 0;
         }
 
-        let query = sb.from('push_tokens').select('push_token, class');
+        let query = sb.from('push_tokens').select('push_token, class, roll_no');
         if (targetClass && targetClass !== 'All') {
             const cleanTarget = String(targetClass).replace(/[^0-9]/g, '');
             if (cleanTarget) {
@@ -31,11 +47,21 @@ async function sendExpoPushNotification({ title, message, targetClass = 'All' })
             return 0;
         }
 
+        // Filter by targetSyllabus if specified (CBSE vs State Syllabus vs Both)
+        let eligibleRows = rows;
+        if (targetSyllabus && targetSyllabus !== 'Both' && targetSyllabus !== 'All') {
+            const isTargetCbse = String(targetSyllabus).toLowerCase().includes('cbse');
+            eligibleRows = rows.filter(r => {
+                const studentIsCbse = _isStudentCbse(r.roll_no);
+                return isTargetCbse ? studentIsCbse : !studentIsCbse;
+            });
+        }
+
         // Deduplicate tokens
-        const uniqueTokens = Array.from(new Set(rows.map(r => r.push_token).filter(Boolean)));
+        const uniqueTokens = Array.from(new Set(eligibleRows.map(r => r.push_token).filter(Boolean)));
         if (uniqueTokens.length === 0) return 0;
 
-        console.log('[Push] Dispatching push notification to ' + uniqueTokens.length + ' devices...');
+        console.log('[Push] Dispatching push notification to ' + uniqueTokens.length + ' devices (Class: ' + targetClass + ', Syllabus: ' + targetSyllabus + ')...');
 
         // Build messages
         const messages = uniqueTokens.map(tok => ({
@@ -65,6 +91,19 @@ async function sendExpoPushNotification({ title, message, targetClass = 'All' })
                 console.warn('[Push] Fetch dispatch error:', postErr);
             }
         }
+
+        // Also record into Supabase notifications table for students
+        try {
+            await sb.from('notifications').insert({
+                roll_no: 'ALL',
+                title: title,
+                message: message,
+                time_label: 'Just now',
+                is_read: false,
+                type: 'schedule',
+            });
+        } catch (_) {}
+
         return uniqueTokens.length;
     } catch (pushErr) {
         console.warn('[Push] Push dispatch note:', pushErr);
