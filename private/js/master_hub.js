@@ -4271,7 +4271,7 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
         // 1. Fetch fees_records with current_due > 0 and days_left <= 5
         const { data: feeRows, error: feeErr } = await sb
             .from('fees_records')
-            .select('roll_no, current_due, due_date, days_left, status');
+            .select('roll_no, current_due, due_date, days_left');
 
         if (feeErr) throw feeErr;
 
@@ -4280,11 +4280,17 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
             return;
         }
 
-        // Filter: unpaid and days_left <= 5 (including overdue days_left <= 0)
+        // Filter: unpaid (current_due > 0) and days_left <= 5 (including overdue days_left <= 0)
         const dueSoon = feeRows.filter(r => {
             const due = Number(r.current_due) || 0;
-            const days = Number(r.days_left);
-            const isDue = (r.status === 'due' || r.status === 'overdue' || due > 0);
+            let days = Number(r.days_left);
+            if (isNaN(days) && r.due_date) {
+                const d = new Date(r.due_date);
+                if (!isNaN(d.getTime())) {
+                    days = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                }
+            }
+            const isDue = due > 0;
             return isDue && !isNaN(days) && days <= 5;
         });
 

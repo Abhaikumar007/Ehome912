@@ -362,8 +362,119 @@
             font-size: 0.88rem !important;
         }
 
+        
         /* Responsive Mobile Styles */
         @media (max-width: 768px) {
+            /* Mobile Tabs: Sleek Horizontal Scroll Strip */
+            #masterHubTabs {
+                display: flex !important;
+                flex-wrap: nowrap !important;
+                overflow-x: auto !important;
+                overflow-y: hidden !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-bottom: 6px !important;
+                margin-bottom: 16px !important;
+                border-bottom: 2px solid #e2e8f0 !important;
+                gap: 6px !important;
+            }
+            #masterHubTabs .nav-item {
+                flex: 0 0 auto !important;
+            }
+            #masterHubTabs .nav-link {
+                white-space: nowrap !important;
+                padding: 8px 12px !important;
+                font-size: 0.85rem !important;
+                border-radius: 6px !important;
+            }
+            #masterHubTabs .nav-link.active {
+                border-bottom: 2px solid #007bff !important;
+                background-color: #e7f1ff !important;
+                color: #0056b3 !important;
+                font-weight: 600 !important;
+            }
+
+            /* Hub Header Banner Mobile */
+            .hub-header {
+                padding: 16px 0 !important;
+                margin-bottom: 16px !important;
+            }
+            .hub-header h2 {
+                font-size: 1.35rem !important;
+            }
+            .hub-header p {
+                font-size: 0.82rem !important;
+            }
+            .hub-header-actions {
+                display: flex !important;
+                gap: 8px !important;
+                margin-top: 12px !important;
+                width: 100% !important;
+            }
+            .hub-header-actions .btn {
+                flex: 1 1 0 !important;
+                padding: 7px 8px !important;
+                font-size: 0.82rem !important;
+                text-align: center !important;
+                white-space: nowrap !important;
+            }
+
+            /* Spreadsheet Quick-Grid Controls Mobile */
+            .grid-controls-wrapper {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+            }
+            .grid-filter-group {
+                width: 100% !important;
+                display: flex !important;
+                gap: 6px !important;
+            }
+            #gridSearchInput {
+                width: 100% !important;
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+            }
+            #gridClassFilter {
+                width: 110px !important;
+                flex: 0 0 110px !important;
+            }
+            .grid-action-group {
+                width: 100% !important;
+                display: flex !important;
+                gap: 8px !important;
+            }
+            .grid-action-group .btn {
+                flex: 1 1 0 !important;
+                padding: 8px 10px !important;
+                font-size: 0.85rem !important;
+                text-align: center !important;
+                justify-content: center !important;
+            }
+            .grid-table {
+                min-width: 1050px !important;
+            }
+
+            /* Monthly Billing Cycle Controls Mobile */
+            .fee-cycle-controls-bar {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 10px !important;
+                width: 100% !important;
+            }
+            .fee-cycle-actions-group {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+                width: 100% !important;
+            }
+            .fee-cycle-actions-group select,
+            .fee-cycle-actions-group button,
+            .fee-cycle-actions-group .btn {
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
             .hub-card {
                 padding: 16px 12px !important;
             }
@@ -530,7 +641,7 @@
                     <h2 class="font-weight-bold mb-1"><i class="fas fa-satellite-dish mr-2 text-primary"></i>Super Admin Master Hub</h2>
                     <p class="mb-0 text-white-50">Bulk Student Spreadsheet, Real-time Broadcast Alerts, and 1-Click Monthly Fee Automation with Dual Cloud Sync.</p>
                 </div>
-                <div class="col-md-5 text-md-right mt-3 mt-md-0">
+                <div class="col-md-5 text-md-right mt-3 mt-md-0 hub-header-actions">
                     <button class="btn btn-outline-light btn-sm mr-2" onclick="refreshMasterData()">
                         <i class="fas fa-sync-alt mr-1"></i> Refresh Data
                     </button>
@@ -584,7 +695,7 @@
             <!-- TAB 1: SPREADSHEET EDITOR -->
             <div class="tab-pane fade show active" id="tab-spreadsheet" role="tabpanel">
                 <div class="hub-card">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 grid-controls-wrapper">
                         <div class="d-flex align-items-center mb-2">
                             <input type="text" id="gridSearchInput" class="form-control form-control-sm mr-2" placeholder="Search by name, roll no, or phone..." style="width: 260px;" oninput="filterGridTable()">
                             <select id="gridClassFilter" class="form-control form-control-sm" style="width: 140px;" onchange="filterGridTable()">
@@ -965,7 +1076,7 @@
                 </div>
 
                 <div class="hub-card">
-                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 fee-cycle-controls-bar">
                         <div>
                             <h5 class="font-weight-bold mb-1">Monthly Billing Cycle Generator</h5>
                             <p class="text-muted mb-0">Generate or reset fees for all enrolled students for any billing cycle.</p>
@@ -1162,8 +1273,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=20261010_v3"></script>
-    <script src="js/master_hub.js?v=20261010_v3"></script>
+    <script src="js/admin.js?v=20261010_v4"></script>
+    <script src="js/master_hub.js?v=20261010_v4"></script>
     <script src="js/live_timetable.js?v=1791561607033"></script>
 
     <script>
