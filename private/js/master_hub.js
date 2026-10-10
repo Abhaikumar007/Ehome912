@@ -1,6 +1,7 @@
 
 // ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
-const CBSE_STUDENT_ROLLS = new Set(['EDU-2026-022', 'EDU-2026-036']);
+var CBSE_STUDENT_ROLLS = window.CBSE_STUDENT_ROLLS || new Set(['EDU-2026-022', 'EDU-2026-036']);
+window.CBSE_STUDENT_ROLLS = CBSE_STUDENT_ROLLS;
 
 function _isStudentCbse(rollNo) {
     const r = (rollNo || '').trim().toUpperCase();
@@ -239,7 +240,7 @@ function setupMasterHubRealtime() {
 let currentStudents = [];
 let originalStudents = [];
 
-document.addEventListener('DOMContentLoaded', async function () {
+async function initMasterHub() {
     console.log('[MasterHub] Initializing Super Admin Master Control Hub...');
     await refreshMasterData();
     testCloudHealth();
@@ -296,7 +297,14 @@ document.addEventListener('DOMContentLoaded', async function () {
             }, 100);
         });
     }
-});
+}
+window.initMasterHub = initMasterHub;
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initMasterHub);
+} else {
+    initMasterHub();
+}
 
 // ─── 1. SPREADSHEET GRID LOGIC ───────────────────────────────────────────────
 
@@ -464,7 +472,7 @@ function renderMasterGrid(list) {
             <td><input type="number" class="grid-input font-weight-bold text-success" value="${fee}" placeholder="₹ Fee" onchange="markGridRowModified(${idx}, 'amount', this.value)"></td>
             <td><input type="text" class="grid-input" value="${subjects}" placeholder="Physics, Chemistry..." onchange="markGridRowModified(${idx}, 'subjects', this.value)"></td>
             <td><input type="text" class="grid-input" value="${school}" onchange="markGridRowModified(${idx}, 'school', this.value)"></td>
-            <td><input type="text" class="grid-input text-center" maxlength="4" value="${pin}" onchange="markGridRowModified(${idx}, 'pin', this.value)"></td>
+            <td><input type="text" class="grid-input text-center" maxlength="32" value="${pin}" onchange="markGridRowModified(${idx}, 'pin', this.value)"></td>
             <td><input type="text" class="grid-input" value="${joining}" placeholder="DD Mon YYYY" onchange="markGridRowModified(${idx}, 'joiningDate', this.value)"></td>
             <td class="text-center align-middle">
                 <button class="btn btn-outline-danger btn-sm p-1" onclick="deleteGridRow(${idx})" title="Delete Student">

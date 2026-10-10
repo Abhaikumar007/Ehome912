@@ -1,6 +1,7 @@
 
 // ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
-const CBSE_STUDENT_ROLLS = new Set(['EDU-2026-022', 'EDU-2026-036']);
+var CBSE_STUDENT_ROLLS = window.CBSE_STUDENT_ROLLS || new Set(['EDU-2026-022', 'EDU-2026-036']);
+window.CBSE_STUDENT_ROLLS = CBSE_STUDENT_ROLLS;
 
 function _isStudentCbse(rollNo) {
     const r = (rollNo || '').trim().toUpperCase();
