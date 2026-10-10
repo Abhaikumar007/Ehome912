@@ -1651,7 +1651,6 @@ export const DataService = {
       await supabase
         .from('fees_records')
         .update({
-          status: 'paid',
           current_due: 0,
           updated_at: new Date().toISOString(),
           recent_payments: updated.recentPayments,
@@ -1693,7 +1692,7 @@ export const DataService = {
     try {
       await supabase
         .from('fees_records')
-        .update({ status: 'due', current_due: studentFeeInfo.monthlyFee })
+        .update({ current_due: studentFeeInfo.monthlyFee, updated_at: new Date().toISOString() })
         .eq('roll_no', rollNo);
     } catch {}
     return reset;
