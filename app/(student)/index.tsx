@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Dimensions, ActivityIndicator, RefreshControl, Image, Modal,
+  Animated, Easing,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -138,9 +139,101 @@ function getDynamicGreeting(date: Date = new Date()): string {
   return 'Good Evening';
 }
 
+function ProminentPayNowButton({ onPress }: { onPress: () => void }) {
+  const pulseAnim = React.useRef(new Animated.Value(0)).current;
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+  React.useEffect(() => {
+    // Tasteful emphasis cycle:
+    // 1. Soft glowing halo expands and fades out (850ms)
+    // 2. Button gently breathes (1.0 -> 1.055 -> 1.0)
+    // 3. Arrow subtly nudges forward (+2.5px) and returns
+    // 4. Calming 1.8s resting interval before next repetition
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(pulseAnim, {
+            toValue: 1,
+            duration: 850,
+            easing: Easing.out(Easing.cubic),
+            useNativeDriver: true,
+          }),
+          Animated.sequence([
+            Animated.timing(scaleAnim, {
+              toValue: 1.055,
+              duration: 380,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }),
+            Animated.timing(scaleAnim, {
+              toValue: 1,
+              duration: 470,
+              easing: Easing.inOut(Easing.ease),
+              useNativeDriver: true,
+            }),
+          ]),
+        ]),
+        Animated.timing(pulseAnim, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+        Animated.delay(1800),
+      ])
+    );
+
+    animation.start();
+    return () => animation.stop();
+  }, [pulseAnim, scaleAnim]);
+
+  const glowScale = pulseAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.96, 1.28],
+  });
+
+  const glowOpacity = pulseAnim.interpolate({
+    inputRange: [0, 0.35, 1],
+    outputRange: [0, 0.45, 0],
+  });
+
+  const arrowTranslateX = pulseAnim.interpolate({
+    inputRange: [0, 0.45, 0.85, 1],
+    outputRange: [0, 2.5, 0, 0],
+  });
+
+  return (
+    <View style={styles.payNowWrapper}>
+      {/* Outer Attention Pulse Glow */}
+      <Animated.View
+        style={[
+          styles.payNowGlowRing,
+          {
+            transform: [{ scale: glowScale }],
+            opacity: glowOpacity,
+          },
+        ]}
+      />
+      {/* Main Action Button */}
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+        <TouchableOpacity
+          style={styles.payNowBtn}
+          onPress={onPress}
+          activeOpacity={0.82}
+        >
+          <Text style={styles.payNowText}>Pay Now</Text>
+          <Animated.View style={{ transform: [{ translateX: arrowTranslateX }] }}>
+            <Ionicons name="arrow-forward" size={14} color="#FFFFFF" />
+          </Animated.View>
+        </TouchableOpacity>
+      </Animated.View>
+    </View>
+  );
+}
+
 export default function DashboardScreen() {
   const router = useRouter();
   const { student, loading: authLoading, refresh: refreshAuth } = useAuth();
+
   // After 7 PM, default to tomorrow's schedule automatically
   const initialOffset = React.useMemo(() => new Date().getHours() >= 19 ? 1 : 0, []);
   const [dateOffset, setDateOffset] = useState(initialOffset);
@@ -173,12 +266,12 @@ export default function DashboardScreen() {
     try {
       const [cls, anns, att, fees, alert, opinions, notifs, pubDates] = await Promise.all([
         DataService.getClasses(rollNo, student?.class, student?.syllabus),
-        DataService.getAnnouncements(false, student?.class),
+        DataService.getAnnouncements(false, student?.class, true, student?.syllabus),
         DataService.getAttendance(rollNo),
         DataService.getFees(rollNo),
         DataService.getAcademicAlert(student?.class, student?.syllabus),
         DataService.getStudentTeacherOpinions(rollNo),
-        DataService.getNotifications(rollNo),
+        DataService.getNotifications(rollNo, student?.class, student?.syllabus),
         DataService.getPublishedTimetableDates(),
       ]);
       if (cls) setClasses(cls);
@@ -204,7 +297,7 @@ export default function DashboardScreen() {
       .channel('student_dashboard_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, (payload) => {
         console.log('[Realtime] Announcement change detected:', payload);
-        DataService.getAnnouncements(true, student?.class).then((anns) => {
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus).then((anns) => {
           setAnnouncementsList(anns || []);
         });
         DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
@@ -271,6 +364,57 @@ export default function DashboardScreen() {
           });
         }
       })
+      .on('broadcast', { event: 'exam_deleted' }, async (event) => {
+        console.log('[Realtime] Exam deleted broadcast received:', event?.payload);
+        await DataService.clearClassesCache(rollNo, student?.syllabus);
+        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+          if (cls) setClasses(cls);
+        });
+        DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
+          setAcademicAlert(alt || null);
+        });
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus).then((anns) => {
+          setAnnouncementsList(anns || []);
+        });
+        DataService.getPublishedTimetableDates().then((dates) => {
+          if (dates) setPublishedDates(dates);
+        });
+      })
+      .on('broadcast', { event: 'classes_changed' }, async () => {
+        console.log('[Realtime] Classes changed broadcast received');
+        await DataService.clearClassesCache(rollNo, student?.syllabus);
+        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+          if (cls) setClasses(cls);
+        });
+        DataService.getPublishedTimetableDates().then((dates) => {
+          if (dates) setPublishedDates(dates);
+        });
+      })
+      .on('broadcast', { event: 'announcement_deleted' }, async (event) => {
+        console.log('[Realtime] Announcement deleted broadcast received:', event?.payload);
+        await DataService.clearClassesCache(rollNo, student?.syllabus);
+        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+          if (cls) setClasses(cls);
+        });
+        DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
+          setAcademicAlert(alt || null);
+        });
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus).then((anns) => {
+          setAnnouncementsList(anns || []);
+        });
+      })
+      .on('broadcast', { event: 'announcement_rejected' }, async () => {
+        await DataService.clearClassesCache(rollNo, student?.syllabus);
+        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+          if (cls) setClasses(cls);
+        });
+        DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
+          setAcademicAlert(alt || null);
+        });
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus).then((anns) => {
+          setAnnouncementsList(anns || []);
+        });
+      })
       .subscribe();
 
     return () => {
@@ -294,7 +438,7 @@ export default function DashboardScreen() {
       await Promise.all([
         loadData(),
         refreshAuth(),
-        DataService.getAnnouncements(true, student?.class),
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus),
         DataService.getAcademicAlert(student?.class, student?.syllabus),
       ]);
     } catch (e) {
@@ -304,11 +448,16 @@ export default function DashboardScreen() {
     }
   };
 
-  // Only show announcements that target this student's specific class or all classes
+  // Only show announcements that target this student's specific class & syllabus, AND whose start date has arrived
   const visibleAnnouncements = useMemo(() => {
-    if (!student?.class) return announcementsList;
-    return announcementsList.filter((a) => DataService.isTargetedToClass(a, student.class));
-  }, [announcementsList, student?.class]);
+    const today = new Date();
+    return announcementsList.filter((a) => {
+      const matchesClass = !student?.class || DataService.isTargetedToClass(a, student.class);
+      const matchesSyllabus = !student?.syllabus || DataService.isTargetedToSyllabus(a, student.syllabus);
+      const isDateVisible = DataService.isAlertVisibleOnDate(a, today);
+      return matchesClass && matchesSyllabus && isDateVisible;
+    });
+  }, [announcementsList, student?.class, student?.syllabus]);
 
   const today = new Date();
   today.setDate(today.getDate() + dateOffset);
@@ -361,7 +510,6 @@ export default function DashboardScreen() {
   const targetIsoDay = String(targetDateForOffset.getDate()).padStart(2, '0');
   const targetDateIsoStr = `${targetIsoYear}-${targetIsoMonth}-${targetIsoDay}`;
 
-  const isSunday = targetDateForOffset.getDay() === 0;
   const isFuture = dateOffset > 0;
   const isTimetablePublished = publishedDates.includes(targetDateIsoStr);
 
@@ -742,7 +890,7 @@ export default function DashboardScreen() {
                 </View>
               );
             })
-          ) : isTimetablePublished && !isSunday ? (
+          ) : isTimetablePublished ? (
             /* Scenario 1: Timetable Published but No Session for this Student / Class */
             <View style={styles.noSessionPublishedBox}>
               <View style={styles.publishedStatusPill}>
@@ -770,11 +918,9 @@ export default function DashboardScreen() {
             </View>
           ) : (
             <View style={styles.noClassWrap}>
-              <Ionicons name={isSunday ? "sunny-outline" : "calendar-outline"} size={28} color={Colors.textMuted} />
+              <Ionicons name="calendar-outline" size={28} color={Colors.textMuted} />
               <Text style={styles.noClassText}>
-                {isSunday
-                  ? "Sunday — Tuition Holiday"
-                  : dateOffset === 1
+                {dateOffset === 1
                   ? "No classes scheduled for tomorrow yet."
                   : dateOffset === 0
                   ? "No classes scheduled for today."
@@ -783,7 +929,7 @@ export default function DashboardScreen() {
                   : "No class records for this date."}
               </Text>
               <Text style={styles.noClassSub}>
-                {isSunday ? "Recharge & revise for the week ahead!" : "Check back later or contact your faculty."}
+                Check back later or contact your faculty.
               </Text>
             </View>
           )}
@@ -827,15 +973,12 @@ export default function DashboardScreen() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.payNowBtn} onPress={() => router.push('/(student)/fees')}>
-              <Text style={styles.payNowText}>Pay Now</Text>
-              <Ionicons name="arrow-forward" size={14} color="#fff" />
-            </TouchableOpacity>
+            <ProminentPayNowButton onPress={() => router.push('/(student)/fees')} />
           </TouchableOpacity>
         ) : null}
 
         {/* Academic / Test Paper Alert Banner (Above Overall Attendance) */}
-        {academicAlert && DataService.isTargetedToClass(academicAlert, student?.class) && (
+        {academicAlert && DataService.isTargetedToClass(academicAlert, student?.class) && DataService.isAlertVisibleOnDate(academicAlert) && (
           <TouchableOpacity
             style={styles.testAlertCard}
             onPress={() => setAlertModalVisible(true)}
@@ -1542,12 +1685,44 @@ const styles = StyleSheet.create({
   },
   feesAmount: { fontSize: 15, fontFamily: 'Inter_700Bold', color: Colors.red },
   feesDue: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'Inter_400Regular' },
-  payNowBtn: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: Colors.red, borderRadius: 20,
-    paddingHorizontal: 14, paddingVertical: 8,
+  payNowWrapper: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
-  payNowText: { fontSize: 13, fontFamily: 'Inter_700Bold', color: '#fff' },
+  payNowGlowRing: {
+    position: 'absolute',
+    top: -4,
+    bottom: -4,
+    left: -4,
+    right: -4,
+    borderRadius: 24,
+    backgroundColor: '#EF4444',
+  },
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+    backgroundColor: '#DC2626',
+    borderRadius: 22,
+    paddingHorizontal: 15,
+    paddingVertical: 9,
+    shadowColor: '#DC2626',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.38,
+    shadowRadius: 6,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.25)',
+  },
+  payNowText: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
 
   feesPendingBanner: {
     backgroundColor: '#FFFBEB',

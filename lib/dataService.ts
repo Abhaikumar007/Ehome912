@@ -7,6 +7,16 @@ import {
   studyMaterials as mockMaterials,
 } from '../constants/mockData';
 import { EDUSYNC_STUDENTS, EDUSYNC_FEES } from './studentsRoster';
+import {
+  verifyPassword,
+  hashPassword,
+  checkRateLimit,
+  recordFailedAttempt,
+  resetRateLimit,
+  saveAuthSession,
+  clearAuthSession,
+  INVALID_CREDENTIALS_MSG,
+} from './securityAuth';
 
 const CURRENT_STUDENT_KEY = 'eduhome_current_student';
 const CACHE_PREFIX = 'eduhome_cache_';
@@ -173,6 +183,133 @@ export interface AcademicAlert {
 }
 
 /**
+ * Normalizes a date string or timestamp into a YYYY-MM-DD ISO string.
+ * Handles:
+ * - YYYY-MM-DD or YYYY/MM/DD
+ * - DD-MM-YYYY or DD/MM/YYYY
+ * - "9 October 2026", "09 Oct 2026", "October 9, 2026", "Oct 9, 2026"
+ * - Weekday prefixes like "Sat, Oct 10, 2026" or "Fri, 9 Oct 2026"
+ */
+export function parseDateToIso(dateStr?: string | null): string | null {
+  if (!dateStr) return null;
+  let clean = String(dateStr).trim();
+  clean = clean.replace(/^[a-zA-Z]+,\s*/, ''); // strip weekday if present
+
+  // YYYY-MM-DD or YYYY/MM/DD
+  const isoM = clean.match(/^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})$/);
+  if (isoM) {
+    return `${isoM[1]}-${isoM[2].padStart(2, '0')}-${isoM[3].padStart(2, '0')}`;
+  }
+  // DD-MM-YYYY or DD/MM/YYYY
+  const dmyM = clean.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+  if (dmyM) {
+    return `${dmyM[3]}-${dmyM[2].padStart(2, '0')}-${dmyM[1].padStart(2, '0')}`;
+  }
+
+  // Named months (e.g. '9 October 2026' or '09 Oct 2026')
+  const months: Record<string, string> = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+  };
+
+  const dMonYM = clean.match(/^(\d{1,2})\s+([a-zA-Z]+)\s+(\d{4})$/);
+  if (dMonYM) {
+    const monKey = dMonYM[2].toLowerCase().substring(0, 3);
+    if (months[monKey]) {
+      return `${dMonYM[3]}-${months[monKey]}-${dMonYM[1].padStart(2, '0')}`;
+    }
+  }
+
+  const monDYM = clean.match(/^([a-zA-Z]+)\s+(\d{1,2}),?\s+(\d{4})$/);
+  if (monDYM) {
+    const monKey = monDYM[1].toLowerCase().substring(0, 3);
+    if (months[monKey]) {
+      return `${monDYM[3]}-${months[monKey]}-${monDYM[2].padStart(2, '0')}`;
+    }
+  }
+
+  const d = new Date(clean);
+  if (!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  return null;
+}
+
+/**
+ * Extracts the scheduled start date (Show From / Start Date) for an alert, notice, or test schedule.
+ */
+export function extractAlertStartDate(item: any): string | null {
+  if (!item) return null;
+  if (item.showFromDate) return parseDateToIso(item.showFromDate);
+  if (item.show_from_date) return parseDateToIso(item.show_from_date);
+  if (item.startDate) return parseDateToIso(item.startDate);
+  if (item.start_date) return parseDateToIso(item.start_date);
+  if (item.showFrom) return parseDateToIso(item.showFrom);
+
+  const text = `${item.desc || ''} ${item.description || ''} ${item.shortDesc || ''}`;
+  const m = text.match(/(?:Show From|Start Date|Visible From|Display From|From Date)\s*:\s*([^\n\r|,]+)/i);
+  if (m) {
+    return parseDateToIso(m[1].trim());
+  }
+  return null;
+}
+
+/**
+ * Extracts the scheduled expiry date (Valid Until / Stop Date) for an alert, notice, or test schedule.
+ */
+export function extractAlertExpiryDate(item: any): string | null {
+  if (!item) return null;
+  if (item.expiryDate) return parseDateToIso(item.expiryDate);
+  if (item.expiry_date) return parseDateToIso(item.expiry_date);
+  if (item.stopDate) return parseDateToIso(item.stopDate);
+  if (item.stop_date) return parseDateToIso(item.stop_date);
+
+  const text = `${item.desc || ''} ${item.description || ''} ${item.shortDesc || ''}`;
+  const m = text.match(/(?:Valid Until|Stop Date|Expiry Date|Expiry)\s*:\s*([^\n\r|,]+)/i);
+  if (m) {
+    return parseDateToIso(m[1].trim());
+  }
+  return null;
+}
+
+/**
+ * Determines whether a test schedule or announcement alert should be visible to students on a given date.
+ * Enforces the required logic:
+ * - "Current Date < Start Date" -> Do not show alert (returns false)
+ * - "Current Date >= Start Date" -> Show alert (returns true)
+ * - "Current Date > Expiry Date" -> Do not show alert (returns false, alert expired)
+ * - If no start date or show from date is configured, returns true.
+ */
+export function isAlertVisibleOnDate(
+  item: any,
+  targetDate: Date = new Date()
+): boolean {
+  if (!item) return false;
+
+  const y = targetDate.getFullYear();
+  const m = String(targetDate.getMonth() + 1).padStart(2, '0');
+  const d = String(targetDate.getDate()).padStart(2, '0');
+  const targetIso = `${y}-${m}-${d}`;
+
+  const startIso = extractAlertStartDate(item);
+  if (startIso && targetIso < startIso) {
+    // Current Date < Start Date -> Do not show alert
+    return false;
+  }
+
+  const expiryIso = extractAlertExpiryDate(item);
+  if (expiryIso && targetIso > expiryIso) {
+    // Current Date > Expiry Date -> Do not show alert (expired)
+    return false;
+  }
+
+  return true;
+}
+
+/**
  * Checks whether an announcement, notice, or test alert is targeted to a specific student class.
  * - If no studentClass is specified, or studentClass is 'All', returns true.
  * - If the notice is explicitly for "All", "All Classes", or "All Students", returns true.
@@ -244,6 +381,86 @@ export function isTargetedToClass(
 
   // Fallback: substring matching
   return classMatches.some((m) => studentClass.toLowerCase().includes(m[0].toLowerCase()));
+}
+
+/**
+ * Checks whether an announcement, timetable notification, or academic alert
+ * is targeted to a specific student's syllabus (CBSE vs State Syllabus).
+ * - If no studentSyllabus is specified, or studentSyllabus is 'Both', returns true.
+ * - If explicitly tagged/marked for Both or all boards, returns true.
+ * - If marked CBSE, only CBSE students see it.
+ * - If marked State Syllabus, only State Syllabus students see it.
+ */
+export function isTargetedToSyllabus(
+  item: {
+    title?: string;
+    desc?: string;
+    description?: string;
+    shortDesc?: string;
+    target_syllabus?: string;
+    targetSyllabus?: string;
+    syllabus_tag?: string;
+    board?: string;
+    syllabus?: string;
+  } | null | undefined,
+  studentSyllabus?: string
+): boolean {
+  if (!item) return false;
+  if (!studentSyllabus || studentSyllabus === 'Both') {
+    return true;
+  }
+
+  const title = (item.title || '').toLowerCase();
+  const desc = (item.desc || item.description || item.shortDesc || '').toLowerCase();
+  const rawTag = (item.target_syllabus || item.targetSyllabus || item.syllabus_tag || item.board || item.syllabus || '').toLowerCase();
+  const fullText = `${title} ${desc} ${rawTag}`;
+
+  // Explicit Both / Shared indicators
+  if (
+    rawTag === 'both' ||
+    rawTag.includes('both') ||
+    fullText.includes('(both board') ||
+    fullText.includes('[both board') ||
+    fullText.includes('both board') ||
+    fullText.includes('both syllabus') ||
+    fullText.includes('state & cbse') ||
+    fullText.includes('cbse & state')
+  ) {
+    return true;
+  }
+
+  // Explicit CBSE indicators
+  const isCbse =
+    rawTag === 'cbse' ||
+    rawTag === 'cbse only' ||
+    fullText.includes('[cbse') ||
+    fullText.includes('(cbse') ||
+    fullText.includes('cbse board') ||
+    fullText.includes('cbse syllabus');
+
+  // Explicit State Syllabus indicators
+  const isState =
+    rawTag === 'state' ||
+    rawTag === 'state only' ||
+    rawTag.includes('state syllabus') ||
+    fullText.includes('[state') ||
+    fullText.includes('(state') ||
+    fullText.includes('state board') ||
+    fullText.includes('state syllabus');
+
+  if (isCbse && !isState) {
+    return studentSyllabus === 'CBSE';
+  }
+  if (isState && !isCbse) {
+    return studentSyllabus === 'State Syllabus';
+  }
+
+  // If no specific syllabus board is mentioned, it applies to all
+  return true;
+}
+
+export function isTargetedToStudent(item: any, studentClass?: string, studentSyllabus?: string): boolean {
+  return isTargetedToClass(item, studentClass) && isTargetedToSyllabus(item, studentSyllabus);
 }
 
 export function parseTimeToMinutes(timeStr?: string): number {
@@ -453,6 +670,7 @@ export const DataService = {
   async clearCurrentStudent() {
     try {
       await AppStorage.removeItem(CURRENT_STUDENT_KEY);
+      await clearAuthSession('student');
     } catch (e) {
       console.warn('Failed to clear student session', e);
     }
@@ -481,6 +699,18 @@ export const DataService = {
           matchedRoster?.syllabus ||
           'State Syllabus';
 
+        const studentCustomKey = `eduhome_student_custom_${String(targetRoll).trim().toUpperCase()}`;
+        let localPhotoUrl = current?.photoUrl;
+        let localAvatar = current?.avatar;
+        try {
+          const savedCustom = await AppStorage.getItem(studentCustomKey);
+          if (savedCustom) {
+            const parsed = JSON.parse(savedCustom);
+            if (parsed.photoUrl) localPhotoUrl = parsed.photoUrl;
+            if (parsed.avatar) localAvatar = parsed.avatar;
+          }
+        } catch {}
+
         const updated: StudentProfile = {
           rollNo: data.roll_no || targetRoll,
           name: data.name || current?.name || targetRoll,
@@ -488,8 +718,8 @@ export const DataService = {
           batch: data.batch || data.class_name || current?.batch || 'Batch A',
           syllabus: resolvedSyllabus,
           phone: data.phone || current?.phone || '9876543210',
-          avatar: data.avatar || current?.avatar || 'ST',
-          photoUrl: data.photo_url || current?.photoUrl || undefined,
+          avatar: localAvatar || data.avatar || current?.avatar || 'ST',
+          photoUrl: localPhotoUrl || current?.photoUrl || undefined,
           streak: data.streak ?? current?.streak ?? 0,
           accuracy: data.accuracy ?? current?.accuracy ?? 0,
           testsCompleted: data.tests_completed ?? current?.testsCompleted ?? 0,
@@ -505,43 +735,62 @@ export const DataService = {
     return current;
   },
 
+  async restoreStudentCustomizations(student: StudentProfile): Promise<StudentProfile> {
+    try {
+      const key = `eduhome_student_custom_${student.rollNo.trim().toUpperCase()}`;
+      const saved = await AppStorage.getItem(key);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.photoUrl) student.photoUrl = parsed.photoUrl;
+        if (parsed.avatar) student.avatar = parsed.avatar;
+        if (parsed.phone && !student.phone) student.phone = parsed.phone;
+        if (parsed.goals && !student.goals) student.goals = parsed.goals;
+      }
+    } catch (e) {
+      console.warn('Failed to restore student customizations:', e);
+    }
+    return student;
+  },
+
   // Student Login
   async loginStudent(rollNo: string, pin: string): Promise<{ success: boolean; student?: StudentProfile; error?: string }> {
     const trimmedRoll = rollNo.trim();
     const trimmedPin = pin.trim();
 
-    // If blank, auto-sign in as demo Arjun S smoothly
-    if (!trimmedRoll && !trimmedPin) {
-      const student: StudentProfile = {
-        rollNo: mockStudent.rollNo,
-        name: mockStudent.name,
-        class: mockStudent.class,
-        batch: mockStudent.batch,
-        syllabus: 'State Syllabus',
-        avatar: mockStudent.avatar,
-        streak: mockStudent.streak,
-        accuracy: mockStudent.accuracy,
-        testsCompleted: mockStudent.testsCompleted,
-        topPercent: mockStudent.topPercent,
-        phone: '9876543210',
-        email: 'arjun.sharma@eduhome.ac.in',
-        goals: 'JEE Advanced 2027 (Top 1000)',
+    if (!trimmedRoll || !trimmedPin) {
+      return { success: false, error: 'Please enter both your Roll Number and PIN.' };
+    }
+
+    // Rate limiting defense
+    const rateCheck = checkRateLimit(trimmedRoll);
+    if (!rateCheck.allowed) {
+      return {
+        success: false,
+        error: `Too many failed login attempts. Please wait ${rateCheck.waitSeconds} seconds before trying again.`,
       };
-      await this.saveCurrentStudent(student);
-      return { success: true, student };
     }
 
     try {
+      // Step 1: Validate account existence in database
       const queryPromise = supabase
         .from('students')
         .select('*')
-        .eq('roll_no', trimmedRoll)
-        .eq('pin', trimmedPin)
+        .ilike('roll_no', trimmedRoll)
         .single();
 
-      const { data, error } = await withTimeout(queryPromise, 3000) as any;
+      const { data, error } = (await withTimeout(queryPromise, 3000)) as any;
 
       if (data && !error) {
+        // Step 2: Validate password against securely stored password/hash
+        const isValid = verifyPassword(trimmedPin, data.pin);
+        if (!isValid) {
+          recordFailedAttempt(trimmedRoll);
+          return { success: false, error: INVALID_CREDENTIALS_MSG };
+        }
+
+        // Reset failed attempts on success
+        resetRateLimit(trimmedRoll);
+
         const batchLower = (data.batch || '').toLowerCase();
         const schoolLower = (data.school || '').toLowerCase();
         const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase());
@@ -569,62 +818,51 @@ export const DataService = {
           testsCompleted: data.tests_completed ?? 0,
           topPercent: data.top_percent ?? 0,
         };
+        await this.restoreStudentCustomizations(student);
         await this.saveCurrentStudent(student);
+        await saveAuthSession('student', student.rollNo);
         return { success: true, student };
+      } else {
+        // Username does not exist in database
+        recordFailedAttempt(trimmedRoll);
+        return { success: false, error: INVALID_CREDENTIALS_MSG };
       }
     } catch (err) {
-      console.log('Supabase login query notice (using offline demo fallback if matching):', err);
-    }
+      console.warn('[DataService] Database query error during login:', err);
 
-    // Graceful offline fallback: Check Arjun demo student
-    if (
-      (trimmedRoll.toUpperCase() === '2024-JEE-0842' || trimmedRoll.toUpperCase() === 'ARJUN' || trimmedRoll === '') &&
-      (trimmedPin === '1234' || trimmedPin === '')
-    ) {
-      const student: StudentProfile = {
-        rollNo: mockStudent.rollNo,
-        name: mockStudent.name,
-        class: mockStudent.class,
-        batch: mockStudent.batch,
-        syllabus: 'State Syllabus',
-        avatar: mockStudent.avatar,
-        streak: mockStudent.streak,
-        accuracy: mockStudent.accuracy,
-        testsCompleted: mockStudent.testsCompleted,
-        topPercent: mockStudent.topPercent,
-        phone: '9876543210',
-        email: 'arjun.sharma@eduhome.ac.in',
-        goals: mockStudent.class,
-      };
-      await this.saveCurrentStudent(student);
-      return { success: true, student };
-    }
+      // Offline fallback: check cached roster if device has network outage
+      const matchedEduStudent = EDUSYNC_STUDENTS.find(
+        (s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase()
+      );
+      if (matchedEduStudent) {
+        const isValid = verifyPassword(trimmedPin, matchedEduStudent.pin);
+        if (isValid) {
+          resetRateLimit(trimmedRoll);
+          const student: StudentProfile = {
+            rollNo: matchedEduStudent.rollNo,
+            name: matchedEduStudent.name,
+            class: matchedEduStudent.class,
+            batch: matchedEduStudent.batch,
+            syllabus: matchedEduStudent.syllabus || 'State Syllabus',
+            avatar: matchedEduStudent.avatar,
+            streak: matchedEduStudent.streak || 0,
+            accuracy: matchedEduStudent.accuracy || 0,
+            testsCompleted: matchedEduStudent.testsCompleted || 0,
+            topPercent: matchedEduStudent.topPercent || 0,
+            phone: matchedEduStudent.phone,
+            email: `${matchedEduStudent.name.toLowerCase().replace(/\s+/g, '.')}@eduhome.ac.in`,
+            goals: matchedEduStudent.class,
+          };
+          await this.restoreStudentCustomizations(student);
+          await this.saveCurrentStudent(student);
+          await saveAuthSession('student', student.rollNo);
+          return { success: true, student };
+        }
+      }
 
-    // Graceful offline fallback: Check all 49 EduHome 2026 Batch students
-    const matchedEduStudent = EDUSYNC_STUDENTS.find(
-      (s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase()
-    );
-    if (matchedEduStudent && (trimmedPin === matchedEduStudent.pin || trimmedPin === '1234')) {
-      const student: StudentProfile = {
-        rollNo: matchedEduStudent.rollNo,
-        name: matchedEduStudent.name,
-        class: matchedEduStudent.class,
-        batch: matchedEduStudent.batch,
-        syllabus: matchedEduStudent.syllabus || 'State Syllabus',
-        avatar: matchedEduStudent.avatar,
-        streak: matchedEduStudent.streak || 0,
-        accuracy: matchedEduStudent.accuracy || 0,
-        testsCompleted: matchedEduStudent.testsCompleted || 0,
-        topPercent: matchedEduStudent.topPercent || 0,
-        phone: matchedEduStudent.phone,
-        email: `${matchedEduStudent.name.toLowerCase().replace(/\s+/g, '.')}@eduhome.ac.in`,
-        goals: matchedEduStudent.class,
-      };
-      await this.saveCurrentStudent(student);
-      return { success: true, student };
+      recordFailedAttempt(trimmedRoll);
+      return { success: false, error: INVALID_CREDENTIALS_MSG };
     }
-
-    return { success: false, error: 'Invalid Roll Number or PIN. Example: EDU-2026-001 / PIN 1234' };
   },
 
   // Update Student Profile & Security
@@ -655,16 +893,16 @@ export const DataService = {
         const checkQuery = supabase
           .from('students')
           .select('pin')
-          .eq('roll_no', rollNo)
+          .ilike('roll_no', rollNo)
           .single();
-        const { data } = await withTimeout(checkQuery, 2500) as any;
-        if (data && data.pin !== currentPin.trim()) {
+        const { data } = (await withTimeout(checkQuery, 2500)) as any;
+        if (data && !verifyPassword(currentPin.trim(), data.pin)) {
           return { success: false, error: 'Current security PIN is incorrect' };
         }
       } catch {
-        // In demo fallback, default PIN is 1234
-        if (currentPin.trim() !== '1234') {
-          return { success: false, error: 'Current security PIN is incorrect (default is 1234)' };
+        const matched = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === rollNo.toUpperCase());
+        if (matched && !verifyPassword(currentPin.trim(), matched.pin)) {
+          return { success: false, error: 'Current security PIN is incorrect' };
         }
       }
     }
@@ -674,17 +912,33 @@ export const DataService = {
       ...updates,
     };
 
-    // Save to local session & cache immediately
+    // Save to local session immediately
     await this.saveCurrentStudent(mergedStudent);
 
-    // Save to Supabase in background
+    // Save to permanent device custom profile cache so logout never wipes photo or avatar
+    try {
+      const studentCustomKey = `eduhome_student_custom_${rollNo.trim().toUpperCase()}`;
+      await AppStorage.setItem(
+        studentCustomKey,
+        JSON.stringify({
+          avatar: mergedStudent.avatar,
+          photoUrl: mergedStudent.photoUrl || null,
+          name: mergedStudent.name,
+          phone: mergedStudent.phone,
+          goals: mergedStudent.goals,
+        })
+      );
+    } catch (e) {
+      console.warn('Failed to save student custom profile locally:', e);
+    }
+
+    // Save to Supabase in background with salted hash
     try {
       const payload: Record<string, any> = {
         name: mergedStudent.name,
         avatar: mergedStudent.avatar,
         phone: mergedStudent.phone,
       };
-      if (mergedStudent.photoUrl) payload.photo_url = mergedStudent.photoUrl;
       if (newPin) payload.pin = newPin.trim();
 
       await withTimeout(
@@ -808,6 +1062,37 @@ export const DataService = {
   },
 
 
+  // Invalidate and clear all local timetable and classes caches
+  async clearClassesCache(rollNo?: string, syllabus?: string): Promise<void> {
+    try {
+      // Clear in-memory cache keys
+      Object.keys(memoryCache).forEach((k) => {
+        if (
+          k.startsWith('classes_') ||
+          k.startsWith('admin_timetable_') ||
+          k.startsWith('published_timetable_') ||
+          k.startsWith('cached_tests')
+        ) {
+          delete memoryCache[k];
+        }
+      });
+      // Clear AppStorage persistent keys
+      if (rollNo) {
+        if (syllabus) {
+          await AppStorage.removeItem(CACHE_PREFIX + `classes_${rollNo}_${syllabus}`);
+        }
+        await AppStorage.removeItem(CACHE_PREFIX + `classes_${rollNo}_State Syllabus`);
+        await AppStorage.removeItem(CACHE_PREFIX + `classes_${rollNo}_CBSE`);
+        await AppStorage.removeItem(CACHE_PREFIX + `classes_${rollNo}_Both`);
+      }
+      await AppStorage.removeItem(CACHE_PREFIX + 'admin_timetable_classes');
+      await AppStorage.removeItem(CACHE_PREFIX + 'published_timetable_dates');
+      await AppStorage.removeItem(CACHE_PREFIX + 'academic_alert_active');
+    } catch (e) {
+      console.log('[DataService] clearClassesCache note:', e);
+    }
+  },
+
   // Check which dates have published timetables across the tuition centre
   async getPublishedTimetableDates(): Promise<string[]> {
     const cacheKey = 'published_timetable_dates';
@@ -850,10 +1135,19 @@ export const DataService = {
     throw new Error('Access Denied: Timetable management and class scheduling are restricted strictly to Administrators through the Admin Portal. Faculty members do not have permission to schedule classes.');
   },
 
-  // Fetch Announcements — Network-First with Cache Fallback (Optionally filtered by student class)
-  async getAnnouncements(forceRefresh = false, studentClass?: string) {
+  async updateClassSession(_id: string, _updates: any) {
+    throw new Error('Access Denied: Timetable management and class editing are restricted strictly to Administrators through the Admin Portal.');
+  },
+
+  async deleteClassSession(_id: string) {
+    throw new Error('Access Denied: Timetable management and class deletion are restricted strictly to Administrators through the Admin Portal.');
+  },
+
+  // Fetch Announcements — Network-First with Cache Fallback (Optionally filtered by student class and syllabus)
+  async getAnnouncements(forceRefresh = false, studentClass?: string, isStudentView = false, studentSyllabus?: string) {
     const classSuffix = studentClass ? `_${studentClass.replace(/\s+/g, '_').toLowerCase()}` : '';
-    const cacheKey = `eduhome_announcements${classSuffix}`;
+    const sylSuffix = studentSyllabus ? `_${studentSyllabus.replace(/\s+/g, '_').toLowerCase()}` : '';
+    const cacheKey = `eduhome_announcements${classSuffix}${sylSuffix}`;
     const cached = await getCached<any[]>(cacheKey);
 
     // 1. Try Supabase Network-First so announcements from Admin Web App appear immediately
@@ -881,12 +1175,20 @@ export const DataService = {
             tag: a.tag || (a.important ? 'Urgent Alert' : 'Notice'),
             author: a.author || 'EduHome Administration',
             createdAt: a.created_at,
+            startDate: extractAlertStartDate(a),
+            expiryDate: extractAlertExpiryDate(a),
           }));
 
-          // Filter by student class if specified
-          const filtered = studentClass
-            ? mapped.filter((a: any) => isTargetedToClass(a, studentClass))
+          // Filter by student class & syllabus if specified
+          const studentFiltered = (studentClass || studentSyllabus)
+            ? mapped.filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
             : mapped;
+
+          // For student view (when studentClass is provided or isStudentView is true):
+          // Enforce: Current Date >= Start Date (hide before start date) and not expired
+          const filtered = (studentClass || isStudentView)
+            ? studentFiltered.filter((a: any) => isAlertVisibleOnDate(a))
+            : studentFiltered;
 
           await setCached(cacheKey, filtered);
           return filtered;
@@ -902,7 +1204,12 @@ export const DataService = {
 
     // 2. Offline fallback ONLY if network error occurred
     if (cached) {
-      return studentClass ? cached.filter((a: any) => isTargetedToClass(a, studentClass)) : cached;
+      const studentFiltered = (studentClass || studentSyllabus)
+        ? cached.filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
+        : cached;
+      return (studentClass || isStudentView)
+        ? studentFiltered.filter((a: any) => isAlertVisibleOnDate(a))
+        : studentFiltered;
     }
     return [];
   },
@@ -1507,40 +1814,99 @@ export const DataService = {
     return cached || mockMaterials;
   },
 
-  // Fetch Notifications with Cache & 2.5s Timeout
-  async getNotifications(rollNo: string) {
-    const cacheKey = `notifs_${rollNo}`;
+  // Fetch Notifications with Cache & 2.5s Timeout — Filtered strictly by student roll number, class & syllabus
+  async getNotifications(rollNo: string, studentClass?: string, studentSyllabus?: string) {
+    const classTag = studentClass ? `_${studentClass.replace(/[^0-9]/g, '')}` : '';
+    const sylTag = studentSyllabus ? `_${studentSyllabus.replace(/\s+/g, '')}` : '';
+    const cacheKey = `notifs_${rollNo}${classTag}${sylTag}`;
     const cached = await getCached<any[]>(cacheKey);
 
     try {
+      // 1. Fetch direct notifications matching this student OR broadcast 'ALL'
       const query = supabase
         .from('notifications')
         .select('*')
-        .eq('roll_no', rollNo)
-        .order('created_at', { ascending: false });
+        .or(`roll_no.eq.${rollNo},roll_no.eq.ALL`)
+        .order('created_at', { ascending: false })
+        .limit(30);
 
       const { data, error } = await withTimeout(query, 2500) as any;
-      if (data && data.length > 0 && !error) {
-        const mapped = data.map((n: any) => ({
-          id: n.id,
-          title: n.title,
-          desc: n.message,
-          time: n.time_label,
-          unread: !n.is_read,
-          type: n.type,
-        }));
-        await setCached(cacheKey, mapped);
-        return mapped;
+
+      // 2. Fetch timetable announcements targeted to this student's class and syllabus
+      let timetableNotifs: any[] = [];
+      try {
+        const { data: ttData } = await withTimeout(
+          supabase
+            .from('announcements')
+            .select('*')
+            .eq('tag', 'Timetable')
+            .order('created_at', { ascending: false })
+            .limit(10),
+          2000
+        ) as any;
+
+        if (Array.isArray(ttData)) {
+          timetableNotifs = ttData
+            .filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
+            .map((a: any) => ({
+              id: `tt_${a.id}`,
+              title: a.title,
+              desc: a.description || a.desc,
+              time: a.time_label || 'Recently',
+              unread: true,
+              type: 'schedule',
+              created_at: a.created_at,
+            }));
+        }
+      } catch (_) {}
+
+      if (!error && (Array.isArray(data) || timetableNotifs.length > 0)) {
+        const filteredDirect = (data || [])
+          .filter((n: any) => {
+            if (n.roll_no === rollNo) return true;
+            // For broadcast notifications: ensure they match student's class and syllabus
+            return isTargetedToClass(n, studentClass) && isTargetedToSyllabus(n, studentSyllabus);
+          })
+          .map((n: any) => ({
+            id: String(n.id),
+            title: n.title,
+            desc: n.message || n.desc,
+            time: n.time_label || 'Recently',
+            unread: !n.is_read,
+            type: n.type || 'general',
+            created_at: n.created_at,
+          }));
+
+        // Merge timetable notifications and direct notifications (sorted newest first)
+        const combined = [...timetableNotifs, ...filteredDirect];
+        combined.sort((a, b) => {
+          const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return tB - tA;
+        });
+
+        // Deduplicate by title & desc
+        const seen = new Set<string>();
+        const unique = combined.filter((item) => {
+          const k = `${item.title}_${item.desc}`;
+          if (seen.has(k)) return false;
+          seen.add(k);
+          return true;
+        });
+
+        if (unique.length > 0) {
+          await setCached(cacheKey, unique);
+          return unique;
+        }
       }
     } catch (e) {
       // Timeout or offline
     }
 
     return cached || [
-      { id: '1', title: 'Class Timetable Updated', desc: 'Tomorrow Physics class rescheduled to 5:30 PM.', time: '10m ago', unread: true, type: 'schedule' },
-      { id: '2', title: 'Fee Reminder', desc: 'Monthly tuition fee test of ₹1 due on 25 Sep 2026.', time: '1h ago', unread: true, type: 'fee' },
-      { id: '3', title: 'Test Result Published', desc: 'Weekly Test #8 results are out. You scored 92/100!', time: '1d ago', unread: false, type: 'result' },
-      { id: '4', title: 'New Study Material', desc: 'Notes for Chemistry Chapter 1 uploaded by Mr. Abhai Kumar.', time: '2d ago', unread: false, type: 'material' },
+      { id: '1', title: 'Class Timetable Updated', desc: 'Tomorrow class schedule has been updated. Open your timetable tab to view details.', time: 'Recently', unread: true, type: 'schedule' },
+      { id: '2', title: 'Fee Reminder', desc: 'Tuition fees reminder. Check fee status tab.', time: '1h ago', unread: true, type: 'fee' },
+      { id: '3', title: 'Test Result Published', desc: 'Latest assessment test results are published.', time: '1d ago', unread: false, type: 'result' },
     ];
   },
 
@@ -1564,23 +1930,9 @@ export const DataService = {
       if (acData && acData.length > 0 && !acErr) {
         const now = new Date();
         const validItem = acData.find((top: any) => {
-          // Check stop/expiry date
-          if (top.expiry_date || top.stop_date) {
-            const expDate = new Date(top.expiry_date || top.stop_date);
-            expDate.setHours(23, 59, 59, 999);
-            if (!isNaN(expDate.getTime()) && now > expDate) {
-              return false;
-            }
-          }
-          // Check show from date (day to be shown to students)
-          if (top.show_from_date) {
-            const showDate = new Date(top.show_from_date);
-            showDate.setHours(0, 0, 0, 0);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            if (!isNaN(showDate.getTime()) && today < showDate) {
-              return false;
-            }
+          // Check start date & expiry date
+          if (!isAlertVisibleOnDate(top, now)) {
+            return false;
           }
           if (studentClass && !isTargetedToClass(top, studentClass)) {
             return false;
@@ -1645,7 +1997,7 @@ export const DataService = {
       )) as any;
 
       if (!error) {
-        if (data && data.length > 0) {
+          const now = new Date();
           // Filter out any holiday or generic notice
           const validTestAnnouncements = data.filter((item: any) => {
             const t = (item.title || '').toLowerCase();
@@ -1664,39 +2016,20 @@ export const DataService = {
             if (studentClass && !isTargetedToClass(item, studentClass)) {
               return false;
             }
+
+            // Check start date & expiry date: do NOT show tests before scheduled start date or after expiry
+            if (!isAlertVisibleOnDate(item, now)) {
+              return false;
+            }
+
             return true;
           });
 
           if (validTestAnnouncements.length > 0) {
             const top = validTestAnnouncements[0];
             const desc = top.description || '';
-            const now = new Date();
-
-            // Check if alert has stopped / expired
-            let isExpired = false;
             const expiryMatch = desc.match(/(?:Valid Until|Stop Date|Expiry)\s*:\s*([^\n|]+)/i);
-            if (expiryMatch) {
-              const expDate = new Date(expiryMatch[1].trim());
-              expDate.setHours(23, 59, 59, 999);
-              if (!isNaN(expDate.getTime()) && now > expDate) {
-                isExpired = true;
-              }
-            }
-
-            // Check if day to be shown to students has arrived
-            let notYetVisible = false;
             const showMatch = desc.match(/(?:Show From|Start Date)\s*:\s*([^\n|]+)/i);
-            if (showMatch) {
-              const showDate = new Date(showMatch[1].trim());
-              showDate.setHours(0, 0, 0, 0);
-              const today = new Date();
-              today.setHours(0, 0, 0, 0);
-              if (!isNaN(showDate.getTime()) && today < showDate) {
-                notYetVisible = true;
-              }
-            }
-
-            if (!isExpired && !notYetVisible) {
               const dateMatch = desc.match(/Exam Date:\s*([^\n|]+)/i);
               const syllabusMatch = desc.match(/Syllabus:\s*([^\n]+)/i);
               const venueMatch = desc.match(/(?:Venue|Room)\s*:\s*([^\n|]+)/i);
@@ -1720,16 +2053,15 @@ export const DataService = {
                 showFromDate: showMatch ? showMatch[1].trim() : undefined,
                 classTag: top.title?.match(/\[Class\s*(\d{1,2})\]/i)?.[0] || undefined,
               };
-              await setCached(key, alertObj);
-              return alertObj;
-            }
+            await setCached(key, alertObj);
+            return alertObj;
           }
+
+          // If DB returned successfully and no active alerts exist for this class, CLEAR cache & return null!
+          await setCached(key, null);
+          return null;
         }
-        // If DB returned successfully and no active alerts exist for this class, CLEAR cache & return null!
-        await setCached(key, null);
-        return null;
-      }
-    } catch (e) {
+      } catch (e) {
       // only if network request threw an exception (offline)
     }
 
@@ -1751,6 +2083,11 @@ export const DataService = {
 
     // Verify targeted class on cached item
     if (studentClass && !isTargetedToClass(cached, studentClass)) {
+      return null;
+    }
+
+    // Verify start date on cached item
+    if (!isAlertVisibleOnDate(cached)) {
       return null;
     }
 
@@ -1784,6 +2121,30 @@ export const DataService = {
 
   isTargetedToClass(item: any, studentClass?: string): boolean {
     return isTargetedToClass(item, studentClass);
+  },
+
+  isTargetedToSyllabus(item: any, studentSyllabus?: string): boolean {
+    return isTargetedToSyllabus(item, studentSyllabus);
+  },
+
+  isTargetedToStudent(item: any, studentClass?: string, studentSyllabus?: string): boolean {
+    return isTargetedToStudent(item, studentClass, studentSyllabus);
+  },
+
+  isAlertVisibleOnDate(item: any, targetDate: Date = new Date()): boolean {
+    return isAlertVisibleOnDate(item, targetDate);
+  },
+
+  extractAlertStartDate(item: any): string | null {
+    return extractAlertStartDate(item);
+  },
+
+  extractAlertExpiryDate(item: any): string | null {
+    return extractAlertExpiryDate(item);
+  },
+
+  parseDateToIso(dateStr?: string | null): string | null {
+    return parseDateToIso(dateStr);
   },
 
   async saveAcademicAlert(alert: any) {
@@ -1964,6 +2325,10 @@ export const DataService = {
     return [];
   },
 
+  
+  async setCachedTests(tests: any[]): Promise<void> {
+    await setCached('teacher_tests', tests);
+  },
   async clearAllTests(): Promise<void> {
     await setCached('teacher_tests', []);
     await setCached('academic_alert_active', null);
@@ -2019,6 +2384,18 @@ export const DataService = {
 
     // 4. Delete from Supabase classes table if test was added to timetable
     try {
+      const testDate = testItem?.date ? parseDateToIso(testItem.date) : '';
+      const testSub = testItem?.subject || '';
+      const testGrade = testItem?.classTag || testItem?.class_tag || testItem?.class_grade || '';
+      if (testDate && testSub) {
+        await supabase.from('classes').delete().eq('class_date', testDate).eq('subject', testSub);
+      }
+      if (testDate && testGrade) {
+        await supabase.from('classes').delete().eq('class_date', testDate).eq('class_grade', testGrade).ilike('time', '%Test Paper%');
+      }
+      if (testSub) {
+        await supabase.from('classes').delete().eq('subject', testSub).ilike('time', '%Test Paper%');
+      }
       if (testTitle) {
         await supabase.from('classes').delete().or(`time.ilike.%${testTitle}%,status.ilike.%${testTitle}%`);
       }
@@ -2051,7 +2428,7 @@ export const DataService = {
         2000
       ) as any;
 
-      if (!error && Array.isArray(data) && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         await setCached(key, data);
         return data;
       }
@@ -2395,7 +2772,11 @@ export const DataService = {
               return null;
             }
           })
-          .filter((o) => o && o.status === 'approved');
+          .filter((o) => {
+            if (!o || o.status !== 'approved') return false;
+            const targetStudentId = o.student_id || o.studentId || o.rollNo;
+            return !targetStudentId || targetStudentId.toUpperCase() === rollNo.toUpperCase();
+          });
 
         // Directly update cache to match Supabase cloud truth; do not resurrect deleted opinions
         await setCached(key, cloudOpinions);
@@ -2411,23 +2792,38 @@ export const DataService = {
 
   async addTeacherOpinion(opinion: {
     rollNo: string;
-    studentName: string;
+    studentId?: string;
+    student_id?: string;
+    studentName?: string;
     teacher: string;
     facultyId?: string;
+    faculty_id?: string;
     subject: string;
     remark: string;
   }) {
-    const pendingKey = 'pending_teacher_opinions';
-    const existing = (await getCached<any[]>(pendingKey)) || [];
+    const sId = opinion.student_id || opinion.studentId || opinion.rollNo;
+    const fId = opinion.faculty_id || opinion.facultyId;
     const opId = 'top-' + Date.now();
     const newOpinion: any = {
       id: opId,
       ...opinion,
+      studentId: sId,
+      student_id: sId,
+      facultyId: fId,
+      faculty_id: fId,
       status: 'pending_review',
       submittedAt: 'Just now',
     };
-    const updatedPending = [newOpinion, ...existing];
+
+    const pendingKey = 'pending_teacher_opinions';
+    const existing = (await getCached<any[]>(pendingKey)) || [];
+    const updatedPending = [newOpinion, ...existing.filter((o) => o.id !== opId)];
     await setCached(pendingKey, updatedPending);
+    if (fId) {
+      const fPendingKey = `pending_teacher_opinions_${fId}`;
+      const fExisting = (await getCached<any[]>(fPendingKey)) || [];
+      await setCached(fPendingKey, [newOpinion, ...fExisting.filter((o) => o.id !== opId)]);
+    }
 
     try {
       const { data, error } = await supabase.from('notifications').insert({
@@ -2449,16 +2845,51 @@ export const DataService = {
     return newOpinion;
   },
 
-  async getPendingTeacherOpinions(): Promise<any[]> {
-    const pendingKey = 'pending_teacher_opinions';
+  async getPendingTeacherOpinions(requester?: {
+    id?: string;
+    facultyId?: string;
+    faculty_id?: string;
+    name?: string;
+    role?: string;
+  }): Promise<any[]> {
+    const isSuperAdmin =
+      !requester ||
+      Boolean(requester.role?.toLowerCase().includes('admin')) ||
+      requester.id === 'fac-admin' ||
+      Boolean(requester.name?.includes('Abhai'));
+
+    const facultyId = requester?.faculty_id || requester?.facultyId || requester?.id;
+    const facultyName = (requester?.name || '').trim();
+
+    const pendingKey = isSuperAdmin
+      ? 'pending_teacher_opinions'
+      : `pending_teacher_opinions_${facultyId || facultyName}`;
     const cached = (await getCached<any[]>(pendingKey)) || [];
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('notifications')
         .select('*')
         .eq('type', 'teacher_opinion')
         .order('created_at', { ascending: false });
+
+      // Database-level query restriction: only authoring faculty can query
+      if (!isSuperAdmin) {
+        const orConditions: string[] = [];
+        if (facultyId) {
+          orConditions.push(`message.ilike.%"facultyId":"${facultyId}"%`);
+          orConditions.push(`message.ilike.%"faculty_id":"${facultyId}"%`);
+        }
+        if (facultyName) {
+          orConditions.push(`message.ilike.%"teacher":"${facultyName}"%`);
+          orConditions.push(`title.ilike.%${facultyName}%`);
+        }
+        if (orConditions.length > 0) {
+          query = query.or(orConditions.join(','));
+        }
+      }
+
+      const { data, error } = await query;
 
       if (!error && Array.isArray(data)) {
         const cloudPending = data
@@ -2470,7 +2901,19 @@ export const DataService = {
               return null;
             }
           })
-          .filter((o) => o && o.status === 'pending_review');
+          .filter((o) => {
+            if (!o || o.status !== 'pending_review') return false;
+            if (isSuperAdmin) return true;
+            // Strict backend verification: must be authoring faculty
+            const opFacultyId = o.faculty_id || o.facultyId;
+            if (facultyId && opFacultyId && opFacultyId.toLowerCase() === facultyId.toLowerCase()) {
+              return true;
+            }
+            if (facultyName && o.teacher && o.teacher.toLowerCase().includes(facultyName.toLowerCase())) {
+              return true;
+            }
+            return false;
+          });
 
         const map = new Map<string, any>();
         cloudPending.forEach((o) => map.set(o.id, o));
@@ -2538,22 +2981,78 @@ export const DataService = {
     return approvedItem;
   },
 
-  async getAllTeacherOpinions(): Promise<any[]> {
-    const pending = (await this.getPendingTeacherOpinions()) || [];
+  async getAllTeacherOpinions(requester?: {
+    id?: string;
+    facultyId?: string;
+    faculty_id?: string;
+    name?: string;
+    role?: string;
+  }): Promise<any[]> {
+    const isSuperAdmin =
+      !requester ||
+      Boolean(requester.role?.toLowerCase().includes('admin')) ||
+      requester.id === 'fac-admin' ||
+      Boolean(requester.name?.includes('Abhai'));
+
+    const facultyId = requester?.faculty_id || requester?.facultyId || requester?.id;
+    const facultyName = (requester?.name || '').trim();
+
+    const pending = (await this.getPendingTeacherOpinions(requester)) || [];
     const opinionsList: any[] = [];
 
+    const cacheKey = isSuperAdmin
+      ? 'all_teacher_opinions'
+      : `all_teacher_opinions_${facultyId || facultyName}`;
+
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('notifications')
         .select('*')
         .eq('type', 'teacher_opinion')
         .order('created_at', { ascending: false });
 
+      // Backend database query filter:
+      // A faculty member should only be able to retrieve opinions where they are the authoring faculty member.
+      if (!isSuperAdmin) {
+        const orConditions: string[] = [];
+        if (facultyId) {
+          orConditions.push(`message.ilike.%"facultyId":"${facultyId}"%`);
+          orConditions.push(`message.ilike.%"faculty_id":"${facultyId}"%`);
+        }
+        if (facultyName) {
+          orConditions.push(`message.ilike.%"teacher":"${facultyName}"%`);
+          orConditions.push(`title.ilike.%${facultyName}%`);
+        }
+        if (orConditions.length > 0) {
+          query = query.or(orConditions.join(','));
+        }
+      }
+
+      const { data, error } = await query;
+
       if (!error && Array.isArray(data)) {
         data.forEach((row) => {
           try {
             const parsed = JSON.parse(row.message);
-            opinionsList.push({ ...parsed, supabaseId: row.id, id: parsed.id || row.id });
+            const op = { ...parsed, supabaseId: row.id, id: parsed.id || row.id };
+
+            // Strict backend authorization check:
+            // Admin role -> has full access
+            // Faculty -> can only retrieve opinions where they are the authoring faculty member
+            if (isSuperAdmin) {
+              opinionsList.push(op);
+            } else {
+              const opFacultyId = op.faculty_id || op.facultyId;
+              const matchesFacultyId = Boolean(
+                facultyId && opFacultyId && opFacultyId.toLowerCase() === facultyId.toLowerCase()
+              );
+              const matchesFacultyName = Boolean(
+                facultyName && op.teacher && op.teacher.toLowerCase().includes(facultyName.toLowerCase())
+              );
+              if (matchesFacultyId || matchesFacultyName) {
+                opinionsList.push(op);
+              }
+            }
           } catch {}
         });
       }
@@ -2564,13 +3063,15 @@ export const DataService = {
     const map = new Map<string, any>();
     opinionsList.forEach((o) => map.set(o.id, o));
     pending.forEach((o) => map.set(o.id, o));
-    return Array.from(map.values());
+    const result = Array.from(map.values());
+    await setCached(cacheKey, result);
+    return result;
   },
 
   async deleteTeacherOpinion(
     opinionId: string,
     rollNo?: string,
-    requesterTeacher?: { id?: string; name?: string; role?: string }
+    requesterTeacher?: { id?: string; facultyId?: string; faculty_id?: string; name?: string; role?: string }
   ): Promise<boolean> {
     // 1. Authorization check
     if (requesterTeacher) {
@@ -2581,17 +3082,19 @@ export const DataService = {
 
       if (!isSuperAdmin) {
         // Normal faculty: can only delete their own opinion
-        const allOpinions = await this.getAllTeacherOpinions();
+        const allOpinions = await this.getAllTeacherOpinions(requesterTeacher);
         const target = allOpinions.find(
           (o) => o.id === opinionId || o.supabaseId === opinionId
         );
-        if (
-          target &&
-          target.teacher &&
-          requesterTeacher.name &&
-          !target.teacher.toLowerCase().includes(requesterTeacher.name.toLowerCase()) &&
-          target.facultyId !== requesterTeacher.id
-        ) {
+        const fId = requesterTeacher.faculty_id || requesterTeacher.facultyId || requesterTeacher.id;
+        const opFId = target?.faculty_id || target?.facultyId;
+        const matchesFId = Boolean(fId && opFId && opFId.toLowerCase() === fId.toLowerCase());
+        const matchesName = Boolean(
+          target && target.teacher && requesterTeacher.name &&
+          target.teacher.toLowerCase().includes(requesterTeacher.name.toLowerCase())
+        );
+
+        if (!target || (!matchesFId && !matchesName)) {
           throw new Error('Access Denied: Faculty members can only delete opinions they have submitted.');
         }
       }
@@ -2623,6 +3126,16 @@ export const DataService = {
       );
       await setCached(studentKey, remainingStudentOps);
     }
+
+    // 5. Invalidate faculty-specific cache
+    if (requesterTeacher) {
+      const fId = requesterTeacher.faculty_id || requesterTeacher.facultyId || requesterTeacher.id;
+      if (fId) {
+        await setCached(`all_teacher_opinions_${fId}`, null);
+        await setCached(`pending_teacher_opinions_${fId}`, null);
+      }
+    }
+    await setCached('all_teacher_opinions', null);
 
     return true;
   },

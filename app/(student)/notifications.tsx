@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
 import { DataService } from '../../lib/dataService';
+import { supabase } from '../../lib/supabase';
 
 const defaultNotifs = [
   {
@@ -79,11 +80,13 @@ export default function NotificationsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   const rollNo = student?.rollNo || '';
+  const studentClass = student?.class;
+  const studentSyllabus = student?.syllabus;
 
   const loadData = async () => {
     if (!rollNo) return;
     try {
-      const res = await DataService.getNotifications(rollNo);
+      const res = await DataService.getNotifications(rollNo, studentClass, studentSyllabus);
       if (res && res.length > 0) {
         setItems(res.map((r: any) => ({
           id: r.id,
@@ -103,7 +106,22 @@ export default function NotificationsScreen() {
 
   useEffect(() => {
     loadData();
-  }, [rollNo]);
+
+    // Instant realtime synchronization when timetable or notification is published
+    const sub = supabase
+      .channel(`notifs_rt_${rollNo || 'anon'}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
+        loadData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
+        loadData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(sub);
+    };
+  }, [rollNo, studentClass, studentSyllabus]);
 
   const onRefresh = async () => {
     setRefreshing(true);
