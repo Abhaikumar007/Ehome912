@@ -5,7 +5,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '../../constants/colors';
 import { studentData, progressData } from '../../constants/mockData';
@@ -31,7 +31,7 @@ const AVATAR_PRESETS = [
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { student, logout, refresh, updateProfile } = useAuth();
+  const { student, logout, refresh, updateProfile, loading: authLoading } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
   // Edit Profile Modal State
@@ -130,15 +130,15 @@ export default function ProfileScreen() {
 
     if (changePin) {
       if (!currentPin) {
-        setFormError('Please enter your current PIN to verify identity');
+        setFormError('Please enter your current PIN/password to verify identity');
         return;
       }
-      if (newPin.length !== 4) {
-        setFormError('New PIN must be exactly 4 digits');
+      if (newPin.trim().length < 4) {
+        setFormError('New password/PIN must be at least 4 characters');
         return;
       }
       if (newPin !== confirmPin) {
-        setFormError('New PIN and Confirm PIN do not match');
+        setFormError('New password/PIN and Confirm password do not match');
         return;
       }
     }
@@ -542,8 +542,8 @@ export default function ProfileScreen() {
                     <Ionicons name="shield-checkmark" size={18} color={changePin ? Colors.green : Colors.primary} />
                   </View>
                   <View>
-                    <Text style={styles.secTitle}>Change Security PIN</Text>
-                    <Text style={styles.secSub}>Update your 4-digit student login PIN</Text>
+                    <Text style={styles.secTitle}>Change Security PIN / Password</Text>
+                    <Text style={styles.secSub}>Update your login PIN or password</Text>
                   </View>
                 </View>
                 <Ionicons name={changePin ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textSecondary} />
@@ -551,40 +551,46 @@ export default function ProfileScreen() {
 
               {changePin && (
                 <View style={styles.pinFieldsBox}>
-                  <Text style={styles.inputLabel}>Current 4-Digit PIN</Text>
+                  <Text style={styles.inputLabel}>Current PIN / Password</Text>
                   <TextInput
                     style={styles.pinInput}
                     value={currentPin}
                     onChangeText={setCurrentPin}
-                    placeholder="••••"
+                    placeholder="Enter current PIN / password"
                     placeholderTextColor={Colors.textMuted}
                     secureTextEntry
-                    keyboardType="numeric"
-                    maxLength={4}
+                    keyboardType="default"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={32}
                   />
 
-                  <Text style={styles.inputLabel}>New 4-Digit PIN</Text>
+                  <Text style={styles.inputLabel}>New PIN / Password</Text>
                   <TextInput
                     style={styles.pinInput}
                     value={newPin}
                     onChangeText={setNewPin}
-                    placeholder="••••"
+                    placeholder="Enter new PIN / password"
                     placeholderTextColor={Colors.textMuted}
                     secureTextEntry
-                    keyboardType="numeric"
-                    maxLength={4}
+                    keyboardType="default"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={32}
                   />
 
-                  <Text style={styles.inputLabel}>Confirm New 4-Digit PIN</Text>
+                  <Text style={styles.inputLabel}>Confirm New PIN / Password</Text>
                   <TextInput
                     style={styles.pinInput}
                     value={confirmPin}
                     onChangeText={setConfirmPin}
-                    placeholder="••••"
+                    placeholder="Confirm new PIN / password"
                     placeholderTextColor={Colors.textMuted}
                     secureTextEntry
-                    keyboardType="numeric"
-                    maxLength={4}
+                    keyboardType="default"
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    maxLength={32}
                   />
                 </View>
               )}

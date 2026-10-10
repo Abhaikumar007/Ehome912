@@ -14,9 +14,11 @@ import {
   TEACHER_ROSTER,
   TeacherProfile,
   getActiveTeacher,
-  setActiveTeacherId,
+  hasTeacherSession,
   subscribeToActiveTeacher,
+  setActiveTeacherId,
   getTeacherRoster,
+  getInitials,
   isTeacherAssignedToClass,
   isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
@@ -112,11 +114,82 @@ export function getTeacherSessionType(cls: any): TeacherSessionInfo {
 
 
 
+
+function formatUpdatedSession(
+  currentClass: any,
+  newType: 'Regular' | 'QuestionBank' | 'TP',
+  teacher: TeacherProfile,
+  newSyllabus?: 'Both' | 'State Syllabus' | 'CBSE'
+) {
+  const typeTag = newType === 'TP' ? 'Test Paper' : newType === 'QuestionBank' ? 'Question Bank' : 'Regular Class';
+
+  const rawTime = currentClass.time || '';
+  const timeTokens = rawTime.split('•').map((s: string) => s.trim()).filter(Boolean);
+  const baseSlot = timeTokens[0] || '';
+
+  const effectiveSyllabus = newSyllabus || resolveClassTargetSyllabus(currentClass);
+
+  const teacherName = teacher?.name || '';
+  const facultyToken = timeTokens.find((tok: string) => {
+    const l = tok.toLowerCase();
+    if (l === 'test paper' || l === 'tp' || l === 'question bank' || l === 'qb' || l === 'regular' || l === 'cbse' || l === 'state' || l === 'state syllabus') return false;
+    return (
+      l.includes('mr.') ||
+      l.includes('ms.') ||
+      l.includes('mrs.') ||
+      l.includes('dr.') ||
+      (teacherName && l.includes(teacherName.toLowerCase()))
+    );
+  }) || (teacherName ? teacherName : undefined);
+
+  const newTimeParts: string[] = [baseSlot];
+  if (effectiveSyllabus === 'CBSE') {
+    newTimeParts.push('CBSE');
+  } else if (effectiveSyllabus === 'State Syllabus') {
+    newTimeParts.push('State Syllabus');
+  }
+
+  if (newType !== 'Regular') {
+    newTimeParts.push(typeTag);
+  }
+  if (facultyToken) {
+    newTimeParts.push(facultyToken);
+  }
+  const newTime = newTimeParts.join(' • ');
+
+  const rawStatus = currentClass.status || 'upcoming';
+  const statusParts = rawStatus.split(':').map((s: string) => s.trim()).filter(Boolean);
+  const facId = statusParts.find((p: string) => p.startsWith('fac-')) || teacher?.id || 'fac-math';
+
+  const sylPart = effectiveSyllabus === 'CBSE' ? 'CBSE' : effectiveSyllabus === 'State Syllabus' ? 'State' : '';
+  const typePart = newType === 'Regular' ? '' : newType;
+
+  const newStatus = ['upcoming', sylPart, typePart, facId].filter(Boolean).join(':');
+
+  return { newTime, newStatus, typeTag, effectiveSyllabus };
+}
+
 export default function TeacherHomeScreen() {
   const router = useRouter();
+  const [authChecking, setAuthChecking] = useState(true);
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
-  const [roster, setRoster] = useState<TeacherProfile[]>(TEACHER_ROSTER);
-  const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      hasTeacherSession().then((isAuth) => {
+        if (!isMounted) return;
+        if (!isAuth) {
+          router.replace('/login');
+        } else {
+          setAuthChecking(false);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
   const [adminClasses, setAdminClasses] = useState<any[]>(() => {
     return DataService.getCachedAdminTimetableClasses() || [];
   });
@@ -146,6 +219,30 @@ export default function TeacherHomeScreen() {
   const [rosterClassFilter, setRosterClassFilter] = useState('All');
   const [rosterSubjectFilter, setRosterSubjectFilter] = useState('All');
 
+  // Faculty picker modal
+  const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
+
+  // Session Format Switching workflow (Regular Class / Question Bank / Test Paper)
+  const [sessionTypeModalVisible, setSessionTypeModalVisible] = useState(false);
+  const [selectedClassForSessionType, setSelectedClassForSessionType] = useState<any>(null);
+  const [editSessionSyllabus, setEditSessionSyllabus] = useState<'Both' | 'State Syllabus' | 'CBSE'>('Both');
+
+  // Schedule New Class Session modal state
+  const [scheduleClassModalVisible, setScheduleClassModalVisible] = useState(false);
+  const [schedClassGrade, setSchedClassGrade] = useState('Class 10');
+  const [schedSyllabus, setSchedSyllabus] = useState<'Both' | 'State Syllabus' | 'CBSE'>('Both');
+  const [schedSubject, setSchedSubject] = useState('');
+  const [schedStartTime, setSchedStartTime] = useState('04:00 PM');
+  const [schedEndTime, setSchedEndTime] = useState('05:30 PM');
+  const [schedSessionType, setSchedSessionType] = useState('Regular Class');
+  const [schedCustomDate, setSchedCustomDate] = useState('');
+  const [isSavingSchedClass, setIsSavingSchedClass] = useState(false);
+
+  // Quick date jump modal
+  const [dateJumpModalVisible, setDateJumpModalVisible] = useState(false);
+  const [customJumpDate, setCustomJumpDate] = useState('');
+
+
   // Teacher Opinions per Student workflow
   const [opinionModalVisible, setOpinionModalVisible] = useState(false);
   const [selectedStudentForOpinion, setSelectedStudentForOpinion] = useState<any>(null);
@@ -158,8 +255,6 @@ export default function TeacherHomeScreen() {
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
   const loadActiveFaculty = async () => {
-    const list = await getTeacherRoster();
-    setRoster([...list]);
     const teacher = await getActiveTeacher();
     setActiveTeacher({ ...teacher });
   };
@@ -202,9 +297,9 @@ export default function TeacherHomeScreen() {
     }
   };
 
-  const loadOpinions = async () => {
+  const loadOpinions = async (teacherToLoad = activeTeacher) => {
     try {
-      const list = await DataService.getAllTeacherOpinions();
+      const list = await DataService.getAllTeacherOpinions(teacherToLoad);
       setAllOpinions(list || []);
       const pending = (list || []).filter((o) => o.status === 'pending_review');
       setPendingOpinions(pending);
@@ -351,13 +446,29 @@ export default function TeacherHomeScreen() {
 
     const unsub = subscribeToActiveTeacher((updated) => {
       setActiveTeacher({ ...updated });
+      loadOpinions(updated);
     });
 
     // Supabase Realtime: updates instantly when admin broadcasts from PC or edits classes
     const classChannel = supabase
       .channel('teacher_classes_realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, async () => {
         console.log('[Realtime] Classes timetable updated from Supabase!');
+        await DataService.clearClassesCache();
+        loadTimetable();
+      })
+      .on('broadcast', { event: 'exam_deleted' }, async () => {
+        console.log('[Realtime] Exam deleted broadcast received on teacher portal');
+        await DataService.clearClassesCache();
+        loadTimetable();
+      })
+      .on('broadcast', { event: 'classes_changed' }, async () => {
+        console.log('[Realtime] Classes changed broadcast received on teacher portal');
+        await DataService.clearClassesCache();
+        loadTimetable();
+      })
+      .on('broadcast', { event: 'announcement_deleted' }, async () => {
+        await DataService.clearClassesCache();
         loadTimetable();
       })
       .subscribe();
@@ -395,6 +506,12 @@ export default function TeacherHomeScreen() {
     };
   }, [fetchLiveStudents]);
 
+  useEffect(() => {
+    if (activeTeacher) {
+      loadOpinions(activeTeacher);
+    }
+  }, [activeTeacher?.id, activeTeacher?.name]);
+
   const getInitials = (name: string) => {
     return name
       .replace(/Dr\.|Mr\.|Mrs\.|Ms\./g, '')
@@ -428,7 +545,6 @@ export default function TeacherHomeScreen() {
       }),
       isTomorrow: dateOffset === 1,
       isToday: dateOffset === 0,
-      isSunday: d.getDay() === 0,
     };
   }, [dateOffset]);
 
@@ -523,6 +639,132 @@ export default function TeacherHomeScreen() {
     }
   };
 
+
+  const handleOpenScheduleClass = (customDateIso?: string) => {
+    setSchedSubject(activeTeacher.subject || 'Physics');
+    setSchedClassGrade(activeTeacher.allowedGrades?.[0] && activeTeacher.allowedGrades[0] !== '*' ? `Class ${activeTeacher.allowedGrades[0]}` : 'Class 10');
+    setSchedSyllabus('Both');
+    setSchedSessionType('Regular Class');
+    setSchedStartTime('04:00 PM');
+    setSchedEndTime('05:30 PM');
+    setSchedCustomDate(customDateIso || targetDateInfo.iso);
+    setScheduleClassModalVisible(true);
+  };
+
+  const handleSaveScheduledClass = async () => {
+    if (!schedClassGrade || !schedSubject || !schedStartTime || !schedEndTime) {
+      Alert.alert('Missing Details', 'Please fill in Class, Subject, Start Time and End Time.');
+      return;
+    }
+    const finalDate = schedCustomDate.trim() || targetDateInfo.iso;
+    setIsSavingSchedClass(true);
+    try {
+      await DataService.scheduleTeacherClassSession({
+        classGrade: schedClassGrade,
+        subject: schedSubject,
+        classDate: finalDate,
+        startTime: schedStartTime,
+        endTime: schedEndTime,
+        sessionType: schedSessionType,
+        targetSyllabus: schedSyllabus,
+        facultyId: activeTeacher.id,
+        facultyName: activeTeacher.name,
+      });
+
+      setScheduleClassModalVisible(false);
+      Alert.alert(
+        'Session Scheduled ✓',
+        `${schedClassGrade} (${schedSyllabus}) ${schedSubject} has been successfully scheduled for ${finalDate}.`
+      );
+      loadTimetable();
+    } catch (err: any) {
+      Alert.alert('Error', err?.message || 'Failed to schedule session. Please try again.');
+    } finally {
+      setIsSavingSchedClass(false);
+    }
+  };
+
+  const handleOpenEditSessionType = (cls: any) => {
+    setSelectedClassForSessionType(cls);
+    setEditSessionSyllabus(resolveClassTargetSyllabus(cls));
+    setSessionTypeModalVisible(true);
+  };
+
+  const handleUpdateSessionType = async (newType: 'Regular' | 'QuestionBank' | 'TP') => {
+    if (!selectedClassForSessionType) return;
+    const targetClass = selectedClassForSessionType;
+    setSessionTypeModalVisible(false);
+
+    const { newTime, newStatus, typeTag } = formatUpdatedSession(targetClass, newType, activeTeacher, editSessionSyllabus);
+
+    setAdminClasses((prev) =>
+      prev.map((cls) => {
+        if (cls.id === targetClass.id) {
+          return {
+            ...cls,
+            status: newStatus,
+            time: newTime,
+            session_type: typeTag,
+          };
+        }
+        return cls;
+      })
+    );
+
+    try {
+      await DataService.updateClassSession(targetClass.id, {
+        status: newStatus,
+        time: newTime,
+      });
+      loadTimetable();
+    } catch (err) {
+      console.warn('[TeacherHomeScreen] Failed to sync session format:', err);
+    }
+  };
+
+  const handleDeleteClassSession = async (cls: any) => {
+    Alert.alert(
+      'Delete Class Session',
+      `Are you sure you want to delete ${cls.class_grade || cls.roll_no} ${cls.subject} (${cls.time})?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await DataService.deleteClassSession(cls.id);
+              setSessionTypeModalVisible(false);
+              loadTimetable();
+              Alert.alert('Session Deleted', 'The class session has been removed from the timetable.');
+            } catch (err: any) {
+              Alert.alert('Error', err?.message || 'Failed to delete class session.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleJumpToDate = (isoDate: string) => {
+    if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate.trim())) {
+      Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format (e.g. 2026-10-15).');
+      return;
+    }
+    const clean = isoDate.trim();
+    const target = new Date(clean + 'T00:00:00');
+    if (isNaN(target.getTime())) {
+      Alert.alert('Invalid Date', 'Date could not be recognized.');
+      return;
+    }
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffTime = target.getTime() - today.getTime();
+    const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
+    setDateOffset(diffDays);
+    setDateJumpModalVisible(false);
+  };
+
   const handleOpenOpinionModal = (student: any) => {
     setSelectedStudentForOpinion(student);
     setOpinionRemark('');
@@ -540,13 +782,17 @@ export default function TeacherHomeScreen() {
     try {
       await DataService.addTeacherOpinion({
         rollNo: selectedStudentForOpinion.rollNo,
+        studentId: (selectedStudentForOpinion as any).id || selectedStudentForOpinion.rollNo,
+        student_id: (selectedStudentForOpinion as any).id || selectedStudentForOpinion.rollNo,
         studentName: selectedStudentForOpinion.name,
         teacher: activeTeacher.name || 'Faculty Member',
+        facultyId: activeTeacher.id,
+        faculty_id: activeTeacher.id,
         subject: opinionSubject,
         remark: `[${opinionRating}] ${opinionRemark.trim()}`,
       });
       setOpinionModalVisible(false);
-      await loadOpinions();
+      await loadOpinions(activeTeacher);
       Alert.alert(
         'Submitted for Main Admin Review ✓',
         `Your remark for ${selectedStudentForOpinion.name} in ${opinionSubject} has been routed to Main Admin (Mr. Abhai Kumar). Once approved, it will automatically appear in the student's carousel!`
@@ -567,7 +813,7 @@ export default function TeacherHomeScreen() {
         op.teacher &&
         activeTeacher?.name &&
         op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
-      ) || op.facultyId === activeTeacher?.id;
+      ) || op.facultyId === activeTeacher?.id || op.faculty_id === activeTeacher?.id;
 
     if (!isSuperAdmin && !isMyOpinion) {
       Alert.alert(
@@ -588,7 +834,7 @@ export default function TeacherHomeScreen() {
           onPress: async () => {
             try {
               await DataService.deleteTeacherOpinion(op.id, op.rollNo, activeTeacher);
-              await loadOpinions();
+              await loadOpinions(activeTeacher);
               Alert.alert('Deleted', 'Opinion has been permanently deleted.');
             } catch (err: any) {
               Alert.alert('Error', err?.message || 'Failed to delete opinion.');
@@ -602,7 +848,7 @@ export default function TeacherHomeScreen() {
   const handleApproveOpinion = async (opId: string, studentName: string) => {
     try {
       await DataService.approveTeacherOpinion(opId);
-      await loadOpinions();
+      await loadOpinions(activeTeacher);
       Alert.alert(
         'Opinion Approved & Published ✓',
         `Main Admin approval granted! Remark for ${studentName} has been synchronized directly to the student dashboard carousel.`
@@ -611,6 +857,14 @@ export default function TeacherHomeScreen() {
       Alert.alert('Error', 'Failed to approve opinion.');
     }
   };
+
+  if (authChecking) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -629,14 +883,10 @@ export default function TeacherHomeScreen() {
         </View>
 
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.facultyPill}
-            onPress={() => setFacultyPickerVisible(true)}
-            activeOpacity={0.8}
-          >
+          <View style={styles.facultyPill}>
             <Ionicons name="school" size={13} color="#0284C7" />
-            <Text style={styles.facultyPillText}>{activeTeacher.subject.split(' ')[0]} ▾</Text>
-          </TouchableOpacity>
+            <Text style={styles.facultyPillText}>{activeTeacher.subject.split(' ')[0]}</Text>
+          </View>
 
           <TouchableOpacity
             style={styles.refreshBtn}
@@ -661,9 +911,13 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{getInitials(activeTeacher.name)}</Text>
-            </View>
+            {activeTeacher.avatar && (activeTeacher.avatar.startsWith('http') || activeTeacher.avatar.startsWith('file://')) ? (
+              <Image source={{ uri: activeTeacher.avatar }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+            ) : (
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{activeTeacher.avatar || getInitials(activeTeacher.name)}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -688,15 +942,11 @@ export default function TeacherHomeScreen() {
             <Text style={styles.roleBadgeText}>{activeTeacher.subject} • {activeTeacher.gradeDescription}</Text>
             <Text style={styles.dateText}>📅 {new Date().toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</Text>
           </View>
-          <TouchableOpacity
-            style={styles.adminBadge}
-            onPress={() => setFacultyPickerVisible(true)}
-            activeOpacity={0.8}
-          >
+          <View style={styles.adminBadge}>
             <Ionicons name="school" size={20} color="#0284C7" />
             <Text style={styles.adminBadgeTitle}>Staff ID</Text>
             <Text style={styles.adminBadgeSub}>{activeTeacher.id.replace('fac-', '').toUpperCase()}</Text>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Quick Launch Cards */}
@@ -750,18 +1000,20 @@ export default function TeacherHomeScreen() {
           </TouchableOpacity>
         </View>
 
-                {/* Teaching Schedule Header with Day Toggle & Schedule Class */}
+                {/* Teaching Schedule Header with Day Toggle, Date Stepper & Schedule Class */}
         <View style={styles.scheduleHeaderContainer}>
           <View style={styles.scheduleTopRow}>
             <View style={{ flex: 1, paddingRight: 6 }}>
               <Text style={styles.sectionTitle} numberOfLines={1}>
-                {dateOffset === 1
+                {dateOffset === 0
+                  ? "Today's Classes"
+                  : dateOffset === 1
                   ? "Tomorrow's Classes"
-                  : "Today's Classes"}
+                  : `${targetDateInfo.label} Classes`}
               </Text>
               <View style={styles.scheduleSubRow}>
                 <Text style={styles.scheduleSubDate}>
-                  {targetDateInfo.label} • {assignedClasses.length > 0 ? `${assignedClasses.length} Session${assignedClasses.length > 1 ? 's' : ''}` : 'None'}
+                  {targetDateInfo.fullDate} • {assignedClasses.length > 0 ? `${assignedClasses.length} Session${assignedClasses.length > 1 ? 's' : ''}` : 'No sessions'}
                 </Text>
                 {new Date().getHours() >= 19 && dateOffset === 1 && (
                   <View style={styles.autoTomorrowBadge}>
@@ -772,7 +1024,20 @@ export default function TeacherHomeScreen() {
               </View>
             </View>
 
-            {/* Day Toggle Switch */}
+            {/* Quick Schedule Class Action Button */}
+            <TouchableOpacity
+              style={styles.scheduleClassBtn}
+              onPress={() => handleOpenScheduleClass()}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="add-circle" size={15} color="#ffffff" />
+              <Text style={styles.scheduleClassBtnText}>Schedule Class</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Date Navigation & Day Tabs Bar */}
+          <View style={styles.dateControlBar}>
+            {/* Quick Today / Tomorrow Toggle */}
             <View style={styles.daySwitchContainer}>
               <TouchableOpacity
                 style={[styles.daySwitchBtn, dateOffset === 0 && styles.daySwitchBtnActive]}
@@ -793,8 +1058,36 @@ export default function TeacherHomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-          </View>
 
+            {/* Date Stepper & Calendar Picker Button */}
+            <View style={styles.dateStepper}>
+              <TouchableOpacity
+                onPress={() => setDateOffset(dateOffset - 1)}
+                style={styles.dateNavBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chevron-back" size={15} color="#0284C7" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  setCustomJumpDate(targetDateInfo.iso);
+                  setDateJumpModalVisible(true);
+                }}
+                style={styles.dateLabelBtn}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="calendar-outline" size={13} color="#0284C7" style={{ marginRight: 4 }} />
+                <Text style={styles.dateStepperText}>{targetDateInfo.label}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setDateOffset(dateOffset + 1)}
+                style={styles.dateNavBtn}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="chevron-forward" size={15} color="#0284C7" />
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
         {loadingClasses && assignedClasses.length === 0 ? (
@@ -808,15 +1101,13 @@ export default function TeacherHomeScreen() {
           <View style={styles.emptySessionBox}>
             <View style={styles.emptyIconCircle}>
               <Ionicons
-                name={targetDateInfo.isSunday ? 'sunny-outline' : 'calendar-outline'}
+                name="calendar-outline"
                 size={24}
                 color="#94A3B8"
               />
             </View>
             <Text style={styles.emptySessionTitle}>
-              {targetDateInfo.isSunday
-                ? 'Sunday — Tuition Holiday'
-                : dateOffset === 1
+              {dateOffset === 1
                 ? 'No sessions scheduled for tomorrow'
                 : 'No sessions scheduled today'}
             </Text>
@@ -1067,7 +1358,7 @@ export default function TeacherHomeScreen() {
                                 op.teacher &&
                                 activeTeacher?.name &&
                                 op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
-                              ) || op.facultyId === activeTeacher?.id;
+                              ) || op.facultyId === activeTeacher?.id || op.faculty_id === activeTeacher?.id;
                             const canDelete = isSuperAdmin || isMyOp;
 
                             return (
@@ -1114,7 +1405,7 @@ export default function TeacherHomeScreen() {
         })()}
 
         {/* Main Admin Opinion Monitoring & Review Queue */}
-        {pendingOpinions.length > 0 && (
+        {Boolean((activeTeacher as any)?.role?.toLowerCase().includes('admin') || activeTeacher?.id === 'fac-admin' || activeTeacher?.name?.includes('Abhai')) && pendingOpinions.length > 0 && (
           <View style={styles.opinionReviewCard}>
             <View style={styles.opinionReviewHeader}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -1322,7 +1613,7 @@ export default function TeacherHomeScreen() {
                         op.teacher &&
                         activeTeacher?.name &&
                         op.teacher.toLowerCase().includes(activeTeacher.name.toLowerCase())
-                      ) || op.facultyId === activeTeacher?.id;
+                      ) || op.facultyId === activeTeacher?.id || op.faculty_id === activeTeacher?.id;
                     const canDelete = isSuperAdmin || isMyOp;
 
                     return (
@@ -1409,12 +1700,342 @@ export default function TeacherHomeScreen() {
         </View>
       </Modal>
 
-      {/* Switch Faculty Member Modal */}
+
+
+      
+
+
+      {/* ─── MODAL 1: Schedule Class Session ─── */}
+      <Modal visible={scheduleClassModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="calendar" size={20} color="#0284C7" />
+                <Text style={styles.modalTitle}>Schedule Class Session</Text>
+              </View>
+              <TouchableOpacity onPress={() => setScheduleClassModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 10, maxHeight: 520 }}>
+              {/* Target Date */}
+              <Text style={styles.modalFieldLabel}>📅 Schedule Date (YYYY-MM-DD)</Text>
+              <View style={styles.chipRow}>
+                <TouchableOpacity
+                  style={[styles.modalSelectChip, schedCustomDate === new Date().toISOString().split('T')[0] && styles.modalSelectChipActive]}
+                  onPress={() => setSchedCustomDate(new Date().toISOString().split('T')[0])}
+                >
+                  <Text style={[styles.modalSelectChipText, schedCustomDate === new Date().toISOString().split('T')[0] && styles.modalSelectChipTextActive]}>
+                    Today
+                  </Text>
+                </TouchableOpacity>
+                {(() => {
+                  const tom = new Date();
+                  tom.setDate(tom.getDate() + 1);
+                  const tomIso = tom.toISOString().split('T')[0];
+                  return (
+                    <TouchableOpacity
+                      style={[styles.modalSelectChip, schedCustomDate === tomIso && styles.modalSelectChipActive]}
+                      onPress={() => setSchedCustomDate(tomIso)}
+                    >
+                      <Text style={[styles.modalSelectChipText, schedCustomDate === tomIso && styles.modalSelectChipTextActive]}>
+                        Tomorrow
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })()}
+                {targetDateInfo.iso !== new Date().toISOString().split('T')[0] && (
+                  <TouchableOpacity
+                    style={[styles.modalSelectChip, schedCustomDate === targetDateInfo.iso && styles.modalSelectChipActive]}
+                    onPress={() => setSchedCustomDate(targetDateInfo.iso)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedCustomDate === targetDateInfo.iso && styles.modalSelectChipTextActive]}>
+                      Viewed ({targetDateInfo.label})
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+              <TextInput
+                style={styles.modalInput}
+                value={schedCustomDate}
+                onChangeText={setSchedCustomDate}
+                placeholder="YYYY-MM-DD (e.g. 2026-10-15)"
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              {/* Target Class */}
+              <Text style={styles.modalFieldLabel}>🎯 Target Class</Text>
+              <View style={styles.chipRow}>
+                {['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'].map((cls) => (
+                  <TouchableOpacity
+                    key={cls}
+                    style={[styles.modalSelectChip, schedClassGrade === cls && styles.modalSelectChipActive]}
+                    onPress={() => setSchedClassGrade(cls)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedClassGrade === cls && styles.modalSelectChipTextActive]}>
+                      {cls}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Target Syllabus */}
+              <Text style={styles.modalFieldLabel}>📚 Target Syllabus</Text>
+              <View style={styles.chipRow}>
+                {(['Both', 'State Syllabus', 'CBSE'] as const).map((syl) => (
+                  <TouchableOpacity
+                    key={syl}
+                    style={[styles.modalSelectChip, schedSyllabus === syl && styles.modalSelectChipActive]}
+                    onPress={() => setSchedSyllabus(syl)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedSyllabus === syl && styles.modalSelectChipTextActive]}>
+                      {syl === 'Both' ? 'Both (State & CBSE)' : syl}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Session Format */}
+              <Text style={styles.modalFieldLabel}>🏷️ Session Format</Text>
+              <View style={styles.chipRow}>
+                {['Regular Class', 'Question Bank', 'Test Paper'].map((fmt) => (
+                  <TouchableOpacity
+                    key={fmt}
+                    style={[styles.modalSelectChip, schedSessionType === fmt && styles.modalSelectChipActive]}
+                    onPress={() => setSchedSessionType(fmt)}
+                  >
+                    <Text style={[styles.modalSelectChipText, schedSessionType === fmt && styles.modalSelectChipTextActive]}>
+                      {fmt}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Subject */}
+              <Text style={styles.modalFieldLabel}>📖 Subject</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={schedSubject}
+                onChangeText={setSchedSubject}
+                placeholder="e.g. Mathematics"
+                placeholderTextColor={Colors.textMuted}
+              />
+
+              {/* Time Slots */}
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 4 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalFieldLabel}>⏰ Start Time</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={schedStartTime}
+                    onChangeText={setSchedStartTime}
+                    placeholder="e.g. 04:00 PM"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.modalFieldLabel}>⏰ End Time</Text>
+                  <TextInput
+                    style={styles.modalInput}
+                    value={schedEndTime}
+                    onChangeText={setSchedEndTime}
+                    placeholder="e.g. 05:30 PM"
+                    placeholderTextColor={Colors.textMuted}
+                  />
+                </View>
+              </View>
+
+              <View style={[styles.opinionDisclaimerBox, { marginTop: 12, marginBottom: 12 }]}>
+                <Ionicons name="information-circle-outline" size={15} color="#0284C7" />
+                <Text style={styles.opinionDisclaimerText}>
+                  Scheduled for {schedCustomDate || targetDateInfo.label}. Session will reflect live in Student & Faculty timetables.
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[styles.modalSubmitBtn, isSavingSchedClass && { opacity: 0.7 }]}
+                onPress={handleSaveScheduledClass}
+                disabled={isSavingSchedClass}
+                activeOpacity={0.8}
+              >
+                {isSavingSchedClass ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Text style={styles.modalSubmitBtnText}>Confirm & Schedule Session</Text>
+                )}
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 2: Edit Session Format & Syllabus ─── */}
+      <Modal visible={sessionTypeModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="options" size={20} color="#0284C7" />
+                <Text style={styles.modalTitle}>Session Format & Syllabus</Text>
+              </View>
+              <TouchableOpacity onPress={() => setSessionTypeModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedClassForSessionType && (
+              <ScrollView showsVerticalScrollIndicator={false} style={{ marginTop: 8 }}>
+                <Text style={{ fontSize: 13, color: Colors.textSecondary, marginBottom: 12 }}>
+                  Modify session format for {selectedClassForSessionType.class_grade || selectedClassForSessionType.roll_no} • {selectedClassForSessionType.subject}
+                </Text>
+
+                {/* Syllabus Scope */}
+                <Text style={styles.modalFieldLabel}>Target Syllabus</Text>
+                <View style={[styles.chipRow, { marginBottom: 14 }]}>
+                  {(['Both', 'State Syllabus', 'CBSE'] as const).map((syl) => (
+                    <TouchableOpacity
+                      key={syl}
+                      style={[styles.modalSelectChip, editSessionSyllabus === syl && styles.modalSelectChipActive]}
+                      onPress={() => setEditSessionSyllabus(syl)}
+                    >
+                      <Text style={[styles.modalSelectChipText, editSessionSyllabus === syl && styles.modalSelectChipTextActive]}>
+                        {syl === 'Both' ? 'Both (State & CBSE)' : syl}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Session Type Options */}
+                <Text style={styles.modalFieldLabel}>Select Format</Text>
+
+                <TouchableOpacity
+                  style={[styles.sessionTypeOption, styles.sessionTypeOptionActive, { borderColor: '#0284C7', backgroundColor: '#F0F9FF' }]}
+                  onPress={() => handleUpdateSessionType('Regular')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.sessionTypeIconBox, { backgroundColor: '#E0F2FE' }]}>
+                    <Ionicons name="book" size={18} color="#0284C7" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sessionTypeOptionTitle}>Regular Class</Text>
+                    <Text style={styles.sessionTypeOptionDesc}>Standard instructional lecture & class exercises</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sessionTypeOption, { borderColor: '#8B5CF6', backgroundColor: '#F5F3FF' }]}
+                  onPress={() => handleUpdateSessionType('QuestionBank')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.sessionTypeIconBox, { backgroundColor: '#EDE9FE' }]}>
+                    <Ionicons name="help-circle" size={18} color="#8B5CF6" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sessionTypeOptionTitle, { color: '#6D28D9' }]}>Question Bank Session</Text>
+                    <Text style={styles.sessionTypeOptionDesc}>Structured problem solving & past board question review</Text>
+                  </View>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.sessionTypeOption, { borderColor: '#EC4899', backgroundColor: '#FDF2F8' }]}
+                  onPress={() => handleUpdateSessionType('TP')}
+                  activeOpacity={0.8}
+                >
+                  <View style={[styles.sessionTypeIconBox, { backgroundColor: '#FCE7F3' }]}>
+                    <Ionicons name="document-text" size={18} color="#EC4899" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sessionTypeOptionTitle, { color: '#BE185D' }]}>Test Paper / Assessment</Text>
+                    <Text style={styles.sessionTypeOptionDesc}>Invigilated written test paper with evaluation</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Delete Class Button */}
+                <TouchableOpacity
+                  style={styles.deleteSessionBtn}
+                  onPress={() => handleDeleteClassSession(selectedClassForSessionType)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                  <Text style={styles.deleteSessionBtnText}>Delete This Class Session</Text>
+                </TouchableOpacity>
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 3: Date Quick Jump / Custom Date ─── */}
+      <Modal visible={dateJumpModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="calendar" size={20} color="#0284C7" />
+                <Text style={styles.modalTitle}>Jump to Timetable Date</Text>
+              </View>
+              <TouchableOpacity onPress={() => setDateJumpModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={{ fontSize: 13, color: Colors.textSecondary, marginBottom: 12 }}>
+              Currently viewing: <Text style={{ fontFamily: 'Inter_700Bold', color: '#0284C7' }}>{targetDateInfo.fullDate}</Text>
+            </Text>
+
+            <Text style={styles.modalFieldLabel}>Quick Date Jumps</Text>
+            <View style={styles.chipRow}>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(0); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>Today</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(1); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>Tomorrow</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(2); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>+2 Days</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(3); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>+3 Days</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(7); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>+1 Week</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalSelectChip} onPress={() => { setDateOffset(-1); setDateJumpModalVisible(false); }}>
+                <Text style={styles.modalSelectChipText}>Yesterday</Text>
+              </TouchableOpacity>
+            </View>
+
+            <Text style={[styles.modalFieldLabel, { marginTop: 10 }]}>Enter Exact Date (YYYY-MM-DD)</Text>
+            <TextInput
+              style={styles.modalInput}
+              value={customJumpDate}
+              onChangeText={setCustomJumpDate}
+              placeholder="e.g. 2026-10-15"
+              placeholderTextColor={Colors.textMuted}
+            />
+
+            <TouchableOpacity
+              style={styles.modalSubmitBtn}
+              onPress={() => handleJumpToDate(customJumpDate)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.modalSubmitBtnText}>Go to Date</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 4: Switch Faculty Member Modal ─── */}
       <Modal visible={facultyPickerVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Select Faculty Member</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="school" size={20} color="#0284C7" />
+                <Text style={styles.modalTitle}>Select Faculty Member</Text>
+              </View>
               <TouchableOpacity onPress={() => setFacultyPickerVisible(false)} style={styles.closeBtn}>
                 <Ionicons name="close" size={20} color={Colors.textPrimary} />
               </TouchableOpacity>
@@ -1423,8 +2044,8 @@ export default function TeacherHomeScreen() {
               Switch active teacher account to view assigned schedule and batches.
             </Text>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
-              {roster.map((teacher) => {
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380, marginTop: 8 }}>
+              {TEACHER_ROSTER.map((teacher: TeacherProfile) => {
                 const isSelected = teacher.id === activeTeacher.id;
                 return (
                   <TouchableOpacity
@@ -1467,8 +2088,6 @@ export default function TeacherHomeScreen() {
           </View>
         </View>
       </Modal>
-
-      
 
     </SafeAreaView>
   );
@@ -2560,6 +3179,161 @@ const styles = StyleSheet.create({
   stateBadgeText: {
     color: '#15803D',
   },
+
+  scheduleClassBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 4,
+    shadowColor: '#0284C7',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  scheduleClassBtnText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  dateControlBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 8,
+  },
+  dateStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    gap: 4,
+  },
+  dateNavBtn: {
+    padding: 4,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateLabelBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+  },
+  dateStepperText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+  modalFieldLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+    marginBottom: 6,
+    marginTop: 6,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  modalSelectChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    backgroundColor: '#F8FAFC',
+  },
+  modalSelectChipActive: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0284C7',
+  },
+  modalSelectChipText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  modalSelectChipTextActive: {
+    color: '#0284C7',
+    fontFamily: 'Inter_600SemiBold',
+  },
+  modalSubmitBtn: {
+    backgroundColor: '#0284C7',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    marginBottom: 10,
+  },
+  modalSubmitBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  sessionTypeOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    marginBottom: 8,
+    gap: 12,
+    backgroundColor: '#fff',
+  },
+  sessionTypeOptionActive: {
+    borderWidth: 1.5,
+  },
+  sessionTypeIconBox: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sessionTypeOptionTitle: {
+    fontSize: 13.5,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  sessionTypeOptionDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  deleteSessionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    borderRadius: 10,
+    paddingVertical: 11,
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  deleteSessionBtnText: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#EF4444',
+  },
+
+
   bothBadgeText: {
     color: '#64748B',
   },

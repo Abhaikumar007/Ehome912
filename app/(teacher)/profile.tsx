@@ -12,19 +12,44 @@ import {
   TEACHER_ROSTER,
   TeacherProfile,
   getActiveTeacher,
-  setActiveTeacherId,
+  hasTeacherSession,
+  clearActiveTeacher,
   subscribeToActiveTeacher,
-  getTeacherRoster,
   updateFacultySelfProfile,
   getInitials,
 } from '../../lib/teacherRoster';
+import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
+
+const FACULTY_AVATAR_PRESETS = [
+  { id: '👨‍🏫', label: 'Teacher', bg: '#0284C7' },
+  { id: '👩‍🏫', label: 'Mentor', bg: '#7C3AED' },
+  { id: '🎓', label: 'Scholar', bg: '#0E9F6E' },
+  { id: '🔬', label: 'Science', bg: '#0284C7' },
+  { id: '💻', label: 'Tech', bg: '#2563EB' },
+  { id: '📐', label: 'Maths', bg: '#D97706' },
+  { id: '⚡', label: 'Pro', bg: '#EA580C' },
+];
 
 export default function TeacherProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
-  const [roster, setRoster] = useState<TeacherProfile[]>(TEACHER_ROSTER);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let isMounted = true;
+      hasTeacherSession().then((isAuth) => {
+        if (!isMounted) return;
+        if (!isAuth) {
+          router.replace('/login');
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
 
   // Edit Profile Modal States
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -32,6 +57,8 @@ export default function TeacherProfileScreen() {
   const [editPhone, setEditPhone] = useState('');
   const [editEmail, setEditEmail] = useState('');
   const [editQual, setEditQual] = useState('');
+  const [editAvatar, setEditAvatar] = useState('');
+  const [editPhoto, setEditPhoto] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
 
   useFocusEffect(
@@ -63,19 +90,12 @@ export default function TeacherProfileScreen() {
   }, []);
 
   const loadActiveTeacher = async () => {
-    const list = await getTeacherRoster();
-    setRoster([...list]);
     const teacher = await getActiveTeacher();
     setActiveTeacher({ ...teacher });
   };
 
-  const handleSelectTeacher = async (teacher: TeacherProfile) => {
-    await setActiveTeacherId(teacher.id);
-    setActiveTeacher({ ...teacher });
-    Alert.alert('Active Faculty Switched', `Logged in as ${teacher.name} (${teacher.subject}). Schedule and assigned classes are now updated.`);
-  };
-
   const handleLogout = async () => {
+    await clearActiveTeacher();
     await logout();
     router.replace('/login');
   };
@@ -85,7 +105,38 @@ export default function TeacherProfileScreen() {
     setEditPhone(activeTeacher.phone || '');
     setEditEmail(activeTeacher.email || '');
     setEditQual(activeTeacher.qualification || '');
+    if (activeTeacher.avatar && (activeTeacher.avatar.startsWith('http') || activeTeacher.avatar.startsWith('file://'))) {
+      setEditPhoto(activeTeacher.avatar);
+      setEditAvatar('');
+    } else {
+      setEditPhoto(null);
+      setEditAvatar(activeTeacher.avatar || getInitials(activeTeacher.name));
+    }
     setEditModalVisible(true);
+  };
+
+  const pickImage = async () => {
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission Denied', 'Please enable camera roll permissions to select a photo.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setEditPhoto(result.assets[0].uri);
+        setEditAvatar('');
+      }
+    } catch {
+      Alert.alert('Error', 'Could not access image library.');
+    }
   };
 
   const handleSaveProfile = async () => {
@@ -96,17 +147,17 @@ export default function TeacherProfileScreen() {
 
     setSavingProfile(true);
     try {
+      const finalAvatar = editPhoto || editAvatar || getInitials(editName.trim());
       const result = await updateFacultySelfProfile(activeTeacher.id, {
         name: editName.trim(),
         phone: editPhone.trim(),
         email: editEmail.trim(),
         qualification: editQual.trim(),
+        avatar: finalAvatar,
       });
 
       if (result.success && result.updated) {
         setActiveTeacher({ ...result.updated });
-        const freshRoster = await getTeacherRoster();
-        setRoster([...freshRoster]);
         setEditModalVisible(false);
         Alert.alert('Profile Updated', 'Your profile details have been successfully updated and synced with the Edu Home database.');
       } else {
@@ -145,7 +196,11 @@ export default function TeacherProfileScreen() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarLarge}>
-            <Text style={styles.avatarLargeText}>{getInitials(activeTeacher.name)}</Text>
+            {activeTeacher.avatar && (activeTeacher.avatar.startsWith('http') || activeTeacher.avatar.startsWith('file://')) ? (
+              <Image source={{ uri: activeTeacher.avatar }} style={styles.avatarLargeImg} />
+            ) : (
+              <Text style={styles.avatarLargeText}>{activeTeacher.avatar || getInitials(activeTeacher.name)}</Text>
+            )}
             <View style={styles.adminDotBadge}>
               <Ionicons name="shield-checkmark" size={12} color="#fff" />
             </View>
@@ -188,59 +243,7 @@ export default function TeacherProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Faculty Roster Switcher */}
-        <View style={styles.rosterSectionHeader}>
-          <View>
-            <Text style={styles.rosterTitle}>Faculty Members ({roster.length})</Text>
-            <Text style={styles.rosterSub}>Select active teacher account to view assigned schedule</Text>
-          </View>
-        </View>
 
-        <View style={styles.rosterCard}>
-          {roster.map((teacher, idx) => {
-            const isSelected = teacher.id === activeTeacher.id;
-            return (
-              <React.Fragment key={teacher.id}>
-                {idx > 0 && <View style={styles.menuDivider} />}
-                <TouchableOpacity
-                  style={[styles.teacherItem, isSelected && styles.teacherItemActive]}
-                  onPress={() => handleSelectTeacher(teacher)}
-                  activeOpacity={0.8}
-                >
-                  <View style={[styles.teacherAvatarBox, isSelected && { backgroundColor: '#0284C7' }]}>
-                    <Text style={[styles.teacherAvatarText, isSelected && { color: '#fff' }]}>
-                      {getInitials(teacher.name)}
-                    </Text>
-                  </View>
-
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={[styles.teacherNameText, isSelected && { color: '#0284C7', fontFamily: 'Inter_700Bold' }]}>
-                        {teacher.name}
-                      </Text>
-                      {teacher.isTemporary && (
-                        <View style={styles.tempBadge}>
-                          <Text style={styles.tempBadgeText}>TEMP</Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text style={styles.teacherSubjectText}>
-                      {teacher.subject} • {teacher.gradeDescription}
-                    </Text>
-                  </View>
-
-                  {isSelected ? (
-                    <View style={styles.activeCheckCircle}>
-                      <Ionicons name="checkmark" size={14} color="#fff" />
-                    </View>
-                  ) : (
-                    <Text style={styles.switchActionText}>Switch</Text>
-                  )}
-                </TouchableOpacity>
-              </React.Fragment>
-            );
-          })}
-        </View>
 
         {/* Faculty Settings Menu */}
         <View style={[styles.menuCard, { marginTop: 16 }]}>
@@ -321,6 +324,54 @@ export default function TeacherProfileScreen() {
             <ScrollView style={{ maxHeight: 380 }} showsVerticalScrollIndicator={false}>
               {/* Editable Information */}
               <Text style={styles.sectionHeaderSmall}>PERSONAL INFORMATION (EDITABLE)</Text>
+
+              {/* Photo & Avatar Section */}
+              <View style={styles.modalAvatarRow}>
+                <View style={styles.previewAvatarWrap}>
+                  {editPhoto ? (
+                    <Image source={{ uri: editPhoto }} style={styles.modalAvatarImg} />
+                  ) : (
+                    <View style={styles.modalAvatarBox}>
+                      <Text style={styles.modalAvatarText}>{editAvatar || getInitials(editName || activeTeacher.name)}</Text>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.avatarActions}>
+                  <TouchableOpacity style={styles.pickPhotoBtn} onPress={pickImage}>
+                    <Ionicons name="image-outline" size={15} color="#fff" />
+                    <Text style={styles.pickPhotoBtnText}>Choose Photo</Text>
+                  </TouchableOpacity>
+                  {editPhoto && (
+                    <TouchableOpacity onPress={() => setEditPhoto(null)} style={styles.removePhotoBtn}>
+                      <Text style={styles.removePhotoText}>Remove photo</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+
+              {/* Avatar Presets */}
+              <Text style={styles.fieldSectionLabel}>Or choose an avatar</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.presetsScroll}>
+                {FACULTY_AVATAR_PRESETS.map((p) => (
+                  <TouchableOpacity
+                    key={p.id}
+                    style={[
+                      styles.presetPill,
+                      editAvatar === p.id && !editPhoto && styles.presetPillActive,
+                    ]}
+                    onPress={() => {
+                      setEditPhoto(null);
+                      setEditAvatar(p.id);
+                    }}
+                  >
+                    <Text style={{ fontSize: 16 }}>{p.id}</Text>
+                    <Text style={[styles.presetText, editAvatar === p.id && !editPhoto && styles.presetTextActive]}>
+                      {p.label}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
 
               <Text style={styles.inputLabel}>Full Name</Text>
               <TextInput
@@ -773,5 +824,105 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_700Bold',
     color: '#fff',
+  },
+  avatarLargeImg: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+  },
+  modalAvatarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginVertical: 10,
+  },
+  previewAvatarWrap: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    overflow: 'hidden',
+    backgroundColor: '#F0F9FF',
+    borderWidth: 2,
+    borderColor: '#BAE6FD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalAvatarImg: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  modalAvatarBox: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#0284C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalAvatarText: {
+    fontSize: 22,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
+  avatarActions: {
+    gap: 6,
+  },
+  pickPhotoBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+  },
+  pickPhotoBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  removePhotoBtn: {
+    alignSelf: 'flex-start',
+  },
+  removePhotoText: {
+    color: Colors.red,
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+  },
+  fieldSectionLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  presetsScroll: {
+    marginBottom: 10,
+  },
+  presetPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginRight: 8,
+  },
+  presetPillActive: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#0284C7',
+  },
+  presetText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textPrimary,
+  },
+  presetTextActive: {
+    color: '#0284C7',
+    fontFamily: 'Inter_700Bold',
   },
 });

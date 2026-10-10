@@ -5,8 +5,6 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AuthProvider } from '../lib/authContext';
 
-SplashScreen.preventAutoHideAsync();
-
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -16,10 +14,8 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (fontsLoaded) SplashScreen.hideAsync();
+    SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
 
   return (
     <AuthProvider>
@@ -28,6 +24,7 @@ export default function RootLayout() {
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
         <Stack.Screen name="(student)" />
+        <Stack.Screen name="(teacher)" />
       </Stack>
     </AuthProvider>
   );

@@ -12,8 +12,8 @@ import { DataService, resolveClassTargetSyllabus, resolveStudentSyllabus } from 
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import {
   getActiveTeacher,
+  hasTeacherSession,
   getTeacherRoster,
-  setActiveTeacherId,
   subscribeToActiveTeacher,
   TeacherProfile,
   getInitials,
@@ -85,6 +85,21 @@ function getTeacherDefaultSubject(t: TeacherProfile | null): string {
 
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      hasTeacherSession().then((isAuth) => {
+        if (!isMounted) return;
+        if (!isAuth) {
+          router.replace('/login');
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }, [router])
+  );
   const params = useLocalSearchParams<{
     classGrade?: string;
     subject?: string;
@@ -112,7 +127,6 @@ export default function FacultyAttendanceScreen() {
   const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(() => (params.dateOffset !== undefined ? parseInt(params.dateOffset, 10) || 0 : 0));
   const [classModalVisible, setClassModalVisible] = useState(false);
-  const [facultyPickerVisible, setFacultyPickerVisible] = useState(false);
   // Live student pool: fetched from Supabase, falls back to static roster
   const [liveStudents, setLiveStudents] = useState<typeof EDUSYNC_STUDENTS>(EDUSYNC_STUDENTS);
 
@@ -784,16 +798,12 @@ export default function FacultyAttendanceScreen() {
         </View>
 
         <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={styles.facultyPill}
-            onPress={() => setFacultyPickerVisible(true)}
-            activeOpacity={0.8}
-          >
+          <View style={styles.facultyPill}>
             <Ionicons name="school" size={13} color="#0284C7" />
             <Text style={styles.facultyPillText} numberOfLines={1}>
-              {activeTeacher ? activeTeacher.name.split(' ')[0] + ' ' + (activeTeacher.name.split(' ')[1] || '') : 'Faculty'} ▾
+              {activeTeacher ? activeTeacher.name.split(' ')[0] + ' ' + (activeTeacher.name.split(' ')[1] || '') : 'Faculty'}
             </Text>
-          </TouchableOpacity>
+          </View>
 
           <TouchableOpacity
             style={styles.batchSelector}
@@ -815,9 +825,13 @@ export default function FacultyAttendanceScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
-            <View style={styles.avatarCircle}>
-              <Text style={styles.avatarText}>{activeTeacher ? getInitials(activeTeacher.name) : 'FA'}</Text>
-            </View>
+            {activeTeacher?.avatar && (activeTeacher.avatar.startsWith('http') || activeTeacher.avatar.startsWith('file://')) ? (
+              <Image source={{ uri: activeTeacher.avatar }} style={{ width: 34, height: 34, borderRadius: 17 }} />
+            ) : (
+              <View style={styles.avatarCircle}>
+                <Text style={styles.avatarText}>{activeTeacher ? (activeTeacher.avatar || getInitials(activeTeacher.name)) : 'FA'}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </View>
@@ -1256,64 +1270,7 @@ export default function FacultyAttendanceScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Switch Faculty Member Modal */}
-      <Modal visible={facultyPickerVisible} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <View style={styles.modalHeaderRow}>
-              <Text style={styles.modalTitle}>Select Faculty Member</Text>
-              <TouchableOpacity onPress={() => setFacultyPickerVisible(false)} style={styles.closeBtn}>
-                <Ionicons name="close" size={20} color={Colors.textPrimary} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalSub}>
-              Switch active teacher account to take attendance for their allocated classes and students.
-            </Text>
 
-            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380 }}>
-              {roster.map((teacher) => {
-                const isSelected = teacher.id === activeTeacher?.id;
-                return (
-                  <TouchableOpacity
-                    key={teacher.id}
-                    style={[styles.facultyPickItem, isSelected && styles.facultyPickItemActive]}
-                    onPress={async () => {
-                      await setActiveTeacherId(teacher.id);
-                      applyTeacher(teacher);
-                      setFacultyPickerVisible(false);
-                    }}
-                    activeOpacity={0.8}
-                  >
-                    <View style={[styles.teacherAvatarBox, isSelected && { backgroundColor: '#0284C7' }]}>
-                      <Text style={[styles.teacherAvatarText, isSelected && { color: '#fff' }]}>
-                        {getInitials(teacher.name)}
-                      </Text>
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Text style={[styles.teacherNameText, isSelected && { color: '#0284C7', fontFamily: 'Inter_700Bold' }]}>
-                          {teacher.name}
-                        </Text>
-                        {teacher.isTemporary && (
-                          <View style={styles.tempBadge}>
-                            <Text style={styles.tempBadgeText}>TEMP</Text>
-                          </View>
-                        )}
-                      </View>
-                      <Text style={styles.teacherSubjectText}>
-                        {teacher.subject} • {teacher.gradeDescription}
-                      </Text>
-                    </View>
-                    {isSelected && (
-                      <Ionicons name="checkmark-circle" size={20} color="#0284C7" />
-                    )}
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }

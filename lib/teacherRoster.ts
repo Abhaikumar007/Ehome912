@@ -1,5 +1,16 @@
 import { AppStorage } from './storage';
 import { supabase } from './supabase';
+import {
+  verifyPassword,
+  hashPassword,
+  checkRateLimit,
+  recordFailedAttempt,
+  resetRateLimit,
+  saveAuthSession,
+  getAuthSession,
+  clearAuthSession,
+  INVALID_CREDENTIALS_MSG,
+} from './securityAuth';
 
 export interface TeacherProfile {
   id: string;
@@ -12,6 +23,7 @@ export interface TeacherProfile {
   avatar: string;
   allowedGrades: string[]; // e.g. ['6', '7', '8', '9'] or ['10', '11', '12'] or ['*']
   gradeDescription: string;
+  pin?: string;
   isTemporary?: boolean;
 }
 
@@ -27,6 +39,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     allowedGrades: ['11', '12'],
     gradeDescription: 'Grades 11th & 12th (Computer Science)',
+    pin: '123456',
   },
   {
     id: 'fac-chem',
@@ -39,6 +52,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
     allowedGrades: ['10', '11', '12'],
     gradeDescription: 'Grades 10th to 12th',
+    pin: '654321',
   },
   {
     id: 'fac-bio-lower',
@@ -51,6 +65,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
     allowedGrades: ['6', '7', '8', '9'],
     gradeDescription: 'Grades up to 9th (6th - 9th)',
+    pin: '654321',
   },
   {
     id: 'fac-bio-upper',
@@ -63,6 +78,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     allowedGrades: ['10', '11', '12'],
     gradeDescription: 'Grades 10th and above (10th - 12th)',
+    pin: '654321',
   },
   {
     id: 'fac-phy',
@@ -75,6 +91,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
     allowedGrades: ['8', '9', '10', '11', '12'],
     gradeDescription: 'Secondary & Higher Secondary (8th - 12th)',
+    pin: '654321',
   },
   {
     id: 'fac-cs',
@@ -87,6 +104,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
     allowedGrades: ['11', '12'],
     gradeDescription: 'Grades 11th & 12th',
+    pin: '123456',
   },
   {
     id: 'fac-math',
@@ -100,6 +118,7 @@ export const TEACHER_ROSTER: TeacherProfile[] = [
     allowedGrades: ['6', '7', '8', '9', '10', '11', '12'],
     gradeDescription: 'Grades 6th to 12th (All Secondary & Higher Secondary)',
     isTemporary: false,
+    pin: '654321',
   },
 ];
 
@@ -178,7 +197,7 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
             if (saved.phone) match.phone = saved.phone;
             if (saved.email) match.email = saved.email;
             if (saved.qualification) match.qualification = saved.qualification;
-            // Do NOT restore allowedGrades from old cache — hardcoded values are correct
+            if (saved.avatar) match.avatar = saved.avatar;
           }
           // Do NOT push unknown IDs from cache — only Supabase can add new teachers
         });
@@ -186,6 +205,21 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
     }
   } catch (e) {
     console.warn('Error reading cached roster:', e);
+  }
+
+  // 1.5. Apply per-faculty custom details (including custom photo/avatar)
+  for (const t of working) {
+    try {
+      const customStr = await AppStorage.getItem(`eduhome_faculty_custom_${t.id.toLowerCase()}`);
+      if (customStr) {
+        const custom = JSON.parse(customStr);
+        if (custom.avatar) t.avatar = custom.avatar;
+        if (custom.name) t.name = custom.name;
+        if (custom.phone) t.phone = custom.phone;
+        if (custom.email) t.email = custom.email;
+        if (custom.qualification) t.qualification = custom.qualification;
+      }
+    } catch {}
   }
 
   // 2. Fetch fresh from Supabase teachers table
@@ -199,6 +233,10 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
           // Safe personal-detail overrides from Supabase
           if (remote.name) match.name = remote.name;
           if (remote.phone) match.phone = remote.phone;
+          if (remote.avatar && !match.avatar.startsWith('file://')) {
+            // Keep custom local photo if set, otherwise use Supabase avatar
+            match.avatar = remote.avatar;
+          }
 
           if (remote.subjects) {
             // Update display description only
@@ -237,20 +275,21 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
             qualification: 'Academic Specialist',
             email: `${remote.faculty_id}@eduhome.ac.in`,
             phone: remote.phone || '+91 98470 00000',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
+            avatar: remote.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
             allowedGrades: parsedGrades,
             gradeDescription: remote.subjects || 'Assigned Classes',
           });
         }
       });
 
-      // Save ONLY the personal-detail fields to cache (never allowedGrades/subject from Supabase)
+      // Save personal-detail fields + avatar to cache
       const safeCache = working.map((t) => ({
         id: t.id,
         name: t.name,
         phone: t.phone,
         email: t.email,
         qualification: t.qualification,
+        avatar: t.avatar,
       }));
       await AppStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(safeCache));
     }
@@ -412,6 +451,91 @@ export async function getActiveTeacher(): Promise<TeacherProfile> {
   return { ...roster[0] };
 }
 
+export async function hasTeacherSession(): Promise<boolean> {
+  const session = await getAuthSession('teacher');
+  return !!(session && session.token);
+}
+
+export async function loginTeacher(
+  facultyId: string,
+  pin: string
+): Promise<{ success: boolean; teacher?: TeacherProfile; error?: string }> {
+  const cleanId = facultyId.trim();
+  const cleanPin = pin.trim();
+
+  if (!cleanId || !cleanPin) {
+    return { success: false, error: 'Please enter both your Faculty ID and PIN.' };
+  }
+
+  // Rate limiting defense
+  const rateCheck = checkRateLimit(cleanId);
+  if (!rateCheck.allowed) {
+    return {
+      success: false,
+      error: `Too many failed login attempts. Please wait ${rateCheck.waitSeconds} seconds before trying again.`,
+    };
+  }
+
+  try {
+    // 1. Validate user in database
+    const { data, error } = await supabase
+      .from('teachers')
+      .select('*')
+      .ilike('faculty_id', cleanId)
+      .single();
+
+    if (data && !error) {
+      // 2. Validate password against securely stored password/hash
+      const isValid = verifyPassword(cleanPin, data.pin);
+      if (!isValid) {
+        recordFailedAttempt(cleanId);
+        return { success: false, error: INVALID_CREDENTIALS_MSG };
+      }
+
+      resetRateLimit(cleanId);
+
+      const roster = await getTeacherRoster();
+      const matched = roster.find((t) => t.id.toLowerCase() === data.faculty_id.toLowerCase()) || {
+        id: data.faculty_id,
+        name: data.name,
+        subject: data.subjects || 'General',
+        department: 'Academic Faculty',
+        qualification: 'Faculty Staff',
+        email: `${data.faculty_id.toLowerCase()}@eduhome.ac.in`,
+        phone: data.phone || '9876543210',
+        avatar: data.avatar || 'FA',
+        allowedGrades: parseAllowedGrades(data.subjects),
+        gradeDescription: data.subjects || 'All Grades',
+      };
+
+      await setActiveTeacherId(matched.id);
+      await saveAuthSession('teacher', matched.id);
+      return { success: true, teacher: matched };
+    } else {
+      // User not found in database
+      recordFailedAttempt(cleanId);
+      return { success: false, error: INVALID_CREDENTIALS_MSG };
+    }
+  } catch (err) {
+    console.warn('[TeacherRoster] Database query error during teacher login:', err);
+
+    // Fallback if device has network outage
+    const roster = await getTeacherRoster();
+    const matched = roster.find((t) => t.id.toLowerCase() === cleanId.toLowerCase());
+    if (matched && matched.pin) {
+      if (verifyPassword(cleanPin, matched.pin)) {
+        resetRateLimit(cleanId);
+        await setActiveTeacherId(matched.id);
+        await saveAuthSession('teacher', matched.id);
+        return { success: true, teacher: matched };
+      }
+    }
+
+    recordFailedAttempt(cleanId);
+    return { success: false, error: INVALID_CREDENTIALS_MSG };
+  }
+}
+
 export async function setActiveTeacherId(teacherId: string): Promise<void> {
   inMemoryActiveId = teacherId;
   // Use the clean roster copy so listeners receive correct grades/subject
@@ -433,6 +557,16 @@ export async function setActiveTeacherId(teacherId: string): Promise<void> {
   }
 }
 
+export async function clearActiveTeacher(): Promise<void> {
+  inMemoryActiveId = null;
+  try {
+    await AppStorage.removeItem(ACTIVE_TEACHER_KEY);
+    await clearAuthSession('teacher');
+  } catch (e) {
+    console.warn('Error clearing active faculty:', e);
+  }
+}
+
 /**
  * Allows faculty to update their personal details (Name, Phone, Email, Qualification).
  * Strictly PREVENTS modifying academic allotments (Subject, Grades, Department, Role).
@@ -444,6 +578,7 @@ export async function updateFacultySelfProfile(
     phone?: string;
     email?: string;
     qualification?: string;
+    avatar?: string;
   }
 ): Promise<{ success: boolean; error?: string; updated?: TeacherProfile }> {
   if (!updates.name || !updates.name.trim()) {
@@ -466,21 +601,35 @@ export async function updateFacultySelfProfile(
   if (trimmedPhone) profile.phone = trimmedPhone;
   if (trimmedEmail) profile.email = trimmedEmail;
   if (trimmedQual) profile.qualification = trimmedQual;
+  if (updates.avatar) profile.avatar = updates.avatar;
 
   // Persist locally
   try {
     await AppStorage.setItem(ROSTER_CACHE_KEY, JSON.stringify(TEACHER_ROSTER));
+    await AppStorage.setItem(`eduhome_faculty_custom_${facultyId.toLowerCase()}`, JSON.stringify({
+      avatar: profile.avatar,
+      name: profile.name,
+      phone: profile.phone,
+      email: profile.email,
+      qualification: profile.qualification,
+    }));
   } catch (e) {}
 
   // Sync to Supabase teachers table so admin portal sees it immediately
   try {
+    const sbPayload: Record<string, any> = {
+      name: trimmedName,
+      phone: trimmedPhone || profile.phone,
+    };
+    if (profile.avatar && !profile.avatar.startsWith('file://')) {
+      sbPayload.avatar = profile.avatar;
+    } else {
+      sbPayload.avatar = getInitials(trimmedName);
+    }
+
     const { error: dbError } = await supabase
       .from('teachers')
-      .update({
-        name: trimmedName,
-        phone: trimmedPhone || profile.phone,
-        avatar: getInitials(trimmedName),
-      })
+      .update(sbPayload)
       .eq('faculty_id', facultyId);
 
     if (dbError) {

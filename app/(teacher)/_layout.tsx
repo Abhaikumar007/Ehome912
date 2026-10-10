@@ -1,7 +1,9 @@
-import { Tabs } from 'expo-router';
+import React, { useState, useEffect } from 'react';
+import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { Colors } from '../../constants/colors';
+import { hasTeacherSession } from '../../lib/teacherRoster';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -38,6 +40,24 @@ const tabStyles = StyleSheet.create({
 });
 
 export default function TeacherLayout() {
+  const [isAuth, setIsAuth] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    hasTeacherSession().then(setIsAuth);
+  }, []);
+
+  if (isAuth === null) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!isAuth) {
+    return <Redirect href="/login" />;
+  }
+
   return (
     <Tabs
       screenOptions={{

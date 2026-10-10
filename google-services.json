@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "831802131801",
+    "project_id": "eduhome-7ecbc",
+    "storage_bucket": "eduhome-7ecbc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:831802131801:android:3f7237ea2cabefe62ab848",
+        "android_client_info": {
+          "package_name": "com.eduhome.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB2QH1jJsbodOH6DC-NRx8apDrMTHa8BkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

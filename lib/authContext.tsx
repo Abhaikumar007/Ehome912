@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DataService, StudentProfile } from './dataService';
 
+import { registerForPushNotifications, checkAndTriggerFeeReminder } from './notificationService';
+
 interface AuthContextType {
   student: StudentProfile | null;
   loading: boolean;
@@ -33,7 +35,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (stored && stored.rollNo) {
         // We have a stored session! Fetch up-to-date profile from Supabase for THIS student
         const cur = await DataService.syncCurrentStudentFromSupabase(stored.rollNo);
-        setStudent(cur || stored);
+        const activeStudent = cur || stored;
+        setStudent(activeStudent);
+        // Register device push notification token & check 5-day fee due reminders
+        if (activeStudent.rollNo) {
+          registerForPushNotifications(activeStudent.rollNo, activeStudent.class).catch(() => {});
+          checkAndTriggerFeeReminder(activeStudent.rollNo).catch(() => {});
+        }
       } else {
         setStudent(null);
       }
@@ -41,6 +49,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const fallback = await DataService.getCurrentStudent();
         setStudent(fallback);
+        if (fallback?.rollNo) {
+          registerForPushNotifications(fallback.rollNo, fallback.class).catch(() => {});
+          checkAndTriggerFeeReminder(fallback.rollNo).catch(() => {});
+        }
       } catch {
         setStudent(null);
       }
@@ -58,6 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await DataService.loginStudent(rollNo, pin);
     if (res.success && res.student) {
       setStudent(res.student);
+      // Register device push notification token & check 5-day fee due reminders
+      if (res.student.rollNo) {
+        registerForPushNotifications(res.student.rollNo, res.student.class).catch(() => {});
+        checkAndTriggerFeeReminder(res.student.rollNo).catch(() => {});
+      }
     }
     setLoading(false);
     return res;

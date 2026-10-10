@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { attendanceData as defaultAtt } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
@@ -57,7 +57,8 @@ const TEACHER_OPINIONS = [
 
 export default function AttendanceScreen() {
   const router = useRouter();
-  const { student } = useAuth();
+  const { student, loading: authLoading } = useAuth();
+
   const [dateOffset, setDateOffset] = useState(0);
   const [attendance, setAttendance] = useState(defaultAtt);
   const [refreshing, setRefreshing] = useState(false);
@@ -142,7 +143,7 @@ export default function AttendanceScreen() {
       subjects: listToUse,
       sessionCount: totalCnt > 0 ? `${presentCnt} of ${totalCnt} Sessions Attended (${pct}%)` : (offset === 0 ? 'No sessions recorded yet today' : 'No sessions recorded for this date'),
       statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : (offset === 0 ? 'Attendance pending' : 'No Records'),
-      isHoliday: targetD.getDay() === 0,
+      isHoliday: false,
     };
   };
 
@@ -279,12 +280,12 @@ export default function AttendanceScreen() {
           ))
         ) : (
           <View style={styles.noClassBox}>
-            <Ionicons name={dayAtt.isHoliday ? "sunny-outline" : "calendar-outline"} size={26} color={Colors.textMuted} />
+            <Ionicons name="calendar-outline" size={26} color={Colors.textMuted} />
             <Text style={styles.noClassTitle}>
-              {dayAtt.isHoliday ? "Sunday Holiday" : "No sessions held on this date"}
+              No sessions held on this date
             </Text>
             <Text style={styles.noClassDesc}>
-              {dayAtt.isHoliday ? "Take rest and prepare for upcoming classes." : "Use navigation arrows to view past days."}
+              Use navigation arrows to view past days.
             </Text>
           </View>
         )}

@@ -6,7 +6,7 @@ import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { feesData as defaultFees } from '../../constants/mockData';
 import { DataService } from '../../lib/dataService';
@@ -68,7 +68,8 @@ const HARDCODED_PAYEE_NAME = 'EduHome Tuition Center';
 
 export default function FeesScreen() {
   const router = useRouter();
-  const { student } = useAuth();
+  const { student, loading: authLoading } = useAuth();
+
   const [fees, setFees] = useState<any>(defaultFees);
   const [refreshing, setRefreshing] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] = useState(false);

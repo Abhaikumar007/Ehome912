@@ -10,7 +10,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { DataService, AcademicAlert } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
-import { getActiveTeacher, subscribeToActiveTeacher, TeacherProfile, getInitials, isStudentEnrolledInSubject } from '../../lib/teacherRoster';
+import { getActiveTeacher, hasTeacherSession, subscribeToActiveTeacher, TeacherProfile, getInitials, isStudentEnrolledInSubject } from '../../lib/teacherRoster';
 import { supabase } from '../../lib/supabase';
 import DatePickerModal from '../../components/DatePickerModal';
 
@@ -39,6 +39,8 @@ interface ExamItem {
   isEvaluated: boolean;
   students: TestStudent[];
   author?: string;
+  approvalStatus?: 'pending_approval' | 'approved' | 'rejected';
+  rejectionReason?: string;
 }
 
 const AUTHORIZED_CLASSES = ['Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10', 'Class 11', 'Class 12'];
@@ -105,8 +107,14 @@ export default function TeacherTestsScreen() {
     React.useCallback(() => {
       let isMounted = true;
       const load = async () => {
+        const isAuth = await hasTeacherSession();
+        if (!isMounted) return;
+        if (!isAuth) {
+          router.replace('/login');
+          return;
+        }
         const t = await getActiveTeacher();
-        if (isMounted) {
+        if (isMounted && t) {
           applyTeacher(t);
         }
       };
@@ -114,7 +122,7 @@ export default function TeacherTestsScreen() {
       return () => {
         isMounted = false;
       };
-    }, [applyTeacher])
+    }, [applyTeacher, router])
   );
 
   useEffect(() => {
@@ -156,17 +164,141 @@ export default function TeacherTestsScreen() {
     }
   }, [teacherClasses]);
 
-  // Load persisted tests from DataService
+  // Load persisted tests from DataService & synchronize status with Supabase
   useEffect(() => {
+    let isMounted = true;
+    const syncWithSupabase = async (currentTests: ExamItem[]) => {
+      try {
+        const { data: remoteAnns } = await supabase
+          .from('announcements')
+          .select('*')
+          .or('title.ilike.%[PENDING APPROVAL]%,title.ilike.%[REJECTED]%,title.ilike.%[Test Alert]%,title.ilike.%[Exam Alert]%')
+          .order('created_at', { ascending: false });
+
+        if (!remoteAnns || remoteAnns.length === 0 || !isMounted) return;
+
+        let modified = false;
+        const updatedList = currentTests.map((test) => {
+          const cleanTestTitle = test.title.replace(/^\[[^\]]+\]\s*/, '').trim().toLowerCase();
+          const match = remoteAnns.find((ann: any) => {
+            const rawTitle = (ann.title || '').toLowerCase();
+            return rawTitle.includes(cleanTestTitle);
+          });
+
+          if (!match) return test;
+
+          let status: 'pending_approval' | 'approved' | 'rejected' = 'approved';
+          const matchTitle = match.title || '';
+          if (matchTitle.includes('[REJECTED]') || match.time_label === 'Rejected') {
+            status = 'rejected';
+          } else if (matchTitle.includes('[PENDING APPROVAL]') || match.time_label === 'Pending Approval') {
+            status = 'pending_approval';
+          } else {
+            status = 'approved';
+          }
+
+          const desc = match.description || '';
+          const examDateM = desc.match(/(?:Exam\s*Date|Date)\s*:\s*([^\n\r|]+)/i);
+          const timeM = desc.match(/Time:\s*([^\n\r|]+)/i);
+          const roomM = desc.match(/(?:Venue|Room):\s*([^\n\r|]+)/i);
+          const marksM = desc.match(/(?:Max|Total)\s*Marks:\s*([^\n\r|]+)/i);
+
+          const updatedDateStr = examDateM ? examDateM[1].trim() : test.dateStr;
+          const updatedTimeStr = timeM ? timeM[1].trim() : (status === 'approved' && test.timeStr.includes('TBD') ? '11:30 AM - 12:00 PM' : test.timeStr);
+          const updatedRoomStr = roomM ? roomM[1].trim() : (status === 'approved' && test.roomStr.includes('TBD') ? 'Exam Hall 1' : test.roomStr);
+          const updatedMaxMarks = marksM ? parseInt(marksM[1].trim(), 10) || test.maxMarks : test.maxMarks;
+
+          if (
+            test.approvalStatus !== status ||
+            test.dateStr !== updatedDateStr ||
+            test.timeStr !== updatedTimeStr ||
+            test.roomStr !== updatedRoomStr ||
+            test.maxMarks !== updatedMaxMarks
+          ) {
+            modified = true;
+            return {
+              ...test,
+              approvalStatus: status,
+              dateStr: updatedDateStr,
+              timeStr: updatedTimeStr,
+              roomStr: updatedRoomStr,
+              maxMarks: updatedMaxMarks,
+              rejectionReason: status === 'rejected' ? desc : undefined,
+            };
+          }
+          return test;
+        });
+
+        if (modified && isMounted) {
+          setTests(updatedList);
+          await DataService.setCachedTests(updatedList);
+        }
+      } catch (err) {
+        console.warn('[TeacherTests] Supabase sync error:', err);
+      }
+    };
+
     const loadTests = async () => {
       const data = await DataService.getTests();
-      if (data && data.length > 0) {
+      if (data && data.length > 0 && isMounted) {
         setTests(data);
         const match = data.find((t: ExamItem) => t.classTag === selectedClass) || data[0];
         if (match) setActiveTestId(match.id);
+        await syncWithSupabase(data);
       }
     };
     loadTests();
+
+    // Listen to realtime exam events (approve, reject, edit, delete)
+    const channel = supabase
+      .channel('teacher_exam_approval_realtime')
+      .on('broadcast', { event: 'announcement_rejected' }, (payload: any) => {
+        const title = (payload?.payload?.title || '').toLowerCase();
+        setTests((prev) =>
+          prev.map((t) => {
+            if (t.title.toLowerCase().includes(title) || title.includes(t.title.toLowerCase())) {
+              return { ...t, approvalStatus: 'rejected' };
+            }
+            return t;
+          })
+        );
+      })
+      .on('broadcast', { event: 'exam_deleted' }, (payload: any) => {
+        const title = (payload?.payload?.title || '').toLowerCase();
+        setTests((prev) => prev.filter((t) => !t.title.toLowerCase().includes(title) && !title.includes(t.title.toLowerCase())));
+      })
+      .on('broadcast', { event: 'announcement_deleted' }, (payload: any) => {
+        const title = (payload?.payload?.title || '').toLowerCase();
+        setTests((prev) => prev.filter((t) => !t.title.toLowerCase().includes(title) && !title.includes(t.title.toLowerCase())));
+      })
+      .on('broadcast', { event: 'exam_updated' }, (payload: any) => {
+        const p = payload?.payload;
+        if (!p) return;
+        setTests((prev) =>
+          prev.map((t) => {
+            const cleanT = t.title.toLowerCase();
+            const targetT = (p.cleanTitle || p.title || '').toLowerCase();
+            if (cleanT.includes(targetT) || targetT.includes(cleanT)) {
+              return {
+                ...t,
+                approvalStatus: 'approved',
+                title: p.cleanTitle || t.title,
+                dateStr: p.examDate || t.dateStr,
+                timeStr: p.timeSlot || t.timeStr,
+                roomStr: p.venue || t.roomStr,
+                maxMarks: parseInt(p.maxMarks, 10) || t.maxMarks,
+              };
+            }
+            return t;
+          })
+        );
+      })
+      .subscribe();
+
+    return () => {
+      isMounted = false;
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Update active test on class selection
@@ -447,6 +579,7 @@ export default function TeacherTestsScreen() {
         isEvaluated: false,
         students: genuineStudents,
         author: activeTeacher?.name || 'Faculty Member',
+        approvalStatus: 'pending_approval',
       };
 
       // 1. Save locally so faculty sees their draft test paper in the portal
@@ -624,7 +757,7 @@ export default function TeacherTestsScreen() {
                     {t.subject}
                   </Text>
                   <Text style={[styles.testTabTitle, isActive && styles.testTabTitleActive]} numberOfLines={1}>
-                    {t.title.split(':')[0]}
+                    {t.approvalStatus === 'rejected' ? '❌ ' : t.approvalStatus === 'pending_approval' ? '⏳ ' : '✅ '}{t.title.split(':')[0]}
                   </Text>
                   <Text style={[styles.testTabDate, isActive && styles.testTabDateActive]}>
                     {t.dateStr.split(',')[0]}
@@ -646,11 +779,45 @@ export default function TeacherTestsScreen() {
                   📅 {activeTest.dateStr} • ⏰ {activeTest.timeStr} • 📍 {activeTest.roomStr}
                 </Text>
                 <Text style={styles.testMax}>Maximum Marks: {activeTest.maxMarks}</Text>
+                {activeTest.approvalStatus === 'rejected' && (
+                  <View style={{ marginTop: 8, padding: 8, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FCA5A5' }}>
+                    <Text style={{ fontSize: 12, color: '#B91C1C', fontWeight: '600' }}>
+                      ⚠️ Rejected by Admin: This exam submission was rejected and is NOT visible to students. You may reschedule or delete this test.
+                    </Text>
+                  </View>
+                )}
+                {activeTest.approvalStatus === 'pending_approval' && (
+                  <View style={{ marginTop: 8, padding: 8, backgroundColor: '#FFFBEB', borderRadius: 8, borderWidth: 1, borderColor: '#FCD34D' }}>
+                    <Text style={{ fontSize: 12, color: '#B45309', fontWeight: '600' }}>
+                      ⏳ Submitted for Approval: Admin review pending. This exam will automatically become visible to students once approved.
+                    </Text>
+                  </View>
+                )}
               </View>
               <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                <View style={[styles.evalPill, { backgroundColor: activeTest.isEvaluated ? '#ECFDF3' : '#FFFBEB' }]}>
-                  <Text style={[styles.evalText, { color: activeTest.isEvaluated ? Colors.green : '#D97706' }]}>
-                    {activeTest.isEvaluated ? 'Evaluated ✓' : 'Pending'}
+                {/* Approval Status Badge */}
+                {activeTest.approvalStatus === 'rejected' ? (
+                  <View style={[styles.evalPill, { backgroundColor: '#FEE2E2', borderColor: '#FECACA', borderWidth: 1 }]}>
+                    <Text style={[styles.evalText, { color: '#DC2626', fontWeight: '700' }]}>
+                      ❌ Rejected by Admin
+                    </Text>
+                  </View>
+                ) : activeTest.approvalStatus === 'pending_approval' ? (
+                  <View style={[styles.evalPill, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A', borderWidth: 1 }]}>
+                    <Text style={[styles.evalText, { color: '#D97706', fontWeight: '700' }]}>
+                      ⏳ Awaiting Approval
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={[styles.evalPill, { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0', borderWidth: 1 }]}>
+                    <Text style={[styles.evalText, { color: '#059669', fontWeight: '700' }]}>
+                      ✅ Approved & Live
+                    </Text>
+                  </View>
+                )}
+                <View style={[styles.evalPill, { backgroundColor: activeTest.isEvaluated ? '#ECFDF3' : '#F1F5F9' }]}>
+                  <Text style={[styles.evalText, { color: activeTest.isEvaluated ? Colors.green : '#64748B' }]}>
+                    {activeTest.isEvaluated ? 'Evaluated ✓' : 'Pending Evaluation'}
                   </Text>
                 </View>
                 {canDeleteTest && (

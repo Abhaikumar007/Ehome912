@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/colors';
 
 import { useAuth } from '../lib/authContext';
-import { setActiveTeacherId } from '../lib/teacherRoster';
+import { loginTeacher } from '../lib/teacherRoster';
 import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -17,9 +17,8 @@ export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
   const [role, setRole] = useState<'student' | 'teacher'>('student');
-  const [loginMethod, setLoginMethod] = useState<'id' | 'mobile'>('id');
-  const [rollNo, setRollNo] = useState('2024-JEE-0842');
-  const [pin, setPin] = useState('1234');
+  const [rollNo, setRollNo] = useState('');
+  const [pin, setPin] = useState('');
   const [showPin, setShowPin] = useState(false);
   const [staySignedIn, setStaySignedIn] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -28,21 +27,31 @@ export default function LoginScreen() {
   const handleRoleChange = (newRole: 'student' | 'teacher') => {
     setRole(newRole);
     setErrorMsg('');
-    if (newRole === 'student') {
-      setRollNo('2024-JEE-0842');
-      setPin('1234');
-    } else {
-      setRollNo('FAC-2024-042');
-      setPin('123456');
-    }
+    setRollNo('');
+    setPin('');
   };
 
   const handleLogin = async () => {
     setErrorMsg('');
-    setLoading(true);
 
-    const activeRoll = rollNo.trim() || (role === 'student' ? '2024-JEE-0842' : 'FAC-2024-042');
-    const activePin = pin.trim() || (role === 'student' ? '1234' : '123456');
+    const activeRoll = rollNo.trim();
+    const activePin = pin.trim();
+
+    if (!activeRoll) {
+      setErrorMsg(
+        role === 'student'
+          ? 'Please enter your Tuition Roll Number (e.g. EDU-2026-XXX).'
+          : 'Please enter your Faculty ID (e.g. FAC-2026-XXX).'
+      );
+      return;
+    }
+
+    if (!activePin) {
+      setErrorMsg('Please enter your Security PIN or Password.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       if (role === 'student') {
@@ -50,15 +59,18 @@ export default function LoginScreen() {
         if (res.success) {
           router.replace('/(student)');
         } else {
-          setErrorMsg(res.error || 'Authentication failed. Please check credentials.');
+          setErrorMsg(res.error || 'Invalid username or password. Please try again.');
         }
       } else {
-        // Teacher login routes to teacher portal and activates teacher
-        await setActiveTeacherId(activeRoll);
-        router.replace('/(teacher)' as any);
+        const res = await loginTeacher(activeRoll, activePin);
+        if (res.success) {
+          router.replace('/(teacher)' as any);
+        } else {
+          setErrorMsg(res.error || 'Invalid username or password. Please try again.');
+        }
       }
     } catch (e: any) {
-      setErrorMsg(e?.message || 'Login failed. Please try again.');
+      setErrorMsg(e?.message || 'Invalid username or password. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -109,26 +121,6 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Login Method Toggle */}
-          <View style={styles.methodRow}>
-            <TouchableOpacity
-              style={[styles.methodBtn, loginMethod === 'id' && styles.methodBtnActive]}
-              onPress={() => setLoginMethod('id')}
-            >
-              <Ionicons name="card-outline" size={14} color={loginMethod === 'id' ? Colors.primary : Colors.textSecondary} />
-              <Text style={[styles.methodBtnText, loginMethod === 'id' && styles.methodBtnTextActive]}>
-                {role === 'student' ? 'Student ID / Roll No' : 'Faculty ID'}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.methodBtn, loginMethod === 'mobile' && styles.methodBtnActive]}
-              onPress={() => setLoginMethod('mobile')}
-            >
-              <Ionicons name="phone-portrait-outline" size={14} color={loginMethod === 'mobile' ? Colors.primary : Colors.textSecondary} />
-              <Text style={[styles.methodBtnText, loginMethod === 'mobile' && styles.methodBtnTextActive]}>Mobile Number</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* ID Field */}
           <Text style={styles.fieldLabel}>
             {role === 'student' ? 'Tuition Roll Number' : 'Teacher / Faculty ID'}
@@ -137,7 +129,7 @@ export default function LoginScreen() {
             <Ionicons name="id-card-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder={role === 'student' ? 'e.g. 2024-JEE-0842' : 'e.g. FAC-2024-042'}
+              placeholder={role === 'student' ? 'EDU-2026-XXX' : 'FAC-2026-XXX'}
               placeholderTextColor={Colors.textMuted}
               value={rollNo}
               onChangeText={setRollNo}
@@ -145,21 +137,23 @@ export default function LoginScreen() {
             />
           </View>
 
-          {/* PIN Field */}
+          {/* PIN / Password Field */}
           <Text style={styles.fieldLabel}>
-            {role === 'student' ? '4-Digit Student Security PIN' : '6-Digit Faculty Security PIN'}
+            {role === 'student' ? 'Student Password / Security PIN' : 'Faculty Password / Security PIN'}
           </Text>
           <View style={styles.inputWrap}>
             <Ionicons name="lock-closed-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
             <TextInput
               style={[styles.input, { flex: 1 }]}
-              placeholder={role === 'student' ? '••••' : '••••••'}
+              placeholder="Enter password or PIN"
               placeholderTextColor={Colors.textMuted}
               value={pin}
               onChangeText={setPin}
               secureTextEntry={!showPin}
-              keyboardType="numeric"
-              maxLength={role === 'student' ? 4 : 6}
+              keyboardType="default"
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={32}
             />
             <TouchableOpacity onPress={() => setShowPin(!showPin)} style={styles.eyeBtn}>
               <Ionicons name={showPin ? 'eye-off-outline' : 'eye-outline'} size={20} color={Colors.textMuted} />
@@ -291,16 +285,6 @@ const styles = StyleSheet.create({
   roleBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
   roleBtnText: { fontSize: 13, color: Colors.textSecondary, fontFamily: 'Inter_500Medium' },
   roleBtnTextActive: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
-
-  methodRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
-  methodBtn: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 5, paddingVertical: 8, borderRadius: 8,
-    backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border,
-  },
-  methodBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  methodBtnText: { fontSize: 11, color: Colors.textSecondary, fontFamily: 'Inter_400Regular' },
-  methodBtnTextActive: { color: Colors.primary, fontFamily: 'Inter_600SemiBold' },
 
   fieldLabel: { fontSize: 13, color: Colors.textPrimary, fontFamily: 'Inter_600SemiBold', marginBottom: 8 },
   inputWrap: {
