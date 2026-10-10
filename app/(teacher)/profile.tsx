@@ -12,6 +12,7 @@ import {
   TEACHER_ROSTER,
   TeacherProfile,
   getActiveTeacher,
+  getCachedActiveTeacher,
   hasTeacherSession,
   clearActiveTeacher,
   subscribeToActiveTeacher,
@@ -34,15 +35,23 @@ const FACULTY_AVATAR_PRESETS = [
 export default function TeacherProfileScreen() {
   const router = useRouter();
   const { logout } = useAuth();
-  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
+  const [loading, setLoading] = useState(() => !getCachedActiveTeacher());
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(() => {
+    return getCachedActiveTeacher() || TEACHER_ROSTER[0];
+  });
 
   useFocusEffect(
     React.useCallback(() => {
       let isMounted = true;
-      hasTeacherSession().then((isAuth) => {
+      Promise.all([hasTeacherSession(), getActiveTeacher()]).then(([isAuth, teacher]) => {
         if (!isMounted) return;
         if (!isAuth) {
           router.replace('/login');
+        } else {
+          if (teacher) {
+            setActiveTeacher({ ...teacher });
+          }
+          setLoading(false);
         }
       });
       return () => {
@@ -169,6 +178,14 @@ export default function TeacherProfileScreen() {
       setSavingProfile(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: Colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

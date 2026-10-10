@@ -14,6 +14,7 @@ import {
   TEACHER_ROSTER,
   TeacherProfile,
   getActiveTeacher,
+  getCachedActiveTeacher,
   hasTeacherSession,
   subscribeToActiveTeacher,
   setActiveTeacherId,
@@ -171,17 +172,22 @@ function formatUpdatedSession(
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
-  const [authChecking, setAuthChecking] = useState(true);
-  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(TEACHER_ROSTER[0]);
+  const [authChecking, setAuthChecking] = useState(() => !getCachedActiveTeacher());
+  const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(() => {
+    return getCachedActiveTeacher() || TEACHER_ROSTER[0];
+  });
 
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
-      hasTeacherSession().then((isAuth) => {
+      Promise.all([hasTeacherSession(), getActiveTeacher()]).then(([isAuth, teacher]) => {
         if (!isMounted) return;
         if (!isAuth) {
           router.replace('/login');
         } else {
+          if (teacher) {
+            setActiveTeacher(teacher);
+          }
           setAuthChecking(false);
         }
       });

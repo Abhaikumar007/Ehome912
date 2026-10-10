@@ -423,6 +423,19 @@ export function isTeacherAssignedToClass(
 }
 
 let inMemoryActiveId: string | null = null;
+let cachedActiveTeacher: TeacherProfile | null = null;
+
+export function getCachedActiveTeacher(): TeacherProfile | null {
+  if (cachedActiveTeacher) return { ...cachedActiveTeacher };
+  if (inMemoryActiveId) {
+    const found = TEACHER_ROSTER.find((t) => t.id.toLowerCase() === inMemoryActiveId?.toLowerCase());
+    if (found) {
+      cachedActiveTeacher = { ...found };
+      return { ...found };
+    }
+  }
+  return null;
+}
 
 type TeacherChangeListener = (teacher: TeacherProfile) => void;
 const teacherListeners = new Set<TeacherChangeListener>();
@@ -435,6 +448,17 @@ export function subscribeToActiveTeacher(callback: TeacherChangeListener): () =>
 }
 
 export async function getActiveTeacher(): Promise<TeacherProfile> {
+  try {
+    const savedId = inMemoryActiveId || (await AppStorage.getItem(ACTIVE_TEACHER_KEY));
+    if (savedId) {
+      inMemoryActiveId = savedId;
+      if (!cachedActiveTeacher || cachedActiveTeacher.id.toLowerCase() !== savedId.toLowerCase()) {
+        const quick = TEACHER_ROSTER.find((t) => t.id.toLowerCase() === savedId.toLowerCase());
+        if (quick) cachedActiveTeacher = { ...quick };
+      }
+    }
+  } catch {}
+
   // Always fetch the clean copy (never reads from the global mutated TEACHER_ROSTER)
   const roster = await getTeacherRoster();
 
@@ -442,12 +466,17 @@ export async function getActiveTeacher(): Promise<TeacherProfile> {
     const savedId = inMemoryActiveId || (await AppStorage.getItem(ACTIVE_TEACHER_KEY));
     if (savedId) {
       inMemoryActiveId = savedId;
-      const found = roster.find((t) => t.id === savedId);
-      if (found) return { ...found };
+      const found = roster.find((t) => t.id.toLowerCase() === savedId.toLowerCase());
+      if (found) {
+        cachedActiveTeacher = { ...found };
+        return { ...found };
+      }
     }
   } catch (e) {
     console.warn('Error reading active faculty:', e);
   }
+
+  if (cachedActiveTeacher) return { ...cachedActiveTeacher };
   return { ...roster[0] };
 }
 
@@ -508,6 +537,8 @@ export async function loginTeacher(
         gradeDescription: data.subjects || 'All Grades',
       };
 
+      cachedActiveTeacher = { ...matched };
+      inMemoryActiveId = matched.id;
       await setActiveTeacherId(matched.id);
       await saveAuthSession('teacher', matched.id);
       return { success: true, teacher: matched };
@@ -525,6 +556,8 @@ export async function loginTeacher(
     if (matched && matched.pin) {
       if (verifyPassword(cleanPin, matched.pin)) {
         resetRateLimit(cleanId);
+        cachedActiveTeacher = { ...matched };
+        inMemoryActiveId = matched.id;
         await setActiveTeacherId(matched.id);
         await saveAuthSession('teacher', matched.id);
         return { success: true, teacher: matched };
@@ -538,10 +571,15 @@ export async function loginTeacher(
 
 export async function setActiveTeacherId(teacherId: string): Promise<void> {
   inMemoryActiveId = teacherId;
+  const quick = TEACHER_ROSTER.find((t) => t.id.toLowerCase() === teacherId.toLowerCase());
+  if (quick) {
+    cachedActiveTeacher = { ...quick };
+  }
   // Use the clean roster copy so listeners receive correct grades/subject
   const roster = await getTeacherRoster();
-  const match = roster.find((t) => t.id === teacherId);
+  const match = roster.find((t) => t.id.toLowerCase() === teacherId.toLowerCase());
   if (match) {
+    cachedActiveTeacher = { ...match };
     teacherListeners.forEach((fn) => {
       try {
         fn({ ...match });
@@ -559,6 +597,7 @@ export async function setActiveTeacherId(teacherId: string): Promise<void> {
 
 export async function clearActiveTeacher(): Promise<void> {
   inMemoryActiveId = null;
+  cachedActiveTeacher = null;
   try {
     await AppStorage.removeItem(ACTIVE_TEACHER_KEY);
     await clearAuthSession('teacher');
