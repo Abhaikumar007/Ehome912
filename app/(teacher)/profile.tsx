@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert, Image,
   TextInput, Modal, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -34,6 +34,7 @@ const FACULTY_AVATAR_PRESETS = [
 
 export default function TeacherProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { logout } = useAuth();
   const [loading, setLoading] = useState(() => !getCachedActiveTeacher());
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(() => {
@@ -209,7 +210,7 @@ export default function TeacherProfileScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}>
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarLarge}>
@@ -320,7 +321,7 @@ export default function TeacherProfileScreen() {
         onRequestClose={() => !savingProfile && setEditModalVisible(false)}
       >
         <KeyboardAvoidingView
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
           <View style={styles.editModalCard}>

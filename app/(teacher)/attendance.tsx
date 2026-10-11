@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Modal, Image, RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -85,6 +85,7 @@ function getTeacherDefaultSubject(t: TeacherProfile | null): string {
 
 export default function FacultyAttendanceScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   useFocusEffect(
     useCallback(() => {
@@ -838,7 +839,7 @@ export default function FacultyAttendanceScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1242,7 +1243,7 @@ export default function FacultyAttendanceScreen() {
       {/* Class Selector Modal */}
       <Modal visible={classModalVisible} transparent animationType="fade">
         <TouchableOpacity
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}
           activeOpacity={1}
           onPress={() => setClassModalVisible(false)}
         >

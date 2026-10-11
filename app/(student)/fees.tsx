@@ -4,7 +4,7 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -68,6 +68,7 @@ const HARDCODED_PAYEE_NAME = 'EduHome Tuition Center';
 
 export default function FeesScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student, loading: authLoading } = useAuth();
 
   const [fees, setFees] = useState<any>(defaultFees);
@@ -396,7 +397,7 @@ export default function FeesScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -855,7 +856,7 @@ export default function FeesScreen() {
         animationType="slide"
         onRequestClose={() => setVerificationModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={styles.modalContentBox}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
@@ -966,7 +967,7 @@ export default function FeesScreen() {
         animationType="slide"
         onRequestClose={() => setAllPaymentsModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={[styles.modalContentBox, { maxHeight: '80%' }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

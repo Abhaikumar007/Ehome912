@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 
 import { useAuth } from '../lib/authContext';
@@ -16,6 +17,7 @@ const { width } = Dimensions.get('window');
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const insets = useSafeAreaInsets();
   const [role, setRole] = useState<'student' | 'teacher'>('student');
   const [rollNo, setRollNo] = useState('');
   const [pin, setPin] = useState('');
@@ -81,7 +83,16 @@ export default function LoginScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scroll,
+          {
+            paddingTop: Math.max(insets.top, 16),
+            paddingBottom: Math.max(insets.bottom, 16) + 24,
+          },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Decorative blobs */}
         <View style={styles.blobTopRight} />
         <View style={styles.blobBottomLeft} />

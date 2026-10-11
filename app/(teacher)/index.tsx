@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   Alert, Modal, TextInput, Image, ActivityIndicator, RefreshControl,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -172,6 +172,7 @@ function formatUpdatedSession(
 
 export default function TeacherHomeScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [authChecking, setAuthChecking] = useState(() => !getCachedActiveTeacher());
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile>(() => {
     return getCachedActiveTeacher() || TEACHER_ROSTER[0];
@@ -930,7 +931,7 @@ export default function TeacherHomeScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1497,7 +1498,7 @@ export default function TeacherHomeScreen() {
       {/* Broadcast Announcement Modal */}
       <Modal visible={announcementModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>Broadcast Announcement</Text>
               <TouchableOpacity onPress={() => setAnnouncementModalVisible(false)} style={styles.closeBtn}>
@@ -1580,7 +1581,7 @@ export default function TeacherHomeScreen() {
       {/* Add Teacher Opinion Modal */}
       <Modal visible={opinionModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>Add Student Opinion</Text>
               <TouchableOpacity onPress={() => setOpinionModalVisible(false)} style={styles.closeBtn}>
@@ -1714,7 +1715,7 @@ export default function TeacherHomeScreen() {
       {/* ─── MODAL 1: Schedule Class Session ─── */}
       <Modal visible={scheduleClassModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Ionicons name="calendar" size={20} color="#0284C7" />
@@ -1880,7 +1881,7 @@ export default function TeacherHomeScreen() {
       {/* ─── MODAL 2: Edit Session Format & Syllabus ─── */}
       <Modal visible={sessionTypeModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Ionicons name="options" size={20} color="#0284C7" />
@@ -1976,7 +1977,7 @@ export default function TeacherHomeScreen() {
       {/* ─── MODAL 3: Date Quick Jump / Custom Date ─── */}
       <Modal visible={dateJumpModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Ionicons name="calendar" size={20} color="#0284C7" />
@@ -2036,7 +2037,7 @@ export default function TeacherHomeScreen() {
       {/* ─── MODAL 4: Switch Faculty Member Modal ─── */}
       <Modal visible={facultyPickerVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Ionicons name="school" size={20} color="#0284C7" />

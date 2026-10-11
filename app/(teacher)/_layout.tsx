@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Tabs, Redirect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
 import { hasTeacherSession } from '../../lib/teacherRoster';
 
@@ -41,10 +42,9 @@ const tabStyles = StyleSheet.create({
 
 export default function TeacherLayout() {
   const [isAuth, setIsAuth] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    hasTeacherSession().then(setIsAuth);
-  }, []);
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 16 : 8);
+  const tabHeight = 56 + bottomPadding;
 
   if (isAuth === null) {
     return (
@@ -66,9 +66,9 @@ export default function TeacherLayout() {
           backgroundColor: '#fff',
           borderTopColor: Colors.border,
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 80 : 60,
-          paddingBottom: Platform.OS === 'ios' ? 18 : 4,
-          paddingTop: 2,
+          height: tabHeight,
+          paddingBottom: bottomPadding,
+          paddingTop: 4,
           elevation: 10,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: -2 },

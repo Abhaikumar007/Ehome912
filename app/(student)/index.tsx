@@ -4,7 +4,7 @@ import {
   Dimensions, ActivityIndicator, RefreshControl, Image, Modal,
   Animated, Easing,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -233,6 +233,7 @@ function ProminentPayNowButton({ onPress }: { onPress: () => void }) {
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student, loading: authLoading, refresh: refreshAuth } = useAuth();
 
   // After 7 PM, default to tomorrow's schedule automatically
@@ -576,7 +577,7 @@ export default function DashboardScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -1141,7 +1142,7 @@ export default function DashboardScreen() {
         animationType="slide"
         onRequestClose={() => setAlertModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={styles.modalBox}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1213,7 +1214,7 @@ export default function DashboardScreen() {
         animationType="slide"
         onRequestClose={() => setCommunityModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}>
           <View style={[styles.modalBox, { maxHeight: '85%' }]}>
             <View style={styles.modalHeaderRow}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

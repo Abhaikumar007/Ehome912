@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, TextInput, RefreshControl, Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -15,6 +15,7 @@ const tabs = ['Notes & Summaries', 'Important Questions'];
 
 export default function StudyMaterialsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student } = useAuth();
   const [materialsList, setMaterialsList] = useState(defaultMaterials);
   const [activeSubject, setActiveSubject] = useState('All Subjects');
@@ -92,7 +93,7 @@ export default function StudyMaterialsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

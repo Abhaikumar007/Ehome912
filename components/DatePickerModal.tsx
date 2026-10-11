@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/colors';
 
 interface DatePickerModalProps {
@@ -33,6 +34,7 @@ export default function DatePickerModal({
   initialDate,
   minDate = new Date(),
 }: DatePickerModalProps) {
+  const insets = useSafeAreaInsets();
   const [currentDate, setCurrentDate] = useState<Date>(initialDate || new Date());
   const [selectedDay, setSelectedDay] = useState<Date>(initialDate || new Date());
 
@@ -129,7 +131,7 @@ export default function DatePickerModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+      <View style={[styles.overlay, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.card}>
           {/* Header */}
           <View style={styles.header}>

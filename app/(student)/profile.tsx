@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl,
   Modal, TextInput, Image, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Linking, Switch,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
@@ -31,6 +31,7 @@ const AVATAR_PRESETS = [
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student, logout, refresh, updateProfile, loading: authLoading } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -208,7 +209,7 @@ export default function ProfileScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -418,7 +419,7 @@ export default function ProfileScreen() {
           style={styles.modalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View>
@@ -430,7 +431,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 + insets.bottom }}>
               {/* Photo & Avatar Section */}
               <View style={styles.modalAvatarRow}>
                 <View style={styles.previewAvatarWrap}>
@@ -626,7 +627,7 @@ export default function ProfileScreen() {
       {/* ================= PARENT / GUARDIAN MODAL ================= */}
       <Modal visible={parentModalVisible} animationType="slide" transparent={true}>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             {/* Modal Header */}
             <View style={styles.modalHeader}>
               <View>
@@ -644,7 +645,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 + insets.bottom }}>
               {/* Guardian Card Banner */}
               <View style={styles.guardianProfileBanner}>
                 <View style={styles.guardianAvatar}>

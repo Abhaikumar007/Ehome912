@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   RefreshControl, Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -14,6 +14,7 @@ type FilterType = 'All' | 'Upcoming' | 'Evaluated';
 
 export default function MockTestsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student } = useAuth();
   const [filter, setFilter] = useState<FilterType>('All');
   const [tests, setTests] = useState<any[]>([]);
@@ -90,7 +91,7 @@ export default function MockTestsScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

@@ -1,6 +1,7 @@
 // components/ExportModal.tsx
 import React, { useState } from 'react';
 import { View, Text, Modal, TouchableOpacity, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
   RawStudent,
@@ -18,6 +19,7 @@ interface ExportModalProps {
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({ visible, onClose, students }) => {
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'sql' | 'csv'>('sql');
   const [copied, setCopied] = useState(false);
 
@@ -54,7 +56,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({ visible, onClose, stud
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.modalBox}>
           {/* Header */}
           <View style={styles.header}>

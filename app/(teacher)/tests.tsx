@@ -4,7 +4,7 @@ import {
   TextInput, Alert, Modal, Image, Switch, ActivityIndicator,
   KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -69,6 +69,7 @@ export function getEnrolledStudentsForClassAndSubject(classGrade: string, subjec
 
 export default function TeacherTestsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [activeTeacher, setActiveTeacher] = useState<TeacherProfile | null>(null);
   const [tests, setTests] = useState<ExamItem[]>([]);
   const [selectedClass, setSelectedClass] = useState('Class 10-A');
@@ -655,7 +656,7 @@ export default function TeacherTestsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}>
         {/* Super Admin Authorization Banner */}
         <View style={styles.adminAuthCard}>
           <View style={styles.adminAvatarBox}>
@@ -966,7 +967,7 @@ export default function TeacherTestsScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { paddingBottom: Math.max(insets.bottom, 16) }]}
         >
           <View style={styles.createModalCard}>
             {/* Modal Header */}

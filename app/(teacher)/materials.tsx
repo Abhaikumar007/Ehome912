@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
   TextInput, Alert, Modal, Image, ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
@@ -19,6 +19,7 @@ interface UploadedFile {
 
 export default function TeacherMaterialsScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [activeSubject, setActiveSubject] = useState('All');
   const [materials, setMaterials] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -194,7 +195,7 @@ export default function TeacherMaterialsScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}>
         <View style={styles.titleSection}>
           <Text style={styles.pageTitle}>Study Material Repository</Text>
           <Text style={styles.pageSub}>Manage and publish handwritten notes & formulas</Text>
@@ -298,7 +299,7 @@ export default function TeacherMaterialsScreen() {
       {/* Upload Modal */}
       <Modal visible={uploadModalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
+          <View style={[styles.modalBox, { paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
             <View style={styles.modalHeaderRow}>
               <Text style={styles.modalTitle}>Upload Study Material</Text>
               <TouchableOpacity onPress={() => setUploadModalVisible(false)} style={styles.closeBtn}>

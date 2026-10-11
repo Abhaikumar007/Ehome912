@@ -2,7 +2,7 @@ import React from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity, Image,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
@@ -49,6 +49,7 @@ const upcomingAnalytics = [
 
 export default function ProgressScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const { student } = useAuth();
 
   return (
@@ -85,7 +86,7 @@ export default function ProgressScreen() {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: 24 + insets.bottom }]}>
         <Text style={styles.pageTitle}>Academic Progress</Text>
         <Text style={styles.pageSub}>Performance analytics, chapter mastery, and evaluation reports.</Text>
 
