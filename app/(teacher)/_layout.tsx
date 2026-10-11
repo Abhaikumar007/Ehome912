@@ -4,7 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { View, Text, StyleSheet, Platform, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/colors';
-import { hasTeacherSession } from '../../lib/teacherRoster';
+import { hasTeacherSession, getActiveTeacher } from '../../lib/teacherRoster';
+import { registerForPushNotifications } from '../../lib/notificationService';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
 
@@ -45,6 +46,20 @@ export default function TeacherLayout() {
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 16 : 8);
   const tabHeight = 56 + bottomPadding;
+
+  useEffect(() => {
+    hasTeacherSession().then(async (auth) => {
+      setIsAuth(auth);
+      if (auth) {
+        try {
+          const t = await getActiveTeacher();
+          if (t && t.id) {
+            registerForPushNotifications(t.id, 'teacher').catch(() => {});
+          }
+        } catch {}
+      }
+    });
+  }, []);
 
   if (isAuth === null) {
     return (

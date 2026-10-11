@@ -23,6 +23,7 @@ import {
   isTeacherAssignedToClass,
   isStudentEnrolledInSubject,
 } from '../../lib/teacherRoster';
+import { registerForPushNotifications } from '../../lib/notificationService';
 
 export interface TeacherSessionInfo {
   type: 'Regular' | 'QuestionBank' | 'TP';
@@ -260,6 +261,7 @@ export default function TeacherHomeScreen() {
   const [allOpinions, setAllOpinions] = useState<any[]>([]);
 
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [notifModalVisible, setNotifModalVisible] = useState(false);
 
   const loadActiveFaculty = async () => {
     const teacher = await getActiveTeacher();
@@ -283,9 +285,9 @@ export default function TeacherHomeScreen() {
     }
   };
 
-  const loadAnnouncements = async () => {
+  const loadAnnouncements = async (forceRefresh = false) => {
     try {
-      const list = await DataService.getAnnouncements();
+      const list = await DataService.getAnnouncements(forceRefresh);
       if (list && list.length > 0) {
         setAnnouncements(
           list.map((a: any) => ({
@@ -423,7 +425,7 @@ export default function TeacherHomeScreen() {
       await Promise.all([
         loadActiveFaculty(),
         loadTimetable(),
-        loadAnnouncements(),
+        loadAnnouncements(true),
         loadOpinions(),
         fetchLiveStudents(),
       ]);
@@ -438,7 +440,7 @@ export default function TeacherHomeScreen() {
     useCallback(() => {
       loadActiveFaculty();
       loadTimetable();
-      loadAnnouncements();
+      loadAnnouncements(true);
       loadOpinions();
       fetchLiveStudents();
     }, [fetchLiveStudents])
@@ -446,10 +448,14 @@ export default function TeacherHomeScreen() {
 
   useEffect(() => {
     loadActiveFaculty();
-    loadAnnouncements();
+    loadAnnouncements(true);
     loadOpinions();
     loadTimetable();
     fetchLiveStudents();
+
+    if (activeTeacher?.id) {
+      registerForPushNotifications(activeTeacher.id, 'teacher').catch(() => {});
+    }
 
     const unsub = subscribeToActiveTeacher((updated) => {
       setActiveTeacher({ ...updated });
@@ -474,9 +480,14 @@ export default function TeacherHomeScreen() {
         await DataService.clearClassesCache();
         loadTimetable();
       })
+      .on('broadcast', { event: 'announcement_created' }, async () => {
+        console.log('[Realtime] Announcement created broadcast received on teacher classes channel');
+        loadAnnouncements(true);
+      })
       .on('broadcast', { event: 'announcement_deleted' }, async () => {
         await DataService.clearClassesCache();
         loadTimetable();
+        loadAnnouncements(true);
       })
       .subscribe();
 
@@ -484,7 +495,19 @@ export default function TeacherHomeScreen() {
       .channel('teacher_announcements_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'announcements' }, () => {
         console.log('[Realtime] Teacher announcements updated from Supabase!');
-        loadAnnouncements();
+        loadAnnouncements(true);
+      })
+      .on('broadcast', { event: 'announcement_created' }, () => {
+        console.log('[Realtime] Teacher announcements broadcast created received!');
+        loadAnnouncements(true);
+      })
+      .on('broadcast', { event: 'announcement_updated' }, () => {
+        console.log('[Realtime] Teacher announcements broadcast updated received!');
+        loadAnnouncements(true);
+      })
+      .on('broadcast', { event: 'announcement_deleted' }, () => {
+        console.log('[Realtime] Teacher announcements broadcast deleted received!');
+        loadAnnouncements(true);
       })
       .subscribe();
 
@@ -911,10 +934,11 @@ export default function TeacherHomeScreen() {
 
           <TouchableOpacity
             style={styles.bellBtn}
-            onPress={() => Alert.alert('Faculty Notifications', 'All class notes and attendance are synchronized with admin timetable.')}
+            onPress={() => setNotifModalVisible(true)}
+            activeOpacity={0.7}
           >
             <Ionicons name="notifications" size={20} color={Colors.primary} />
-            <View style={styles.bellDot} />
+            {announcements.length > 0 && <View style={styles.bellDot} />}
           </TouchableOpacity>
 
           <TouchableOpacity onPress={() => router.push('/(teacher)/profile')}>
@@ -2092,6 +2116,65 @@ export default function TeacherHomeScreen() {
                 );
               })}
             </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─── MODAL 5: Faculty Notifications Modal ─── */}
+      <Modal visible={notifModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalBox, { maxHeight: '80%', paddingBottom: 20 + Math.max(insets.bottom, 16) }]}>
+            <View style={styles.modalHeaderRow}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Ionicons name="notifications" size={20} color={Colors.primary} />
+                <Text style={styles.modalTitle}>Faculty Notifications</Text>
+              </View>
+              <TouchableOpacity onPress={() => setNotifModalVisible(false)} style={styles.closeBtn}>
+                <Ionicons name="close" size={20} color={Colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalSub}>
+              Administrative broadcasts, exam alerts, and faculty notices from Super Admin.
+            </Text>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ maxHeight: 380, marginTop: 4 }}>
+              {announcements.length === 0 ? (
+                <View style={{ padding: 28, alignItems: 'center' }}>
+                  <Ionicons name="notifications-off-outline" size={36} color="#94A3B8" style={{ marginBottom: 8 }} />
+                  <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+                    No Active Broadcasts
+                  </Text>
+                  <Text style={{ fontSize: 11, fontFamily: 'Inter_400Regular', color: Colors.textSecondary, marginTop: 4, textAlign: 'center' }}>
+                    Live broadcasts from Master Hub will appear here instantly.
+                  </Text>
+                </View>
+              ) : (
+                announcements.map((a) => (
+                  <View key={a.id} style={[styles.noticeCard, { marginBottom: 10 }]}>
+                    <View style={styles.noticeTopRow}>
+                      <View style={styles.noticeBadge}>
+                        <Text style={styles.noticeBadgeText}>{a.badge}</Text>
+                      </View>
+                      <Text style={styles.noticeTime}>{a.time}</Text>
+                    </View>
+                    <Text style={styles.noticeTitle}>{a.title}</Text>
+                    <Text style={styles.noticeDesc}>{a.desc}</Text>
+                  </View>
+                ))
+              )}
+            </ScrollView>
+
+            <TouchableOpacity
+              style={[styles.publishBtn, { marginTop: 12, backgroundColor: '#0284C7' }]}
+              onPress={async () => {
+                await loadAnnouncements(true);
+                Alert.alert('Refreshed ✓', 'Faculty notifications synchronized with cloud.');
+              }}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="refresh" size={16} color="#fff" style={{ marginRight: 6 }} />
+              <Text style={styles.publishBtnText}>Refresh Broadcasts</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>

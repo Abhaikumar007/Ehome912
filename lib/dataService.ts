@@ -1150,6 +1150,13 @@ export const DataService = {
     const classSuffix = studentClass ? `_${studentClass.replace(/\s+/g, '_').toLowerCase()}` : '';
     const sylSuffix = studentSyllabus ? `_${studentSyllabus.replace(/\s+/g, '_').toLowerCase()}` : '';
     const cacheKey = `eduhome_announcements${classSuffix}${sylSuffix}`;
+
+    if (forceRefresh) {
+      try {
+        await AppStorage.removeItem(cacheKey);
+      } catch {}
+    }
+
     const cached = await getCached<any[]>(cacheKey);
 
     // 1. Try Supabase Network-First so announcements from Admin Web App appear immediately
@@ -1159,7 +1166,7 @@ export const DataService = {
         .select('*')
         .order('created_at', { ascending: false });
 
-      const { data, error } = (await withTimeout(query, 3000)) as any;
+      const { data, error } = (await withTimeout(query, 5000)) as any;
       if (!error) {
         if (data && data.length > 0) {
           const approvedOnly = data.filter(

@@ -94,12 +94,19 @@ export async function registerForPushNotifications(rollNo: string, studentClass?
     }
 
     // 5. Store / update token in Supabase
-    const cleanClass = studentClass ? String(studentClass).replace(/[^0-9]/g, '') : '10';
+    const isTeacher =
+      studentClass?.toLowerCase() === 'teacher' ||
+      studentClass?.toLowerCase() === 'faculty' ||
+      rollNo.toUpperCase().startsWith('FAC');
+
+    const cleanClass = isTeacher
+      ? 'teacher'
+      : (studentClass ? String(studentClass).replace(/[^0-9]/g, '') : '10') || '10';
 
     const { error } = await supabase.from('push_tokens').upsert(
       {
         roll_no: rollNo.toUpperCase().trim(),
-        class: cleanClass || '10',
+        class: cleanClass,
         push_token: token,
         updated_at: new Date().toISOString(),
       },

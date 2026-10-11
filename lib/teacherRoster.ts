@@ -11,6 +11,7 @@ import {
   clearAuthSession,
   INVALID_CREDENTIALS_MSG,
 } from './securityAuth';
+import { registerForPushNotifications, unregisterPushToken } from './notificationService';
 
 export interface TeacherProfile {
   id: string;
@@ -541,6 +542,7 @@ export async function loginTeacher(
       inMemoryActiveId = matched.id;
       await setActiveTeacherId(matched.id);
       await saveAuthSession('teacher', matched.id);
+      registerForPushNotifications(matched.id, 'teacher').catch(() => {});
       return { success: true, teacher: matched };
     } else {
       // User not found in database
@@ -560,6 +562,7 @@ export async function loginTeacher(
         inMemoryActiveId = matched.id;
         await setActiveTeacherId(matched.id);
         await saveAuthSession('teacher', matched.id);
+        registerForPushNotifications(matched.id, 'teacher').catch(() => {});
         return { success: true, teacher: matched };
       }
     }
@@ -596,9 +599,13 @@ export async function setActiveTeacherId(teacherId: string): Promise<void> {
 }
 
 export async function clearActiveTeacher(): Promise<void> {
+  const prevId = inMemoryActiveId;
   inMemoryActiveId = null;
   cachedActiveTeacher = null;
   try {
+    if (prevId) {
+      unregisterPushToken(prevId).catch(() => {});
+    }
     await AppStorage.removeItem(ACTIVE_TEACHER_KEY);
     await clearAuthSession('teacher');
   } catch (e) {
