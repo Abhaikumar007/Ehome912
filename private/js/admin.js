@@ -859,6 +859,12 @@ function getStudents() {
         if (stored) list = JSON.parse(stored);
     } catch (e) {}
 
+    let deletedSet = new Set();
+    try {
+        const d = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+        if (Array.isArray(d)) d.forEach(x => deletedSet.add(String(x).toUpperCase().trim()));
+    } catch (_) {}
+
     // Deduplicate and consolidate any duplicates by rollNo, name, or phone
     const masterMapByName = new Map();
     const masterMapByRoll = new Map();
@@ -878,6 +884,11 @@ function getStudents() {
         list.forEach(s => {
             const normName = (s.name || '').toLowerCase().trim();
             const roll = (s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
+            const sId = String(s.id || '').toUpperCase().trim();
+            if (deletedSet.has(roll) || deletedSet.has(sId)) {
+                needsSave = true;
+                return;
+            }
             const master = masterMapByRoll.get(roll) || masterMapByName.get(normName);
 
             // Canonical key: prefer official master rollNo, or normalized name + class
@@ -908,6 +919,12 @@ function getStudents() {
     if (typeof MASTER_STUDENTS_ROSTER !== 'undefined' && Array.isArray(MASTER_STUDENTS_ROSTER)) {
         MASTER_STUDENTS_ROSTER.forEach(m => {
             const k = (m.rollNo || m.id);
+            const normK = String(k || '').toUpperCase().trim();
+            const normMId = String(m.id || '').toUpperCase().trim();
+            const normMRoll = String(m.rollNo || '').toUpperCase().trim();
+            if (deletedSet.has(normK) || deletedSet.has(normMId) || deletedSet.has(normMRoll)) {
+                return; // Do NOT revive deleted student
+            }
             if (!finalMap.has(k)) {
                 finalMap.set(k, JSON.parse(JSON.stringify(m)));
                 needsSave = true;
@@ -3710,17 +3727,33 @@ if (document.getElementById('studentListBody')) {
     };
 
     window.confirmDeleteStudent = function (id) {
+        const normId = String(id || '').toUpperCase().trim();
+
+        // 1. Record in deleted_students blacklist
+        try {
+            let deletedList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+            if (!deletedList.includes(normId)) {
+                deletedList.push(normId);
+                localStorage.setItem('deleted_students', JSON.stringify(deletedList));
+            }
+        } catch (_) {}
+
+        // 2. Remove from local storage list
         const students = getStudents();
-        const updated = students.filter(s => s.id !== id);
+        const updated = students.filter(s => {
+            const sId = String(s.id || '').toUpperCase().trim();
+            const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+            return sId !== normId && sRoll !== normId;
+        });
         saveStudents(updated);
 
-        // ── Sync delete to Cloud ───────────────────────
+        // 3. Sync delete to Cloud
         if (typeof sb_deleteStudent === 'function') {
             sb_deleteStudent(id).then(function (ok) {
                 if (ok) {
-                    if (typeof _showSyncToast === 'function') _showSyncToast('✅ Deleted from cloud');
+                    if (typeof _showSyncToast === 'function') _showSyncToast('✓ Deleted from cloud');
                 } else {
-                    if (typeof _showSyncToast === 'function') _showSyncToast('⚠️ Cloud delete failed — deleted locally', true);
+                    if (typeof _showSyncToast === 'function') _showSyncToast('ℹ️ Deleted locally (not found in cloud)', true);
                 }
             });
         }

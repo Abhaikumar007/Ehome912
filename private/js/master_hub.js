@@ -347,7 +347,19 @@ async function refreshMasterData(isRealtime) {
             }
 
             if (!error && Array.isArray(dbStudents) && dbStudents.length > 0) {
-                students = dbStudents.map(s => {
+                let deletedSet = new Set();
+                try {
+                    const d = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+                    if (Array.isArray(d)) d.forEach(x => deletedSet.add(String(x).toUpperCase().trim()));
+                } catch (_) {}
+
+                students = dbStudents
+                    .filter(s => {
+                        const roll = String(s.roll_no || s.rollNo || s.id || '').toUpperCase().trim();
+                        const sId = String(s.id || '').toUpperCase().trim();
+                        return !deletedSet.has(roll) && !deletedSet.has(sId);
+                    })
+                    .map(s => {
                     const roll = s.roll_no || s.rollNo || s.id || '';
                     const cleanRoll = String(roll).toUpperCase().trim();
                     const feeRec = feeMap.get(cleanRoll);
@@ -537,6 +549,17 @@ function deleteGridRow(idx) {
 
     if (confirm('Delete student "' + (s.name || 'Unnamed') + '"? This will also remove them from Google Sheets and Supabase.')) {
         const idToDelete = s.id || s.rollNo || s.roll_no;
+        const normId = String(idToDelete || '').toUpperCase().trim();
+
+        // Record in deleted_students blacklist
+        try {
+            let deletedList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+            if (normId && !deletedList.includes(normId)) {
+                deletedList.push(normId);
+                localStorage.setItem('deleted_students', JSON.stringify(deletedList));
+            }
+        } catch (_) {}
+
         currentStudents.splice(idx, 1);
         renderMasterGrid(currentStudents);
 

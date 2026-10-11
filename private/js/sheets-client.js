@@ -216,10 +216,22 @@ window.sb_loadFromCloud = async function () {
             ]);
 
             if (!stuRes.error && Array.isArray(stuRes.data) && stuRes.data.length > 0) {
+                let deletedSet = new Set();
+                try {
+                    const d = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+                    if (Array.isArray(d)) d.forEach(x => deletedSet.add(String(x).toUpperCase().trim()));
+                } catch (_) {}
+
                 const localStudents = (typeof getStudents === 'function') ? getStudents() : (JSON.parse(localStorage.getItem('students')) || []);
                 const localMap = new Map((localStudents || []).map(l => [String(l.id || l.rollNo).toUpperCase().trim(), l]));
 
-                loadedStudents = stuRes.data.map(r => {
+                const activeStuData = stuRes.data.filter(r => {
+                    const rRoll = String(r.roll_no || '').toUpperCase().trim();
+                    const rId = String(r.id || '').toUpperCase().trim();
+                    return !deletedSet.has(rRoll) && !deletedSet.has(rId);
+                });
+
+                loadedStudents = activeStuData.map(r => {
                     const roll = String(r.roll_no || r.id).trim();
                     const local = localMap.get(roll.toUpperCase());
                     return {
@@ -503,17 +515,28 @@ window.sb_saveStudent = async function (student) {
 window.sb_deleteStudent = async function (id) {
     let sheetsSuccess = false;
     let supabaseSuccess = false;
+    const sid = String(id || '').trim();
+    if (!sid) return false;
+
+    // 0. Blacklist ID in localStorage deleted_students
+    try {
+        let deletedList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+        if (!deletedList.includes(sid.toUpperCase())) {
+            deletedList.push(sid.toUpperCase());
+            localStorage.setItem('deleted_students', JSON.stringify(deletedList));
+        }
+    } catch (_) {}
 
     // 1. Delete from Sheets
     if (_sheetsReady()) {
         try {
             var result = await _sheetsPost({
                 action: 'deleteStudent',
-                id: String(id)
+                id: sid
             });
             sheetsSuccess = !!result;
         } catch (e) {
-            console.warn('[DualSync] Sheets deleteStudent error:', e);
+            console.warn('[DualSync] Sheets deleteStudent warning:', e);
         }
     }
 
@@ -521,8 +544,51 @@ window.sb_deleteStudent = async function (id) {
     const sb = _getSupabaseClient();
     if (sb) {
         try {
-            const sid = String(id);
-            const { error } = await sb.from('students').delete().or('roll_no.eq.' + sid + ',id.eq.' + sid);
+            const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(sid);
+            let targetRoll = sid;
+            let targetUuid = isUuid ? sid : null;
+
+            // Look up student to obtain both UUID id and text roll_no
+            try {
+                let findQuery = sb.from('students').select('id, roll_no');
+                if (isUuid) {
+                    findQuery = findQuery.or('id.eq.' + sid + ',roll_no.eq.' + sid);
+                } else {
+                    findQuery = findQuery.eq('roll_no', sid);
+                }
+                const { data: found } = await findQuery.maybeSingle();
+                if (found) {
+                    targetRoll = found.roll_no || sid;
+                    targetUuid = found.id || targetUuid;
+
+                    // Ensure both identifiers are recorded in deleted_students
+                    try {
+                        let dList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+                        if (targetRoll && !dList.includes(targetRoll.toUpperCase())) dList.push(targetRoll.toUpperCase());
+                        if (targetUuid && !dList.includes(targetUuid.toUpperCase())) dList.push(targetUuid.toUpperCase());
+                        localStorage.setItem('deleted_students', JSON.stringify(dList));
+                    } catch (_) {}
+                }
+            } catch (lookErr) {
+                console.warn('[DualSync] Lookup before delete error:', lookErr);
+            }
+
+            // Clean child records to avoid foreign key constraints / orphaned data
+            if (targetRoll) {
+                try { await sb.from('fees_records').delete().eq('roll_no', targetRoll); } catch (_) {}
+                try { await sb.from('attendance_records').delete().eq('roll_no', targetRoll); } catch (_) {}
+                try { await sb.from('progress_records').delete().eq('roll_no', targetRoll); } catch (_) {}
+            }
+
+            // Delete student from students table without syntax error
+            let delQuery = sb.from('students').delete();
+            if (targetUuid) {
+                delQuery = delQuery.eq('id', targetUuid);
+            } else {
+                delQuery = delQuery.eq('roll_no', targetRoll);
+            }
+
+            const { error } = await delQuery;
             if (!error) {
                 supabaseSuccess = true;
                 console.log('[DualSync] Student deleted from Supabase ✓:', sid);
