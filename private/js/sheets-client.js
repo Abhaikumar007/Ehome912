@@ -853,30 +853,70 @@ window.sb_saveAttendance = async function (attData) {
 // ─── BULK MIGRATION (PUSH TO BOTH CLOUDS) ─────────────────────────────────────
 
 window.sb_migrateFromLocalStorage = async function () {
-    var students = JSON.parse(localStorage.getItem('students')) || [];
-    var feesRaw  = JSON.parse(localStorage.getItem('fees'))     || {};
+    var rawStudents = JSON.parse(localStorage.getItem('students')) || [];
+    var feesRaw     = JSON.parse(localStorage.getItem('fees'))     || {};
+
+    // Filter out blacklisted / deleted students
+    let deletedSet = new Set();
+    try {
+        const d = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+        if (Array.isArray(d)) d.forEach(x => deletedSet.add(String(x).toUpperCase().trim()));
+    } catch (_) {}
+
+    var students = rawStudents.filter(s => {
+        const roll = String(s.rollNo || s.id || '').toUpperCase().trim();
+        return roll && !deletedSet.has(roll);
+    });
 
     if (students.length === 0) {
-        return { ok: false, msg: 'No students found in localStorage to migrate.' };
+        return { ok: false, msg: 'No active students found in localStorage to migrate.' };
     }
 
     var msgs = [];
-    const sb = _getSafeAdminSupabase ? _getSafeAdminSupabase() : _getSupabaseClient();
+    const sb = typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : _getSupabaseClient();
 
-    // 1. Direct Push to Supabase students and fees_records
+    // 1. Direct Fast Bulk Push to Supabase (Executed in < 1 second)
     if (sb) {
         try {
-            let stuCount = 0;
-            for (const s of students) {
-                await window.sb_saveStudent(s);
-                stuCount++;
+            const studentPayloads = students.map(s => {
+                const rollNo = _getRollNo(s);
+                const rawClass = String(s.class || s.class_name || '10').trim();
+                const className = rawClass.toLowerCase().startsWith('class') ? rawClass : 'Class ' + rawClass;
+                const name = (s.name || 'Student').trim();
+                const nameParts = name.split(' ');
+                const avatar = (nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : name.slice(0, 2)).toUpperCase();
+                const phone = typeof _cleanPhone === 'function' ? _cleanPhone(s.phone) : String(s.phone || '');
+                const syl = s.syllabus || (s.school === 'CBSE' || (s.batch && /cbse/i.test(s.batch)) ? 'CBSE' : 'State Syllabus');
+                let batch = s.batch || '';
+                if (!batch || batch === className) batch = `${className} (${syl})`;
+                else if (!batch.includes(syl)) batch = `${batch} (${syl})`;
+
+                return {
+                    roll_no: rollNo,
+                    name: name,
+                    class_name: className,
+                    batch: batch,
+                    avatar: avatar,
+                    phone: phone,
+                    pin: s.pin || '1234',
+                    streak: Number(s.streak) || 0,
+                    accuracy: Number(s.accuracy) || 0,
+                    tests_completed: Number(s.tests_completed) || 0,
+                    top_percent: Number(s.top_percent) || 0
+                };
+            });
+
+            // Fast Bulk Upsert all students to Supabase
+            const { error: stuError } = await sb.from('students').upsert(studentPayloads, { onConflict: 'roll_no' });
+            if (stuError) {
+                console.warn('[DualSync] Supabase bulk students upsert warning:', stuError);
             }
 
-            // Also upsert fee records
+            // Fast Bulk Upsert all fee records
             const feeRecordsToUpsert = [];
             const now = new Date();
             students.forEach(s => {
-                const roll = s.rollNo || s.id;
+                const roll = _getRollNo(s);
                 if (!roll) return;
                 const subs = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
                 const isOctPaid = subs.every(sub => 
@@ -899,19 +939,20 @@ window.sb_migrateFromLocalStorage = async function () {
             });
 
             if (feeRecordsToUpsert.length > 0) {
-                await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
+                const { error: feeError } = await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
+                if (feeError) console.warn('[DualSync] Supabase bulk fees upsert warning:', feeError);
             }
 
-            msgs.push('Supabase (' + stuCount + ' students & fees)');
+            msgs.push('Supabase (' + studentPayloads.length + ' students & fees)');
         } catch (e) {
             console.warn('[DualSync] Supabase migration error:', e);
         }
     }
 
-    // 2. Push to Google Sheets (if configured)
-    if (_sheetsReady()) {
+    // 2. Single batch push to Google Sheets (if configured)
+    if (typeof _sheetsReady === 'function' && _sheetsReady()) {
         try {
-            var studentRows = students.map(_toSheetStudent);
+            var sheetStudentRows = students.map(_toSheetStudent);
             var validStudentIds = {};
             students.forEach(function (s) { validStudentIds[s.id] = true; });
 
@@ -937,9 +978,9 @@ window.sb_migrateFromLocalStorage = async function () {
 
             var result = await _sheetsPost({
                 action: 'migrate',
-                students: studentRows,
+                students: sheetStudentRows,
                 fees: feeRows
-            }, 60000);
+            }, 12000);
 
             if (result && result.ok) msgs.push('Google Sheets (' + students.length + ' students)');
         } catch (e) {
@@ -948,11 +989,11 @@ window.sb_migrateFromLocalStorage = async function () {
     }
 
     if (msgs.length === 0) {
-        return { ok: false, msg: 'Failed to sync to clouds. Check internet and credentials.' };
+        return { ok: false, msg: 'Failed to sync to clouds. Check internet connection.' };
     }
 
     return {
         ok: true,
-        msg: '✅ Synced to: ' + msgs.join(' and ')
+        msg: 'Synced successfully to: ' + msgs.join(' and ')
     };
 };

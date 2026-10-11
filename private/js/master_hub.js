@@ -1,4 +1,28 @@
 
+// ─── MASTER CLOUD TOAST NOTIFICATION ─────────────────────────────────────────
+function showMasterCloudToast(msg, type = 'success') {
+    let container = document.getElementById('masterHubToastContainer');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'masterHubToastContainer';
+        container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:99999;max-width:400px;pointer-events:none;';
+        document.body.appendChild(container);
+    }
+    const toast = document.createElement('div');
+    const bgClass = type === 'success' ? 'bg-success text-white' : (type === 'danger' ? 'bg-danger text-white' : (type === 'warning' ? 'bg-warning text-dark' : 'bg-primary text-white'));
+    toast.className = 'p-3 mb-2 rounded shadow-lg ' + bgClass + ' font-weight-bold d-flex align-items-center';
+    toast.style.cssText = 'pointer-events:auto;font-size:0.92rem;transition:opacity 0.4s ease;line-height:1.4;';
+    const iconHtml = type === 'success' ? '<i class="fas fa-check-circle fa-lg mr-2"></i>' : (type === 'danger' ? '<i class="fas fa-times-circle fa-lg mr-2"></i>' : (type === 'warning' ? '<i class="fas fa-exclamation-triangle fa-lg mr-2"></i>' : '<i class="fas fa-info-circle fa-lg mr-2"></i>'));
+    toast.innerHTML = iconHtml + '<div style="flex:1;">' + msg + '</div>';
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 400);
+    }, 5000);
+}
+window.showMasterCloudToast = showMasterCloudToast;
+
+
 // ─── PUSH NOTIFICATION DISPATCHER (EXPO PUSH API) ───────────────────────────
 var CBSE_STUDENT_ROLLS = window.CBSE_STUDENT_ROLLS || new Set(['EDU-2026-022', 'EDU-2026-036']);
 window.CBSE_STUDENT_ROLLS = CBSE_STUDENT_ROLLS;
@@ -619,33 +643,44 @@ function showGridStatusAlert(msg, type) {
 // ─── DUAL SYNC SAVE ALL ───────────────────────────────────────────────────────
 
 async function saveAllMasterChanges() {
-    showGridStatusAlert('<i class="fas fa-spinner fa-spin mr-2"></i>Syncing all changes to Google Sheets and Supabase...', 'info');
+    const saveBtns = document.querySelectorAll('button[onclick*="saveAllMasterChanges"]');
+    saveBtns.forEach(b => {
+        b.disabled = true;
+        b._origHtml = b.innerHTML;
+        b.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pushing to Clouds...';
+    });
 
-    // 1. Save to local storage
-    localStorage.setItem('students', JSON.stringify(currentStudents));
+    showGridStatusAlert('<i class="fas fa-spinner fa-spin mr-2"></i>Pushing all student records and fees to Supabase and Google Sheets...', 'info');
 
-    // 2. Push all to Google Sheets & Supabase
-    let successCount = 0;
-    let failCount = 0;
+    try {
+        // 1. Save to local storage
+        localStorage.setItem('students', JSON.stringify(currentStudents));
 
-    for (const student of currentStudents) {
-        try {
-            if (typeof sb_saveStudent === 'function') {
-                const ok = await sb_saveStudent(student);
-                if (ok) successCount++;
-                else failCount++;
-            }
-        } catch (e) {
-            console.warn('Error syncing student:', student.name, e);
-            failCount++;
+        // 2. Fast bulk push
+        if (typeof sb_migrateFromLocalStorage === 'function') {
+            const res = await sb_migrateFromLocalStorage();
+            const msg = res && res.msg ? res.msg : `Successfully synced ${currentStudents.length} students to cloud!`;
+            showGridStatusAlert(msg, res && res.ok ? 'success' : 'warning');
+            showMasterCloudToast(msg, res && res.ok ? 'success' : 'warning');
+        } else {
+            showGridStatusAlert(`✅ Successfully saved ${currentStudents.length} students to local database!`, 'success');
+            showMasterCloudToast(`Saved ${currentStudents.length} students to local storage!`, 'success');
         }
+
+        originalStudents = JSON.parse(JSON.stringify(currentStudents));
+        renderMasterGrid(currentStudents);
+        updateFeeSummary();
+        if (typeof testCloudHealth === 'function') testCloudHealth();
+    } catch (err) {
+        console.error('[MasterHub] saveAllMasterChanges error:', err);
+        showGridStatusAlert('❌ Sync error: ' + (err.message || err), 'danger');
+        showMasterCloudToast('Sync error: ' + (err.message || err), 'danger');
+    } finally {
+        saveBtns.forEach(b => {
+            b.disabled = false;
+            b.innerHTML = b._origHtml || '<i class="fas fa-cloud-upload-alt mr-1"></i> Push All to Sheets & Supabase';
+        });
     }
-
-    originalStudents = JSON.parse(JSON.stringify(currentStudents));
-    renderMasterGrid(currentStudents);
-    updateFeeSummary();
-
-    showGridStatusAlert(`✅ Successfully synced ${successCount} students to Google Sheets and Supabase! (Failed: ${failCount})`, 'success');
 }
 
 // ─── 2. GLOBAL BROADCAST & EXAM ALERTS ────────────────────────────────────────
@@ -2740,20 +2775,81 @@ window.closeCloudSyncConfirmModal = function () {
 
 window.confirmAndExecuteCloudSync = async function () {
     window.closeCloudSyncConfirmModal();
-    if (window._cloudSyncAction === 'push') {
-        if (typeof sb_migrateFromLocalStorage === 'function') {
-            const res = await sb_migrateFromLocalStorage();
-            alert(res.msg || 'Sync completed.');
-            testCloudHealth();
-            if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+    const action = window._cloudSyncAction;
+    const btnPush = document.getElementById('btnForcePushAll');
+    const btnPull = document.getElementById('btnForcePullAll');
+    const statusBox = document.getElementById('cloudSyncStatusAlert');
+
+    const setStatus = (html, type) => {
+        if (statusBox) {
+            statusBox.style.display = 'block';
+            statusBox.innerHTML = `<div class="alert alert-${type} py-2 px-3 font-weight-bold shadow-sm mb-0">${html}</div>`;
         }
-    } else if (window._cloudSyncAction === 'pull') {
-        if (typeof sb_loadFromCloud === 'function') {
-            const res = await sb_loadFromCloud();
-            alert(res.msg || 'Data refreshed from cloud.');
-            await refreshMasterData();
-            testCloudHealth();
-            if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+        if (typeof showGridStatusAlert === 'function') {
+            showGridStatusAlert(html, type);
+        }
+    };
+
+    if (action === 'push') {
+        if (btnPush) {
+            btnPush.disabled = true;
+            btnPush.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Pushing to Clouds...';
+        }
+        setStatus('<i class="fas fa-spinner fa-spin mr-2"></i>Pushing all student records and fees to Supabase and Google Sheets...', 'info');
+
+        try {
+            if (typeof sb_migrateFromLocalStorage === 'function') {
+                const res = await sb_migrateFromLocalStorage();
+                const msg = res && res.msg ? res.msg : 'Successfully pushed all records to cloud!';
+                setStatus(msg, res && res.ok ? 'success' : 'warning');
+                showMasterCloudToast(msg, res && res.ok ? 'success' : 'warning');
+                if (typeof testCloudHealth === 'function') testCloudHealth();
+                if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+            } else {
+                setStatus('⚠️ Cloud migration handler unavailable.', 'danger');
+                showMasterCloudToast('Cloud migration handler unavailable.', 'danger');
+            }
+        } catch (err) {
+            console.error('[CloudSync] Push error:', err);
+            const errMsg = 'Push failed: ' + (err.message || err);
+            setStatus(errMsg, 'danger');
+            showMasterCloudToast(errMsg, 'danger');
+        } finally {
+            if (btnPush) {
+                btnPush.disabled = false;
+                btnPush.innerHTML = '<i class="fas fa-cloud-upload-alt mr-2"></i>Force Push All to Both Clouds';
+            }
+        }
+    } else if (action === 'pull') {
+        if (btnPull) {
+            btnPull.disabled = true;
+            btnPull.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Pulling from Clouds...';
+        }
+        setStatus('<i class="fas fa-spinner fa-spin mr-2"></i>Pulling verified student records and fee data from Supabase Cloud...', 'info');
+
+        try {
+            if (typeof sb_loadFromCloud === 'function') {
+                const res = await sb_loadFromCloud();
+                const msg = res && res.msg ? res.msg : 'Data successfully pulled and refreshed from Supabase Cloud!';
+                setStatus(msg, 'success');
+                showMasterCloudToast(msg, 'success');
+                if (typeof refreshMasterData === 'function') await refreshMasterData();
+                if (typeof testCloudHealth === 'function') testCloudHealth();
+                if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+            } else {
+                setStatus('⚠️ Cloud loader handler unavailable.', 'danger');
+                showMasterCloudToast('Cloud loader handler unavailable.', 'danger');
+            }
+        } catch (err) {
+            console.error('[CloudSync] Pull error:', err);
+            const errMsg = 'Pull failed: ' + (err.message || err);
+            setStatus(errMsg, 'danger');
+            showMasterCloudToast(errMsg, 'danger');
+        } finally {
+            if (btnPull) {
+                btnPull.disabled = false;
+                btnPull.innerHTML = '<i class="fas fa-cloud-download-alt mr-2"></i>Force Pull from Clouds';
+            }
         }
     }
 };
