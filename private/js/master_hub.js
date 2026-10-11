@@ -4490,7 +4490,7 @@ async function _executeSendFiveDayFeeReminders(btnElement) {
         // 1. Fetch fees_records with current_due > 0 and days_left <= 5
         const { data: feeRows, error: feeErr } = await sb
             .from('fees_records')
-            .select('roll_no, current_due, due_date, days_left');
+            .select('roll_no, current_due, due_date, days_left, recent_payments');
 
         if (feeErr) throw feeErr;
 
@@ -4508,9 +4508,26 @@ async function _executeSendFiveDayFeeReminders(btnElement) {
             return;
         }
 
-        // Filter: unpaid (current_due > 0) and days_left <= 5 (including overdue days_left <= 0)
+        const now = new Date();
+        const curMonthLong = now.toLocaleString('en-US', { month: 'long' });
+        const curYear = now.getFullYear();
+
+        // Filter: unpaid (current_due > 0, NOT paid in recent_payments) and days_left <= 5
         const dueSoon = feeRows.filter(r => {
             const due = Number(r.current_due) || 0;
+            if (due <= 0) return false;
+
+            // Check if current month is already verified in recent_payments
+            if (Array.isArray(r.recent_payments)) {
+                const hasPaidThisMonth = r.recent_payments.some(p => {
+                    const statusOk = p.status && p.status !== 'pending_verification';
+                    if (!statusOk) return false;
+                    const fullMatch = p.fullMonth && p.fullMonth.toLowerCase().includes(curMonthLong.toLowerCase()) && String(p.fullMonth).includes(String(curYear));
+                    return Boolean(fullMatch);
+                });
+                if (hasPaidThisMonth) return false;
+            }
+
             let days = Number(r.days_left);
             if (isNaN(days) && r.due_date) {
                 const d = new Date(r.due_date);
@@ -4518,8 +4535,7 @@ async function _executeSendFiveDayFeeReminders(btnElement) {
                     days = Math.ceil((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
                 }
             }
-            const isDue = due > 0;
-            return isDue && !isNaN(days) && days <= 5;
+            return !isNaN(days) && days <= 5;
         });
 
         if (dueSoon.length === 0) {
