@@ -1362,25 +1362,40 @@ export const DataService = {
         });
 
         // Resolve dynamic monthly fee from Supabase database (Admin updates reflect here!)
-        let resolvedMonthlyFee = studentFeeInfo.monthlyFee;
+        let resolvedMonthlyFee: number | null = null;
+
+        // 1. Check loyalty_months metadata tag in Supabase
         if (Array.isArray(data.loyalty_months)) {
           const tag = data.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
           if (tag && Number(tag.__monthly_fee || tag.fee_standard) > 0) {
             resolvedMonthlyFee = Number(tag.__monthly_fee || tag.fee_standard);
           }
+        } else if (data.loyalty_months && typeof data.loyalty_months === 'object') {
+          const feeVal = Number((data.loyalty_months as any).__monthly_fee || (data.loyalty_months as any).fee_standard);
+          if (feeVal > 0) resolvedMonthlyFee = feeVal;
         }
-        if ((!resolvedMonthlyFee || resolvedMonthlyFee === 4000) && Array.isArray(data.recent_payments) && data.recent_payments.length > 0) {
-          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0);
-          if (p && Number(p.amount) > 0) {
-            resolvedMonthlyFee = Number(p.amount);
-          }
-        }
-        if ((!resolvedMonthlyFee || resolvedMonthlyFee === 4000) && Number(data.current_due) > 0) {
+
+        // 2. If unpaid and current_due exists in Supabase
+        if (!resolvedMonthlyFee && Number(data.current_due) > 0) {
           if (unpaidCount > 1 && Number(data.current_due) % unpaidCount === 0) {
             resolvedMonthlyFee = Number(data.current_due) / unpaidCount;
           } else if (unpaidCount <= 1) {
             resolvedMonthlyFee = Number(data.current_due);
           }
+        }
+
+        // 3. Fallback to studentFeeInfo roster or recent_payments
+        if (!resolvedMonthlyFee) {
+          resolvedMonthlyFee = Number(studentFeeInfo.monthlyFee) || 0;
+        }
+        if (!resolvedMonthlyFee && Array.isArray(data.recent_payments) && data.recent_payments.length > 0) {
+          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0);
+          if (p && Number(p.amount) > 0) {
+            resolvedMonthlyFee = Number(p.amount);
+          }
+        }
+        if (!resolvedMonthlyFee) {
+          resolvedMonthlyFee = 4000;
         }
 
         // Due date of the month being paid = joining day of that month
