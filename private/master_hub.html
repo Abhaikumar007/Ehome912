@@ -461,18 +461,63 @@
                 gap: 10px !important;
                 width: 100% !important;
             }
+            /* Touch & Mobile Click Optimization */
+            button, .btn, select.form-control, input.form-control {
+                touch-action: manipulation !important;
+                -webkit-tap-highlight-color: transparent !important;
+            }
+
             .fee-cycle-actions-group {
+                display: flex !important;
                 flex-direction: column !important;
                 align-items: stretch !important;
-                gap: 8px !important;
+                gap: 10px !important;
                 width: 100% !important;
+                margin-top: 12px !important;
             }
             .fee-cycle-actions-group select,
             .fee-cycle-actions-group button,
             .fee-cycle-actions-group .btn {
                 width: 100% !important;
-                margin-left: 0 !important;
-                margin-right: 0 !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                min-height: 48px !important;
+                font-size: 0.95rem !important;
+                font-weight: 700 !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 8px !important;
+                touch-action: manipulation !important;
+                cursor: pointer !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+            }
+
+            .cloud-sync-actions-group {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 100% !important;
+                gap: 10px !important;
+            }
+            .cloud-sync-actions-group .btn {
+                width: 100% !important;
+                margin: 0 !important;
+                min-height: 48px !important;
+                font-size: 0.95rem !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                border-radius: 8px !important;
+                touch-action: manipulation !important;
+            }
+
+            .btn-xs {
+                min-height: 36px !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                font-size: 0.8rem !important;
+                padding: 6px 10px !important;
+                touch-action: manipulation !important;
             }
 
             .hub-card {
@@ -696,7 +741,7 @@
             <div class="tab-pane fade show active" id="tab-spreadsheet" role="tabpanel">
                 <div class="hub-card">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 grid-controls-wrapper">
-                        <div class="d-flex align-items-center mb-2">
+                        <div class="d-flex align-items-center mb-2 grid-filter-group">
                             <input type="text" id="gridSearchInput" class="form-control form-control-sm mr-2" placeholder="Search by name, roll no, or phone..." style="width: 260px;" oninput="filterGridTable()">
                             <select id="gridClassFilter" class="form-control form-control-sm" style="width: 140px;" onchange="filterGridTable()">
                                 <option value="">All Classes</option>
@@ -708,7 +753,7 @@
                                 <option value="12">Class 12</option>
                             </select>
                         </div>
-                        <div class="mb-2">
+                        <div class="mb-2 grid-action-group">
                             <button class="btn btn-outline-primary btn-sm mr-2" onclick="addNewGridRow()">
                                 <i class="fas fa-plus mr-1"></i> Add Row
                             </button>
@@ -1081,17 +1126,17 @@
                             <h5 class="font-weight-bold mb-1">Monthly Billing Cycle Generator</h5>
                             <p class="text-muted mb-0">Generate or reset fees for all enrolled students for any billing cycle.</p>
                         </div>
-                        <div class="d-flex align-items-center">
-                            <select id="cycleMonthSelect" class="form-control mr-2" style="width: 180px;">
+                        <div class="d-flex flex-wrap align-items-center fee-cycle-actions-group mt-3 mt-md-0">
+                            <select id="cycleMonthSelect" class="form-control mr-md-2 mb-2 mb-md-0" style="min-width: 160px; max-width: 220px;">
                                 <option value="September 2026">September 2026</option>
                                 <option value="October 2026" selected>October 2026</option>
                                 <option value="November 2026">November 2026</option>
                                 <option value="December 2026">December 2026</option>
                             </select>
-                            <button class="btn btn-warning font-weight-bold" onclick="generateMonthlyFeeCycle()">
+                            <button id="btnGenerateCycle" class="btn btn-warning font-weight-bold mr-md-2 mb-2 mb-md-0" onclick="requestFeeCycleGeneration()">
                                 <i class="fas fa-bolt mr-1"></i> Generate Cycle Dues
                             </button>
-                            <button class="btn btn-danger font-weight-bold ml-2" onclick="sendFiveDayFeeReminders(this)" title="Send push notifications to all students with dues within 5 days">
+                            <button id="btnSendDueReminders" class="btn btn-danger font-weight-bold mb-2 mb-md-0" onclick="requestSendDueReminders(this)" title="Send push notifications to all students with dues within 5 days">
                                 <i class="fas fa-bell mr-1"></i> Send 5-Day Due Reminders
                             </button>
                         </div>
@@ -1188,7 +1233,7 @@
                             </div>
                             <div class="col-md-3 col-sm-6 text-md-right mt-2 mt-md-0">
                                 <label class="font-weight-bold small text-muted mb-1 d-none d-md-block">&nbsp;</label>
-                                <button id="btnBulkMarkPaid" class="btn btn-success btn-sm btn-block font-weight-bold shadow-sm" onclick="markStudentsPaidUpToMonth()" style="padding: 7px 14px;">
+                                <button id="btnBulkMarkPaid" class="btn btn-success btn-sm btn-block font-weight-bold shadow-sm" onclick="requestBulkMarkPaid()" style="padding: 7px 14px; min-height: 44px; touch-action: manipulation;">
                                     <i class="fas fa-check-double mr-1"></i> Mark Everyone Paid
                                 </button>
                             </div>
@@ -1248,12 +1293,14 @@
                     <p class="text-muted mb-4 max-w-600 mx-auto">
                         Push all student records, fee statuses, and attendance logs to both Google Sheets and Supabase simultaneously, or pull the latest records from the cloud.
                     </p>
-                    <button class="btn btn-success btn-lg px-4 mr-3" onclick="forcePushAllToClouds()">
-                        <i class="fas fa-cloud-upload-alt mr-2"></i>Force Push All to Both Clouds
-                    </button>
-                    <button class="btn btn-outline-dark btn-lg px-4" onclick="forcePullAllFromClouds()">
-                        <i class="fas fa-cloud-download-alt mr-2"></i>Force Pull from Clouds
-                    </button>
+                    <div class="cloud-sync-actions-group d-flex justify-content-center flex-wrap" style="gap: 12px;">
+                        <button id="btnForcePushAll" class="btn btn-success btn-lg px-4" onclick="requestForcePushAll()">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i>Force Push All to Both Clouds
+                        </button>
+                        <button id="btnForcePullAll" class="btn btn-outline-dark btn-lg px-4" onclick="requestForcePullAll()">
+                            <i class="fas fa-cloud-download-alt mr-2"></i>Force Pull from Clouds
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1273,8 +1320,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js"></script>
-    <script src="js/admin.js?v=20261010_v4"></script>
-    <script src="js/master_hub.js?v=20261010_v4"></script>
+    <script src="js/admin.js?v=20261011_v1"></script>
+    <script src="js/master_hub.js?v=20261011_v1"></script>
     <script src="js/live_timetable.js?v=1791561607033"></script>
 
     <script>
@@ -1727,6 +1774,164 @@
                 </button>
                 <button type="button" class="btn btn-danger font-weight-bold px-4" id="confirmExecuteClearAllBtn" onclick="window.confirmAndExecuteClearAllAnnouncements()">
                     <i class="fas fa-broom mr-1"></i> Yes, Clear All
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL: Confirm Fee Billing Cycle Generation -->
+<div class="modal fade" id="feeCycleConfirmModal" tabindex="-1" role="dialog" aria-labelledby="feeCycleConfirmModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 460px; margin: 12px auto;">
+        <div class="modal-content shadow border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-warning text-dark py-3">
+                <h5 class="modal-title font-weight-bold" id="feeCycleConfirmModalLabel">
+                    <i class="fas fa-bolt mr-2"></i>Generate Monthly Fee Cycle
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close" onclick="closeFeeCycleConfirmModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="display:inline-flex; width: 62px; height: 62px; border-radius: 50%; background-color: #fef3c7; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-alt fa-2x text-warning"></i>
+                    </span>
+                </div>
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 1.05rem;">
+                    Generate Cycle Dues for <span id="feeCycleModalMonth" class="text-primary font-weight-bold">October 2026</span>?
+                </h6>
+                <p class="text-muted small mb-3" id="feeCycleModalDesc">
+                    This will calculate standard monthly dues across all active enrolled students and sync dues records directly into Supabase.
+                </p>
+                <div class="alert alert-info py-2 px-3 text-left small mb-0">
+                    <i class="fas fa-info-circle mr-1"></i> Already cleared/paid students for this cycle will automatically remain at ₹0 due.
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 border-top-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="closeFeeCycleConfirmModal()" style="min-height: 42px; touch-action: manipulation;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-warning font-weight-bold px-4 shadow-sm" id="btnExecuteFeeCycle" onclick="confirmAndExecuteFeeCycle()" style="min-height: 42px; touch-action: manipulation;">
+                    <i class="fas fa-bolt mr-1"></i> Yes, Generate Dues
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Confirm 5-Day Fee Reminders -->
+<div class="modal fade" id="feeReminderConfirmModal" tabindex="-1" role="dialog" aria-labelledby="feeReminderConfirmModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 460px; margin: 12px auto;">
+        <div class="modal-content shadow border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-danger text-white py-3">
+                <h5 class="modal-title font-weight-bold" id="feeReminderConfirmModalLabel">
+                    <i class="fas fa-bell mr-2"></i>Send Fee Due Reminders
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="closeFeeReminderConfirmModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="display:inline-flex; width: 62px; height: 62px; border-radius: 50%; background-color: #fee2e2; align-items: center; justify-content: center;">
+                        <i class="fas fa-bell fa-2x text-danger"></i>
+                    </span>
+                </div>
+                <h6 class="font-weight-bold text-dark mb-2" style="font-size: 1.05rem;">
+                    Dispatch 5-Day Push Due Reminders?
+                </h6>
+                <p class="text-muted small mb-3">
+                    This will scan all student fee records in Supabase and send urgent push notifications to all enrolled students whose fee is due within the next 5 days.
+                </p>
+                <div class="alert alert-light border py-2 px-3 text-left small mb-0 text-muted">
+                    <i class="fas fa-mobile-alt mr-1"></i> Notifications will be sent via Expo Push Service directly to students' mobile app devices.
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 border-top-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="closeFeeReminderConfirmModal()" style="min-height: 42px; touch-action: manipulation;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-danger font-weight-bold px-4 shadow-sm" id="btnExecuteFeeReminders" onclick="confirmAndExecuteFeeReminders()" style="min-height: 42px; touch-action: manipulation;">
+                    <i class="fas fa-paper-plane mr-1"></i> Yes, Send Reminders
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Confirm Bulk Paid Settlement -->
+<div class="modal fade" id="bulkPaidConfirmModal" tabindex="-1" role="dialog" aria-labelledby="bulkPaidConfirmModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 460px; margin: 12px auto;">
+        <div class="modal-content shadow border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title font-weight-bold" id="bulkPaidConfirmModalLabel">
+                    <i class="fas fa-check-double mr-2"></i>Bulk Fee Clearance
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="closeBulkPaidConfirmModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="display:inline-flex; width: 62px; height: 62px; border-radius: 50%; background-color: #d1fae5; align-items: center; justify-content: center;">
+                        <i class="fas fa-check-double fa-2x text-success"></i>
+                    </span>
+                </div>
+                <h6 class="font-weight-bold text-dark mb-2" id="bulkPaidModalTitle" style="font-size: 1.05rem;">
+                    Mark Students as PAID?
+                </h6>
+                <p class="text-muted small mb-3" id="bulkPaidModalDesc">
+                    This will record verified receipt entries in Supabase, award loyalty badges, and clear active dues for the selected range.
+                </p>
+                <div class="alert alert-success py-2 px-3 text-left small mb-0">
+                    <i class="fas fa-sync-alt mr-1"></i> Student mobile apps will instantly show zero dues and verified receipts in real-time.
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 border-top-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="closeBulkPaidConfirmModal()" style="min-height: 42px; touch-action: manipulation;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-success font-weight-bold px-4 shadow-sm" id="btnExecuteBulkPaid" onclick="confirmAndExecuteBulkPaid()" style="min-height: 42px; touch-action: manipulation;">
+                    <i class="fas fa-check-double mr-1"></i> Yes, Mark Paid
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Confirm Master Cloud Sync -->
+<div class="modal fade" id="cloudSyncConfirmModal" tabindex="-1" role="dialog" aria-labelledby="cloudSyncConfirmModalLabel" aria-hidden="true" style="z-index: 1080;">
+    <div class="modal-dialog modal-dialog-centered" role="document" style="max-width: 460px; margin: 12px auto;">
+        <div class="modal-content shadow border-0" style="border-radius: 12px; overflow: hidden;">
+            <div class="modal-header bg-dark text-white py-3">
+                <h5 class="modal-title font-weight-bold" id="cloudSyncConfirmModalLabel">
+                    <i class="fas fa-cloud mr-2"></i>Master Cloud Synchronization
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" onclick="closeCloudSyncConfirmModal()" style="opacity: 0.9; outline: none;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <span style="display:inline-flex; width: 62px; height: 62px; border-radius: 50%; background-color: #e2e8f0; align-items: center; justify-content: center;">
+                        <i class="fas fa-cloud-upload-alt fa-2x text-primary" id="cloudSyncModalIcon"></i>
+                    </span>
+                </div>
+                <h6 class="font-weight-bold text-dark mb-2" id="cloudSyncModalTitle" style="font-size: 1.05rem;">
+                    Synchronize with Clouds?
+                </h6>
+                <p class="text-muted small mb-0" id="cloudSyncModalDesc">
+                    Perform full cloud synchronization with Google Sheets and Supabase.
+                </p>
+            </div>
+            <div class="modal-footer bg-light py-2 px-3 border-top-0 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-3" data-dismiss="modal" onclick="closeCloudSyncConfirmModal()" style="min-height: 42px; touch-action: manipulation;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-primary font-weight-bold px-4 shadow-sm" id="btnExecuteCloudSync" onclick="confirmAndExecuteCloudSync()" style="min-height: 42px; touch-action: manipulation;">
+                    <i class="fas fa-check mr-1"></i> Proceed
                 </button>
             </div>
         </div>

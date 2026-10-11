@@ -1967,21 +1967,128 @@ async function updateFeeSummary() {
     }
 }
 
-async function generateMonthlyFeeCycle() {
+
+// ─── UNIVERSAL MODAL HELPERS (Guarantees touch & mobile WebView compatibility) ─
+function _openBootstrapModal(modalId, backdropId) {
+    const modalEl = document.getElementById(modalId);
+    if (!modalEl) return false;
+    if (typeof $ !== 'undefined' && typeof $(modalEl).modal === 'function') {
+        $(modalEl).modal('show');
+        return true;
+    }
+    // Vanilla CSS fallback
+    modalEl.style.display = 'block';
+    modalEl.classList.add('show');
+    document.body.classList.add('modal-open');
+    if (backdropId) {
+        let bd = document.getElementById(backdropId);
+        if (!bd) {
+            bd = document.createElement('div');
+            bd.id = backdropId;
+            bd.className = 'modal-backdrop fade show';
+            document.body.appendChild(bd);
+        }
+    }
+    return true;
+}
+
+function _closeBootstrapModal(modalId, backdropId) {
+    const modalEl = document.getElementById(modalId);
+    if (typeof $ !== 'undefined' && typeof $(modalEl).modal === 'function') {
+        $(modalEl).modal('hide');
+    }
+    if (modalEl) {
+        modalEl.style.display = 'none';
+        modalEl.classList.remove('show');
+    }
+    document.body.classList.remove('modal-open');
+    if (backdropId) {
+        const bd = document.getElementById(backdropId);
+        if (bd) bd.remove();
+    }
+    if (typeof $ !== 'undefined') $('.modal-backdrop').remove();
+}
+
+// ─── 3.0 MONTHLY BILLING CYCLE GENERATOR (MOBILE & TOUCH OPTIMIZED) ─────────
+window.requestFeeCycleGeneration = function () {
     const cycleSelect = document.getElementById('cycleMonthSelect');
     const cycleMonth = cycleSelect ? cycleSelect.value : 'October 2026';
-    const students = currentStudents || [];
+    let students = currentStudents || [];
+    if (!students || students.length === 0) {
+        try {
+            students = JSON.parse(localStorage.getItem('students')) || [];
+            if (students.length > 0) currentStudents = students;
+        } catch (e) {}
+    }
+    if (!students || students.length === 0) {
+        if (typeof getStudents === 'function') {
+            try {
+                students = getStudents() || [];
+                if (students.length > 0) currentStudents = students;
+            } catch (e) {}
+        }
+    }
+
+    const monthEl = document.getElementById('feeCycleModalMonth');
+    if (monthEl) monthEl.textContent = cycleMonth;
+    const descEl = document.getElementById('feeCycleModalDesc');
+    if (descEl) {
+        const count = students.length || 'all';
+        descEl.textContent = 'This will calculate standard monthly dues across all ' + count + ' active enrolled students and sync dues records directly into Supabase.';
+    }
+
+    const opened = _openBootstrapModal('feeCycleConfirmModal', 'feeCycleBackdrop');
+    if (!opened) {
+        window.confirmAndExecuteFeeCycle();
+    }
+};
+
+window.closeFeeCycleConfirmModal = function () {
+    _closeBootstrapModal('feeCycleConfirmModal', 'feeCycleBackdrop');
+};
+
+window.confirmAndExecuteFeeCycle = async function () {
+    window.closeFeeCycleConfirmModal();
+    await _executeMonthlyFeeCycleGeneration();
+};
+
+async function _executeMonthlyFeeCycleGeneration() {
+    const cycleSelect = document.getElementById('cycleMonthSelect');
+    const cycleMonth = cycleSelect ? cycleSelect.value : 'October 2026';
+    let students = currentStudents || [];
+    if (!students || students.length === 0) {
+        try {
+            students = JSON.parse(localStorage.getItem('students')) || [];
+            if (students.length > 0) currentStudents = students;
+        } catch (e) {}
+    }
+    if (!students || students.length === 0) {
+        if (typeof getStudents === 'function') {
+            try {
+                students = getStudents() || [];
+                if (students.length > 0) currentStudents = students;
+            } catch (e) {}
+        }
+    }
 
     if (!students || students.length === 0) {
+        const cycleAlertBox = document.getElementById('cycleStatusAlert');
+        if (cycleAlertBox) {
+            cycleAlertBox.innerHTML = `
+                <div class="alert alert-warning alert-dismissible fade show my-3" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    <strong>No Student Records Found:</strong> Please wait for student roster to load or refresh data.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `;
+        }
         alert('⚠️ No active student records found. Please wait for students to load or refresh.');
         return;
     }
 
-    if (!confirm('Generate fee billing cycle for "' + cycleMonth + '" across all ' + students.length + ' active students? This will set active cycle dues in Supabase.')) {
-        return;
-    }
-
-    const genBtn = document.querySelector('button[onclick="generateMonthlyFeeCycle()"]');
+    const genBtn = document.getElementById('btnGenerateCycle') || document.querySelector('button[onclick*="generateMonthlyFeeCycle"]');
     const originalBtnHtml = genBtn ? genBtn.innerHTML : '<i class="fas fa-bolt mr-1"></i> Generate Cycle Dues';
     if (genBtn) {
         genBtn.disabled = true;
@@ -1990,11 +2097,11 @@ async function generateMonthlyFeeCycle() {
 
     const sb = _getMasterHubSupabase();
     if (!sb) {
-        alert('❌ Supabase database client not available. Please verify cloud connection.');
         if (genBtn) {
             genBtn.disabled = false;
             genBtn.innerHTML = originalBtnHtml;
         }
+        alert('❌ Supabase database client not available. Please verify cloud connection.');
         return;
     }
 
@@ -2041,9 +2148,8 @@ async function generateMonthlyFeeCycle() {
             });
         });
 
-        console.log(`[MonthlyFeeCycle] Upserting ${recordsToUpsert.length} records into fees_records for ${cycleMonth}...`);
+        console.log('[MonthlyFeeCycle] Upserting ' + recordsToUpsert.length + ' records into fees_records for ' + cycleMonth + '...');
 
-        // Batch upsert into Supabase fees_records (strictly valid schema columns!)
         const { error: sbError } = await sb
             .from('fees_records')
             .upsert(recordsToUpsert, { onConflict: 'roll_no' });
@@ -2059,7 +2165,6 @@ async function generateMonthlyFeeCycle() {
             localStorage.setItem('students', JSON.stringify(students));
         } catch (e) {}
 
-        // Immediately refresh the grid and summary cards
         renderMasterGrid(students);
         await updateFeeSummary();
 
@@ -2087,17 +2192,16 @@ async function generateMonthlyFeeCycle() {
         const cycleAlertBox = document.getElementById('cycleStatusAlert');
         if (cycleAlertBox) {
             cycleAlertBox.innerHTML = `
-                <div class="alert alert-success alert-dismissible fade show my-3" role="alert">
-                    <i class="fas fa-check-circle mr-2"></i>
+                <div class="alert alert-success alert-dismissible fade show my-3 shadow-sm border-0" style="border-left: 5px solid #28a745 !important;" role="alert">
+                    <i class="fas fa-check-circle mr-2 fa-lg text-success"></i>
                     <strong>${cycleMonth} Fee Cycle Active!</strong> Successfully generated dues for <strong>${recordsToUpsert.length} students</strong>. Total Expected Revenue: <strong>₹${totalCycleAmount.toLocaleString('en-IN')}</strong>. Due Date: <strong>${dueDateStr}</strong> (${daysLeft} days left).
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
             `;
+            cycleAlertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }
-
-        alert(`✅ Successfully generated "${cycleMonth}" billing cycle for ${recordsToUpsert.length} students in Supabase!\n\n• Due Date: ${dueDateStr} (${daysLeft} days left)\n• Total Expected Revenue: ₹${totalCycleAmount.toLocaleString('en-IN')}\n• All student mobile apps now reflect these active dues.`);
 
     } catch (err) {
         console.error('[MonthlyFeeCycle] Error generating cycle:', err);
@@ -2122,8 +2226,8 @@ async function generateMonthlyFeeCycle() {
     }
 }
 
-window.updateFeeSummary = updateFeeSummary;
-window.generateMonthlyFeeCycle = generateMonthlyFeeCycle;
+window.generateMonthlyFeeCycle = window.requestFeeCycleGeneration;
+
 
 // ─── 3.1 BULK FEE SETTLEMENT & MARK PAID UP TO MONTH ─────────────────────────
 
@@ -2169,6 +2273,60 @@ function setBulkPaidPreset(startIdx, endIdx) {
     updateBulkPaidRangePreview();
 }
 
+
+window.requestBulkMarkPaid = function () {
+    const startSelect = document.getElementById('bulkPaidStartMonth');
+    const endSelect = document.getElementById('bulkPaidEndMonth');
+    const classSelect = document.getElementById('bulkPaidClassSelect');
+    let startIdx = startSelect ? parseInt(startSelect.value, 10) : 0;
+    let endIdx = endSelect ? parseInt(endSelect.value, 10) : 9;
+
+    if (startIdx > endIdx) {
+        alert('Start month cannot be after the end month.');
+        return;
+    }
+
+    let targetStudents = currentStudents || [];
+    if (!targetStudents || targetStudents.length === 0) {
+        try { targetStudents = JSON.parse(localStorage.getItem('students')) || []; } catch(e){}
+    }
+    const targetClass = classSelect ? classSelect.value : 'all';
+    if (targetClass !== 'all') {
+        targetStudents = targetStudents.filter(s => String(s.class || s.class_name || '').trim() === String(targetClass).trim());
+    }
+
+    const startMonthName = BULK_MONTH_NAMES[startIdx];
+    const endMonthName = BULK_MONTH_NAMES[endIdx];
+    const monthCount = endIdx - startIdx + 1;
+
+    const titleEl = document.getElementById('bulkPaidModalTitle');
+    if (titleEl) {
+        titleEl.textContent = 'Mark ' + targetStudents.length + ' Students as PAID?';
+    }
+    const descEl = document.getElementById('bulkPaidModalDesc');
+    if (descEl) {
+        descEl.textContent = 'Range: ' + startMonthName + ' 2026 → ' + endMonthName + ' 2026 (' + monthCount + ' billing cycle' + (monthCount > 1 ? 's' : '') + '). This will record verified receipts, award badges, and set dues to ₹0.';
+    }
+
+    const opened = _openBootstrapModal('bulkPaidConfirmModal', 'bulkPaidBackdrop');
+    if (!opened) {
+        window.confirmAndExecuteBulkPaid();
+    }
+};
+
+window.closeBulkPaidConfirmModal = function () {
+    _closeBootstrapModal('bulkPaidConfirmModal', 'bulkPaidBackdrop');
+};
+
+window.confirmAndExecuteBulkPaid = async function () {
+    window.closeBulkPaidConfirmModal();
+    window.__confirmBypass = true;
+    try {
+        await markStudentsPaidUpToMonth();
+    } finally {
+        delete window.__confirmBypass;
+    }
+};
 async function markStudentsPaidUpToMonth() {
     const startSelect = document.getElementById('bulkPaidStartMonth');
     const endSelect = document.getElementById('bulkPaidEndMonth');
@@ -2451,25 +2609,68 @@ async function testCloudHealth() {
     }
 }
 
-async function forcePushAllToClouds() {
-    if (!confirm('Push all local student records, fee status, and settings to BOTH Google Sheets and Supabase?')) return;
-    if (typeof sb_migrateFromLocalStorage === 'function') {
-        const res = await sb_migrateFromLocalStorage();
-        alert(res.msg || 'Sync completed.');
-        testCloudHealth();
-    if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+window.requestForcePushAll = function () {
+    window._cloudSyncAction = 'push';
+    const titleEl = document.getElementById('cloudSyncModalTitle');
+    const descEl = document.getElementById('cloudSyncModalDesc');
+    const iconEl = document.getElementById('cloudSyncModalIcon');
+    const btnEl = document.getElementById('btnExecuteCloudSync');
+    if (titleEl) titleEl.textContent = 'Push All Data to Clouds?';
+    if (descEl) descEl.textContent = 'Push all local student records, fee status, and settings to BOTH Google Sheets and Supabase simultaneously.';
+    if (iconEl) { iconEl.className = 'fas fa-cloud-upload-alt fa-2x text-success'; }
+    if (btnEl) { btnEl.className = 'btn btn-success font-weight-bold px-4 shadow-sm'; btnEl.innerHTML = '<i class="fas fa-cloud-upload-alt mr-1"></i> Yes, Force Push'; }
+    const opened = _openBootstrapModal('cloudSyncConfirmModal', 'cloudSyncBackdrop');
+    if (!opened) {
+        window.confirmAndExecuteCloudSync();
     }
+};
+
+window.requestForcePullAll = function () {
+    window._cloudSyncAction = 'pull';
+    const titleEl = document.getElementById('cloudSyncModalTitle');
+    const descEl = document.getElementById('cloudSyncModalDesc');
+    const iconEl = document.getElementById('cloudSyncModalIcon');
+    const btnEl = document.getElementById('btnExecuteCloudSync');
+    if (titleEl) titleEl.textContent = 'Pull All Data from Clouds?';
+    if (descEl) descEl.textContent = 'Pull the latest verified student records and fee data from Google Sheets and Supabase into your local workspace.';
+    if (iconEl) { iconEl.className = 'fas fa-cloud-download-alt fa-2x text-info'; }
+    if (btnEl) { btnEl.className = 'btn btn-info font-weight-bold px-4 shadow-sm text-white'; btnEl.innerHTML = '<i class="fas fa-cloud-download-alt mr-1"></i> Yes, Force Pull'; }
+    const opened = _openBootstrapModal('cloudSyncConfirmModal', 'cloudSyncBackdrop');
+    if (!opened) {
+        window.confirmAndExecuteCloudSync();
+    }
+};
+
+window.closeCloudSyncConfirmModal = function () {
+    _closeBootstrapModal('cloudSyncConfirmModal', 'cloudSyncBackdrop');
+};
+
+window.confirmAndExecuteCloudSync = async function () {
+    window.closeCloudSyncConfirmModal();
+    if (window._cloudSyncAction === 'push') {
+        if (typeof sb_migrateFromLocalStorage === 'function') {
+            const res = await sb_migrateFromLocalStorage();
+            alert(res.msg || 'Sync completed.');
+            testCloudHealth();
+            if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+        }
+    } else if (window._cloudSyncAction === 'pull') {
+        if (typeof sb_loadFromCloud === 'function') {
+            const res = await sb_loadFromCloud();
+            alert(res.msg || 'Data refreshed from cloud.');
+            await refreshMasterData();
+            testCloudHealth();
+            if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
+        }
+    }
+};
+
+async function forcePushAllToClouds() {
+    window.requestForcePushAll();
 }
 
 async function forcePullAllFromClouds() {
-    if (!confirm('Pull latest student records from Google Sheets and Supabase?')) return;
-    if (typeof sb_loadFromCloud === 'function') {
-        const res = await sb_loadFromCloud();
-        alert(res.msg || 'Data refreshed from cloud.');
-        await refreshMasterData();
-        testCloudHealth();
-    if (typeof loadAdminOpinions === 'function') loadAdminOpinions();
-    }
+    window.requestForcePullAll();
 }
 
 
@@ -4249,11 +4450,29 @@ window.switchToEditFromViewModal = function () {
 };
 
 // ─── 5-DAY FEE DUE REMINDER DISPATCHER ──────────────────────────────────────
-window.sendFiveDayFeeReminders = async function(btnElement) {
-    if (!confirm('Scan all student fee records and dispatch push reminders to students whose fee is due within 5 days?')) {
-        return;
+window.requestSendDueReminders = function (btnElement) {
+    window._activeReminderBtn = btnElement || document.getElementById('btnSendDueReminders');
+    const opened = _openBootstrapModal('feeReminderConfirmModal', 'feeReminderBackdrop');
+    if (!opened) {
+        window.confirmAndExecuteFeeReminders();
     }
+};
 
+window.closeFeeReminderConfirmModal = function () {
+    _closeBootstrapModal('feeReminderConfirmModal', 'feeReminderBackdrop');
+};
+
+window.confirmAndExecuteFeeReminders = async function () {
+    window.closeFeeReminderConfirmModal();
+    const btn = window._activeReminderBtn || document.getElementById('btnSendDueReminders') || document.querySelector('button[onclick*="sendFiveDayFeeReminders"]');
+    await _executeSendFiveDayFeeReminders(btn);
+};
+
+window.sendFiveDayFeeReminders = function (btnElement) {
+    window.requestSendDueReminders(btnElement);
+};
+
+async function _executeSendFiveDayFeeReminders(btnElement) {
     const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
     if (!sb) {
         alert('Database connection unavailable. Please reload the page.');
@@ -4276,6 +4495,15 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
         if (feeErr) throw feeErr;
 
         if (!feeRows || feeRows.length === 0) {
+            const cycleAlertBox = document.getElementById('cycleStatusAlert');
+            if (cycleAlertBox) {
+                cycleAlertBox.innerHTML = `
+                    <div class="alert alert-warning alert-dismissible fade show my-3" role="alert">
+                        <i class="fas fa-exclamation-circle mr-2"></i> No fee records found in Supabase.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                `;
+            }
             alert('No fee records found in Supabase.');
             return;
         }
@@ -4295,7 +4523,17 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
         });
 
         if (dueSoon.length === 0) {
-            alert('ℹ️ All caught up! No students currently have fees due within 5 days.');
+            const cycleAlertBox = document.getElementById('cycleStatusAlert');
+            if (cycleAlertBox) {
+                cycleAlertBox.innerHTML = `
+                    <div class="alert alert-info alert-dismissible fade show my-3 shadow-sm border-0" style="border-left: 5px solid #17a2b8 !important;" role="alert">
+                        <i class="fas fa-check-circle mr-2 fa-lg text-info"></i>
+                        <strong>All caught up!</strong> No students currently have fees due within 5 days.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                `;
+                cycleAlertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
             return;
         }
 
@@ -4326,14 +4564,14 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
                 const dueAmt = record.current_due || 4000;
                 const dueDateStr = record.due_date || 'this month';
                 const days = record.days_left;
-                const timingStr = days < 0 ? (`(${Math.abs(days)} days overdue)`) : (days === 0 ? '(Due today!)' : `(${days} days remaining)`);
+                const timingStr = days < 0 ? ('(' + Math.abs(days) + ' days overdue)') : (days === 0 ? '(Due today!)' : ('(' + days + ' days remaining)'));
 
                 tokens.forEach(tok => {
                     messages.push({
                         to: tok,
                         sound: 'default',
                         title: '⚠️ Tuition Fee Due Reminder',
-                        body: `Your tuition fee of ₹${dueAmt} is due on ${dueDateStr} ${timingStr}. Please pay via UPI in the app to avoid late fees.`,
+                        body: 'Your tuition fee of ₹' + dueAmt + ' is due on ' + dueDateStr + ' ' + timingStr + '. Please pay via UPI in the app to avoid late fees.',
                         channelId: 'default',
                         priority: 'high',
                     });
@@ -4342,7 +4580,15 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
         });
 
         if (messages.length === 0) {
-            alert('ℹ️ Found ' + dueSoon.length + ' student(s) with upcoming due dates, but none have registered mobile devices in the app yet.');
+            const cycleAlertBox = document.getElementById('cycleStatusAlert');
+            if (cycleAlertBox) {
+                cycleAlertBox.innerHTML = `
+                    <div class="alert alert-warning alert-dismissible fade show my-3" role="alert">
+                        <i class="fas fa-info-circle mr-2"></i> Found <strong>${dueSoon.length} students</strong> with upcoming dues, but none have registered mobile devices in the app yet.
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    </div>
+                `;
+            }
             return;
         }
 
@@ -4358,13 +4604,34 @@ window.sendFiveDayFeeReminders = async function(btnElement) {
             });
         }
 
-        alert('✅ Fee reminders dispatched!\n\n• Students with fee due in <= 5 days: ' + dueSoon.length + '\n• Notifications sent to ' + messages.length + ' device(s) (' + studentsWithDevices + ' student accounts).');
+        const cycleAlertBox = document.getElementById('cycleStatusAlert');
+        if (cycleAlertBox) {
+            cycleAlertBox.innerHTML = `
+                <div class="alert alert-success alert-dismissible fade show my-3 shadow-sm border-0" style="border-left: 5px solid #28a745 !important;" role="alert">
+                    <i class="fas fa-paper-plane mr-2 fa-lg text-success"></i>
+                    <strong>Fee Reminders Dispatched!</strong> Sent notifications to <strong>${messages.length} mobile device(s)</strong> (${studentsWithDevices} student accounts). ${dueSoon.length} students currently have fees due in &le; 5 days.
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+            `;
+            cycleAlertBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
     } catch (err) {
-        alert('Failed to send fee reminders: ' + (err.message || err));
+        console.error('[FeeReminder] Error:', err);
+        const cycleAlertBox = document.getElementById('cycleStatusAlert');
+        if (cycleAlertBox) {
+            cycleAlertBox.innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show my-3" role="alert">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Failed to send fee reminders: ${escapeHtml(err.message || String(err))}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                </div>
+            `;
+        }
     } finally {
         if (btnElement) {
             btnElement.disabled = false;
             btnElement.innerHTML = origBtnText;
         }
     }
-};
+}
+
