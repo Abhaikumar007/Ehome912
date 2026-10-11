@@ -202,9 +202,10 @@ function ProminentPayNowButton({ onPress }: { onPress: () => void }) {
   });
 
   return (
-    <View style={styles.payNowWrapper}>
+    <View style={styles.payNowWrapper} pointerEvents="box-none">
       {/* Outer Attention Pulse Glow */}
       <Animated.View
+        pointerEvents="none"
         style={[
           styles.payNowGlowRing,
           {
@@ -214,7 +215,7 @@ function ProminentPayNowButton({ onPress }: { onPress: () => void }) {
         ]}
       />
       {/* Main Action Button */}
-      <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+      <Animated.View style={{ transform: [{ scale: scaleAnim }] }} pointerEvents="box-none">
         <TouchableOpacity
           style={styles.payNowBtn}
           onPress={onPress}

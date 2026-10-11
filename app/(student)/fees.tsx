@@ -352,13 +352,7 @@ export default function FeesScreen() {
 
 
 
-  const handleResetForTesting = async () => {
-    try {
-      const reset = await DataService.resetFeePayment(rollNo);
-      setFees(reset);
-      Alert.alert('Reset', `Fee status has been reset back to ₹${targetFeeAmount.toLocaleString('en-IN')} Due for testing.`);
-    } catch {}
-  };
+
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -481,14 +475,7 @@ export default function FeesScreen() {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.resetTestBtn}
-                onPress={handleResetForTesting}
-                activeOpacity={0.8}
-              >
-                <Ionicons name="refresh" size={12} color={Colors.textMuted} />
-                <Text style={styles.resetTestText}>Reset to Due (For Testing Demo)</Text>
-              </TouchableOpacity>
+
             </View>
           </View>
         ) : fees.status === 'pending_verification' ? (
@@ -519,14 +506,7 @@ export default function FeesScreen() {
               Your transfer of ₹{targetFeeAmount.toLocaleString('en-IN')} to <Text style={{ fontFamily: 'Inter_700Bold' }}>{HARDCODED_UPI_ID}</Text> is currently queued in the Superadmin portal for confirmation.
             </Text>
 
-            <TouchableOpacity
-              style={styles.resetPendingBtn}
-              onPress={handleResetForTesting}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="refresh" size={12} color={Colors.textMuted} />
-              <Text style={styles.resetTestText}>Reset back to Due</Text>
-            </TouchableOpacity>
+
           </View>
         ) : (
           <View style={[styles.feeStatusCard, styles.dueCard]}>
@@ -1211,14 +1191,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     color: '#0284C7',
   },
-  resetPendingBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    marginTop: 10,
-    paddingVertical: 4,
-  },
+
 
   // Step-by-Step Payment Confirmation Guide Card Styles
   guideCard: {
@@ -1656,20 +1629,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     flex: 1,
   },
-  resetTestBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    marginTop: 10,
-    paddingVertical: 4,
-  },
-  resetTestText: {
-    fontSize: 10,
-    fontFamily: 'Inter_500Medium',
-    color: Colors.textMuted,
-    textDecorationLine: 'underline',
-  },
+
 
   // Pending Card Styles
   pendingCard: {
