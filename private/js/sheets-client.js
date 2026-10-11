@@ -461,6 +461,14 @@ window.sb_saveStudent = async function (student) {
 
             // B. Upsert into fees_records (preserve existing payments & dues!)
             const { data: existingFee } = await sb.from('fees_records').select('*').eq('roll_no', rollNo).maybeSingle();
+            let loyalty = (existingFee && Array.isArray(existingFee.loyalty_months)) ? [...existingFee.loyalty_months] : [];
+            const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+            if (feeTagIdx >= 0) {
+                loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+            } else {
+                loyalty.push({ __monthly_fee: monthlyFee });
+            }
+
             if (!existingFee) {
                 const { error: feeError } = await sb.from('fees_records').upsert({
                     roll_no: rollNo,
@@ -468,11 +476,34 @@ window.sb_saveStudent = async function (student) {
                     due_date: '25th of month',
                     days_left: 5,
                     months_paid_on_time: 0,
-                    loyalty_months: [],
+                    loyalty_months: loyalty,
                     recent_payments: []
                 }, { onConflict: 'roll_no' });
                 if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
+            } else {
+                // Update existing record: preserve existing payments and loyalty history, update current_due and monthly fee metadata
+                const isCleared = Number(existingFee.current_due) === 0 && Array.isArray(existingFee.recent_payments) && existingFee.recent_payments.length > 0;
+                const { error: feeError } = await sb.from('fees_records').update({
+                    current_due: isCleared ? 0 : monthlyFee,
+                    loyalty_months: loyalty,
+                    updated_at: new Date().toISOString()
+                }).eq('roll_no', rollNo);
+                if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
             }
+
+            // Realtime notification: broadcast fee_updated event to student app
+            try {
+                const feeChan = sb.channel('fee_realtime_broadcast');
+                feeChan.subscribe((subStatus) => {
+                    if (subStatus === 'SUBSCRIBED') {
+                        feeChan.send({
+                            type: 'broadcast',
+                            event: 'fee_updated',
+                            payload: { rollNo, monthlyFee, timestamp: new Date().toISOString() }
+                        });
+                    }
+                });
+            } catch (_) {}
 
             
 
@@ -913,6 +944,13 @@ window.sb_migrateFromLocalStorage = async function () {
             }
 
             // Fast Bulk Upsert all fee records
+            // Pre-fetch existing fees_records to strictly PRESERVE all recent_payments and loyalty history
+            const { data: existingFeesList } = await sb.from('fees_records').select('*');
+            const existingFeeMap = new Map();
+            if (Array.isArray(existingFeesList)) {
+                existingFeesList.forEach(f => existingFeeMap.set(String(f.roll_no).toUpperCase().trim(), f));
+            }
+
             const feeRecordsToUpsert = [];
             const now = new Date();
             students.forEach(s => {
@@ -926,16 +964,35 @@ window.sb_migrateFromLocalStorage = async function () {
                     feesRaw[roll + '_' + sub + '_October 2026'] === 'Paid'
                 );
                 const monthlyFee = Number(s.amount) || 4000;
+                const rollKey = String(roll).toUpperCase().trim();
+                const existingRec = existingFeeMap.get(rollKey);
 
-                feeRecordsToUpsert.push({
+                let loyalty = Array.isArray(existingRec?.loyalty_months) ? [...existingRec.loyalty_months] : [];
+                const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+                if (feeTagIdx >= 0) {
+                    loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+                } else {
+                    loyalty.push({ __monthly_fee: monthlyFee });
+                }
+
+                const recPayload = {
                     roll_no: roll,
-                    monthly_fee: monthlyFee,
                     current_due: isOctPaid ? 0 : monthlyFee,
-                    due_date: isOctPaid ? 'All Cleared' : '25 October 2026',
-                    days_left: isOctPaid ? 0 : 22,
-                    status: isOctPaid ? 'paid' : 'due',
+                    due_date: isOctPaid ? 'All Cleared' : (existingRec?.due_date || '25 October 2026'),
+                    days_left: isOctPaid ? 0 : (existingRec?.days_left ?? 22),
+                    loyalty_months: loyalty,
                     updated_at: now.toISOString()
-                });
+                };
+
+                // Strictly preserve existing recent_payments and months_paid_on_time
+                if (existingRec && Array.isArray(existingRec.recent_payments)) {
+                    recPayload.recent_payments = existingRec.recent_payments;
+                }
+                if (existingRec && typeof existingRec.months_paid_on_time === 'number') {
+                    recPayload.months_paid_on_time = existingRec.months_paid_on_time;
+                }
+
+                feeRecordsToUpsert.push(recPayload);
             });
 
             if (feeRecordsToUpsert.length > 0) {

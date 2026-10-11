@@ -671,6 +671,23 @@ async function saveAllMasterChanges() {
         renderMasterGrid(currentStudents);
         updateFeeSummary();
         if (typeof testCloudHealth === 'function') testCloudHealth();
+
+        // Broadcast realtime fee update to all student mobile portals
+        try {
+            const sbClient = typeof _getSafeAdminSupabase === 'function' ? _getSafeAdminSupabase() : (typeof _getUniversalSupabaseClient === 'function' ? _getUniversalSupabaseClient() : null);
+            if (sbClient) {
+                const feeChan = sbClient.channel('fee_realtime_broadcast');
+                feeChan.subscribe((subStatus) => {
+                    if (subStatus === 'SUBSCRIBED') {
+                        feeChan.send({
+                            type: 'broadcast',
+                            event: 'fee_updated',
+                            payload: { timestamp: new Date().toISOString() }
+                        });
+                    }
+                });
+            }
+        } catch (_) {}
     } catch (err) {
         console.error('[MasterHub] saveAllMasterChanges error:', err);
         showGridStatusAlert('❌ Sync error: ' + (err.message || err), 'danger');
@@ -2267,11 +2284,21 @@ async function _executeMonthlyFeeCycleGeneration() {
             const pmts = Array.isArray(fRec?.recent_payments) ? fRec.recent_payments : [];
             const isCyclePaid = pmts.some(p => p.fullMonth?.includes(cycleMonth) || (cycleMonth.includes('October') && p.month === 'OCT'));
 
+            let loyalty = Array.isArray(fRec?.loyalty_months) ? [...fRec.loyalty_months] : [];
+            const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+            if (feeTagIdx >= 0) {
+                loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+            } else {
+                loyalty.push({ __monthly_fee: monthlyFee });
+            }
+
             recordsToUpsert.push({
                 roll_no: String(rollNo).trim(),
                 current_due: isCyclePaid ? 0 : monthlyFee,
                 due_date: isCyclePaid ? 'All Cleared' : dueDateStr,
                 days_left: isCyclePaid ? 0 : daysLeft,
+                loyalty_months: loyalty,
+                recent_payments: pmts,
                 updated_at: new Date().toISOString()
             });
         });
