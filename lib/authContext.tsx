@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DataService, StudentProfile } from './dataService';
 
-import { registerForPushNotifications, checkAndTriggerFeeReminder } from './notificationService';
+import { registerForPushNotifications, checkAndTriggerFeeReminder, unregisterPushToken } from './notificationService';
 
 interface AuthContextType {
   student: StudentProfile | null;
@@ -81,6 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    if (student?.rollNo) {
+      unregisterPushToken(student.rollNo).catch(() => {});
+    }
     await DataService.clearCurrentStudent();
     setStudent(null);
   };

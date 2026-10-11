@@ -120,6 +120,33 @@ export async function registerForPushNotifications(rollNo: string, studentClass?
 }
 
 /**
+ * Unregister device push token from Supabase upon logout
+ */
+export async function unregisterPushToken(rollNo?: string): Promise<void> {
+  if (Platform.OS === 'web' || !Notifications) return;
+
+  try {
+    const projectId =
+      Constants?.expoConfig?.extra?.eas?.projectId ||
+      Constants?.easConfig?.projectId ||
+      'fae6a023-af4d-4944-bd4a-2106289d533a';
+
+    const tokenResult = await Notifications.getExpoPushTokenAsync({ projectId }).catch(() => null);
+    const token = tokenResult?.data;
+
+    if (token) {
+      await supabase.from('push_tokens').delete().eq('push_token', token);
+      console.log('[NotificationService] Removed push token from Supabase upon logout:', token);
+    } else if (rollNo) {
+      await supabase.from('push_tokens').delete().eq('roll_no', rollNo.toUpperCase().trim());
+      console.log('[NotificationService] Removed push tokens for roll number:', rollNo);
+    }
+  } catch (err) {
+    console.warn('[NotificationService] Unregister token note:', err);
+  }
+}
+
+/**
  * Automatically check student fee due status and trigger a local reminder
  * if due date is within 5 days (runs automatically when student opens / uses the app).
  */
