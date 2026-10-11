@@ -2284,12 +2284,17 @@ async function _executeMonthlyFeeCycleGeneration() {
             const pmts = Array.isArray(fRec?.recent_payments) ? fRec.recent_payments : [];
             const isCyclePaid = pmts.some(p => p.fullMonth?.includes(cycleMonth) || (cycleMonth.includes('October') && p.month === 'OCT'));
 
-            let loyalty = Array.isArray(fRec?.loyalty_months) ? [...fRec.loyalty_months] : [];
+            let loyalty = [];
+            if (Array.isArray(fRec?.loyalty_months)) {
+                loyalty = [...fRec.loyalty_months];
+            } else if (typeof fRec?.loyalty_months === 'number') {
+                loyalty = [{ earned_count: fRec.loyalty_months }];
+            }
             const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
             if (feeTagIdx >= 0) {
-                loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+                loyalty[feeTagIdx] = { ...loyalty[feeTagIdx], __monthly_fee: monthlyFee, fee_standard: monthlyFee };
             } else {
-                loyalty.push({ __monthly_fee: monthlyFee });
+                loyalty.unshift({ __monthly_fee: monthlyFee, fee_standard: monthlyFee });
             }
 
             recordsToUpsert.push({

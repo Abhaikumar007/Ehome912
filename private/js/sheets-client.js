@@ -259,7 +259,21 @@ window.sb_loadFromCloud = async function () {
                     const rollKey = String(st.rollNo || st.id).toUpperCase().trim();
                     const fr = feeMap.get(rollKey);
                     if (fr) {
-                        st.amount = fr.monthly_fee ? String(fr.monthly_fee) : (st.amount || '');
+                        let cloudFee = '';
+                        if (Array.isArray(fr.loyalty_months)) {
+                            const tag = fr.loyalty_months.find(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+                            if (tag) cloudFee = String(tag.__monthly_fee || tag.fee_standard);
+                        } else if (fr.loyalty_months && typeof fr.loyalty_months === 'object') {
+                            cloudFee = String(fr.loyalty_months.__monthly_fee || fr.loyalty_months.fee_standard || '');
+                        }
+                        if (!cloudFee && Number(fr.current_due) > 0) {
+                            cloudFee = String(fr.current_due);
+                        }
+                        if (cloudFee) {
+                            st.amount = cloudFee;
+                        } else {
+                            st.amount = st.amount || '';
+                        }
                         if (fr.subjects) {
                             st.subjects = fr.subjects.split(',').map(s => s.trim());
                         }
@@ -401,32 +415,19 @@ window.sb_saveStudent = async function (student) {
     let sheetsSuccess = false;
     let supabaseSuccess = false;
 
-    // 1. Google Sheets Sync
-    if (_sheetsReady()) {
-        try {
-            var result = await _sheetsPost({
-                action: 'saveStudent',
-                student: _toSheetStudent(student)
-            });
-            sheetsSuccess = !!result;
-            if (sheetsSuccess) console.log('[DualSync] Student saved to Google Sheets ✓');
-        } catch (e) {
-            console.warn('[DualSync] Sheets saveStudent error:', e);
-        }
-    }
+    const monthlyFee = Number(student.amount) || 0;
+    const rollNo = _getRollNo(student);
 
-    // 2. Supabase Sync
+    // 1. Supabase Live Sync (PRIMARY - instant execution)
     const sb = _getSupabaseClient();
     if (sb) {
         try {
-            const rollNo = _getRollNo(student);
             const rawClass = String(student.class || student.class_name || '10').trim();
             const className = rawClass.toLowerCase().startsWith('class') ? rawClass : 'Class ' + rawClass;
             const name = (student.name || 'Student').trim();
             const nameParts = name.split(' ');
             const avatar = (nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : name.slice(0, 2)).toUpperCase();
             const phone = _cleanPhone(student.phone);
-            const monthlyFee = Number(student.amount) || 0;
             const subjectsList = Array.isArray(student.subjects) ? student.subjects : (student.subjects ? [student.subjects] : []);
             const subjectsStr = subjectsList.join(', ');
             const joiningDate = student.joiningDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -436,7 +437,6 @@ window.sb_saveStudent = async function (student) {
                 roll_no: rollNo,
                 name: name,
                 class_name: className,
-                // Syllabus-aware batch formatting
                 batch: (() => {
                     const syl = student.syllabus || (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch)) ? 'CBSE' : 'State Syllabus');
                     let b = student.batch || '';
@@ -461,12 +461,20 @@ window.sb_saveStudent = async function (student) {
 
             // B. Upsert into fees_records (preserve existing payments & dues!)
             const { data: existingFee } = await sb.from('fees_records').select('*').eq('roll_no', rollNo).maybeSingle();
-            let loyalty = (existingFee && Array.isArray(existingFee.loyalty_months)) ? [...existingFee.loyalty_months] : [];
+            
+            // Extract or build loyalty array
+            let loyalty = [];
+            if (Array.isArray(existingFee?.loyalty_months)) {
+                loyalty = [...existingFee.loyalty_months];
+            } else if (typeof existingFee?.loyalty_months === 'number') {
+                loyalty = [{ earned_count: existingFee.loyalty_months }];
+            }
+
             const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
             if (feeTagIdx >= 0) {
-                loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+                loyalty[feeTagIdx] = { ...loyalty[feeTagIdx], __monthly_fee: monthlyFee, fee_standard: monthlyFee };
             } else {
-                loyalty.push({ __monthly_fee: monthlyFee });
+                loyalty.unshift({ __monthly_fee: monthlyFee, fee_standard: monthlyFee });
             }
 
             if (!existingFee) {
@@ -481,17 +489,24 @@ window.sb_saveStudent = async function (student) {
                 }, { onConflict: 'roll_no' });
                 if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
             } else {
-                // Update existing record: preserve existing payments and loyalty history, update current_due and monthly fee metadata
-                const isCleared = Number(existingFee.current_due) === 0 && Array.isArray(existingFee.recent_payments) && existingFee.recent_payments.length > 0;
+                const payments = Array.isArray(existingFee.recent_payments) ? existingFee.recent_payments : [];
+                const approvedPayments = payments.filter(p => p && p.status !== 'pending_verification');
+                const isOctoberPaid = approvedPayments.some(p => {
+                    const m = String(p.month || p.fullMonth || '').toUpperCase();
+                    return m.includes('OCT') || m.includes('OCTOBER');
+                });
+
+                const newCurrentDue = isOctoberPaid ? 0 : monthlyFee;
+
                 const { error: feeError } = await sb.from('fees_records').update({
-                    current_due: isCleared ? 0 : monthlyFee,
+                    current_due: newCurrentDue,
                     loyalty_months: loyalty,
                     updated_at: new Date().toISOString()
                 }).eq('roll_no', rollNo);
                 if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
             }
 
-            // Realtime notification: broadcast fee_updated event to student app
+            // Realtime notification: broadcast fee_updated event immediately to student app
             try {
                 const feeChan = sb.channel('fee_realtime_broadcast');
                 feeChan.subscribe((subStatus) => {
@@ -501,11 +516,10 @@ window.sb_saveStudent = async function (student) {
                             event: 'fee_updated',
                             payload: { rollNo, monthlyFee, timestamp: new Date().toISOString() }
                         });
+                        setTimeout(() => { try { sb.removeChannel(feeChan); } catch(_) {} }, 1500);
                     }
                 });
             } catch (_) {}
-
-            
 
             // C. Attendance record with enrolled subjects
             const { error: attError } = await sb.from('attendance_records').upsert({
@@ -516,7 +530,6 @@ window.sb_saveStudent = async function (student) {
                 today_subjects: subjectsList,
                 history: []
             }, { onConflict: 'roll_no' });
-
             if (attError) console.warn('[DualSync] Supabase attendance error:', attError.message);
 
             // D. Blank progress record
@@ -540,7 +553,20 @@ window.sb_saveStudent = async function (student) {
         }
     }
 
-    return sheetsSuccess || supabaseSuccess;
+    // 2. Google Sheets Cloud Sync (Asynchronous / non-blocking so Sheets latency doesn't hang UI)
+    if (_sheetsReady()) {
+        _sheetsPost({
+            action: 'saveStudent',
+            student: _toSheetStudent(student)
+        }).then(result => {
+            sheetsSuccess = !!result;
+            if (sheetsSuccess) console.log('[DualSync] Student saved to Google Sheets ✓');
+        }).catch(e => {
+            console.warn('[DualSync] Sheets saveStudent background error:', e);
+        });
+    }
+
+    return supabaseSuccess || sheetsSuccess;
 };
 
 window.sb_deleteStudent = async function (id) {
@@ -967,12 +993,17 @@ window.sb_migrateFromLocalStorage = async function () {
                 const rollKey = String(roll).toUpperCase().trim();
                 const existingRec = existingFeeMap.get(rollKey);
 
-                let loyalty = Array.isArray(existingRec?.loyalty_months) ? [...existingRec.loyalty_months] : [];
+                let loyalty = [];
+                if (Array.isArray(existingRec?.loyalty_months)) {
+                    loyalty = [...existingRec.loyalty_months];
+                } else if (typeof existingRec?.loyalty_months === 'number') {
+                    loyalty = [{ earned_count: existingRec.loyalty_months }];
+                }
                 const feeTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
                 if (feeTagIdx >= 0) {
-                    loyalty[feeTagIdx] = { __monthly_fee: monthlyFee };
+                    loyalty[feeTagIdx] = { ...loyalty[feeTagIdx], __monthly_fee: monthlyFee, fee_standard: monthlyFee };
                 } else {
-                    loyalty.push({ __monthly_fee: monthlyFee });
+                    loyalty.unshift({ __monthly_fee: monthlyFee, fee_standard: monthlyFee });
                 }
 
                 const recPayload = {

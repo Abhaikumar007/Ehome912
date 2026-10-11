@@ -1426,17 +1426,20 @@ window.restoreData = function (input) {
 // Helper: sync a student object to cloud if the client is available
 function _syncStudentToCloud(student) {
     if (typeof sb_saveStudent === 'function') {
+        _showSyncToast('⏳ Syncing to cloud...');
         sb_saveStudent(student).then(function (ok) {
             if (ok) {
-                _showSyncToast('✅ Synced to cloud');
+                _showSyncToast('✓ Synced to cloud');
             } else {
-                _showSyncToast('⚠️ Cloud sync failed — saved locally', true);
+                _showSyncToast('⚠️ Cloud sync failed - saved locally', true);
             }
+        }).catch(function(err) {
+            console.warn('[Sync] error:', err);
+            _showSyncToast('⚠️ Cloud sync error - saved locally', true);
         });
     }
 }
 
-// Helper: show a small non-blocking toast for sync status
 function _showSyncToast(msg, isError) {
     // Remove any existing toast
     var old = document.getElementById('_syncToast');
@@ -1489,8 +1492,11 @@ if (document.getElementById('addStudentForm')) {
                 const finalJoiningDate = joiningDate ? joiningDate : (existingDate || new Date().toISOString().slice(0, 10));
 
                 const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
+                const resolvedRoll = students[index].rollNo || students[index].roll_no || students[index].id || id;
                 students[index] = {
                     ...students[index],
+                    id: resolvedRoll,
+                    rollNo: resolvedRoll,
                     name,
                     class: studentClass,
                     syllabus: syllabusType,
@@ -1498,7 +1504,7 @@ if (document.getElementById('addStudentForm')) {
                     school,
                     phone,
                     joiningDate: finalJoiningDate,
-                    amount,
+                    amount: String(amount != null ? amount : ''),
                     subjects
                 };
                 studentToSync = students[index];
@@ -1508,8 +1514,12 @@ if (document.getElementById('addStudentForm')) {
             // ADD MODE: Default to today if left blank
             const finalJoiningDate = joiningDate || new Date().toISOString().slice(0, 10);
             const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
+            const generatedId = Date.now().toString();
+            const rawClassNum = String(studentClass).replace(/[^0-9]/g, '');
+            const generatedRoll = (rawClassNum ? 'EDU-C' + rawClassNum : 'EDU') + '-' + generatedId.slice(-3);
             const newStudent = {
-                id: Date.now().toString(),
+                id: generatedRoll,
+                rollNo: generatedRoll,
                 name,
                 class: studentClass,
                 syllabus: syllabusType,
@@ -1517,7 +1527,7 @@ if (document.getElementById('addStudentForm')) {
                 school,
                 phone,
                 joiningDate: finalJoiningDate,
-                amount,
+                amount: String(amount != null ? amount : ''),
                 subjects
             };
             students.push(newStudent);
@@ -2029,7 +2039,19 @@ window.loadSupabaseFeesData = async function() {
                     school: cs.school || loc?.school || 'EduHome Campus',
                     phone: cs.phone || loc?.phone || '',
                     joiningDate: cs.joining_date || loc?.joiningDate || '2026-01-15',
-                    amount: (feeRec && feeRec.monthly_fee) ? String(feeRec.monthly_fee) : (loc?.amount || '4000'),
+                    amount: (() => {
+                        let cf = '';
+                        if (feeRec) {
+                            if (Array.isArray(feeRec.loyalty_months)) {
+                                const tag = feeRec.loyalty_months.find(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+                                if (tag) cf = String(tag.__monthly_fee || tag.fee_standard);
+                            } else if (feeRec.loyalty_months && typeof feeRec.loyalty_months === 'object') {
+                                cf = String(feeRec.loyalty_months.__monthly_fee || feeRec.loyalty_months.fee_standard || '');
+                            }
+                            if (!cf && Number(feeRec.current_due) > 0) cf = String(feeRec.current_due);
+                        }
+                        return cf || loc?.amount || '4000';
+                    })(),
                     subjects: (loc && Array.isArray(loc.subjects) && loc.subjects.length > 0) ? loc.subjects : ['General']
                 };
             });
