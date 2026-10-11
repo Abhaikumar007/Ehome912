@@ -32,9 +32,14 @@ async function sendExpoPushNotification({ title, message, targetClass = 'All', t
 
         let query = sb.from('push_tokens').select('push_token, class, roll_no');
         if (targetClass && targetClass !== 'All') {
-            const cleanTarget = String(targetClass).replace(/[^0-9]/g, '');
-            if (cleanTarget) {
-                query = query.or('class.eq.' + cleanTarget + ',class.ilike.%' + targetClass + '%');
+            const targetLower = String(targetClass).toLowerCase();
+            if (targetLower === 'teachers' || targetLower === 'faculty' || targetLower === 'teacher') {
+                query = query.or('class.eq.teacher,class.ilike.%teacher%,class.ilike.%faculty%,roll_no.ilike.FAC-%');
+            } else {
+                const cleanTarget = String(targetClass).replace(/[^0-9]/g, '');
+                if (cleanTarget) {
+                    query = query.or('class.eq.' + cleanTarget + ',class.ilike.%' + targetClass + '%');
+                }
             }
         }
 
@@ -53,6 +58,10 @@ async function sendExpoPushNotification({ title, message, targetClass = 'All', t
         if (targetSyllabus && targetSyllabus !== 'Both' && targetSyllabus !== 'All') {
             const isTargetCbse = String(targetSyllabus).toLowerCase().includes('cbse');
             eligibleRows = rows.filter(r => {
+                // Faculty tokens are always preserved regardless of syllabus targeting
+                if (r.class === 'teacher' || (r.roll_no && r.roll_no.toUpperCase().startsWith('FAC-'))) {
+                    return true;
+                }
                 const studentIsCbse = _isStudentCbse(r.roll_no);
                 return isTargetCbse ? studentIsCbse : !studentIsCbse;
             });
@@ -670,10 +679,11 @@ async function handlePublishAnnouncement(e) {
 
     try {
         // Save to Supabase announcements table
-        const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
+        const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
         if (sb) {
+            const fullTitle = (target !== 'All' ? '[' + target + '] ' : '') + title;
             const { error: insErr } = await sb.from('announcements').insert({
-                title: (target !== 'All' ? '[' + target + '] ' : '') + title,
+                title: fullTitle,
                 description: msg,
                 icon: icon,
                 icon_bg: iconBg,
@@ -681,7 +691,38 @@ async function handlePublishAnnouncement(e) {
                 time_label: 'Just now',
                 important: category === 'urgent' || category === 'holiday'
             });
-            if (insErr) console.warn('[MasterHub] Announcement insert warning:', insErr);
+            if (insErr) {
+                console.warn('[MasterHub] Announcement insert warning:', insErr);
+                throw insErr;
+            }
+
+            // Realtime Broadcasts: Instantly push updates to connected Student & Faculty apps
+            try {
+                const broadcastPayload = {
+                    title: fullTitle,
+                    message: msg,
+                    target: target,
+                    category: category,
+                    created_at: new Date().toISOString()
+                };
+                await sb.channel('student_dashboard_realtime').send({
+                    type: 'broadcast',
+                    event: 'announcement_created',
+                    payload: broadcastPayload
+                });
+                await sb.channel('teacher_announcements_realtime').send({
+                    type: 'broadcast',
+                    event: 'announcement_created',
+                    payload: broadcastPayload
+                });
+                await sb.channel('teacher_classes_realtime').send({
+                    type: 'broadcast',
+                    event: 'announcement_created',
+                    payload: broadcastPayload
+                });
+            } catch (bErr) {
+                console.warn('[MasterHub] Realtime broadcast error:', bErr);
+            }
         }
 
         // Send live lock-screen push notifications to all phones
@@ -724,11 +765,12 @@ async function handlePublishTestAlert(e) {
     const syllabusArray = syllabus ? syllabus.split('\n').map(s => s.trim()).filter(Boolean) : ['Full Syllabus'];
 
     try {
-        const sb = typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null;
+        const sb = typeof _getMasterHubSupabase === 'function' ? _getMasterHubSupabase() : (typeof _getSupabaseClient === 'function' ? _getSupabaseClient() : null);
         if (sb) {
             // 1. Write to announcements table (guaranteed to exist and trigger live alert banners)
+            const alertTitle = `[Exam Alert - ${className}] ${title}`;
             await sb.from('announcements').insert({
-                title: `[Exam Alert - ${className}] ${title}`,
+                title: alertTitle,
                 description: `Subject: ${subject} | Exam Date: ${examDate} | Valid Until: ${expiryDate}${syllabus ? '\nSyllabus: ' + syllabusArray.join(', ') : ''}`,
                 icon: 'calendar',
                 icon_bg: '#EFF6FF',
@@ -736,6 +778,34 @@ async function handlePublishTestAlert(e) {
                 time_label: 'Exam: ' + examDate,
                 important: true
             });
+
+            // Realtime Broadcasts to student & faculty dashboards
+            try {
+                const broadcastPayload = {
+                    title: alertTitle,
+                    subject: subject,
+                    className: className,
+                    examDate: examDate,
+                    created_at: new Date().toISOString()
+                };
+                await sb.channel('student_dashboard_realtime').send({
+                    type: 'broadcast',
+                    event: 'announcement_created',
+                    payload: broadcastPayload
+                });
+                await sb.channel('teacher_announcements_realtime').send({
+                    type: 'broadcast',
+                    event: 'announcement_created',
+                    payload: broadcastPayload
+                });
+                await sb.channel('teacher_classes_realtime').send({
+                    type: 'broadcast',
+                    event: 'classes_changed',
+                    payload: broadcastPayload
+                });
+            } catch (bErr) {
+                console.warn('[MasterHub] Realtime exam alert broadcast error:', bErr);
+            }
 
             // 2. Also post as a notification
             try {
