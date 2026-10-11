@@ -4445,8 +4445,10 @@ window.approveStudentFee = async function(rollNo, studentName, amount, utr, btnE
             }
             let k = startK;
             const curKey = now.getFullYear() * 12 + now.getMonth();
+            const maxK = now.getFullYear() * 12 + 11; // Cap at December of current academic year
             while (k <= curKey && paidKeys.has(k)) k++;
-            while (paidKeys.has(k)) k++;
+            while (paidKeys.has(k) && k < maxK) k++;
+            if (k > maxK) k = maxK;
             curMonth = mNames[k % 12];
             monthLong = mLong[k % 12];
             fullMonth = monthLong + ' ' + Math.floor(k / 12);
