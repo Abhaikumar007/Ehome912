@@ -22,6 +22,7 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.eduhome.app",
+      "versionCode": 2,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
@@ -62,7 +63,9 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/fae6a023-af4d-4944-bd4a-2106289d533a"
+      "url": "https://u.expo.dev/fae6a023-af4d-4944-bd4a-2106289d533a",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 5000
     }
   }
 }
