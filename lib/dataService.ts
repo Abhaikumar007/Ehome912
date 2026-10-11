@@ -541,6 +541,9 @@ export function getFeeTargetMonth(
   now: Date = new Date()
 ): { target: FeeMonthInfo; isAdvance: boolean; unpaidCount: number } {
   const curKey = now.getFullYear() * 12 + now.getMonth();
+  const dueDay = Number((joiningIso || '').slice(8)) || 25;
+  const currentMonthDueYet = now.getDate() >= dueDay;
+
   const paid = new Set<number>();
   (payments || [])
     .filter((p) => p && p.status !== 'pending_verification')
@@ -561,8 +564,23 @@ export function getFeeTargetMonth(
   let unpaidCount = 0;
   for (let k = startKey; k <= curKey; k++) {
     if (!paid.has(k)) {
-      unpaidCount++;
-      if (firstUnpaid === null) firstUnpaid = k;
+      if (k < curKey) {
+        // Past month: definitively overdue
+        unpaidCount++;
+        if (firstUnpaid === null) firstUnpaid = k;
+      } else {
+        // Current month (k === curKey)
+        if (currentMonthDueYet) {
+          unpaidCount++;
+          if (firstUnpaid === null) firstUnpaid = k;
+        } else {
+          // Current month is NOT yet due
+          if (firstUnpaid === null) {
+            // All prior months were paid! So next bill to pay is this upcoming month
+            firstUnpaid = k;
+          }
+        }
+      }
     }
   }
   const isAdvance = firstUnpaid === null;
@@ -1288,10 +1306,10 @@ export const DataService = {
     };
   },
 
-  // Fetch Fees with Cache & 2.5s Timeout
-  async getFees(rollNo: string) {
+  // Fetch Fees with Cache & 2.5s Timeout (supports forceFresh to bypass cache)
+  async getFees(rollNo: string, forceFresh = false) {
     const cacheKey = `fees_${rollNo}`;
-    const cached = await getCached<any>(cacheKey);
+    const cached = forceFresh ? null : await getCached<any>(cacheKey);
 
     const studentFeeInfo = (EDUSYNC_FEES as any)[rollNo] || {
       monthlyFee: 4000,
@@ -1343,6 +1361,28 @@ export const DataService = {
           }
         });
 
+        // Resolve dynamic monthly fee from Supabase database (Admin updates reflect here!)
+        let resolvedMonthlyFee = studentFeeInfo.monthlyFee;
+        if (Array.isArray(data.loyalty_months)) {
+          const tag = data.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+          if (tag && Number(tag.__monthly_fee || tag.fee_standard) > 0) {
+            resolvedMonthlyFee = Number(tag.__monthly_fee || tag.fee_standard);
+          }
+        }
+        if ((!resolvedMonthlyFee || resolvedMonthlyFee === 4000) && Array.isArray(data.recent_payments) && data.recent_payments.length > 0) {
+          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0);
+          if (p && Number(p.amount) > 0) {
+            resolvedMonthlyFee = Number(p.amount);
+          }
+        }
+        if ((!resolvedMonthlyFee || resolvedMonthlyFee === 4000) && Number(data.current_due) > 0) {
+          if (unpaidCount > 1 && Number(data.current_due) % unpaidCount === 0) {
+            resolvedMonthlyFee = Number(data.current_due) / unpaidCount;
+          } else if (unpaidCount <= 1) {
+            resolvedMonthlyFee = Number(data.current_due);
+          }
+        }
+
         // Due date of the month being paid = joining day of that month
         const dueDay = Number((studentFeeInfo.joiningDateIso || '').slice(8)) || 25;
         const targetDueObj = new Date(target.year, target.monthIndex, dueDay);
@@ -1350,10 +1390,10 @@ export const DataService = {
         const todayMid = new Date(feeNow.getFullYear(), feeNow.getMonth(), feeNow.getDate());
         const targetDaysLeft = Math.round((targetDueObj.getTime() - todayMid.getTime()) / 86400000);
 
-        const computedDue = isPaid ? 0 : (unpaidCount > 0 ? unpaidCount * studentFeeInfo.monthlyFee : studentFeeInfo.monthlyFee);
+        const computedDue = isPaid ? 0 : (unpaidCount > 0 ? unpaidCount * resolvedMonthlyFee : resolvedMonthlyFee);
 
         const mapped = {
-          monthlyFee: studentFeeInfo.monthlyFee,
+          monthlyFee: resolvedMonthlyFee,
           currentDue: computedDue,
           actualDue: computedDue,
           dueDate: isPaid ? 'All Cleared' : targetDueStr,

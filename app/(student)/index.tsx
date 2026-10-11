@@ -352,16 +352,23 @@ export default function DashboardScreen() {
           refreshAuth();
         }
       })
+      .on('broadcast', { event: 'fee_updated' }, (event) => {
+        if (!event?.payload || event.payload.rollNo === rollNo) {
+          DataService.getFees(rollNo, true).then((f) => {
+            if (f) setFeesSummary(f);
+          });
+        }
+      })
       .on('broadcast', { event: 'fee_approved' }, (event) => {
         if (!event?.payload || event.payload.rollNo === rollNo) {
-          DataService.getFees(rollNo).then((f) => {
+          DataService.getFees(rollNo, true).then((f) => {
             if (f) setFeesSummary(f);
           });
         }
       })
       .on('broadcast', { event: 'fee_rejected' }, (event) => {
         if (!event?.payload || event.payload.rollNo === rollNo) {
-          DataService.getFees(rollNo).then((f) => {
+          DataService.getFees(rollNo, true).then((f) => {
             if (f) setFeesSummary(f);
           });
         }

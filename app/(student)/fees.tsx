@@ -84,13 +84,13 @@ export default function FeesScreen() {
   const [copiedToast, setCopiedToast] = useState(false);
 
   const rollNo = student?.rollNo || '';
-  const targetFeeAmount = Number(fees.actualDue || fees.monthlyFee || fees.currentDue || 4000);
+  const targetFeeAmount = Number(fees.monthlyFee || fees.actualDue || fees.currentDue || 4000);
 
-  const loadData = async () => {
+  const loadData = async (forceFresh = false) => {
     if (!rollNo) return;
     try {
       const [res, hist] = await Promise.all([
-        DataService.getFees(rollNo),
+        DataService.getFees(rollNo, forceFresh),
         DataService.getFullPaymentHistory(rollNo),
       ]);
       if (res) setFees(res);
@@ -103,25 +103,34 @@ export default function FeesScreen() {
   useEffect(() => {
     loadData();
 
-    // 1. Supabase Realtime Channel: Listen for instant admin approvals/rejections
+    // 1. Supabase Realtime Channel: Listen for instant admin fee updates, approvals, rejections, cycles
     const channel = supabase
       .channel('fee_realtime_broadcast')
+      .on('broadcast', { event: 'fee_updated' }, (event) => {
+        const payload = event?.payload;
+        if (!payload || payload.rollNo === rollNo) {
+          loadData(true);
+        }
+      })
+      .on('broadcast', { event: 'cycle_generated' }, () => {
+        loadData(true);
+      })
       .on('broadcast', { event: 'fee_approved' }, (event) => {
         const payload = event?.payload;
         // Reload if payload targets this student or no rollNo filter in payload
         if (!payload || payload.rollNo !== rollNo) {
-          loadData();
+          loadData(true);
         }
       })
       .on('broadcast', { event: 'fee_rejected' }, (event) => {
         const payload = event?.payload;
         if (!payload || payload.rollNo !== rollNo) {
-          loadData();
+          loadData(true);
         }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records', filter: `roll_no=eq.${rollNo}` }, () => {
-        // Postgres row-level change → always reload (already filtered to this student's row)
-        loadData();
+        // Postgres row-level change → always reload fresh
+        loadData(true);
       })
       .subscribe();
 
@@ -135,7 +144,7 @@ export default function FeesScreen() {
     if (fees?.status !== 'pending_verification') return;
 
     const interval = setInterval(() => {
-      loadData();
+      loadData(true);
     }, 2500);
 
     return () => clearInterval(interval);
@@ -144,7 +153,7 @@ export default function FeesScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadData();
+      await loadData(true);
     } catch {}
     setRefreshing(false);
   };
@@ -519,9 +528,16 @@ export default function FeesScreen() {
                   Due on {fees.dueDate} {fees.joiningDate ? `• Joined: ${fees.joiningDate}` : ''}
                 </Text>
                 {fees.overdueMonths > 1 ? (
-                  <Text style={[styles.dueDateText, { color: Colors.red, marginTop: 2 }]}>
-                    {fees.overdueMonths} months pending • pay the oldest month first
-                  </Text>
+                  <View style={{ marginTop: 2 }}>
+                    <Text style={[styles.dueDateText, { color: Colors.red }]}>
+                      {fees.overdueMonths} months pending • pay the oldest month first
+                    </Text>
+                    {fees.actualDue > targetFeeAmount ? (
+                      <Text style={[styles.dueDateText, { color: '#64748B', fontSize: 11, marginTop: 1 }]}>
+                        Total Balance: ₹ {fees.actualDue ? fees.actualDue.toLocaleString('en-IN') : '0'}.00
+                      </Text>
+                    ) : null}
+                  </View>
                 ) : null}
               </View>
               <View style={[styles.daysLeftBadge, fees.daysLeft <= 0 && { backgroundColor: '#FEF2F2' }]}>
