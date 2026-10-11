@@ -567,8 +567,10 @@ export function getFeeTargetMonth(
   }
   const isAdvance = firstUnpaid === null;
   let targetKey = firstUnpaid ?? curKey + 1;
+  const maxYearKey = now.getFullYear() * 12 + 11; // Never advance past December of the current year
   if (isAdvance) {
-    while (paid.has(targetKey)) targetKey++;
+    while (paid.has(targetKey) && targetKey < maxYearKey) targetKey++;
+    if (targetKey > maxYearKey) targetKey = maxYearKey;
   }
   return {
     target: makeFeeMonth(targetKey % 12, Math.floor(targetKey / 12)),
@@ -1365,6 +1367,14 @@ export const DataService = {
           recentPayments: (() => {
             const seen = new Set<number>();
             return [...approvedPayments]
+              .filter((p: any) => {
+                if (p?.fullMonth) {
+                  const parts = String(p.fullMonth).split(' ');
+                  const yr = Number(parts[1]);
+                  if (!isNaN(yr) && yr > feeNow.getFullYear()) return false;
+                }
+                return true;
+              })
               .map((p: any, i: number) => ({ p, i, k: feePaymentKey(p, feeNow.getFullYear()) ?? -1 }))
               .sort((a, b) => (b.k - a.k) || (a.i - b.i))
               .filter(({ k }) => {
