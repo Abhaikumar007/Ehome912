@@ -730,13 +730,13 @@
                 </div>
 
                 <!-- Footer Summary Bar -->
-                <div class="p-3 border-top d-flex justify-content-between align-items-center" style="background:#f8fafc; font-size:0.85rem;">
-                    <div class="text-muted">
+                <div class="p-3 border-top d-flex flex-wrap justify-content-between align-items-center" style="background:#f8fafc; font-size:0.85rem; gap:10px;">
+                    <div class="text-muted mb-1 mb-sm-0">
                         Showing <strong>${filtered.length}</strong> of <strong>${_liveClasses.length}</strong> total class sessions in cloud database.
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-link text-danger font-weight-bold" onclick="window.clearPastClasses('${containerId}')">
-                            <i class="fas fa-broom mr-1"></i> Purge Past Completed Classes
+                        <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold shadow-sm" id="purgePastClassesBtn" onclick="window.clearPastClasses('${containerId}', this)" style="border-radius:8px; padding:6px 14px; touch-action:manipulation; cursor:pointer;">
+                            <i class="fas fa-broom mr-1"></i> Purge Past / Completed Classes
                         </button>
                     </div>
                 </div>
@@ -1555,35 +1555,87 @@
         }
     };
 
-    // ── Clear Past Completed Classes ────────────────────────────────────
-    window.clearPastClasses = async function (containerId) {
-        const yesterday = new Date();
-        yesterday.setDate(yesterday.getDate() - 1);
-        const cutoffStr = yesterday.toISOString().slice(0, 10);
+    // ── Clear Past / Completed Classes ──────────────────────────────────
+    window.clearPastClasses = async function (containerId, btn) {
+        const todayStr = _getLocalDateStr(0);
 
-        const pastCount = _liveClasses.filter(c => c.class_date && c.class_date <= cutoffStr).length;
-        if (pastCount === 0) {
-            alert('No past classes to clean up.');
+        // Target both classes scheduled before today AND classes marked completed
+        const toPurge = _liveClasses.filter(c => {
+            if (!c) return false;
+            const isPast = Boolean(c.class_date && c.class_date < todayStr);
+            const normStatus = (c.status || '').toLowerCase();
+            const isCompleted = normStatus.split(':').includes('completed') || normStatus.includes('completed');
+            return isPast || isCompleted;
+        });
+
+        if (toPurge.length === 0) {
+            _showToast('No past or completed classes found to clean up.', true);
+            alert('No past or completed classes found to clean up.');
             return;
         }
 
-        if (!confirm(`Are you sure you want to delete ${pastCount} past class session(s) scheduled before today? This cannot be undone.`)) {
+        // 2-Step inline mobile-friendly confirmation (works seamlessly on mobile touch & desktop)
+        if (btn && btn.getAttribute('data-confirming') !== 'true') {
+            btn.setAttribute('data-confirming', 'true');
+            const origHtml = btn.innerHTML;
+            const origClass = btn.className;
+            btn.className = 'btn btn-sm btn-danger font-weight-bold shadow-sm';
+            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> Tap to confirm purge (${toPurge.length})`;
+
+            const timeoutId = setTimeout(() => {
+                if (document.body.contains(btn)) {
+                    btn.removeAttribute('data-confirming');
+                    btn.className = origClass;
+                    btn.innerHTML = origHtml;
+                    delete btn._confirmTimeout;
+                }
+            }, 4000);
+            btn._confirmTimeout = timeoutId;
             return;
+        }
+
+        if (btn && btn._confirmTimeout) {
+            clearTimeout(btn._confirmTimeout);
+            delete btn._confirmTimeout;
+            btn.removeAttribute('data-confirming');
+        } else if (!btn) {
+            if (!confirm(`Are you sure you want to delete ${toPurge.length} past or completed class session(s)? This cannot be undone.`)) {
+                return;
+            }
         }
 
         const sb = _getSb();
-        if (!sb) return;
+        if (!sb) {
+            alert('Supabase database client not available.');
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Purging...';
+        }
 
         try {
-            const { error } = await sb.from('classes').delete().lte('class_date', cutoffStr);
+            const purgeIds = toPurge.map(c => c.id).filter(Boolean);
+            if (purgeIds.length === 0) return;
+
+            // Delete exactly targeted class IDs from Supabase
+            const { error } = await sb.from('classes').delete().in('id', purgeIds);
             if (error) throw error;
 
-            _liveClasses = _liveClasses.filter(c => !c.class_date || c.class_date > cutoffStr);
-            _showToast(`Successfully purged ${pastCount} past class session(s).`);
+            const purgeIdSet = new Set(purgeIds);
+            _liveClasses = _liveClasses.filter(c => !purgeIdSet.has(c.id));
+            _showToast(`Successfully purged ${purgeIds.length} past / completed class session(s).`);
             renderPlatform(containerId);
             updateBadgeCounters();
         } catch (err) {
-            alert('Failed to purge past classes: ' + (err.message || err));
+            console.error('[LiveTimetable] Purge error:', err);
+            alert('Failed to purge classes: ' + (err.message || err));
+            if (btn) {
+                btn.disabled = false;
+                btn.className = 'btn btn-sm btn-outline-danger font-weight-bold shadow-sm';
+                btn.innerHTML = '<i class="fas fa-broom mr-1"></i> Purge Past / Completed Classes';
+            }
         }
     };
 
