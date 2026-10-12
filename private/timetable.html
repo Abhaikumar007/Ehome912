@@ -160,10 +160,13 @@
 
                 <div id="shareSection" style="display:none; text-align: center; margin-top: 20px;">
                     <button class="btn btn-primary btn-lg" id="shareWhatsappBtn">
-                        <i class="fab fa-whatsapp"></i> Download Schedule
+                        <i class="fas fa-download mr-1"></i> Download Schedule
                     </button>
                     <button class="btn btn-success btn-lg ml-2" id="shareAppBtn" onclick="shareTimetableToApp()">
                         <i class="fas fa-paper-plane mr-1"></i> 🚀 Share Timetable to Mobile App
+                    </button>
+                    <button class="btn btn-outline-danger btn-lg ml-2" id="clearTimetableBtn" onclick="clearTimetableSchedule()" title="Clear table entries">
+                        <i class="fas fa-trash-alt mr-1"></i> Clear Table
                     </button>
                 </div>
             </div>
@@ -182,7 +185,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js?v=20261011_live_1791737932169"></script>
-    <script src="js/admin.js?v=20261011_live_1791737932169"></script>
+    <script src="js/admin.js?v=20261012_noredirect_1791820119880"></script>
     <script src="js/live_timetable.js?v=1791561607033"></script>
 
     <script>

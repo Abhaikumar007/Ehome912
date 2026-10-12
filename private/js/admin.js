@@ -2442,6 +2442,49 @@ if (document.getElementById('timetableTableBody')) {
     const tableBody = document.getElementById('timetableTableBody');
     const shareBtn = document.getElementById('shareWhatsappBtn');
 
+    // --- DRAFT STORAGE FOR TIMETABLE (PREVENT DATA LOSS ON RELOAD / REDIRECT) ---
+    const DRAFT_TIMETABLE_KEY = 'eduhome_draft_timetable_entries';
+
+    function saveTimetableDraft() {
+        try {
+            localStorage.setItem(DRAFT_TIMETABLE_KEY, JSON.stringify(timetableEntries));
+        } catch (e) {
+            console.warn('[Timetable] Error saving draft to localStorage:', e);
+        }
+    }
+
+    function loadTimetableDraft() {
+        try {
+            const saved = localStorage.getItem(DRAFT_TIMETABLE_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    timetableEntries.length = 0;
+                    parsed.forEach(item => timetableEntries.push(item));
+                    if (typeof renderTimetable === 'function') {
+                        renderTimetable();
+                    }
+                }
+            }
+        } catch (e) {
+            console.warn('[Timetable] Error loading draft from localStorage:', e);
+        }
+    }
+
+    window.clearTimetableSchedule = function () {
+        if (!timetableEntries || timetableEntries.length === 0) {
+            alert('Timetable schedule table is already empty.');
+            return;
+        }
+        if (confirm('Are you sure you want to clear the timetable table?')) {
+            timetableEntries.length = 0;
+            try {
+                localStorage.removeItem(DRAFT_TIMETABLE_KEY);
+            } catch (e) {}
+            renderTimetable();
+        }
+    };
+
     // ── Board dropdown auto-hide for class 11/12 ──────────────────────
     const classSelect = document.getElementById('timetableClass');
     const boardGroup = document.getElementById('boardGroup');
@@ -2770,6 +2813,7 @@ if (document.getElementById('timetableTableBody')) {
             timetableEntries.push(entry);
         }
         renderTimetable();
+        saveTimetableDraft();
 
         // Instantly sync slot to Supabase classes table so it reflects in student & teacher apps in real-time
         (async () => {
@@ -3020,86 +3064,127 @@ if (document.getElementById('timetableTableBody')) {
         document.getElementById('shareSection').style.display = 'block';
     }
 
+    // Auto-restore draft timetable entries from localStorage if available
+    loadTimetableDraft();
+
     window.removeTimetableEntry = function (index) {
         timetableEntries.splice(index, 1);
         renderTimetable();
+        saveTimetableDraft();
     };
 
     // ── WhatsApp Share ────────────────────────────────────────────────
-    shareBtn.addEventListener('click', function () {
+    shareBtn.addEventListener('click', async function () {
         if (timetableEntries.length === 0) {
             alert("No entries to share.");
             return;
         }
 
-        let message = `*Class Schedule*\n\n`;
+        const originalBtnHtml = shareBtn.innerHTML;
+        shareBtn.disabled = true;
+        shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Downloading Schedule...';
 
-        // Group by Date, then by Class
-        const grouped = {};
-        timetableEntries.forEach(entry => {
-            const dateDisplay = formatDateFriendly(entry.date);
-            if (!grouped[dateDisplay]) {
-                grouped[dateDisplay] = {};
+        try {
+            // 1. Download timetable schedule image via html2canvas (without navigating away)
+            const timetableContainer = document.getElementById('timetable-container');
+            if (timetableContainer && typeof html2canvas === 'function') {
+                try {
+                    const canvas = await html2canvas(timetableContainer, {
+                        scale: 2,
+                        useCORS: true,
+                        backgroundColor: '#ffffff',
+                        ignoreElements: function (element) {
+                            return element.classList && element.classList.contains('no-capture');
+                        }
+                    });
+                    const link = document.createElement('a');
+                    const todayStr = new Date().toISOString().slice(0, 10);
+                    link.download = `EduHome_Timetable_Schedule_${todayStr}.png`;
+                    link.href = canvas.toDataURL('image/png');
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } catch (canvasErr) {
+                    console.warn('[Timetable] Error capturing image with html2canvas:', canvasErr);
+                }
             }
-            if (!grouped[dateDisplay][entry.class]) {
-                grouped[dateDisplay][entry.class] = [];
-            }
-            grouped[dateDisplay][entry.class].push(entry);
-        });
 
-        const dates = Object.keys(grouped);
-        dates.forEach((dateDisplay, dateIndex) => {
-            message += `*${dateDisplay}*\n\n`;
+            // 2. Format WhatsApp schedule message (keep exact format)
+            let message = `*Class Schedule*\n\n`;
 
-            // Sort classes descending (12, 11, etc.)
-            const classes = Object.keys(grouped[dateDisplay]).sort((a, b) => {
-                return (parseInt(b) || 0) - (parseInt(a) || 0);
+            // Group by Date, then by Class
+            const grouped = {};
+            timetableEntries.forEach(entry => {
+                const dateDisplay = formatDateFriendly(entry.date);
+                if (!grouped[dateDisplay]) {
+                    grouped[dateDisplay] = {};
+                }
+                if (!grouped[dateDisplay][entry.class]) {
+                    grouped[dateDisplay][entry.class] = [];
+                }
+                grouped[dateDisplay][entry.class].push(entry);
             });
 
-            classes.forEach((cls, classIndex) => {
-                message += `🏫 *Class ${cls}*\n`;
+            const dates = Object.keys(grouped);
+            dates.forEach((dateDisplay, dateIndex) => {
+                message += `*${dateDisplay}*\n\n`;
 
-                // Sort entries for this class by time
-                const entries = grouped[dateDisplay][cls].sort((a, b) => {
-                    const timeA = a.startTime || '00:00';
-                    const timeB = b.startTime || '00:00';
-                    return timeA.localeCompare(timeB);
+                // Sort classes descending (12, 11, etc.)
+                const classes = Object.keys(grouped[dateDisplay]).sort((a, b) => {
+                    return (parseInt(b) || 0) - (parseInt(a) || 0);
                 });
 
-                entries.forEach(entry => {
-                    let timeStr = '';
-                    if (entry.startTime && entry.endTime) {
-                        timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
-                    } else if (entry.startTime) {
-                        timeStr = formatTime12Hour(entry.startTime);
-                    } else {
-                        timeStr = '-';
+                classes.forEach((cls, classIndex) => {
+                    message += `🏫 *Class ${cls}*\n`;
+
+                    // Sort entries for this class by time
+                    const entries = grouped[dateDisplay][cls].sort((a, b) => {
+                        const timeA = a.startTime || '00:00';
+                        const timeB = b.startTime || '00:00';
+                        return timeA.localeCompare(timeB);
+                    });
+
+                    entries.forEach(entry => {
+                        let timeStr = '';
+                        if (entry.startTime && entry.endTime) {
+                            timeStr = `${formatTime12Hour(entry.startTime)} - ${formatTime12Hour(entry.endTime)}`;
+                        } else if (entry.startTime) {
+                            timeStr = formatTime12Hour(entry.startTime);
+                        } else {
+                            timeStr = '-';
+                        }
+
+                        let locStr = entry.location === 'At Home' ? '🏠 At Home' : '🏢 In Center';
+                        let boardStr = getBoardEmoji(entry.board || 'Both');
+                        let sessionStr = getSessionEmoji(entry.sessionType || 'Regular');
+
+                        message += `🕒 ${timeStr}\n`;
+                        message += `${getSubjectWithEmoji(entry.subject)}\n`;
+                        message += `📋 Board: ${boardStr}\n`;
+                        message += `📌 Type: ${sessionStr}\n`;
+                        message += `📍 ${locStr}\n\n`;
+                    });
+
+                    if (classIndex < classes.length - 1) {
+                        message += `-------------------\n`;
                     }
-
-                    let locStr = entry.location === 'At Home' ? '🏠 At Home' : '🏢 In Center';
-                    let boardStr = getBoardEmoji(entry.board || 'Both');
-                    let sessionStr = getSessionEmoji(entry.sessionType || 'Regular');
-
-                    message += `🕒 ${timeStr}\n`;
-                    message += `${getSubjectWithEmoji(entry.subject)}\n`;
-                    message += `📋 Board: ${boardStr}\n`;
-                    message += `📌 Type: ${sessionStr}\n`;
-                    message += `📍 ${locStr}\n\n`;
                 });
 
-                if (classIndex < classes.length - 1) {
-                    message += `-------------------\n`;
+                if (dateIndex < dates.length - 1) {
+                    message += `\n\n`;
                 }
             });
 
-            if (dateIndex < dates.length - 1) {
-                message += `\n\n`;
-            }
-        });
-
-        // Open WhatsApp with text to specific number using wa.me
-        const whatsappUrl = `https://wa.me/918547457536?text=${encodeURIComponent(message)}`;
-        window.location.href = whatsappUrl;
+            // Open WhatsApp in a NEW tab so the user stays on the current timetable page
+            const whatsappUrl = `https://wa.me/918547457536?text=${encodeURIComponent(message)}`;
+            window.open(whatsappUrl, '_blank');
+        } catch (err) {
+            console.error('Error sharing timetable schedule:', err);
+            alert('Error generating timetable: ' + (err.message || err));
+        } finally {
+            shareBtn.disabled = false;
+            shareBtn.innerHTML = originalBtnHtml;
+        }
     });
 
 
@@ -3305,10 +3390,10 @@ if (document.getElementById('timetableTableBody')) {
             }
 
             const ttPushSummary = ttPushCount > 0 ? ('\n\n📱 Lock-screen push sent to ' + ttPushCount + ' student phone' + (ttPushCount > 1 ? 's' : '') + '.') : '';
-            alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.');
-            if (typeof switchTimetableMode === 'function') {
-                switchTimetableMode('live');
-            } else if (typeof window.initLiveAppTimetable === 'function') {
+            alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.\n\nYou are still on this page so you can now download or save your schedule.');
+
+            // Update live mobile app cache & count badge silently in background WITHOUT redirecting or switching away
+            if (typeof window.initLiveAppTimetable === 'function') {
                 window.initLiveAppTimetable('liveTimetablePlatform');
             }
         } catch (e) {
@@ -3317,7 +3402,8 @@ if (document.getElementById('timetableTableBody')) {
         } finally {
             if (shareBtn) {
                 shareBtn.disabled = false;
-                shareBtn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Share Timetable to Mobile App';
+                shareBtn.className = 'btn btn-success btn-lg ml-2';
+                shareBtn.innerHTML = '<i class="fas fa-check-circle mr-1"></i> Shared to Mobile App ✓';
             }
         }
     };
