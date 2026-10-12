@@ -451,7 +451,7 @@ export default function FeesScreen() {
                 </View>
                 <View>
                   <Text style={styles.paidMetaLabel}>Paid (UPI)</Text>
-                  <Text style={styles.paidMetaVal}>₹ {targetFeeAmount.toLocaleString('en-IN')}.00 ✓</Text>
+                  <Text style={styles.paidMetaVal}>₹ {(fees.lastPaidAmount || fees.monthlyFee || targetFeeAmount).toLocaleString('en-IN')}.00 ✓</Text>
                 </View>
                 <View>
                   <Text style={styles.paidMetaLabel}>Status</Text>
@@ -466,26 +466,6 @@ export default function FeesScreen() {
                   <Text style={[styles.subjectsBadgeValue, { color: '#065F46' }]} numberOfLines={1}>{fees.subjects}</Text>
                 </View>
               ) : null}
-
-              <View style={styles.nextCycleBox}>
-                <Ionicons name="information-circle-outline" size={14} color={Colors.primary} />
-                <Text style={styles.nextCycleText}>
-                  All dues up to now are cleared. You can also pay {fees.nextMonthLabel || 'next month'}'s fee in advance.
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.actionPillBtn, styles.actionPillSubmit, { marginTop: 10, alignSelf: 'stretch', justifyContent: 'center' }]}
-                onPress={() => setVerificationModalVisible(true)}
-                activeOpacity={0.75}
-              >
-                <Ionicons name="receipt-outline" size={13} color="#0369A1" />
-                <Text style={[styles.actionPillText, { color: '#0369A1' }]} numberOfLines={1}>
-                  Pay {fees.nextMonthLabel || 'Next Month'} in Advance →
-                </Text>
-              </TouchableOpacity>
-
-
             </View>
           </View>
         ) : fees.status === 'pending_verification' ? (

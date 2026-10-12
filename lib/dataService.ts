@@ -1353,11 +1353,15 @@ export const DataService = {
         // Most recent month that has been paid (by calendar order, not array order)
         let clearedMonthName = 'October';
         let bestKey = -1;
+        let clearedPaymentAmount: number | null = null;
         approvedPayments.forEach((p: any) => {
           const k = feePaymentKey(p, feeNow.getFullYear());
           if (k !== null && k > bestKey) {
             bestKey = k;
             clearedMonthName = FEE_MONTH_LONG[k % 12];
+            if (Number(p.amount) > 0) {
+              clearedPaymentAmount = Number(p.amount);
+            }
           }
         });
 
@@ -1409,6 +1413,7 @@ export const DataService = {
 
         const mapped = {
           monthlyFee: resolvedMonthlyFee,
+          lastPaidAmount: clearedPaymentAmount || resolvedMonthlyFee,
           currentDue: computedDue,
           actualDue: computedDue,
           dueDate: isPaid ? 'All Cleared' : targetDueStr,
