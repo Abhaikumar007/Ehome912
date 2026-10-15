@@ -394,3 +394,22 @@ body {
         font-size: 42px;
     }
 }
+/* --- Mobile Timetable Platform Styling --- */
+.live-mobile-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border: 1px solid #e2e8f0 !important;
+}
+.live-mobile-card:active {
+    transform: scale(0.99);
+}
+@media (max-width: 768px) {
+    #shareSection button {
+        width: 100%;
+        margin-bottom: 8px !important;
+        font-size: 1rem;
+        padding: 10px 16px;
+    }
+    .table-responsive {
+        border-radius: 8px;
+    }
+}

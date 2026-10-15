@@ -2442,12 +2442,30 @@ if (document.getElementById('timetableTableBody')) {
     const tableBody = document.getElementById('timetableTableBody');
     const shareBtn = document.getElementById('shareWhatsappBtn');
 
-    // --- DRAFT STORAGE FOR TIMETABLE (PREVENT DATA LOSS ON RELOAD / REDIRECT) ---
-    const DRAFT_TIMETABLE_KEY = 'eduhome_draft_timetable_entries';
+    // --- DRAFT STORAGE FOR TIMETABLE (DATE-AWARE & PREVENTS STALE OVERWRITE) ---
+    const DRAFT_TIMETABLE_KEY = 'eduhome_draft_timetable_v2';
+
+    function getActiveBuilderDate() {
+        const dateInput = document.getElementById('timetableDate');
+        if (dateInput && dateInput.value) return dateInput.value;
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+    }
 
     function saveTimetableDraft() {
         try {
-            localStorage.setItem(DRAFT_TIMETABLE_KEY, JSON.stringify(timetableEntries));
+            const activeDate = getActiveBuilderDate();
+            const payload = {
+                date: activeDate,
+                updatedAt: Date.now(),
+                entries: timetableEntries
+            };
+            localStorage.setItem(DRAFT_TIMETABLE_KEY, JSON.stringify(payload));
+            // Keep legacy sync for backward compat
+            localStorage.setItem('eduhome_draft_timetable_entries', JSON.stringify(timetableEntries));
         } catch (e) {
             console.warn('[Timetable] Error saving draft to localStorage:', e);
         }
@@ -2455,33 +2473,204 @@ if (document.getElementById('timetableTableBody')) {
 
     function loadTimetableDraft() {
         try {
-            const saved = localStorage.getItem(DRAFT_TIMETABLE_KEY);
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    timetableEntries.length = 0;
-                    parsed.forEach(item => timetableEntries.push(item));
-                    if (typeof renderTimetable === 'function') {
-                        renderTimetable();
+            const activeDate = getActiveBuilderDate();
+            let draftDate = null;
+            let draftEntries = [];
+
+            const savedRaw = localStorage.getItem(DRAFT_TIMETABLE_KEY);
+            if (savedRaw) {
+                try {
+                    const parsed = JSON.parse(savedRaw);
+                    if (parsed && Array.isArray(parsed.entries)) {
+                        draftDate = parsed.date;
+                        draftEntries = parsed.entries;
+                    } else if (Array.isArray(parsed)) {
+                        draftEntries = parsed;
+                        draftDate = draftEntries[0]?.date || null;
                     }
+                } catch (e) {}
+            } else {
+                const legacy = localStorage.getItem('eduhome_draft_timetable_entries');
+                if (legacy) {
+                    try {
+                        const parsed = JSON.parse(legacy);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            draftEntries = parsed;
+                            draftDate = draftEntries[0]?.date || null;
+                        }
+                    } catch (e) {}
                 }
             }
+
+            // Remove any existing stale draft banner
+            const existingBanner = document.getElementById('staleDraftNoticeBanner');
+            if (existingBanner) existingBanner.remove();
+
+            if (!draftEntries || draftEntries.length === 0) {
+                return;
+            }
+
+            // If draft date matches active builder date, populate directly
+            if (!draftDate || draftDate === activeDate) {
+                timetableEntries.length = 0;
+                draftEntries.forEach(item => timetableEntries.push(item));
+                if (typeof renderTimetable === 'function') {
+                    renderTimetable();
+                }
+                return;
+            }
+
+            // Stale draft from yesterday or earlier: DO NOT auto-populate today!
+            // Show a sleek, beautiful notice so user can copy or discard with 1 click.
+            _renderStaleDraftBanner(draftDate, draftEntries, activeDate);
+
         } catch (e) {
             console.warn('[Timetable] Error loading draft from localStorage:', e);
         }
     }
 
+    function _renderStaleDraftBanner(draftDate, draftEntries, activeDate) {
+        const container = document.getElementById('timetable-container');
+        if (!container) return;
+
+        let banner = document.getElementById('staleDraftNoticeBanner');
+        if (banner) banner.remove();
+
+        banner = document.createElement('div');
+        banner.id = 'staleDraftNoticeBanner';
+        banner.className = 'alert alert-info border-primary shadow-sm p-3 mb-3 d-flex flex-wrap justify-content-between align-items-center no-capture';
+        banner.style.cssText = 'border-radius:10px; background:linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left:5px solid #2563eb;';
+
+        const friendly = typeof formatDateFriendly === 'function' ? formatDateFriendly(draftDate) : draftDate;
+        banner.innerHTML = `
+            <div class="mb-2 mb-md-0">
+                <i class="fas fa-history text-primary mr-2" style="font-size:1.15rem;"></i>
+                <strong class="text-dark">Saved Schedule from ${friendly} (${draftDate})</strong>
+                <div class="small text-muted mt-1">Contains ${draftEntries.length} class session(s). Today (${activeDate}) starts fresh so you can build today's schedule without old classes getting in the way.</div>
+            </div>
+            <div class="btn-group btn-group-sm mt-2 mt-md-0" role="group">
+                <button type="button" class="btn btn-primary font-weight-bold" id="btnCopyDraftToday" onclick="window.copyStaleDraftToActiveDate()" style="border-radius:6px 0 0 6px;">
+                    <i class="fas fa-copy mr-1"></i> Copy to Today
+                </button>
+                <button type="button" class="btn btn-outline-danger font-weight-bold" id="btnDiscardDraft" onclick="window.discardStaleDraft()" style="border-radius:0 6px 6px 0;">
+                    <i class="fas fa-trash-alt mr-1"></i> Discard
+                </button>
+            </div>
+        `;
+
+        window._cachedStaleDraft = draftEntries;
+        container.insertBefore(banner, container.firstChild);
+    }
+
+    window.copyStaleDraftToActiveDate = function () {
+        const activeDate = getActiveBuilderDate();
+        if (!window._cachedStaleDraft || window._cachedStaleDraft.length === 0) return;
+
+        timetableEntries.length = 0;
+        window._cachedStaleDraft.forEach(item => {
+            timetableEntries.push({
+                ...item,
+                date: activeDate
+            });
+        });
+
+        saveTimetableDraft();
+        if (typeof renderTimetable === 'function') {
+            renderTimetable();
+        }
+
+        const banner = document.getElementById('staleDraftNoticeBanner');
+        if (banner) banner.remove();
+        delete window._cachedStaleDraft;
+    };
+
+    window.discardStaleDraft = function () {
+        try {
+            localStorage.removeItem(DRAFT_TIMETABLE_KEY);
+            localStorage.removeItem('eduhome_draft_timetable_entries');
+        } catch (e) {}
+        const banner = document.getElementById('staleDraftNoticeBanner');
+        if (banner) banner.remove();
+        delete window._cachedStaleDraft;
+    };
+
+    // Clear builder table draft
     window.clearTimetableSchedule = function () {
         if (!timetableEntries || timetableEntries.length === 0) {
             alert('Timetable schedule table is already empty.');
             return;
         }
-        if (confirm('Are you sure you want to clear the timetable table?')) {
+        if (confirm('Are you sure you want to clear the timetable builder table? This will clear your draft entries for this screen.')) {
             timetableEntries.length = 0;
             try {
                 localStorage.removeItem(DRAFT_TIMETABLE_KEY);
+                localStorage.removeItem('eduhome_draft_timetable_entries');
             } catch (e) {}
-            renderTimetable();
+            if (typeof renderTimetable === 'function') {
+                renderTimetable();
+            }
+        }
+    };
+
+    // Clear and remove published timetable for current selected date from Mobile App (Supabase)
+    window.clearCurrentDateFromMobileApp = async function () {
+        const targetDate = getActiveBuilderDate();
+        const friendly = typeof formatDateFriendly === 'function' ? formatDateFriendly(targetDate) : targetDate;
+
+        if (!confirm(`⚠️ Are you sure you want to completely CLEAR and DELETE all class sessions for ${friendly} (${targetDate}) from the Mobile App database?\n\nThis will remove them from all student & teacher mobile screens immediately.`)) {
+            return;
+        }
+
+        const btn = document.getElementById('clearAppTimetableBtn');
+        const origHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Removing from Mobile App...';
+        }
+
+        try {
+            const sb = _getSupabaseClient();
+            if (!sb) {
+                alert('Database connection not available.');
+                return;
+            }
+
+            // 1. Delete all classes for that date from Supabase
+            const { error: delErr } = await sb.from('classes').delete().eq('class_date', targetDate);
+            if (delErr) {
+                console.error('[Timetable] Error clearing date from Supabase:', delErr);
+                throw delErr;
+            }
+
+            // 2. Realtime broadcast so all open mobile apps immediately clear cache
+            try {
+                await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: { date: targetDate } });
+                await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: { date: targetDate } });
+            } catch (be) {
+                console.warn('[Broadcast] Error sending classes_changed:', be);
+            }
+
+            // 3. Clear local draft entries that were for this date
+            timetableEntries.length = 0;
+            saveTimetableDraft();
+            if (typeof renderTimetable === 'function') {
+                renderTimetable();
+            }
+
+            // 4. Silently refresh live app manager & counters if loaded
+            if (typeof window.initLiveAppTimetable === 'function') {
+                window.initLiveAppTimetable('liveTimetablePlatform');
+            }
+
+            alert(`✅ All timetable sessions for ${friendly} have been successfully removed from the Mobile App!`);
+        } catch (err) {
+            console.error('Failed to clear timetable from mobile app:', err);
+            alert('Failed to clear timetable from mobile app: ' + (err.message || err));
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = origHtml;
+            }
         }
     };
 
@@ -3067,10 +3256,39 @@ if (document.getElementById('timetableTableBody')) {
     // Auto-restore draft timetable entries from localStorage if available
     loadTimetableDraft();
 
-    window.removeTimetableEntry = function (index) {
+    window.removeTimetableEntry = async function (index) {
+        const removed = timetableEntries[index];
         timetableEntries.splice(index, 1);
         renderTimetable();
         saveTimetableDraft();
+
+        // Also delete matching slot from Supabase if already synced
+        if (removed && removed.date && removed.class && removed.subject) {
+            try {
+                const sb = _getSupabaseClient();
+                if (sb) {
+                    const gradeStr = String(removed.class).startsWith('Class') ? removed.class : 'Class ' + removed.class;
+                    await sb.from('classes')
+                        .delete()
+                        .eq('class_grade', gradeStr)
+                        .eq('class_date', removed.date)
+                        .eq('subject', removed.subject);
+
+                    await sb.from('classes')
+                        .delete()
+                        .eq('roll_no', gradeStr)
+                        .eq('class_date', removed.date)
+                        .eq('subject', removed.subject);
+
+                    try {
+                        await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: {} });
+                        await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: {} });
+                    } catch (be) {}
+                }
+            } catch (syncErr) {
+                console.warn('[Timetable] Error syncing removal to Supabase:', syncErr);
+            }
+        }
     };
 
     // ── WhatsApp Share ────────────────────────────────────────────────
@@ -3391,6 +3609,14 @@ if (document.getElementById('timetableTableBody')) {
 
             const ttPushSummary = ttPushCount > 0 ? ('\n\n📱 Lock-screen push sent to ' + ttPushCount + ' student phone' + (ttPushCount > 1 ? 's' : '') + '.') : '';
             alert('✅ Timetable Successfully Shared to Mobile App!' + ttPushSummary + '\n\n' + rowsToInsert.length + ' class schedule session(s) published.\nAll students in the class and faculty will see this schedule on their live dashboard.\n\nYou are still on this page so you can now download or save your schedule.');
+
+            // Broadcast Realtime event to mobile apps so they refresh immediately
+            try {
+                await sb.channel('student_dashboard_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: {} });
+                await sb.channel('teacher_classes_realtime').send({ type: 'broadcast', event: 'classes_changed', payload: {} });
+            } catch (be) {
+                console.warn('[Timetable] Realtime broadcast warning:', be);
+            }
 
             // Update live mobile app cache & count badge silently in background WITHOUT redirecting or switching away
             if (typeof window.initLiveAppTimetable === 'function') {

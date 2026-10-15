@@ -67,7 +67,7 @@
         const day = String(d.getDate()).padStart(2, '0');
         return `${y}-${m}-${day}`;
     }
-    let _activeFilterDate = 'all';
+    let _activeFilterDate = 'today';
     let _activeCustomDate = '';
     let _searchQuery = '';
     let _currentEditId = null;
@@ -99,6 +99,25 @@
     ];
 
     let _assignedTeachers = [...DEFAULT_ASSIGNED_TEACHERS];
+    async function _broadcastClassesChange(payload = {}) {
+        const sb = _getSb();
+        if (!sb) return;
+        try {
+            await sb.channel('student_dashboard_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: payload
+            });
+            await sb.channel('teacher_classes_realtime').send({
+                type: 'broadcast',
+                event: 'classes_changed',
+                payload: payload
+            });
+        } catch (e) {
+            console.warn('[LiveTimetable] Broadcast notice:', e);
+        }
+    }
+
 
     function _getSubjectMeta(sub) {
         if (!sub) return SUBJECT_META['General'];
@@ -424,6 +443,7 @@
             }
 
             // Date Filter
+            const yesterdayStr = _getLocalDateStr(-1);
             if (_activeFilterDate === 'today') {
                 // If exam/test paper is tomorrow, show it 1 day before in today's view!
                 const isTomorrowExam = item.class_date === tomorrowStr && (
@@ -433,6 +453,7 @@
                 if (item.class_date !== todayStr && !isTomorrowExam) return false;
             }
             if (_activeFilterDate === 'tomorrow' && item.class_date !== tomorrowStr) return false;
+            if (_activeFilterDate === 'yesterday' && item.class_date !== yesterdayStr) return false;
             if (_activeFilterDate === 'upcoming' && item.class_date < todayStr) return false;
             if (_activeFilterDate === 'custom' && _activeCustomDate && item.class_date !== _activeCustomDate) return false;
 
@@ -548,11 +569,12 @@
                             </div>
 
                             <!-- Date Filter Buttons -->
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn ${_activeFilterDate === 'all' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('all', '', '${containerId}')">All</button>
+                            <div class="btn-group btn-group-sm flex-wrap" role="group">
                                 <button type="button" class="btn ${_activeFilterDate === 'today' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('today', '', '${containerId}')">Today</button>
                                 <button type="button" class="btn ${_activeFilterDate === 'tomorrow' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('tomorrow', '', '${containerId}')">Tomorrow</button>
+                                <button type="button" class="btn ${_activeFilterDate === 'yesterday' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('yesterday', '', '${containerId}')">Yesterday</button>
                                 <button type="button" class="btn ${_activeFilterDate === 'upcoming' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('upcoming', '', '${containerId}')">Upcoming</button>
+                                <button type="button" class="btn ${_activeFilterDate === 'all' ? 'btn-primary' : 'btn-outline-secondary'}" onclick="window.filterLiveDate('all', '', '${containerId}')">All</button>
                             </div>
 
                             <!-- Specific Date Picker -->
@@ -573,7 +595,7 @@
                 </div>
 
                 <!-- Live Classes Table -->
-                <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                <div class="table-responsive d-none d-md-block" style="max-height: 520px; overflow-y: auto;">
                     <table class="table table-hover mb-0" style="font-size:0.9rem;">
                         <thead style="background:#0f172a; color:#ffffff; position:sticky; top:0; z-index:10;">
                             <tr>
@@ -729,14 +751,87 @@
                     </table>
                 </div>
 
-                <!-- Footer Summary Bar -->
+                <!-- Mobile Cards View (Rendered on phones / tablets below 768px) -->
+                <div class="d-md-none p-3" id="liveCardsMobileView" style="background:#f8fafc;">
+                    ${filtered.length === 0 ? `
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-2x mb-2 text-muted" style="opacity:0.4;"></i>
+                            <div class="font-weight-bold">No classes for this selection</div>
+                        </div>
+                    ` : filtered.map(item => {
+                        const meta = _getSubjectMeta(item.subject);
+                        const timeInfo = _parseTimeDetails(item.time);
+                        const dateFormatted = _friendlyDate(item.class_date);
+                        const isPublished = item.published !== false;
+                        const syl = _resolveLiveItemSyllabus(item);
+
+                        return `
+                            <div class="card mb-3 shadow-sm border-0 live-mobile-card" style="border-radius:12px; overflow:hidden;">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            <span class="badge px-2 py-1" style="background:#e0f2fe; color:#0369a1; font-weight:700; border-radius:6px; font-size:0.85rem;">
+                                                ${item.class_grade || item.roll_no || 'Class'}
+                                            </span>
+                                            <span class="badge ml-1 px-2 py-1" style="background:${syl === 'CBSE' ? '#e0f2fe' : syl === 'State Syllabus' ? '#f0fdf4' : '#f1f5f9'}; color:${syl === 'CBSE' ? '#0284c7' : syl === 'State Syllabus' ? '#15803d' : '#475569'}; border-radius:6px; font-size:0.75rem; font-weight:600;">
+                                                ${syl}
+                                            </span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="badge badge-light border px-2 py-1 font-weight-bold text-dark" style="font-size:0.8rem;">
+                                                <i class="far fa-calendar-alt text-primary mr-1"></i>${dateFormatted}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center mb-2">
+                                        <span class="badge px-2 py-1 font-weight-bold mr-2" style="background:${meta.bg}; color:${meta.color}; border-radius:6px; font-size:0.92rem;">
+                                            ${meta.emoji} ${item.subject || 'General'}
+                                        </span>
+                                        <div class="font-weight-bold text-dark" style="font-size:0.9rem;">
+                                            <i class="far fa-clock text-muted mr-1"></i>${timeInfo.time}
+                                        </div>
+                                    </div>
+
+                                    ${timeInfo.faculty ? `
+                                        <div class="small text-muted mb-3">
+                                            <i class="fas fa-chalkboard-teacher text-info mr-1"></i>Teacher: <strong class="text-dark">${timeInfo.faculty}</strong>
+                                        </div>
+                                    ` : ''}
+
+                                    <!-- Action Buttons Row -->
+                                    <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                        <button class="btn btn-sm ${isPublished ? 'btn-outline-success' : 'btn-outline-secondary'}" style="font-size:0.78rem; border-radius:20px; padding:4px 12px; font-weight:600;" onclick="window.toggleLiveClassPublish('${item.id}', ${isPublished}, '${containerId}')">
+                                            <i class="fas ${isPublished ? 'fa-eye' : 'fa-eye-slash'} mr-1"></i>${isPublished ? 'Live on App' : 'Hidden'}
+                                        </button>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button class="btn btn-outline-primary" onclick="window.openEditClassModal('${item.id}')" style="border-radius:6px 0 0 6px; padding:4px 12px;">
+                                                <i class="fas fa-edit mr-1"></i>Edit
+                                            </button>
+                                            <button class="btn btn-danger font-weight-bold" onclick="window.deleteLiveClass('${item.id}', this, '${containerId}')" style="border-radius:0 6px 6px 0; padding:4px 14px;">
+                                                <i class="fas fa-trash-alt mr-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <!-- Footer Summary Bar with Smart Cleanup Actions -->
                 <div class="p-3 border-top d-flex flex-wrap justify-content-between align-items-center" style="background:#f8fafc; font-size:0.85rem; gap:10px;">
                     <div class="text-muted mb-1 mb-sm-0">
-                        Showing <strong>${filtered.length}</strong> of <strong>${_liveClasses.length}</strong> total class sessions in cloud database.
+                        Showing <strong>${filtered.length}</strong> of <strong>${_liveClasses.length}</strong> class session(s) in cloud database.
                     </div>
-                    <div>
-                        <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold shadow-sm" id="purgePastClassesBtn" onclick="window.clearPastClasses('${containerId}', this)" style="border-radius:8px; padding:6px 14px; touch-action:manipulation; cursor:pointer;">
-                            <i class="fas fa-broom mr-1"></i> Purge Past / Completed Classes
+                    <div class="d-flex flex-wrap align-items-center" style="gap:8px;">
+                        ${filtered.length > 0 ? `
+                            <button type="button" class="btn btn-sm btn-outline-danger font-weight-bold shadow-sm" id="clearFilterClassesBtn" onclick="window.clearCurrentFilterClasses('${containerId}', this)" style="border-radius:8px; padding:6px 14px;">
+                                <i class="fas fa-trash-alt mr-1"></i> Clear Visible (${filtered.length})
+                            </button>
+                        ` : ''}
+                        <button type="button" class="btn btn-sm btn-danger font-weight-bold shadow-sm" id="purgePastClassesBtn" onclick="window.clearPastClasses('${containerId}', this)" style="border-radius:8px; padding:6px 14px;">
+                            <i class="fas fa-broom mr-1"></i> Purge Past Classes (${_liveClasses.filter(c => c && c.class_date && c.class_date < todayStr).length})
                         </button>
                     </div>
                 </div>
@@ -1555,11 +1650,11 @@
         }
     };
 
-    // ── Clear Past / Completed Classes ──────────────────────────────────
+    // ── Clear Past Classes (All classes scheduled before today) ───────────────
     window.clearPastClasses = async function (containerId, btn) {
         const todayStr = _getLocalDateStr(0);
 
-        // Target both classes scheduled before today AND classes marked completed
+        // Purge any class scheduled before today OR marked completed
         const toPurge = _liveClasses.filter(c => {
             if (!c) return false;
             const isPast = Boolean(c.class_date && c.class_date < todayStr);
@@ -1574,34 +1669,8 @@
             return;
         }
 
-        // 2-Step inline mobile-friendly confirmation (works seamlessly on mobile touch & desktop)
-        if (btn && btn.getAttribute('data-confirming') !== 'true') {
-            btn.setAttribute('data-confirming', 'true');
-            const origHtml = btn.innerHTML;
-            const origClass = btn.className;
-            btn.className = 'btn btn-sm btn-danger font-weight-bold shadow-sm';
-            btn.innerHTML = `<i class="fas fa-exclamation-triangle mr-1"></i> Tap to confirm purge (${toPurge.length})`;
-
-            const timeoutId = setTimeout(() => {
-                if (document.body.contains(btn)) {
-                    btn.removeAttribute('data-confirming');
-                    btn.className = origClass;
-                    btn.innerHTML = origHtml;
-                    delete btn._confirmTimeout;
-                }
-            }, 4000);
-            btn._confirmTimeout = timeoutId;
+        if (!confirm(`⚠️ Purge ${toPurge.length} past / completed class session(s) scheduled before today (${todayStr})?\n\nThis will remove them from the Mobile App cloud database permanently.`)) {
             return;
-        }
-
-        if (btn && btn._confirmTimeout) {
-            clearTimeout(btn._confirmTimeout);
-            delete btn._confirmTimeout;
-            btn.removeAttribute('data-confirming');
-        } else if (!btn) {
-            if (!confirm(`Are you sure you want to delete ${toPurge.length} past or completed class session(s)? This cannot be undone.`)) {
-                return;
-            }
         }
 
         const sb = _getSb();
@@ -1619,22 +1688,111 @@
             const purgeIds = toPurge.map(c => c.id).filter(Boolean);
             if (purgeIds.length === 0) return;
 
-            // Delete exactly targeted class IDs from Supabase
+            // Delete targeted class IDs from Supabase
             const { error } = await sb.from('classes').delete().in('id', purgeIds);
             if (error) throw error;
 
             const purgeIdSet = new Set(purgeIds);
             _liveClasses = _liveClasses.filter(c => !purgeIdSet.has(c.id));
-            _showToast(`Successfully purged ${purgeIds.length} past / completed class session(s).`);
+
+            // Broadcast to mobile app
+            await _broadcastClassesChange();
+
+            _showToast(`Successfully purged ${purgeIds.length} past class session(s).`);
             renderPlatform(containerId);
             updateBadgeCounters();
         } catch (err) {
             console.error('[LiveTimetable] Purge error:', err);
             alert('Failed to purge classes: ' + (err.message || err));
+        } finally {
             if (btn) {
                 btn.disabled = false;
-                btn.className = 'btn btn-sm btn-outline-danger font-weight-bold shadow-sm';
-                btn.innerHTML = '<i class="fas fa-broom mr-1"></i> Purge Past / Completed Classes';
+                btn.innerHTML = '<i class="fas fa-broom mr-1"></i> Purge Past Classes';
+            }
+        }
+    };
+
+    // ── Clear Visible Classes for Active Filter (e.g. Yesterday, Today, or specific date) ──
+    window.clearCurrentFilterClasses = async function (containerId, btn) {
+        const todayStr = _getLocalDateStr(0);
+        const tomorrowStr = _getLocalDateStr(1);
+        const yesterdayStr = _getLocalDateStr(-1);
+
+        // Compute currently filtered items
+        const toClear = _liveClasses.filter(item => {
+            if (_activeFilterClass !== 'all') {
+                const itemGrade = String(item.class_grade || item.roll_no || '').replace('Class ', '').trim();
+                const filterGrade = _activeFilterClass.replace('Class ', '').trim();
+                if (itemGrade !== filterGrade) return false;
+            }
+            if (_activeFilterSyllabus !== 'all') {
+                const itemSyl = _resolveLiveItemSyllabus(item);
+                if (_activeFilterSyllabus === 'State Syllabus') {
+                    if (itemSyl !== 'State Syllabus' && itemSyl !== 'Both') return false;
+                } else if (_activeFilterSyllabus === 'CBSE') {
+                    if (itemSyl !== 'CBSE' && itemSyl !== 'Both') return false;
+                } else if (_activeFilterSyllabus === 'Both') {
+                    if (itemSyl !== 'Both') return false;
+                }
+            }
+            if (_activeFilterDate === 'today' && item.class_date !== todayStr) return false;
+            if (_activeFilterDate === 'tomorrow' && item.class_date !== tomorrowStr) return false;
+            if (_activeFilterDate === 'yesterday' && item.class_date !== yesterdayStr) return false;
+            if (_activeFilterDate === 'upcoming' && item.class_date < todayStr) return false;
+            if (_activeFilterDate === 'custom' && _activeCustomDate && item.class_date !== _activeCustomDate) return false;
+            return true;
+        });
+
+        if (toClear.length === 0) {
+            _showToast('No classes found in current view to clear.', true);
+            alert('No classes found in the current view to clear.');
+            return;
+        }
+
+        let scopeLabel = 'current view';
+        if (_activeFilterDate === 'yesterday') scopeLabel = `YESTERDAY (${yesterdayStr})`;
+        else if (_activeFilterDate === 'today') scopeLabel = `TODAY (${todayStr})`;
+        else if (_activeFilterDate === 'tomorrow') scopeLabel = `TOMORROW (${tomorrowStr})`;
+        else if (_activeFilterDate === 'custom' && _activeCustomDate) scopeLabel = `DATE (${_activeCustomDate})`;
+
+        if (!confirm(`⚠️ Delete all ${toClear.length} class session(s) scheduled for ${scopeLabel} from the Mobile App database?\n\nThis will remove them immediately from student & faculty dashboards.`)) {
+            return;
+        }
+
+        const sb = _getSb();
+        if (!sb) {
+            alert('Supabase client not ready.');
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Deleting...';
+        }
+
+        try {
+            const clearIds = toClear.map(c => c.id).filter(Boolean);
+            if (clearIds.length === 0) return;
+
+            const { error } = await sb.from('classes').delete().in('id', clearIds);
+            if (error) throw error;
+
+            const idSet = new Set(clearIds);
+            _liveClasses = _liveClasses.filter(c => !idSet.has(c.id));
+
+            // Broadcast to mobile app
+            await _broadcastClassesChange();
+
+            _showToast(`Successfully deleted ${clearIds.length} class(es) from mobile app.`);
+            renderPlatform(containerId);
+            updateBadgeCounters();
+        } catch (err) {
+            console.error('[LiveTimetable] Clear error:', err);
+            alert('Failed to clear classes: ' + (err.message || err));
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt mr-1"></i> Clear Visible Schedule';
             }
         }
     };

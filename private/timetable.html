@@ -159,15 +159,20 @@
                 </div>
 
                 <div id="shareSection" style="display:none; text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary btn-lg" id="shareWhatsappBtn">
-                        <i class="fas fa-download mr-1"></i> Download Schedule
-                    </button>
-                    <button class="btn btn-success btn-lg ml-2" id="shareAppBtn" onclick="shareTimetableToApp()">
-                        <i class="fas fa-paper-plane mr-1"></i> 🚀 Share Timetable to Mobile App
-                    </button>
-                    <button class="btn btn-outline-danger btn-lg ml-2" id="clearTimetableBtn" onclick="clearTimetableSchedule()" title="Clear table entries">
-                        <i class="fas fa-trash-alt mr-1"></i> Clear Table
-                    </button>
+                    <div class="d-flex flex-wrap justify-content-center align-items-center" style="gap:10px;">
+                        <button class="btn btn-primary btn-lg shadow-sm" id="shareWhatsappBtn">
+                            <i class="fas fa-download mr-1"></i> Download Schedule
+                        </button>
+                        <button class="btn btn-success btn-lg shadow-sm" id="shareAppBtn" onclick="shareTimetableToApp()">
+                            <i class="fas fa-paper-plane mr-1"></i> 🚀 Share Timetable to Mobile App
+                        </button>
+                        <button class="btn btn-outline-warning btn-lg shadow-sm" id="clearTimetableBtn" onclick="clearTimetableSchedule()" title="Clear builder table entries">
+                            <i class="fas fa-eraser mr-1"></i> Clear Table Draft
+                        </button>
+                        <button class="btn btn-outline-danger btn-lg shadow-sm" id="clearAppTimetableBtn" onclick="clearCurrentDateFromMobileApp()" title="Delete today's schedule from mobile app">
+                            <i class="fas fa-trash-alt mr-1"></i> 🗑️ Clear from Mobile App
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -185,8 +190,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
     <script src="js/sheets-client.js?v=20261011_live_1791737932169"></script>
-    <script src="js/admin.js?v=20261012_noredirect_1791820119880"></script>
-    <script src="js/live_timetable.js?v=1791822257434"></script>
+    <script src="js/admin.js?v=20261015_fixed_1792027896862"></script>
+    <script src="js/live_timetable.js?v=20261015_fixed_1792027896862"></script>
 
     <script>
         function switchTimetableMode(mode) {
@@ -221,6 +226,12 @@
                 const m = String(now.getMonth() + 1).padStart(2, '0');
                 const d = String(now.getDate()).padStart(2, '0');
                 dateInp.value = `${y}-${m}-${d}`;
+            }
+            if (dateInp) {
+                dateInp.addEventListener('change', function() {
+                    if (typeof saveTimetableDraft === 'function') saveTimetableDraft();
+                    if (typeof loadTimetableDraft === 'function') loadTimetableDraft();
+                });
             }
             if (window.location.hash === '#live' || window.location.hash === '#liveSectionWrapper') {
                 switchTimetableMode('live');
