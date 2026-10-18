@@ -41,15 +41,12 @@ function StatusBadge({ status, isFuture }: { status?: string; isFuture?: boolean
       </View>
     );
   }
-  if (norm === 'upcoming') {
-    return (
-      <View style={[badgeStyles.wrap, { backgroundColor: '#F1F5F9' }]}>
-        <Ionicons name="time-outline" size={11} color={Colors.textMuted} />
-        <Text style={[badgeStyles.text, { color: Colors.textMuted }]}>Upcoming</Text>
-      </View>
-    );
-  }
-  return <Text style={{ color: Colors.textMuted, fontSize: 13, fontFamily: 'Inter_600SemiBold' }}>—</Text>;
+  return (
+    <View style={[badgeStyles.wrap, { backgroundColor: '#F1F5F9' }]}>
+      <Ionicons name="time-outline" size={11} color={Colors.textMuted} />
+      <Text style={[badgeStyles.text, { color: Colors.textMuted }]}>Upcoming</Text>
+    </View>
+  );
 }
 const badgeStyles = StyleSheet.create({
   wrap: { flexDirection: 'row', alignItems: 'center', gap: 3.5, borderRadius: 20, paddingHorizontal: 8, paddingVertical: 3.5 },
@@ -775,11 +772,12 @@ export default function DashboardScreen() {
 
                 // Look in both todaySubjects and history
                 const candidates = [
-                  ...(attSummary?.todaySubjects || []),
-                  ...(attSummary?.history || []).map((h: any) => ({
+                  ...(Array.isArray(attSummary?.todaySubjects) ? attSummary.todaySubjects : [])
+                    .filter((s: any) => s && typeof s === 'object'),
+                  ...(Array.isArray(attSummary?.history) ? attSummary.history : []).map((h: any) => ({
                     ...h,
                     subject: h.subjects || h.subject,
-                    status: (h.status === 'full' || h.score === '1/1') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : h.status,
+                    status: (h.status === 'full' || h.score === '1/1' || h.status === 'present') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : (h.status || 'upcoming'),
                   })),
                 ];
 

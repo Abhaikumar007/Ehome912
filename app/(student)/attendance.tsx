@@ -102,17 +102,21 @@ export default function AttendanceScreen() {
 
     // 1. Gather all candidates from todaySubjects and history
     const allCandidates = [
-      ...(attendance.todaySubjects || []).map((s: any) => ({
-        ...s,
-        time: s.time || 'Class Session',
-      })),
-      ...(attendance.history || []).map((h: any) => ({
+      ...(Array.isArray(attendance.todaySubjects) ? attendance.todaySubjects : [])
+        .filter((s: any) => s && typeof s === 'object')
+        .map((s: any) => ({
+          ...s,
+          subject: s.name || s.subject || s.subjects || 'Class Session',
+          time: s.time || 'Class Session',
+          status: s.status || 'pending',
+        })),
+      ...(Array.isArray(attendance.history) ? attendance.history : []).map((h: any) => ({
         id: h.classId || `hist-${Math.random().toString(36).slice(2, 6)}`,
         classId: h.classId || '',
-        subject: h.subjects || h.subject,
+        subject: h.subjects || h.subject || 'Class Session',
         time: h.time || 'Class Session',
         sessionType: h.sessionType || 'Regular Class',
-        status: (h.status === 'full' || h.score === '1/1') ? 'present' : 'absent',
+        status: (h.status === 'full' || h.score === '1/1' || h.status === 'present') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : (h.status || 'pending'),
         date: h.date,
       })),
     ];
@@ -135,15 +139,16 @@ export default function AttendanceScreen() {
       }
     });
 
-    const listToUse = sessionList.length > 0 ? sessionList : (offset === 0 ? (attendance.todaySubjects || []) : []);
+    const listToUse = sessionList;
     const presentCnt = listToUse.filter((s: any) => s.status === 'present').length;
-    const totalCnt = listToUse.length;
-    const pct = totalCnt > 0 ? Math.round((presentCnt / totalCnt) * 100) : 0;
+    const absentCnt = listToUse.filter((s: any) => s.status === 'absent').length;
+    const totalRecorded = presentCnt + absentCnt;
+    const pct = totalRecorded > 0 ? Math.round((presentCnt / totalRecorded) * 100) : 0;
 
     return {
       subjects: listToUse,
-      sessionCount: totalCnt > 0 ? `${presentCnt} of ${totalCnt} Sessions Attended (${pct}%)` : (offset === 0 ? 'No sessions recorded yet today' : 'No sessions recorded for this date'),
-      statusSummary: totalCnt > 0 ? `${presentCnt} Present, ${totalCnt - presentCnt} Absent` : (offset === 0 ? 'Attendance pending' : 'No Records'),
+      sessionCount: totalRecorded > 0 ? `${presentCnt} of ${totalRecorded} Sessions Attended (${pct}%)` : (offset === 0 ? 'No attendance recorded yet today' : 'No records for this date'),
+      statusSummary: totalRecorded > 0 ? `${presentCnt} Present, ${absentCnt} Absent` : (offset === 0 ? 'Attendance pending' : 'No Records'),
       isHoliday: false,
     };
   };
@@ -233,12 +238,12 @@ export default function AttendanceScreen() {
           dayAtt.subjects.map((sub: any, idx: number) => (
             <View key={sub.id || `att-sub-${sub.subject || 'item'}-${idx}`} style={styles.subjectCard}>
               <View style={[styles.subjectIcon, {
-                backgroundColor: sub.status === 'present' ? Colors.primaryLight : Colors.redLight,
+                backgroundColor: sub.status === 'present' ? Colors.primaryLight : sub.status === 'absent' ? Colors.redLight : '#F1F5F9',
               }]}>
                 <Ionicons
                   name={subjectIconMap[sub.subject] as any ?? 'book-outline'}
                   size={18}
-                  color={sub.status === 'present' ? Colors.primary : Colors.red}
+                  color={sub.status === 'present' ? Colors.primary : sub.status === 'absent' ? Colors.red : Colors.textMuted}
                 />
               </View>
               <View style={styles.subjectInfo}>
@@ -266,15 +271,15 @@ export default function AttendanceScreen() {
                 <Text style={styles.subjectTime}>{sub.time || 'Class Session'}</Text>
               </View>
               <View style={[styles.statusBadge, {
-                backgroundColor: sub.status === 'present' ? Colors.greenLight : Colors.redLight,
+                backgroundColor: sub.status === 'present' ? Colors.greenLight : sub.status === 'absent' ? Colors.redLight : '#F1F5F9',
               }]}>
                 <Ionicons
-                  name={sub.status === 'present' ? 'checkmark-circle' : 'close-circle-outline'}
+                  name={sub.status === 'present' ? 'checkmark-circle' : sub.status === 'absent' ? 'close-circle-outline' : 'time-outline'}
                   size={14}
-                  color={sub.status === 'present' ? Colors.green : Colors.red}
+                  color={sub.status === 'present' ? Colors.green : sub.status === 'absent' ? Colors.red : Colors.textMuted}
                 />
-                <Text style={[styles.statusText, { color: sub.status === 'present' ? Colors.green : Colors.red }]}>
-                  {sub.status === 'present' ? 'Present' : 'Absent'}
+                <Text style={[styles.statusText, { color: sub.status === 'present' ? Colors.green : sub.status === 'absent' ? Colors.red : Colors.textMuted }]}>
+                  {sub.status === 'present' ? 'Present' : sub.status === 'absent' ? 'Absent' : 'Pending'}
                 </Text>
               </View>
             </View>
