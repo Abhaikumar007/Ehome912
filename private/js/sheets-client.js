@@ -588,15 +588,15 @@ window.sb_saveStudent = async function (student) {
                 });
             } catch (_) {}
 
-            // C. Attendance record with enrolled subjects
+            // C. Blank attendance record (if not already existing)
             const { error: attError } = await sb.from('attendance_records').upsert({
                 roll_no: rollNo,
                 overall: 0,
                 attended: 0,
                 total: 0,
-                today_subjects: subjectsList,
+                today_subjects: [],
                 history: []
-            }, { onConflict: 'roll_no' });
+            }, { onConflict: 'roll_no', ignoreDuplicates: true });
             if (attError) console.warn('[DualSync] Supabase attendance error:', attError.message);
 
             // D. Blank progress record

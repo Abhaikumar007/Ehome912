@@ -1230,7 +1230,7 @@ window.exportSupabaseSQL = async function () {
             );
             lines.push(
                 "INSERT INTO attendance_records (roll_no, overall, attended, total, today_subjects, history) " +
-                "VALUES ('" + s.roll_no + "', 90, 45, 50, '[]'::jsonb, '[]'::jsonb) " +
+                "VALUES ('" + s.roll_no + "', 0, 0, 0, '[]'::jsonb, '[]'::jsonb) " +
                 "ON CONFLICT (roll_no) DO NOTHING;"
             );
             lines.push(
