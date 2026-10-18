@@ -560,7 +560,7 @@ function addNewGridRow() {
         phone: '9876543210',
         amount: '3000',
         subjects: ['Physics', 'Chemistry'],
-        pin: '1234',
+        pin: String(Math.floor(1000 + Math.random() * 9000)),
         joiningDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
     };
 

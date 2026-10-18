@@ -243,7 +243,8 @@ window.sb_loadFromCloud = async function () {
                         phone: r.phone || (local ? local.phone : ''),
                         joiningDate: r.joining_date || (local ? local.joiningDate : '2026-01-15'),
                         amount: (local && local.amount) ? String(local.amount) : '',
-                        subjects: (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? local.subjects : []
+                        subjects: (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? local.subjects : [],
+                        pin: r.pin || (local ? local.pin : '')
                     };
                 });
             }
@@ -432,9 +433,8 @@ window.sb_saveStudent = async function (student) {
             const subjectsStr = subjectsList.join(', ');
             const joiningDate = student.joiningDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            // A. Upsert into students table
-            const { error: stuError } = await sb.from('students').upsert({
-                roll_no: rollNo,
+            // A. Update or Insert student WITHOUT clobbering existing PIN
+            const stuPayload = {
                 name: name,
                 class_name: className,
                 batch: (() => {
@@ -446,12 +446,33 @@ window.sb_saveStudent = async function (student) {
                 })(),
                 avatar: avatar,
                 phone: phone,
-                pin: student.pin || '1234',
                 streak: student.streak || 0,
                 accuracy: student.accuracy || 0,
                 tests_completed: student.tests_completed || 0,
                 top_percent: student.top_percent || 0
-            }, { onConflict: 'roll_no' });
+            };
+
+            // Check if student exists in Supabase
+            const { data: existingStu } = await sb.from('students').select('id, pin').eq('roll_no', rollNo).maybeSingle();
+            let stuError = null;
+            if (existingStu) {
+                // UPDATE: Only update PIN if explicitly provided and valid 4-digits; NEVER overwrite with default 1234
+                if (student.pin && /^\d{4}$/.test(String(student.pin).trim()) && String(student.pin).trim() !== '1234') {
+                    stuPayload.pin = String(student.pin).trim();
+                } else if (!existingStu.pin) {
+                    stuPayload.pin = String(Math.floor(1000 + Math.random() * 9000));
+                }
+                const res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
+                stuError = res.error;
+            } else {
+                // INSERT: New student - use provided pin or generate random 4-digit PIN
+                stuPayload.roll_no = rollNo;
+                stuPayload.pin = (student.pin && /^\d{4}$/.test(String(student.pin).trim()) && String(student.pin).trim() !== '1234')
+                    ? String(student.pin).trim()
+                    : String(Math.floor(1000 + Math.random() * 9000));
+                const res = await sb.from('students').insert(stuPayload);
+                stuError = res.error;
+            }
 
             if (stuError) {
                 console.warn('[DualSync] Supabase students error:', stuError.message);
@@ -935,6 +956,11 @@ window.sb_migrateFromLocalStorage = async function () {
     // 1. Direct Fast Bulk Push to Supabase (Executed in < 1 second)
     if (sb) {
         try {
+            // Pre-fetch existing students to strictly preserve their assigned PINs
+            const { data: existingStuList } = await sb.from('students').select('roll_no, pin');
+            const existingPinMap = new Map();
+            (existingStuList || []).forEach(e => { if (e.roll_no && e.pin) existingPinMap.set(String(e.roll_no).toUpperCase().trim(), e.pin); });
+
             const studentPayloads = students.map(s => {
                 const rollNo = _getRollNo(s);
                 const rawClass = String(s.class || s.class_name || '10').trim();
@@ -955,7 +981,7 @@ window.sb_migrateFromLocalStorage = async function () {
                     batch: batch,
                     avatar: avatar,
                     phone: phone,
-                    pin: s.pin || '1234',
+                    pin: (s.pin && s.pin !== '1234') ? s.pin : (existingPinMap.get(String(rollNo).toUpperCase().trim()) || s.pin || String(Math.floor(1000 + Math.random() * 9000))),
                     streak: Number(s.streak) || 0,
                     accuracy: Number(s.accuracy) || 0,
                     tests_completed: Number(s.tests_completed) || 0,
