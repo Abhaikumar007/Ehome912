@@ -945,14 +945,23 @@ function getStudents() {
             if (!key) return;
 
             if (!finalMap.has(key)) {
+                const sClass = String(s.class || (master ? master.class : '10')).replace('Class ', '').trim();
+                const sSyl = s.syllabus || (s.batch && /cbse/i.test(s.batch) ? 'CBSE' : (s.school && /cbse/i.test(s.school) ? 'CBSE' : (master && master.syllabus ? master.syllabus : 'State Syllabus')));
+                const sBatch = s.batch || (master && master.batch ? master.batch : `Class ${sClass} (${sSyl})`);
+                const sPin = s.pin || (master ? master.pin : '');
+
                 finalMap.set(key, {
+                    ...s,
                     id: s.id || (master ? (master.rollNo || master.id) : roll),
                     rollNo: s.rollNo || s.roll_no || (master ? master.rollNo : roll),
                     name: s.name || (master ? master.name : 'Student'),
-                    class: String(s.class || (master ? master.class : '10')).replace('Class ', '').trim(),
+                    class: sClass,
+                    syllabus: sSyl,
+                    batch: sBatch,
                     school: s.school || (master ? master.school : 'EduHome Campus'),
                     phone: s.phone || (master ? master.phone : ''),
-                    joiningDate: s.joiningDate || (master ? master.joiningDate : '2026-01-15'),
+                    pin: sPin,
+                    joiningDate: s.joiningDate || s.joining_date || (master ? master.joiningDate : '2026-01-15'),
                     amount: (s.amount !== undefined && s.amount !== null && s.amount !== '') ? String(s.amount) : (master ? String(master.amount) : '4000'),
                     subjects: (Array.isArray(s.subjects) && s.subjects.length > 0)
                         ? s.subjects
@@ -1475,10 +1484,14 @@ window.restoreData = function (input) {
 // Helper: sync a student object to cloud if the client is available
 function _syncStudentToCloud(student) {
     if (typeof sb_saveStudent === 'function') {
-        _showSyncToast('⏳ Syncing to cloud...');
+        _showSyncToast('☁️ Syncing to cloud...');
         sb_saveStudent(student).then(function (ok) {
             if (ok) {
-                _showSyncToast('✓ Synced to cloud');
+                _showSyncToast('✅ Synced to cloud');
+                // Immediately refresh table so UI is in lockstep with confirmed cloud sync
+                if (typeof renderStudentManagementList === 'function') {
+                    renderStudentManagementList();
+                }
             } else {
                 _showSyncToast('⚠️ Cloud sync failed - saved locally', true);
             }
@@ -1534,8 +1547,13 @@ if (document.getElementById('addStudentForm')) {
         }
 
         if (id) {
-            // EDIT MODE: Preserve original admission/joining date if input is blank or unchanged
-            const index = students.findIndex(s => s.id === id || (s.rollNo && s.rollNo === id) || (s.roll_no && s.roll_no === id));
+            // EDIT MODE: Match student by id or rollNo (case-insensitive)
+            const normTargetId = String(id).toUpperCase().trim();
+            const index = students.findIndex(s => {
+                const sId = String(s.id || '').toUpperCase().trim();
+                const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+                return sId === normTargetId || sRoll === normTargetId;
+            });
             if (index !== -1) {
                 const existingDate = students[index].joiningDate || students[index].joining_date || '';
                 const finalJoiningDate = joiningDate ? joiningDate : (existingDate || new Date().toISOString().slice(0, 10));
@@ -1591,6 +1609,7 @@ if (document.getElementById('addStudentForm')) {
         }
 
         saveStudents(students);
+        if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
 
         // ── Sync to Cloud ──────────────────────────────
         if (studentToSync) _syncStudentToCloud(studentToSync);
@@ -2087,13 +2106,19 @@ window.loadSupabaseFeesData = async function() {
                 const roll = String(cs.roll_no || cs.id).toUpperCase().trim();
                 const loc = localMap.get(roll);
                 const feeRec = feeMap.get(roll);
+                const sClass = String(cs.class_name || loc?.class || '10').replace('Class ', '').trim();
+                const sSyl = (cs.batch && /cbse/i.test(cs.batch)) ? 'CBSE' : (loc?.syllabus || 'State Syllabus');
                 return {
+                    ...(loc || {}),
                     id: cs.roll_no || cs.id,
                     rollNo: cs.roll_no || cs.id,
                     name: cs.name || loc?.name || 'Student',
-                    class: String(cs.class_name || loc?.class || '10').replace('Class ', '').trim(),
+                    class: sClass,
+                    syllabus: sSyl,
+                    batch: cs.batch || loc?.batch || `Class ${sClass} (${sSyl})`,
                     school: cs.school || loc?.school || 'EduHome Campus',
                     phone: cs.phone || loc?.phone || '',
+                    pin: cs.pin || loc?.pin || '',
                     joiningDate: cs.joining_date || loc?.joiningDate || '2026-01-15',
                     amount: (() => {
                         let cf = '';
@@ -4022,12 +4047,11 @@ if (document.getElementById('studentListBody')) {
                     <button class="btn btn-sm btn-primary mb-1 d-block w-100 shadow-sm" style="font-size:0.74rem;font-weight:600;padding:3px 6px;white-space:nowrap;" onclick="openStudentProfileModal('${safeId}', '${safeRoll}')">
                         <i class="fas fa-comment-dots mr-1"></i>Profile & Remarks
                     </button>
-                    ${isCloud ? `<span class="badge badge-secondary d-block text-center mt-1">Cloud View</span>` : `
                     <div class="d-flex" style="gap:4px;">
-                        <button class="btn btn-sm btn-info flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="editStudent('${safeId}')">Edit</button>
-                        <button class="btn btn-sm btn-danger flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="askDeleteStudent('${safeId}', this)">Delete</button>
+                        <button class="btn btn-sm btn-info flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="editStudent('${safeId || safeRoll}')">Edit</button>
+                        <button class="btn btn-sm btn-danger flex-fill" style="font-size:0.75rem;padding:2px 5px;" onclick="askDeleteStudent('${safeId || safeRoll}', this)">Delete</button>
                     </div>
-                    `}
+                    ${isCloud ? `<span class="badge badge-light border text-muted d-block text-center mt-1" style="font-size:0.68rem;">Cloud View</span>` : ''}
                 </td>
             `;
             tbody.appendChild(tr);
@@ -4180,7 +4204,12 @@ if (document.getElementById('studentListBody')) {
         const _viewOpBtn = document.getElementById('btnViewStudentOpinionsInForm');
         if (_viewOpBtn) { _viewOpBtn.style.display = 'inline-block'; }
         const students = getStudents();
-        const student = students.find(s => s.id === id);
+        const normTarget = String(id || '').toUpperCase().trim();
+        const student = students.find(s => {
+            const sId = String(s.id || '').toUpperCase().trim();
+            const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+            return sId === normTarget || sRoll === normTarget;
+        });
         if (!student) return;
 
         // Populate Form

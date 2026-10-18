@@ -234,14 +234,19 @@ window.sb_loadFromCloud = async function () {
                 loadedStudents = activeStuData.map(r => {
                     const roll = String(r.roll_no || r.id).trim();
                     const local = localMap.get(roll.toUpperCase());
+                    const sClass = String(r.class_name || (local ? local.class : '10')).replace('Class ', '').trim();
+                    const sSyl = (r.batch && /cbse/i.test(r.batch)) ? 'CBSE' : (local?.syllabus || 'State Syllabus');
                     return {
+                        ...(local || {}),
                         id: roll,
                         rollNo: roll,
                         name: r.name || (local ? local.name : 'Student'),
-                        class: String(r.class_name || (local ? local.class : '10')).replace('Class ', '').trim(),
+                        class: sClass,
+                        syllabus: sSyl,
+                        batch: r.batch || (local ? local.batch : `Class ${sClass} (${sSyl})`),
                         school: r.school || (local ? local.school : 'EduHome Campus'),
                         phone: r.phone || (local ? local.phone : ''),
-                        joiningDate: r.joining_date || (local ? local.joiningDate : '2026-01-15'),
+                        joiningDate: r.joining_date || (local ? (local.joiningDate || local.joining_date) : '2026-01-15'),
                         amount: (local && local.amount) ? String(local.amount) : '',
                         subjects: (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? local.subjects : [],
                         pin: r.pin || (local ? local.pin : '')
@@ -367,13 +372,19 @@ window.sb_loadFromCloud = async function () {
         if (!canonicalRoll) return;
 
         if (!dedupMap.has(canonicalRoll)) {
+            const sClass = String(st.class || (master ? master.class : '10')).replace('Class ', '').trim();
+            const sSyl = st.syllabus || (st.batch && /cbse/i.test(st.batch) ? 'CBSE' : (master && master.syllabus ? master.syllabus : 'State Syllabus'));
             dedupMap.set(canonicalRoll, {
+                ...st,
                 id: st.id || (master ? (master.rollNo || master.id) : canonicalRoll),
                 rollNo: st.rollNo || st.roll_no || (master ? master.rollNo : canonicalRoll),
                 name: (st.name || (master ? master.name : 'Student')).trim(),
-                class: String(st.class || (master ? master.class : '10')).replace('Class ', '').trim(),
+                class: sClass,
+                syllabus: sSyl,
+                batch: st.batch || (master ? master.batch : `Class ${sClass} (${sSyl})`),
                 school: st.school || (master ? master.school : 'EduHome Campus'),
                 phone: st.phone || (master ? master.phone : ''),
+                pin: st.pin || (master ? master.pin : ''),
                 joiningDate: st.joiningDate || (master ? master.joiningDate : '2026-01-15'),
                 amount: (st.amount && st.amount !== '') ? String(st.amount) : (master ? String(master.amount) : '3000'),
                 subjects: (st.subjects && Array.isArray(st.subjects) && st.subjects.length > 0)
@@ -385,6 +396,7 @@ window.sb_loadFromCloud = async function () {
             if ((!existing.amount || existing.amount === '-') && st.amount) existing.amount = String(st.amount);
             if ((!existing.subjects || existing.subjects.length === 0) && st.subjects && st.subjects.length > 0) existing.subjects = st.subjects;
             if (!existing.phone && st.phone) existing.phone = st.phone;
+            if (!existing.pin && st.pin) existing.pin = st.pin;
         }
     });
 
@@ -446,6 +458,8 @@ window.sb_saveStudent = async function (student) {
                 })(),
                 avatar: avatar,
                 phone: phone,
+                school: student.school || 'EduHome Campus',
+                joining_date: student.joiningDate || student.joining_date || new Date().toISOString().slice(0, 10),
                 streak: student.streak || 0,
                 accuracy: student.accuracy || 0,
                 tests_completed: student.tests_completed || 0,
@@ -477,7 +491,39 @@ window.sb_saveStudent = async function (student) {
             if (stuError) {
                 console.warn('[DualSync] Supabase students error:', stuError.message);
             } else {
-                console.log('[DualSync] Student upserted in Supabase ✓:', rollNo);
+                console.log('[DualSync] Student upserted in Supabase:', rollNo);
+                // Keep local storage in 100% lockstep with saved student
+                try {
+                    const storedList = JSON.parse(localStorage.getItem('students') || '[]');
+                    const normRollNo = String(rollNo).toUpperCase().trim();
+                    const idx = storedList.findIndex(s => {
+                        const sRoll = String(s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
+                        return sRoll === normRollNo;
+                    });
+                    const updatedObj = {
+                        ...(idx >= 0 ? storedList[idx] : {}),
+                        id: rollNo,
+                        rollNo: rollNo,
+                        name: stuPayload.name,
+                        class: rawClass.replace('Class ', '').trim(),
+                        syllabus: student.syllabus || (student.school === 'CBSE' || /cbse/i.test(stuPayload.batch) ? 'CBSE' : 'State Syllabus'),
+                        batch: stuPayload.batch,
+                        school: stuPayload.school,
+                        phone: stuPayload.phone,
+                        pin: stuPayload.pin || (existingStu && existingStu.pin) || (student.pin || ''),
+                        joiningDate: stuPayload.joining_date,
+                        amount: String(student.amount != null ? student.amount : (idx >= 0 ? storedList[idx].amount : '')),
+                        subjects: subjectsList
+                    };
+                    if (idx >= 0) {
+                        storedList[idx] = updatedObj;
+                    } else {
+                        storedList.push(updatedObj);
+                    }
+                    localStorage.setItem('students', JSON.stringify(storedList));
+                } catch (lsErr) {
+                    console.warn('[sb_saveStudent] LocalStorage update warning:', lsErr);
+                }
             }
 
             // B. Upsert into fees_records (preserve existing payments & dues!)
