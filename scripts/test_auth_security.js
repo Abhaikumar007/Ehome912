@@ -232,10 +232,12 @@ async function runTests() {
   assert(!verifyPassword('', storedHash), 'verifyPassword rejects empty password');
   assert(!verifyPassword('testPass42', ''), 'verifyPassword rejects empty stored hash');
 
-  // TEST 7: Positive Authentication with Unencrypted PINs
+  // TEST 7: Positive Authentication with Current PINs
   console.log('\n--- TEST GROUP 7: Positive Authentication (Valid Credentials) ---');
   resetRateLimit('EDU-2026-001');
-  const resValidStudent = await authenticateStudent('EDU-2026-001', '1234');
+  const { data: s001 } = await sb.from('students').select('pin').eq('roll_no', 'EDU-2026-001').single();
+  const currentPin = s001?.pin || '3232';
+  const resValidStudent = await authenticateStudent('EDU-2026-001', currentPin);
   assert(resValidStudent.success, 'Valid student credentials successfully authenticate', `(Name: ${resValidStudent.student?.name})`);
 
   const resValidTeacher = await authenticateTeacher('FAC-2024-042', '123456');
@@ -245,15 +247,15 @@ async function runTests() {
   console.log('\n--- TEST GROUP 8: Administrator Dynamic PIN Management ---');
   // Admin changes student PIN to 4321
   await sb.from('students').update({ pin: '4321' }).eq('roll_no', 'EDU-2026-001');
-  const resOldPinRejected = await authenticateStudent('EDU-2026-001', '1234');
-  assert(!resOldPinRejected.success, 'Previous PIN (1234) rejected after administrator changed it in Supabase');
+  const resOldPinRejected = await authenticateStudent('EDU-2026-001', currentPin);
+  assert(!resOldPinRejected.success, `Previous PIN (${currentPin}) rejected after administrator changed it in Supabase`);
 
   const resNewPinAccepted = await authenticateStudent('EDU-2026-001', '4321');
   assert(resNewPinAccepted.success, 'New administrator-assigned PIN (4321) successfully authenticates');
 
-  // Restore back to 1234
-  await sb.from('students').update({ pin: '1234' }).eq('roll_no', 'EDU-2026-001');
-  console.log('Restored EDU-2026-001 PIN to 1234');
+  // Restore back to current PIN
+  await sb.from('students').update({ pin: currentPin }).eq('roll_no', 'EDU-2026-001');
+  console.log(`Restored EDU-2026-001 PIN to ${currentPin}`);
 
   console.log('\n====================================================');
   console.log(`SUMMARY: ${passed} PASSED, ${failed} FAILED`);
