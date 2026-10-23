@@ -446,6 +446,8 @@ window.sb_saveStudent = async function (student) {
             const joiningDate = student.joiningDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
             // A. Update or Insert student WITHOUT clobbering existing PIN
+            // Note: school and joiningDate are preserved in LocalStorage and master_hub,
+            // but omitted from Supabase students table payload because they are not columns on the students table.
             const stuPayload = {
                 name: name,
                 class_name: className,
@@ -458,8 +460,6 @@ window.sb_saveStudent = async function (student) {
                 })(),
                 avatar: avatar,
                 phone: phone,
-                school: student.school || 'EduHome Campus',
-                joining_date: student.joiningDate || student.joining_date || new Date().toISOString().slice(0, 10),
                 streak: student.streak || 0,
                 accuracy: student.accuracy || 0,
                 tests_completed: student.tests_completed || 0,
@@ -508,10 +508,10 @@ window.sb_saveStudent = async function (student) {
                         class: rawClass.replace('Class ', '').trim(),
                         syllabus: student.syllabus || (student.school === 'CBSE' || /cbse/i.test(stuPayload.batch) ? 'CBSE' : 'State Syllabus'),
                         batch: stuPayload.batch,
-                        school: stuPayload.school,
+                        school: student.school || (idx >= 0 ? storedList[idx].school : 'EduHome Campus'),
                         phone: stuPayload.phone,
                         pin: stuPayload.pin || (existingStu && existingStu.pin) || (student.pin || ''),
-                        joiningDate: stuPayload.joining_date,
+                        joiningDate: joiningDate || student.joiningDate || (idx >= 0 ? storedList[idx].joiningDate : ''),
                         amount: String(student.amount != null ? student.amount : (idx >= 0 ? storedList[idx].amount : '')),
                         subjects: subjectsList
                     };
