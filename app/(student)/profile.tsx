@@ -291,7 +291,16 @@ export default function ProfileScreen() {
               onPress={() => {
                 if (item.title === 'Parent / Guardian') {
                   setParentModalVisible(true);
-                } else if (item.title === 'Personal Details' || item.title === 'Privacy & Security' || item.title === 'Learning Goals') {
+                } else if (item.title === 'Privacy & Security') {
+                  Alert.alert(
+                    'Privacy & Security Policy',
+                    'EduHome is committed to protecting student and family privacy. Read our official Privacy Policy online.',
+                    [
+                      { text: 'Open Privacy Policy', onPress: () => Linking.openURL('https://myeduhome.netlify.app/privacy-policy.html') },
+                      { text: 'Close', style: 'cancel' },
+                    ]
+                  );
+                } else if (item.title === 'Personal Details' || item.title === 'Learning Goals') {
                   openEditModal();
                 } else if (item.title === 'Notifications') {
                   router.push('/(student)/notifications' as any);
