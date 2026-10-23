@@ -791,14 +791,28 @@ export const DataService = {
     }
 
     try {
-      // Step 1: Validate account existence in database
+      // Step 1: Validate account existence in database by Roll Number OR Phone Number
+      const cleanPhone = trimmedRoll.replace(/[^0-9]/g, '').slice(-10);
       const queryPromise = supabase
         .from('students')
         .select('*')
         .ilike('roll_no', trimmedRoll)
-        .single();
+        .maybeSingle();
 
-      const { data, error } = (await withTimeout(queryPromise, 3000)) as any;
+      let { data, error } = (await withTimeout(queryPromise, 3000)) as any;
+
+      if (!data && cleanPhone.length === 10) {
+        const phoneQuery = supabase
+          .from('students')
+          .select('*')
+          .eq('phone', cleanPhone)
+          .limit(1);
+        const phoneRes = (await withTimeout(phoneQuery, 3000)) as any;
+        if (phoneRes?.data && phoneRes.data.length > 0) {
+          data = phoneRes.data[0];
+          error = null;
+        }
+      }
 
       if (data && !error) {
         // Step 2: Validate password against securely stored password/hash
@@ -851,8 +865,9 @@ export const DataService = {
       console.warn('[DataService] Database query error during login:', err);
 
       // Offline fallback: check cached roster if device has network outage
+      const cleanPhone = trimmedRoll.replace(/[^0-9]/g, '').slice(-10);
       const matchedEduStudent = EDUSYNC_STUDENTS.find(
-        (s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase()
+        (s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase() || (cleanPhone.length === 10 && s.phone === cleanPhone)
       );
       if (matchedEduStudent) {
         const isValid = verifyPassword(trimmedPin, matchedEduStudent.pin);
