@@ -7,6 +7,8 @@ Disallow: /*.pdf$
 Disallow: /*.doc$
 
 # Allow search engines to crawl all public pages including articles
+Allow: /privacy-policy.html
+Allow: /privacy.html
 Allow: /personalized-attention-kollam-tuition.html
 Allow: /*.html$
 

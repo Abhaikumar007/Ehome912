@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy - EduHome App | EduHome Tuition Centre</title>
+  <meta name="description" content="Official Privacy Policy for the EduHome Mobile Application and EduHome Tuition Centre services. Compliant with Google Play Store Developer Policies and user data protection standards.">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://myeduhome.netlify.app/privacy-policy.html">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #1A56DB;
+      --primary-dark: #1E429F;
+      --primary-light: #EBF5FF;
+      --accent: #0E9F6E;
+      --text-main: #1F2A37;
+      --text-muted: #4B5563;
+      --bg-light: #F9FAFB;
+      --border-color: #E5E7EB;
+      --card-bg: #FFFFFF;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      background-color: var(--bg-light);
+      line-height: 1.7;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Top Navigation Bar */
+    header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand img {
+      height: 38px;
+      width: auto;
+      border-radius: 6px;
+    }
+
+    .nav-links a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: background-color 0.2s;
+    }
+
+    .nav-links a:hover {
+      background-color: var(--primary-light);
+    }
+
+    /* Hero / Header Section */
+    .hero-banner {
+      background: linear-gradient(135deg, #1E429F 0%, #1A56DB 100%);
+      color: #FFFFFF;
+      padding: 56px 24px;
+      text-align: center;
+    }
+
+    .hero-banner h1 {
+      font-size: 2.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .hero-banner p {
+      font-size: 1.1rem;
+      color: #D1D5DB;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .meta-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    /* Main Content Layout */
+    .main-wrapper {
+      max-width: 1140px;
+      margin: 40px auto 80px;
+      padding: 0 24px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 40px;
+      align-items: start;
+    }
+
+    @media (max-width: 860px) {
+      .main-wrapper {
+        grid-template-columns: 1fr;
+        margin: 24px auto 48px;
+        gap: 24px;
+      }
+      .toc-card {
+        display: none;
+      }
+      .hero-banner h1 {
+        font-size: 1.85rem;
+      }
+    }
+
+    /* Table of contents sidebar */
+    .toc-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 24px;
+      position: sticky;
+      top: 90px;
+      box-shadow: var(--shadow);
+    }
+
+    .toc-card h3 {
+      font-size: 0.95rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .toc-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toc-list a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: color 0.2s, transform 0.2s;
+      display: block;
+      padding: 4px 0;
+    }
+
+    .toc-list a:hover {
+      color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    /* Content Area */
+    .content-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: var(--shadow);
+    }
+
+    @media (max-width: 600px) {
+      .content-card {
+        padding: 24px;
+      }
+    }
+
+    .policy-section {
+      margin-bottom: 36px;
+      scroll-margin-top: 100px;
+    }
+
+    .policy-section:last-child {
+      margin-bottom: 0;
+    }
+
+    h2 {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--primary-light);
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1F2937;
+      margin: 18px 0 8px;
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    ul, ol {
+      margin: 12px 0 16px 24px;
+      color: var(--text-muted);
+    }
+
+    li {
+      margin-bottom: 8px;
+    }
+
+    strong {
+      color: var(--text-main);
+    }
+
+    /* Highlight Notice Box */
+    .notice-box {
+      background-color: var(--primary-light);
+      border-left: 4px solid var(--primary);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .notice-box p {
+      color: #1E429F;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .success-box {
+      background-color: #DEF7EC;
+      border-left: 4px solid var(--accent);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+
+    .success-box p {
+      color: #03543F;
+      font-weight: 500;
+      margin: 0;
+    }
+
+    /* Data table */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0 24px;
+      font-size: 0.95rem;
+    }
+
+    .data-table th, .data-table td {
+      border: 1px solid var(--border-color);
+      padding: 12px 14px;
+      text-align: left;
+    }
+
+    .data-table th {
+      background-color: #F3F4F6;
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .data-table tr:nth-child(even) {
+      background-color: #F9FAFB;
+    }
+
+    /* Contact Card */
+    .contact-box {
+      background-color: #F9FAFB;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 24px;
+      margin-top: 16px;
+    }
+
+    .contact-item {
+      display: flex;
+      margin-bottom: 12px;
+      font-size: 0.95rem;
+    }
+
+    .contact-item strong {
+      width: 160px;
+      flex-shrink: 0;
+      color: #374151;
+    }
+
+    .contact-item a {
+      color: var(--primary);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .contact-item a:hover {
+      text-decoration: underline;
+    }
+
+    /* Footer */
+    footer {
+      background-color: #111827;
+      color: #9CA3AF;
+      padding: 36px 24px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+
+    footer a {
+      color: #E5E7EB;
+      text-decoration: none;
+      margin: 0 10px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    .footer-copy {
+      margin-top: 14px;
+      color: #6B7280;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation -->
+  <header>
+    <div class="nav-container">
+      <a href="index.html" class="brand">
+        <img src="images/logo2.png" alt="EduHome Logo" onerror="this.src='Edu Home.png';">
+        <span>EduHome</span>
+      </a>
+      <div class="nav-links">
+        <a href="index.html">← Back to Main Site</a>
+        <a href="private/login.html">Admin Portal</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Header -->
+  <div class="hero-banner">
+    <h1>Privacy Policy</h1>
+    <p>EduHome Mobile Application &amp; Academic Learning Platform</p>
+    <div class="meta-badges">
+      <span class="badge">App: com.eduhome.app</span>
+      <span class="badge">Version: 1.0.1</span>
+      <span class="badge">Effective Date: October 2026</span>
+      <span class="badge">Status: Live &amp; Active</span>
+    </div>
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="main-wrapper">
+    <!-- Sidebar Table of Contents -->
+    <aside class="toc-card">
+      <h3>Policy Navigation</h3>
+      <ul class="toc-list">
+        <li><a href="#overview">1. Overview &amp; Scope</a></li>
+        <li><a href="#data-collected">2. Information We Collect</a></li>
+        <li><a href="#how-we-use">3. How We Use Data</a></li>
+        <li><a href="#third-parties">4. Third-Party Services</a></li>
+        <li><a href="#no-sharing">5. Non-Disclosure &amp; Ads</a></li>
+        <li><a href="#security">6. Data Security Practices</a></li>
+        <li><a href="#retention-deletion">7. Retention &amp; Deletion</a></li>
+        <li><a href="#children">8. Children's Privacy (COPPA)</a></li>
+        <li><a href="#permissions">9. App Permissions</a></li>
+        <li><a href="#user-rights">10. Your Rights &amp; Choices</a></li>
+        <li><a href="#updates">11. Changes to This Policy</a></li>
+        <li><a href="#contact">12. Contact Information</a></li>
+      </ul>
+    </aside>
+
+    <!-- Main Content Articles -->
+    <main class="content-card">
+
+      <section id="overview" class="policy-section">
+        <h2>1. Overview &amp; Scope</h2>
+        <p>
+          Welcome to <strong>EduHome</strong>, developed and operated by <strong>EduHome Tuition Centre</strong> ("we", "us", or "our"), located in Kottarakkara, Kollam District, Kerala, India. We provide academic coaching, student evaluation, class scheduling, attendance tracking, and learning management services.
+        </p>
+        <p>
+          This Privacy Policy explains how our mobile application <strong>EduHome</strong> (Application ID: <code>com.eduhome.app</code>, available on the Google Play Store) and our affiliated web services collect, use, store, process, and protect your personal and academic information.
+        </p>
+        <div class="notice-box">
+          <p>
+            By downloading, installing, or accessing the EduHome App, or by enrolling as a student at EduHome Tuition Centre, you acknowledge and agree to the data collection and usage practices described in this Privacy Policy.
+          </p>
+        </div>
+      </section>
+
+      <section id="data-collected" class="policy-section">
+        <h2>2. Information We Collect</h2>
+        <p>
+          We collect only the minimal information strictly required to authenticate student accounts, deliver educational coaching, track academic performance, and facilitate communications between parents, students, and tutors.
+        </p>
+
+        <h3>A. Information Provided by Students and Parents</h3>
+        <ul>
+          <li><strong>Student Profile &amp; Identity:</strong> Student's full name, roll number / student ID, academic standard/grade (e.g. Class 10, Class 12), syllabus (CBSE or Kerala State Board), and assigned batch.</li>
+          <li><strong>Contact Details:</strong> Student mobile phone number and parent/guardian contact numbers for urgent tuition announcements and identity verification.</li>
+          <li><strong>Authentication Credentials:</strong> A private, 4-digit numeric login PIN securely assigned or updated to authenticate access to the student profile.</li>
+          <li><strong>Fee Payment Information:</strong> Payment reference numbers, receipt IDs, and transaction screenshots voluntarily uploaded by the user to verify coaching tuition payments. We <em>do not</em> collect or store payment card numbers, CVVs, or online banking passwords.</li>
+        </ul>
+
+        <h3>B. Academic &amp; Learning Records</h3>
+        <ul>
+          <li><strong>Attendance Records:</strong> Daily and monthly class attendance, subject session timestamps, and attendance status.</li>
+          <li><strong>Academic Performance:</strong> Practice quiz answers, test scores, ranks, accuracy percentages, and daily learning streaks.</li>
+          <li><strong>Selected Subjects:</strong> Enrolled subjects (e.g., Mathematics, Physics, Chemistry, Biology).</li>
+        </ul>
+
+        <h3>C. Technical &amp; Device Information (Collected Automatically)</h3>
+        <ul>
+          <li><strong>Device Attributes:</strong> Device manufacturer, hardware model, Android OS version, and screen dimensions for proper layout rendering.</li>
+          <li><strong>Push Notification Tokens:</strong> Firebase Cloud Messaging (FCM) registration tokens to deliver instant notifications regarding exam dates, revised timetables, and fee confirmations.</li>
+          <li><strong>Network Connectivity:</strong> Basic network state (Wi-Fi or cellular) to verify internet connectivity and manage offline synchronization.</li>
+        </ul>
+      </section>
+
+      <section id="how-we-use" class="policy-section">
+        <h2>3. How We Use Your Information</h2>
+        <p>We process user information strictly for legitimate educational and administrative purposes:</p>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Purpose</th>
+              <th>Data Used</th>
+              <th>Legal / Operational Basis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Account Authentication</strong></td>
+              <td>Roll No, 4-Digit PIN, Mobile Number</td>
+              <td>Verification of enrolled students</td>
+            </tr>
+            <tr>
+              <td><strong>Academic Tracking</strong></td>
+              <td>Exam scores, attendance, subjects</td>
+              <td>Delivering curriculum &amp; progress reports</td>
+            </tr>
+            <tr>
+              <td><strong>Class Alerts &amp; Timetables</strong></td>
+              <td>FCM Push Token, Phone Number</td>
+              <td>Sending timetable updates and alerts</td>
+            </tr>
+            <tr>
+              <td><strong>Fee Reconciliation</strong></td>
+              <td>Transaction IDs, Fee Receipts</td>
+              <td>Maintaining tuition payment records</td>
+            </tr>
+            <tr>
+              <td><strong>App Security &amp; Debugging</strong></td>
+              <td>Error logs, Device OS info</td>
+              <td>Ensuring app reliability &amp; preventing fraud</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="third-parties" class="policy-section">
+        <h2>4. Third-Party Infrastructure &amp; Service Providers</h2>
+        <p>
+          To provide a reliable, secure cloud experience, we work with trusted industry-leading infrastructure providers. These third-party services process data under strict data privacy agreements:
+        </p>
+        <ul>
+          <li>
+            <strong>Supabase (Supabase Inc.):</strong> Our secure cloud backend database and authentication provider. All student records, attendance, and progress data are encrypted in transit via SSL/TLS and stored securely on cloud infrastructure.
+            <br><small>Privacy Policy: <a href="https://supabase.com/privacy" target="_blank" rel="noopener">https://supabase.com/privacy</a></small>
+          </li>
+          <li>
+            <strong>Google Firebase Cloud Messaging (Google LLC):</strong> Used to deliver push notifications for critical class updates, exam reminders, and announcements to Android devices.
+            <br><small>Privacy Policy: <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">https://policies.google.com/privacy</a></small>
+          </li>
+          <li>
+            <strong>Netlify (Netlify Inc.):</strong> High-availability global CDN hosting for our web portal and policy documentation.
+            <br><small>Privacy Policy: <a href="https://www.netlify.com/privacy/" target="_blank" rel="noopener">https://www.netlify.com/privacy/</a></small>
+          </li>
+        </ul>
+      </section>
+
+      <section id="no-sharing" class="policy-section">
+        <h2>5. Non-Disclosure &amp; Zero Advertising Policy</h2>
+        <div class="success-box">
+          <p>
+            ✔ <strong>Zero Third-Party Advertising:</strong> The EduHome app does NOT display advertisements. We do not use Google AdMob, Unity Ads, Facebook Audience Network, or any other commercial ad SDKs.
+          </p>
+        </div>
+        <p>
+          <strong>We never sell, rent, license, or trade your personal or academic information to third parties, data brokers, or marketing companies.</strong> Data is shared solely with the infrastructure providers outlined above to operate the application.
+        </p>
+      </section>
+
+      <section id="security" class="policy-section">
+        <h2>6. Data Security Practices</h2>
+        <p>We implement rigorous organizational and technical security measures to protect user data:</p>
+        <ul>
+          <li><strong>Encryption in Transit:</strong> All data transmitted between the EduHome app and our cloud servers is encrypted using modern Transport Layer Security (TLS 1.2 / TLS 1.3 over HTTPS).</li>
+          <li><strong>Encrypted Device Storage:</strong> Sensitive credentials (such as authentication tokens and PINs) are stored on the user's device using hardware-backed Secure Storage (Android Keystore / <code>expo-secure-store</code>).</li>
+          <li><strong>Restricted Administrative Access:</strong> Access to student management databases is restricted to verified EduHome administrators using role-based access control and authenticated sessions.</li>
+        </ul>
+      </section>
+
+      <section id="retention-deletion" class="policy-section">
+        <h2>7. Data Retention &amp; Account Deletion Policy</h2>
+        <p>
+          In accordance with Google Play's User Data and Account Deletion policies, we provide a clear and transparent mechanism for data retention and complete data deletion:
+        </p>
+        <h3>Data Retention</h3>
+        <p>
+          Student academic, attendance, and fee records are retained for the duration of the student's active enrollment at EduHome Tuition Centre plus up to one (1) academic year following completion to allow academic transcripts and fee certifications to be issued upon request.
+        </p>
+
+        <h3>How to Request Account &amp; Data Deletion</h3>
+        <p>
+          Students or their parents/guardians may request complete deletion of their account, personal identifiers, login PINs, attendance history, and exam records at any time:
+        </p>
+        <ol>
+          <li>
+            <strong>Email Request:</strong> Send an email from your registered contact address to <a href="mailto:myeduhomecentre@gmail.com">myeduhomecentre@gmail.com</a> with the subject line <code>"Data Deletion Request - [Student Name / Roll Number]"</code>.
+          </li>
+          <li>
+            <strong>In-Person Request:</strong> Visit the EduHome administrative office at Kottathala Junction, Kottarakkara, and submit a written deletion request.
+          </li>
+        </ol>
+        <p>
+          <strong>Deletion Timeline:</strong> Upon receiving and verifying the request, all personal identification, authentication keys, and associated records will be permanently purged or anonymized within <strong>thirty (30) business days</strong>.
+        </p>
+      </section>
+
+      <section id="children" class="policy-section">
+        <h2>8. Children's Privacy (COPPA &amp; Family Policy Compliance)</h2>
+        <p>
+          EduHome provides academic coaching for middle, secondary, and higher secondary school students (typically between ages 12 and 18).
+        </p>
+        <ul>
+          <li>Student accounts are created only upon enrollment at EduHome Tuition Centre with parental or guardian awareness and consent.</li>
+          <li>We collect only the student data necessary to deliver curriculum, tests, and attendance services.</li>
+          <li>We do not profile children for commercial purposes, do not display advertisements, and do not track student activity across third-party applications.</li>
+          <li>Parents and guardians have the right to inspect their child's records, request corrections, or request deletion at any time by contacting our administration.</li>
+        </ul>
+      </section>
+
+      <section id="permissions" class="policy-section">
+        <h2>9. Android App Permissions Disclosed</h2>
+        <p>The EduHome Android application (<code>com.eduhome.app</code>) requests only standard functional permissions:</p>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Permission</th>
+              <th>Usage &amp; Justification</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>android.permission.INTERNET</code></td>
+              <td>Required to communicate securely with Supabase cloud servers for fetching timetables, tests, and student profile data.</td>
+            </tr>
+            <tr>
+              <td><code>android.permission.ACCESS_NETWORK_STATE</code></td>
+              <td>Used to detect active internet connections and handle offline graceful states.</td>
+            </tr>
+            <tr>
+              <td><code>android.permission.POST_NOTIFICATIONS</code></td>
+              <td>Required on Android 13+ to send reminders for upcoming classes, exam scores, and tuition announcements. (Optional; can be enabled or disabled in device settings).</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="user-rights" class="policy-section">
+        <h2>10. Your Rights &amp; Choices</h2>
+        <p>As a student or parent, you have the following rights regarding your personal information:</p>
+        <ul>
+          <li><strong>Right of Access:</strong> You can view your current personal details, attendance records, and payment history at any time through the app.</li>
+          <li><strong>Right of Rectification:</strong> If any detail (such as spelling of name, mobile number, or enrolled subjects) is incorrect, you may request an instant update via the admin desk or in-app support.</li>
+          <li><strong>Right to Erasure:</strong> You may request complete deletion of your records as detailed in Section 7.</li>
+          <li><strong>Notification Preferences:</strong> You can turn push notifications on or off at any time through your Android device settings.</li>
+        </ul>
+      </section>
+
+      <section id="updates" class="policy-section">
+        <h2>11. Updates to This Privacy Policy</h2>
+        <p>
+          We may update this Privacy Policy from time to time to reflect operational, technological, or legal developments. When updates are published, the "Effective Date" at the top and bottom of this page will be revised. For significant changes that affect user privacy rights, we will provide in-app notices or direct announcements via WhatsApp/SMS.
+        </p>
+      </section>
+
+      <section id="contact" class="policy-section">
+        <h2>12. Contact Information &amp; Data Protection</h2>
+        <p>
+          If you have questions, concerns, or requests regarding this Privacy Policy or our data protection practices, please contact our administrative team:
+        </p>
+
+        <div class="contact-box">
+          <div class="contact-item">
+            <strong>Organization:</strong>
+            <span>EduHome Tuition Centre</span>
+          </div>
+          <div class="contact-item">
+            <strong>Application:</strong>
+            <span>EduHome (com.eduhome.app)</span>
+          </div>
+          <div class="contact-item">
+            <strong>Email:</strong>
+            <a href="mailto:myeduhomecentre@gmail.com">myeduhomecentre@gmail.com</a>
+          </div>
+          <div class="contact-item">
+            <strong>Telephone / WhatsApp:</strong>
+            <a href="tel:+919072545116">+91 90725 45116</a>
+          </div>
+          <div class="contact-item">
+            <strong>Campus Address:</strong>
+            <span>Kottathala Junction, Near Sree Devi Thanneerpanthal Devi Temple, Kottarakkara, Kollam District, Kerala, India - 691507</span>
+          </div>
+          <div class="contact-item">
+            <strong>Official Website:</strong>
+            <a href="https://myeduhome.netlify.app" target="_blank" rel="noopener">https://myeduhome.netlify.app</a>
+          </div>
+          <div class="contact-item">
+            <strong>Privacy Policy URL:</strong>
+            <a href="https://myeduhome.netlify.app/privacy-policy.html">https://myeduhome.netlify.app/privacy-policy.html</a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-links">
+      <a href="index.html">Home</a>
+      <a href="privacy-policy.html">Privacy Policy</a>
+      <a href="https://wa.me/919072545116">Support</a>
+      <a href="private/login.html">Staff Login</a>
+    </div>
+    <p class="footer-copy">
+      © 2026 EduHome Tuition Centre. All Rights Reserved. Fully compliant with Google Play Console Developer Policies.
+    </p>
+  </footer>
+
+</body>
+</html>
