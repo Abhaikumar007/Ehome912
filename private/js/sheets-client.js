@@ -272,8 +272,9 @@ window.sb_loadFromCloud = async function () {
                         } else if (fr.loyalty_months && typeof fr.loyalty_months === 'object') {
                             cloudFee = String(fr.loyalty_months.__monthly_fee || fr.loyalty_months.fee_standard || '');
                         }
-                        if (!cloudFee && Number(fr.current_due) > 0) {
-                            cloudFee = String(fr.current_due);
+                        if (!cloudFee && Array.isArray(fr.recent_payments)) {
+                            const p = fr.recent_payments.find(x => x && Number(x.amount) > 0 && Number(x.amount) < 15000 && x.status !== 'pending_verification');
+                            if (p) cloudFee = String(p.amount);
                         }
                         if (cloudFee) {
                             st.amount = cloudFee;
@@ -452,11 +453,21 @@ window.sb_saveStudent = async function (student) {
                 name: name,
                 class_name: className,
                 batch: (() => {
-                    const syl = student.syllabus || (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch)) ? 'CBSE' : 'State Syllabus');
-                    let b = student.batch || '';
-                    if (!b || b === className) return `${className} (${syl})`;
-                    if (!b.includes(syl)) return `${b} (${syl})`;
-                    return b;
+                    let syl = student.syllabus;
+                    if (!syl) {
+                        if (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch) && !/state/i.test(student.batch))) {
+                            syl = 'CBSE';
+                        } else if (student.batch && /both/i.test(student.batch)) {
+                            syl = 'Both';
+                        } else if (student.batch && /cbse/i.test(student.batch)) {
+                            syl = 'CBSE';
+                        } else {
+                            syl = 'State Syllabus';
+                        }
+                    }
+                    const cleanClass = className.replace(/\s*\((State(\s+Syllabus)?|CBSE|Both)\)/gi, '').trim();
+                    if (syl === 'Both') return `${cleanClass} (Both)`;
+                    return `${cleanClass} (${syl})`;
                 })(),
                 avatar: avatar,
                 phone: phone,
@@ -832,17 +843,22 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                     currentDue = studentFee;
                     dueDate = '25 October 2026';
                     daysLeft = 22;
-                    status = 'due';
                 }
+            }
+
+            // Ensure loyalty_months maintains monthly fee metadata
+            const feeTagIdx = updatedLoyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+            if (feeTagIdx >= 0) {
+                updatedLoyalty[feeTagIdx] = { fee_standard: studentFee, __monthly_fee: studentFee };
+            } else {
+                updatedLoyalty.unshift({ fee_standard: studentFee, __monthly_fee: studentFee });
             }
 
             const { error: upErr } = await sb.from('fees_records').upsert({
                 roll_no: rollNo,
-                monthly_fee: studentFee,
                 current_due: currentDue,
                 due_date: dueDate,
                 days_left: daysLeft,
-                status: status,
                 months_paid_on_time: updatedLoyalty.length,
                 loyalty_months: updatedLoyalty,
                 recent_payments: updatedPayments,

@@ -137,7 +137,7 @@ const MASTER_STUDENTS_ROSTER = [
         "school": "Vendar",
         "phone": "919895423986",
         "joiningDate": "2026-04-18",
-        "amount": "3000",
+        "amount": "2000",
         "pin": "3232",
         "subjects": [
             "Physics",
@@ -1569,7 +1569,7 @@ if (document.getElementById('addStudentForm')) {
                     name,
                     class: studentClass,
                     syllabus: syllabusType,
-                    batch: `${classGradeStr} (${syllabusType})`,
+                    batch: syllabusType === "Both" ? `${classGradeStr} (Both)` : `${classGradeStr} (${syllabusType})`,
                     school,
                     phone,
                     pin: assignedPin,
@@ -1595,7 +1595,7 @@ if (document.getElementById('addStudentForm')) {
                 name,
                 class: studentClass,
                 syllabus: syllabusType,
-                batch: `${classGradeStr} (${syllabusType})`,
+                batch: syllabusType === "Both" ? `${classGradeStr} (Both)` : `${classGradeStr} (${syllabusType})`,
                 school,
                 phone,
                 pin: newPin,
@@ -1905,49 +1905,31 @@ if (document.getElementById('feesClassSelect')) {
             const rec = window._supabaseFeeMap.get(rollUpper);
             const pmts = Array.isArray(rec.recent_payments) ? [...rec.recent_payments] : [];
             const mShort = month.slice(0, 3).toUpperCase();
+            const monthlyFee = _resolveTrueMonthlyFee(student, rec);
+
             if (newStatus === 'Paid') {
                 if (!pmts.some(p => p.month === mShort || (p.fullMonth && p.fullMonth.includes(month)))) {
-                    pmts.push({
+                    pmts.unshift({
                         month: mShort,
                         fullMonth: month + ' ' + year,
-                        amount: Number(student?.amount) || 4000,
+                        amount: monthlyFee,
                         paidOn: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
                         status: 'Verified by Center Admin',
                         receiptNo: 'REC-' + year + '-' + mShort + '-' + Math.floor(1000 + Math.random() * 9000),
                         utr: 'ADMIN-DIRECT-TOGGLE'
                     });
                 }
-                // Recalculate current_due after adding this payment
-                const nowDate = new Date();
-                const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                const nowMonthIdx = nowDate.getMonth();
-                const paidMonths = new Set(pmts.map(p => p.month)); // short codes
-                let due = 0;
-                for (let mi = 0; mi <= nowMonthIdx; mi++) {
-                    const sh = months[mi].slice(0,3).toUpperCase();
-                    if (!paidMonths.has(sh)) due++;
-                }
-                rec.current_due = due * (Number(student?.amount) || 4000);
-                rec.due_date = due === 0 ? 'All Cleared' : ('25 ' + months[nowMonthIdx] + ' ' + nowDate.getFullYear());
-                rec.status = due === 0 ? 'paid' : 'due';
                 rec.recent_payments = pmts;
             } else {
                 rec.recent_payments = pmts.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
-                // Recalculate current_due after removing this payment
-                const nowDate2 = new Date();
-                const months2 = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-                const nowMonthIdx2 = nowDate2.getMonth();
-                const remainPmts = rec.recent_payments;
-                const paidMonths2 = new Set(remainPmts.map(p => p.month));
-                let due2 = 0;
-                for (let mi = 0; mi <= nowMonthIdx2; mi++) {
-                    const sh = months2[mi].slice(0,3).toUpperCase();
-                    if (!paidMonths2.has(sh)) due2++;
-                }
-                rec.current_due = due2 * (Number(student?.amount) || 4000);
-                rec.due_date = due2 === 0 ? 'All Cleared' : ('25 ' + months2[nowMonthIdx2] + ' ' + nowDate2.getFullYear());
-                rec.status = due2 === 0 ? 'paid' : 'due';
             }
+
+            // Recalculate current_due strictly from joining date
+            const calc = _computeStudentFeeDues(student, rec.recent_payments, monthlyFee);
+            rec.current_due = calc.currentDue;
+            rec.due_date = calc.dueDate;
+            rec.days_left = calc.daysLeft;
+            rec.status = calc.unpaidCount === 0 ? 'paid' : 'due';
         }
 
         loadFeeTable(); // Refresh UI immediately
@@ -1967,6 +1949,84 @@ if (document.getElementById('feesClassSelect')) {
 
     // Initial load
     loadFeeTable();
+}
+
+/**
+ * Fee helpers: resolve real monthly fee and calculate dues from student joining date
+ */
+function _resolveTrueMonthlyFee(student, recOrData) {
+    if (recOrData && Array.isArray(recOrData.loyalty_months)) {
+        const tag = recOrData.loyalty_months.find(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+        if (tag && Number(tag.__monthly_fee || tag.fee_standard) > 0) return Number(tag.__monthly_fee || tag.fee_standard);
+    } else if (recOrData && recOrData.loyalty_months && typeof recOrData.loyalty_months === 'object') {
+        const feeVal = Number(recOrData.loyalty_months.__monthly_fee || recOrData.loyalty_months.fee_standard);
+        if (feeVal > 0) return feeVal;
+    }
+    if (recOrData && Array.isArray(recOrData.recent_payments)) {
+        const p = recOrData.recent_payments.find(x => x && Number(x.amount) > 0 && Number(x.amount) < 15000 && x.status !== 'pending_verification');
+        if (p) return Number(p.amount);
+    }
+    const roll = String(student?.rollNo || student?.id || '').toUpperCase().trim();
+    const master = (typeof MASTER_STUDENTS_ROSTER !== 'undefined' ? MASTER_STUDENTS_ROSTER : []).find(m => (m.rollNo || m.id) === roll);
+    if (master && Number(master.amount) > 0) return Number(master.amount);
+    const stAmt = Number(student?.amount);
+    if (stAmt > 0 && stAmt < 15000) return stAmt;
+    return 2000;
+}
+
+function _computeStudentFeeDues(student, pmts, monthlyFee) {
+    const nowDate = new Date();
+    const nowKey = nowDate.getFullYear() * 12 + nowDate.getMonth();
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    
+    let startKey = nowDate.getFullYear() * 12;
+    let dueDay = 25;
+    if (student?.joiningDate) {
+        const jd = new Date(student.joiningDate);
+        if (!isNaN(jd.getTime())) {
+            startKey = jd.getFullYear() * 12 + jd.getMonth();
+            dueDay = jd.getDate() || 25;
+        }
+    }
+    
+    const paidList = Array.isArray(pmts) ? pmts : [];
+    let firstUnpaid = null;
+    let unpaidCount = 0;
+    for (let k = startKey; k <= nowKey; k++) {
+        const mLong = months[k % 12];
+        const mShort = mLong.slice(0, 3).toUpperCase();
+        const y = Math.floor(k / 12);
+        const isPaid = paidList.some(p => {
+            if (p.status === 'pending_verification') return false;
+            if (p.fullMonth && p.fullMonth.toLowerCase().includes(mLong.toLowerCase()) && p.fullMonth.includes(String(y))) return true;
+            if (p.month === mShort && (!p.fullMonth || p.fullMonth.includes(String(y)))) return true;
+            return false;
+        });
+        if (!isPaid) {
+            unpaidCount++;
+            if (firstUnpaid === null) firstUnpaid = k;
+        }
+    }
+    
+    const currentDue = unpaidCount * monthlyFee;
+    const dueDate = unpaidCount === 0 ? 'All Cleared' : (String(dueDay).padStart(2, '0') + ' ' + months[firstUnpaid % 12] + ' ' + Math.floor(firstUnpaid / 12));
+    let daysLeft = 0;
+    if (unpaidCount > 0 && firstUnpaid !== null) {
+        const targetDueYear = Math.floor(firstUnpaid / 12);
+        const targetDueMonth = firstUnpaid % 12;
+        const targetDateObj = new Date(targetDueYear, targetDueMonth, dueDay);
+        const todayMidnight = new Date(nowDate.getFullYear(), nowDate.getMonth(), nowDate.getDate());
+        daysLeft = Math.round((targetDateObj.getTime() - todayMidnight.getTime()) / 86400000);
+    }
+    
+    return {
+        currentDue,
+        dueDate,
+        daysLeft,
+        unpaidCount,
+        firstUnpaid,
+        monthlyFee
+    };
 }
 
 /**
@@ -1996,7 +2056,7 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
         return;
     }
 
-    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const monthlyAmt = _resolveTrueMonthlyFee(student, data);
     const mShort = month.slice(0,3).toUpperCase();
     let pmts = Array.isArray(data.recent_payments) ? [...data.recent_payments] : [];
 
@@ -2006,7 +2066,7 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
             pmts.unshift({
                 month: mShort,
                 fullMonth: month + ' ' + year,
-                amount: Number(student.amount) || 4000,
+                amount: monthlyAmt,
                 paidOn: new Date().toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }),
                 status: 'Verified by Center Admin',
                 receiptNo: 'ADMIN-TOGGLE-' + Date.now(),
@@ -2021,28 +2081,36 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
         });
     }
 
-    // Recalculate current_due based on how many months (Jan → now) are unpaid
-    const nowDate = new Date();
-    const nowMonthIdx = nowDate.getMonth();
-    const paidSet = new Set(pmts.map(p => p.month));
-    let due = 0;
-    for (let mi = 0; mi <= nowMonthIdx; mi++) {
-        const sh = months[mi].slice(0,3).toUpperCase();
-        if (!paidSet.has(sh)) due++;
-    }
-    const amount = Number(student.amount) || 4000;
-    const currentDue = due * amount;
-    const dueDate = due === 0 ? 'All Cleared' : ('25 ' + months[nowMonthIdx] + ' ' + nowDate.getFullYear());
-    const loyalty = pmts.filter(p => p.status !== 'pending_verification').length;
+    // Recalculate dues strictly from student's joining date
+    const calc = _computeStudentFeeDues(student, pmts, monthlyAmt);
+    const verifiedCount = pmts.filter(p => p.status !== 'pending_verification').length;
 
-    // Update Supabase
+    // Ensure loyalty_months is an array and carries __monthly_fee and earned_count
+    let updatedLoyalty = Array.isArray(data.loyalty_months) ? [...data.loyalty_months] : [];
+    const feeTagIdx = updatedLoyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+    if (feeTagIdx >= 0) {
+        updatedLoyalty[feeTagIdx] = { fee_standard: monthlyAmt, __monthly_fee: monthlyAmt };
+    } else {
+        updatedLoyalty.unshift({ fee_standard: monthlyAmt, __monthly_fee: monthlyAmt });
+    }
+    const countTagIdx = updatedLoyalty.findIndex(x => x && typeof x === 'object' && 'earned_count' in x);
+    if (countTagIdx >= 0) {
+        updatedLoyalty[countTagIdx] = { earned_count: verifiedCount };
+    } else {
+        updatedLoyalty.push({ earned_count: verifiedCount });
+    }
+
+    // Update Supabase (only existing schema columns)
     const { error: upErr } = await sb
         .from('fees_records')
         .update({
             recent_payments: pmts,
-            current_due: currentDue,
-            due_date: dueDate,
-            loyalty_months: loyalty
+            current_due: calc.currentDue,
+            due_date: calc.dueDate,
+            days_left: calc.daysLeft,
+            months_paid_on_time: verifiedCount,
+            loyalty_months: updatedLoyalty,
+            updated_at: new Date().toISOString()
         })
         .eq('roll_no', rollUpper);
 
@@ -2055,13 +2123,24 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
     if (window._supabaseFeeMap) {
         const rec = window._supabaseFeeMap.get(rollUpper) || {};
         rec.recent_payments = pmts;
-        rec.current_due = currentDue;
-        rec.due_date = dueDate;
-        rec.loyalty_months = loyalty;
+        rec.current_due = calc.currentDue;
+        rec.due_date = calc.dueDate;
+        rec.days_left = calc.daysLeft;
+        rec.months_paid_on_time = verifiedCount;
+        rec.loyalty_months = updatedLoyalty;
         window._supabaseFeeMap.set(rollUpper, rec);
     }
 
-    console.log('[sb_toggleFee] Synced', roll, month, newStatus, '→ due:', currentDue);
+    // Broadcast update to student mobile app
+    try {
+        await sb.channel('fee_realtime_broadcast').send({
+            type: 'broadcast',
+            event: 'fee_updated',
+            payload: { rollNo: rollUpper, currentDue: calc.currentDue, dueDate: calc.dueDate, monthlyFee: monthlyAmt }
+        });
+    } catch (be) { console.warn('[ToggleBroadcast]', be); }
+
+    console.log('[sb_toggleFee] Synced', roll, month, newStatus, '→ due:', calc.currentDue);
 };
 
 /**
@@ -2129,9 +2208,14 @@ window.loadSupabaseFeesData = async function() {
                             } else if (feeRec.loyalty_months && typeof feeRec.loyalty_months === 'object') {
                                 cf = String(feeRec.loyalty_months.__monthly_fee || feeRec.loyalty_months.fee_standard || '');
                             }
-                            if (!cf && Number(feeRec.current_due) > 0) cf = String(feeRec.current_due);
+                            if (!cf && Array.isArray(feeRec.recent_payments)) {
+                                const p = feeRec.recent_payments.find(x => x && Number(x.amount) > 0 && Number(x.amount) < 15000 && x.status !== 'pending_verification');
+                                if (p) cf = String(p.amount);
+                            }
                         }
-                        return cf || loc?.amount || '4000';
+                        const masterStudent = (typeof MASTER_STUDENTS_ROSTER !== 'undefined' ? MASTER_STUDENTS_ROSTER : []).find(m => (m.rollNo || m.id) === roll);
+                        const safeLocAmount = (Number(loc?.amount) > 0 && Number(loc?.amount) < 15000) ? String(loc.amount) : '';
+                        return cf || (masterStudent && masterStudent.amount) || safeLocAmount || '2000';
                     })(),
                     subjects: (loc && Array.isArray(loc.subjects) && loc.subjects.length > 0) ? loc.subjects : ['General']
                 };
@@ -2376,7 +2460,6 @@ window.quickMarkPaidUpToMonth = async function() {
                     roll_no: String(roll).trim(),
                     current_due: isCurrentCycleCovered ? 0 : monthlyFee,
                     due_date: isCurrentCycleCovered ? 'All Cleared' : '25 October 2026',
-                    status: isCurrentCycleCovered ? 'paid' : 'due',
                     days_left: isCurrentCycleCovered ? 0 : 24,
                     months_paid_on_time: Math.max(fRec?.months_paid_on_time || 0, endIdx + 1),
                     loyalty_months: existingLoyalty,
@@ -4034,7 +4117,15 @@ if (document.getElementById('studentListBody')) {
                 <td>
                     Class ${s.class}
                     ${(() => {
-                        const sSyl = s.syllabus || (s.batch && /cbse/i.test(s.batch) ? 'CBSE' : (s.school && /cbse/i.test(s.school) ? 'CBSE' : 'State Syllabus'));
+                        let sSyl = s.syllabus;
+                        if (!sSyl && s.batch) {
+                            if (/both/i.test(s.batch)) sSyl = 'Both';
+                            else if (/cbse/i.test(s.batch) && !/state/i.test(s.batch)) sSyl = 'CBSE';
+                            else if (/cbse/i.test(s.batch)) sSyl = 'CBSE';
+                            else sSyl = 'State Syllabus';
+                        }
+                        if (!sSyl && s.school && /cbse/i.test(s.school)) sSyl = 'CBSE';
+                        sSyl = sSyl || 'State Syllabus';
                         return sSyl === 'CBSE'
                             ? '<br><span class="badge" style="font-size:0.7rem; background-color:#e0f2fe; color:#0369a1; border:1px solid #bae6fd; margin-top:3px; padding:2px 6px;">CBSE</span>'
                             : '<br><span class="badge" style="font-size:0.7rem; background-color:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; margin-top:3px; padding:2px 6px;">State Syllabus</span>';
