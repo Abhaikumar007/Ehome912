@@ -63,7 +63,7 @@ const UPI_APPS: UpiAppConfig[] = [
 ];
 
 // Target Tuition Center UPI ID & Payee details (Hardcoded as requested)
-const HARDCODED_UPI_ID = 'devitintu12345@oksbi';
+const HARDCODED_UPI_ID = 'madhuakshay987@oksbi';
 const HARDCODED_PAYEE_NAME = 'EduHome Tuition Center';
 
 export default function FeesScreen() {

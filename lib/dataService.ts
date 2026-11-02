@@ -7,6 +7,7 @@ import {
   studyMaterials as mockMaterials,
 } from '../constants/mockData';
 import { EDUSYNC_STUDENTS, EDUSYNC_FEES } from './studentsRoster';
+import { isStudentEnrolledInSubject } from './teacherRoster';
 import {
   verifyPassword,
   hashPassword,
@@ -67,7 +68,8 @@ export interface StudentProfile {
   name: string;
   class: string;
   batch: string;
-  syllabus?: 'State Syllabus' | 'CBSE';
+  syllabus?: 'State Syllabus' | 'CBSE' | 'Both';
+  subjects?: string;
   avatar: string;
   photoUrl?: string;
   phone?: string;
@@ -78,6 +80,8 @@ export interface StudentProfile {
   testsCompleted: number;
   topPercent: number;
 }
+
+export { isStudentEnrolledInSubject };
 
 /**
  * Robust helper to extract and resolve target syllabus for any timetable class or test
@@ -145,14 +149,22 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
 
 /**
  * Robust helper to extract and resolve syllabus for a student
- * Returns 'State Syllabus' or 'CBSE'
+ * Returns 'State Syllabus', 'CBSE', or 'Both'
  */
-export function resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' {
-  if (student?.syllabus === 'CBSE' || student?.syllabus === 'State Syllabus') {
+export function resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' | 'Both' {
+  if (student?.syllabus === 'CBSE' || student?.syllabus === 'State Syllabus' || student?.syllabus === 'Both') {
     return student.syllabus;
   }
   const batchLower = (student?.batch || '').toLowerCase();
   const schoolLower = (student?.school || '').toLowerCase();
+
+  // If explicitly "both"
+  if (batchLower.includes('both') || schoolLower.includes('both')) return 'Both';
+
+  // Check if batch has legacy concatenated combo like "(State Syllabus) (CBSE)"
+  // The Admin bug appended (CBSE) to (State Syllabus), so the real target was CBSE!
+  if (batchLower.includes('cbse') && batchLower.includes('state')) return 'CBSE';
+
   if (batchLower.includes('cbse') || schoolLower.includes('cbse')) return 'CBSE';
   if (batchLower.includes('state') || schoolLower.includes('state')) return 'State Syllabus';
 
@@ -161,6 +173,53 @@ export function resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' 
   if (matched?.syllabus) return matched.syllabus;
 
   return 'State Syllabus';
+}
+
+/**
+ * Formats student class and syllabus cleanly for profile and headers:
+ * e.g. "Class 12 (CBSE)", "Class 12 (State Syllabus)", or "Class 12 (Both - CBSE & State)"
+ * Prevents repeating the class name ("Class 12 • Class 12 (...)")
+ */
+export function formatStudentDisplayClassAndSyllabus(student: any): string {
+  if (!student) return 'Class 12';
+  const rawClass = (student.class || student.class_name || 'Class 12').trim();
+  const className = rawClass.startsWith('Class') ? rawClass : `Class ${rawClass}`;
+  const syl = resolveStudentSyllabus(student);
+
+  if (syl === 'Both') {
+    return `${className} (Both - CBSE & State)`;
+  } else if (syl === 'CBSE') {
+    return `${className} (CBSE)`;
+  } else {
+    return `${className} (State Syllabus)`;
+  }
+}
+
+/**
+ * Returns a clean sanitized batch string for the student
+ * (e.g. "Class 12 (CBSE)" or custom batch like "Morning Batch")
+ */
+export function sanitizeStudentBatch(className: string, batch?: string, syllabus?: string): string {
+  const cleanClass = (className || 'Class 12').startsWith('Class') ? className : `Class ${className}`;
+  const rawBatch = (batch || '').trim();
+
+  // If batch contains corrupted combo like "(State Syllabus) (CBSE)"
+  const isCorrupted = /state/i.test(rawBatch) && /cbse/i.test(rawBatch);
+
+  // If batch is empty, default, or is just a class/syllabus string
+  const isGeneric = !rawBatch ||
+    rawBatch === cleanClass ||
+    isCorrupted ||
+    /^Class\s+\d+\s*\((State(\s+Syllabus)?|CBSE|Both)\)$/i.test(rawBatch);
+
+  if (isGeneric) {
+    if (syllabus === 'Both' || /both/i.test(rawBatch)) return `${cleanClass} (Both)`;
+    if (syllabus === 'CBSE' || /cbse/i.test(rawBatch)) return `${cleanClass} (CBSE)`;
+    return `${cleanClass} (State Syllabus)`;
+  }
+
+  // If it's a unique custom batch (e.g. "Batch A" or "Morning Batch")
+  return rawBatch;
 }
 
 export interface AcademicAlert {
@@ -712,31 +771,52 @@ export const DataService = {
         const batchLower = (data.batch || '').toLowerCase();
         const schoolLower = (data.school || '').toLowerCase();
         const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === String(targetRoll).toUpperCase());
-        const resolvedSyllabus: 'State Syllabus' | 'CBSE' =
-          data.syllabus ||
-          (batchLower.includes('cbse') ? 'CBSE' : batchLower.includes('state') ? 'State Syllabus' : undefined) ||
-          (schoolLower.includes('cbse') ? 'CBSE' : undefined) ||
-          matchedRoster?.syllabus ||
-          'State Syllabus';
+        
+        let resolvedSyllabus: 'State Syllabus' | 'CBSE' | 'Both' = 'State Syllabus';
+        if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
+          resolvedSyllabus = data.syllabus;
+        } else if (batchLower.includes('both') || schoolLower.includes('both')) {
+          resolvedSyllabus = 'Both';
+        } else if (batchLower.includes('cbse') && batchLower.includes('state')) {
+          // Corrupted batch string where CBSE was appended to State Syllabus
+          resolvedSyllabus = 'CBSE';
+        } else if (batchLower.includes('cbse') || schoolLower.includes('cbse')) {
+          resolvedSyllabus = 'CBSE';
+        } else if (matchedRoster?.syllabus) {
+          resolvedSyllabus = matchedRoster.syllabus;
+        }
+
+        const className = data.class_name || current?.class || 'Class 10';
+        const cleanBatch = sanitizeStudentBatch(className, data.batch, resolvedSyllabus);
 
         const studentCustomKey = `eduhome_student_custom_${String(targetRoll).trim().toUpperCase()}`;
         let localPhotoUrl = current?.photoUrl;
         let localAvatar = current?.avatar;
+        let localGoals = current?.goals;
         try {
           const savedCustom = await AppStorage.getItem(studentCustomKey);
           if (savedCustom) {
             const parsed = JSON.parse(savedCustom);
             if (parsed.photoUrl) localPhotoUrl = parsed.photoUrl;
             if (parsed.avatar) localAvatar = parsed.avatar;
+            if (parsed.goals && !parsed.goals.startsWith('Class ')) localGoals = parsed.goals;
           }
         } catch {}
+
+        let finalGoals = '';
+        if (localGoals && !localGoals.startsWith('Class ')) {
+          finalGoals = localGoals;
+        } else if (data.goals && !data.goals.startsWith('Class ') && data.goals !== data.class_name) {
+          finalGoals = data.goals;
+        }
 
         const updated: StudentProfile = {
           rollNo: data.roll_no || targetRoll,
           name: data.name || current?.name || targetRoll,
-          class: data.class_name || current?.class || 'Class 10',
-          batch: data.batch || data.class_name || current?.batch || 'Batch A',
+          class: className,
+          batch: cleanBatch,
           syllabus: resolvedSyllabus,
+          subjects: data.subjects || (Array.isArray(data.subjects) ? data.subjects.join(', ') : '') || matchedRoster?.subjects || current?.subjects || '',
           phone: data.phone || current?.phone || '9876543210',
           avatar: localAvatar || data.avatar || current?.avatar || 'ST',
           photoUrl: localPhotoUrl || current?.photoUrl || undefined,
@@ -744,7 +824,7 @@ export const DataService = {
           accuracy: data.accuracy ?? current?.accuracy ?? 0,
           testsCompleted: data.tests_completed ?? current?.testsCompleted ?? 0,
           topPercent: data.top_percent ?? current?.topPercent ?? 0,
-          goals: data.class_name || current?.goals || '',
+          goals: finalGoals,
         };
         await this.saveCurrentStudent(updated);
         return updated;
@@ -828,25 +908,37 @@ export const DataService = {
         const batchLower = (data.batch || '').toLowerCase();
         const schoolLower = (data.school || '').toLowerCase();
         const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase());
-        const resolvedSyllabus: 'State Syllabus' | 'CBSE' =
-          data.syllabus ||
-          (batchLower.includes('cbse') ? 'CBSE' : batchLower.includes('state') ? 'State Syllabus' : undefined) ||
-          (schoolLower.includes('cbse') ? 'CBSE' : undefined) ||
-          matchedRoster?.syllabus ||
-          'State Syllabus';
+        
+        let resolvedSyllabus: 'State Syllabus' | 'CBSE' | 'Both' = 'State Syllabus';
+        if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
+          resolvedSyllabus = data.syllabus;
+        } else if (batchLower.includes('both') || schoolLower.includes('both')) {
+          resolvedSyllabus = 'Both';
+        } else if (batchLower.includes('cbse') && batchLower.includes('state')) {
+          // Corrupted batch string where CBSE was appended to State Syllabus
+          resolvedSyllabus = 'CBSE';
+        } else if (batchLower.includes('cbse') || schoolLower.includes('cbse')) {
+          resolvedSyllabus = 'CBSE';
+        } else if (matchedRoster?.syllabus) {
+          resolvedSyllabus = matchedRoster.syllabus;
+        }
+
+        const className = data.class_name || 'Class 10';
+        const cleanBatch = sanitizeStudentBatch(className, data.batch, resolvedSyllabus);
 
         const student: StudentProfile = {
           id: data.id,
           rollNo: data.roll_no,
           name: data.name,
-          class: data.class_name,
-          batch: data.batch,
+          class: className,
+          batch: cleanBatch,
           syllabus: resolvedSyllabus,
+          subjects: data.subjects || (Array.isArray(data.subjects) ? data.subjects.join(', ') : '') || matchedRoster?.subjects || '',
           avatar: data.avatar || 'ST',
           photoUrl: data.photo_url || undefined,
           phone: data.phone || '9876543210',
           email: data.email || `${data.roll_no.toLowerCase()}@eduhome.ac.in`,
-          goals: data.goals || data.class_name || '',
+          goals: data.goals && !data.goals.startsWith('Class ') && data.goals !== data.class_name ? data.goals : '',
           streak: data.streak ?? 0,
           accuracy: data.accuracy ?? 0,
           testsCompleted: data.tests_completed ?? 0,
@@ -879,6 +971,7 @@ export const DataService = {
             class: matchedEduStudent.class,
             batch: matchedEduStudent.batch,
             syllabus: matchedEduStudent.syllabus || 'State Syllabus',
+            subjects: matchedEduStudent.subjects || '',
             avatar: matchedEduStudent.avatar,
             streak: matchedEduStudent.streak || 0,
             accuracy: matchedEduStudent.accuracy || 0,
@@ -886,7 +979,7 @@ export const DataService = {
             topPercent: matchedEduStudent.topPercent || 0,
             phone: matchedEduStudent.phone,
             email: `${matchedEduStudent.name.toLowerCase().replace(/\s+/g, '.')}@eduhome.ac.in`,
-            goals: matchedEduStudent.class,
+            goals: '',
           };
           await this.restoreStudentCustomizations(student);
           await this.saveCurrentStudent(student);
@@ -987,25 +1080,37 @@ export const DataService = {
     return { success: true, student: mergedStudent };
   },
 
-  // Fetch Classes with Cache & 2.5s Timeout — Filtered strictly by Student Syllabus
-  async getClasses(rollNo: string, studentClass?: string, studentSyllabus?: string) {
+  // Fetch Classes with Cache & 2.5s Timeout — Filtered strictly by Student Syllabus and Assigned Subjects
+  async getClasses(
+    rollNo: string,
+    studentClass?: string,
+    studentSyllabus?: string,
+    studentSubjects?: string,
+    forceFresh: boolean = false
+  ) {
     let effectiveSyllabus = studentSyllabus;
-    if (!effectiveSyllabus) {
+    let effectiveSubjects = studentSubjects;
+
+    if (!effectiveSyllabus || !effectiveSubjects) {
       try {
         const cur = await this.getCurrentStudent();
-        if (cur && cur.rollNo === rollNo && cur.syllabus) {
-          effectiveSyllabus = cur.syllabus;
-        } else {
+        if (cur && cur.rollNo === rollNo) {
+          if (!effectiveSyllabus && cur.syllabus) effectiveSyllabus = cur.syllabus;
+          if (!effectiveSubjects && cur.subjects) effectiveSubjects = cur.subjects;
+        }
+        if (!effectiveSyllabus || !effectiveSubjects) {
           const r = EDUSYNC_STUDENTS.find((s) => s.rollNo === rollNo);
-          effectiveSyllabus = r?.syllabus || 'State Syllabus';
+          if (!effectiveSyllabus) effectiveSyllabus = r?.syllabus || 'State Syllabus';
+          if (!effectiveSubjects) effectiveSubjects = r?.subjects;
         }
       } catch {
-        effectiveSyllabus = 'State Syllabus';
+        if (!effectiveSyllabus) effectiveSyllabus = 'State Syllabus';
       }
     }
 
-    const cacheKey = `classes_${rollNo}_${effectiveSyllabus}`;
-    const cached = await getCached<any[]>(cacheKey);
+    const cleanSubKey = (effectiveSubjects || 'all').replace(/[^a-zA-Z0-9]/g, '_');
+    const cacheKey = `classes_${rollNo}_${effectiveSyllabus}_${cleanSubKey}`;
+    const cached = forceFresh ? null : await getCached<any[]>(cacheKey);
 
     try {
       const cleanClass = (studentClass || '').replace(/[^0-9]/g, '');
@@ -1025,7 +1130,7 @@ export const DataService = {
         // State Syllabus timetable entries appear ONLY for State Syllabus students
         // CBSE timetable entries appear ONLY for CBSE students
         // Entries assigned to Both appear for students from both syllabuses
-        const syllabusFiltered = data.filter((c: any) => {
+        let syllabusFiltered = data.filter((c: any) => {
           const target = resolveClassTargetSyllabus(c);
           if (target === 'Both') return true;
           if (effectiveSyllabus === 'CBSE') {
@@ -1034,6 +1139,13 @@ export const DataService = {
             return target === 'State Syllabus';
           }
         });
+
+        // Filter strictly by student's assigned subjects:
+        if (effectiveSubjects && effectiveSubjects.trim()) {
+          syllabusFiltered = syllabusFiltered.filter((c: any) =>
+            isStudentEnrolledInSubject(effectiveSubjects, c.subject)
+          );
+        }
 
         // Deduplicate so each subject on a given date appears EXACTLY ONCE (latest schedule takes precedence)
         const seen = new Set<string>();
@@ -1074,11 +1186,16 @@ export const DataService = {
     if (cached && Array.isArray(cached)) {
       const isOldFakeMock = cached.some((c) => c.id === '1' && c.time === '5:00 PM – 6:00 PM');
       if (!isOldFakeMock) {
-        const filteredCached = cached.filter((c: any) => {
+        let filteredCached = cached.filter((c: any) => {
           const target = resolveClassTargetSyllabus(c);
           if (target === 'Both') return true;
           return effectiveSyllabus === 'CBSE' ? target === 'CBSE' : target === 'State Syllabus';
         });
+        if (effectiveSubjects && effectiveSubjects.trim()) {
+          filteredCached = filteredCached.filter((c: any) =>
+            isStudentEnrolledInSubject(effectiveSubjects, c.subject)
+          );
+        }
         const seen = new Set<string>();
         const list = [...filteredCached].reverse().filter((c: any) => {
           const normSubject = (c.subject || '').trim().toLowerCase();
@@ -1256,10 +1373,10 @@ export const DataService = {
     return [];
   },
 
-  // Fetch Attendance with Cache & 2.5s Timeout
-  async getAttendance(rollNo: string) {
+  // Fetch Attendance with Cache & 2.5s Timeout (supports forceFresh to bypass cache)
+  async getAttendance(rollNo: string, forceFresh = false) {
     const cacheKey = `attendance_${rollNo}`;
-    const cached = await getCached<any>(cacheKey);
+    const cached = forceFresh ? null : await getCached<any>(cacheKey);
 
     try {
       const query = supabase
@@ -1394,27 +1511,29 @@ export const DataService = {
           if (feeVal > 0) resolvedMonthlyFee = feeVal;
         }
 
-        // 2. If unpaid and current_due exists in Supabase
-        if (!resolvedMonthlyFee && Number(data.current_due) > 0) {
-          if (unpaidCount > 1 && Number(data.current_due) % unpaidCount === 0) {
-            resolvedMonthlyFee = Number(data.current_due) / unpaidCount;
-          } else if (unpaidCount <= 1) {
-            resolvedMonthlyFee = Number(data.current_due);
-          }
+        // 2. Check student roster fee
+        if (!resolvedMonthlyFee && Number(studentFeeInfo?.monthlyFee) > 0) {
+          resolvedMonthlyFee = Number(studentFeeInfo.monthlyFee);
         }
 
-        // 3. Fallback to studentFeeInfo roster or recent_payments
-        if (!resolvedMonthlyFee) {
-          resolvedMonthlyFee = Number(studentFeeInfo.monthlyFee) || 0;
-        }
+        // 3. Check regular payment history (< 15000)
         if (!resolvedMonthlyFee && Array.isArray(data.recent_payments) && data.recent_payments.length > 0) {
-          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0);
+          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0 && Number(pmt.amount) < 15000 && pmt.status !== 'pending_verification');
           if (p && Number(p.amount) > 0) {
             resolvedMonthlyFee = Number(p.amount);
           }
         }
+
+        // 4. Safe fallback: if current_due divided by unpaidCount yields a realistic monthly fee
+        if (!resolvedMonthlyFee && Number(data.current_due) > 0) {
+          const est = unpaidCount > 1 ? Number(data.current_due) / unpaidCount : Number(data.current_due);
+          if (est > 0 && est <= 10000) {
+            resolvedMonthlyFee = est;
+          }
+        }
+
         if (!resolvedMonthlyFee) {
-          resolvedMonthlyFee = 4000;
+          resolvedMonthlyFee = 2000;
         }
 
         // Due date of the month being paid = joining day of that month
@@ -1442,7 +1561,7 @@ export const DataService = {
           overdueMonths: unpaidCount,
           isAdvancePayment: isAdvance,
           subjects: studentFeeInfo.subjects,
-          upiId: 'devitintu12345@oksbi',
+          upiId: 'madhuakshay987@oksbi',
           payeeName: 'EduHome Tuition Center',
           loyaltyMonths: data.loyalty_months || mockFees.loyaltyMonths,
           monthsPaidOnTime: data.months_paid_on_time ?? (isPaid ? 10 : 8),
@@ -1543,7 +1662,7 @@ export const DataService = {
       studentName,
       studentClass,
       amount: feeDueAmount,
-      upiId: 'devitintu12345@oksbi',
+      upiId: 'madhuakshay987@oksbi',
       utr: updated.utr,
       screenshot: screenshot || null,
       submittedAt: updated.submittedAt,
@@ -2226,6 +2345,14 @@ export const DataService = {
     return isAlertVisibleOnDate(item, targetDate);
   },
 
+  resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' | 'Both' {
+    return resolveStudentSyllabus(student);
+  },
+
+  formatStudentDisplayClassAndSyllabus(student: any): string {
+    return formatStudentDisplayClassAndSyllabus(student);
+  },
+
   extractAlertStartDate(item: any): string | null {
     return extractAlertStartDate(item);
   },
@@ -2296,15 +2423,42 @@ export const DataService = {
     meta?: SessionAttendanceMeta
   ) {
     const cacheKey = `attendance_${rollNo}`;
-    const existing = (await getCached<any>(cacheKey)) || { overall: 0, attended: 0, total: 0, history: [], todaySubjects: [] };
+    let existing = await getCached<any>(cacheKey);
+
+    // If local cache lacks history, fetch remote record from Supabase to preserve student's past attendance
+    if (!existing || !existing.history || existing.history.length === 0) {
+      try {
+        const { data: remoteData } = await withTimeout(
+          supabase.from('attendance_records').select('*').eq('roll_no', rollNo).maybeSingle(),
+          2000
+        ) as any;
+        if (remoteData) {
+          existing = {
+            overall: remoteData.overall || 0,
+            attended: remoteData.attended || 0,
+            total: remoteData.total || 0,
+            history: Array.isArray(remoteData.history) ? remoteData.history : [],
+            todaySubjects: Array.isArray(remoteData.today_subjects) ? remoteData.today_subjects : [],
+          };
+        }
+      } catch {
+        // network fallback
+      }
+    }
+
+    if (!existing) {
+      existing = { overall: 0, attended: 0, total: 0, history: [], todaySubjects: [] };
+    }
 
     const timeSlotStr = meta?.timeSlot || 'Class Session';
     const classIdStr = meta?.classId || '';
     const sessionTypeStr = meta?.sessionType || 'Regular Class';
+    const targetClassDate = meta?.classDate || parseDateToIso(date) || new Date().toISOString().slice(0, 10);
 
     // Format entry
     const historyEntry = {
       date,
+      classDate: targetClassDate,
       subjects: subject,
       time: timeSlotStr,
       classId: classIdStr,
@@ -2314,40 +2468,55 @@ export const DataService = {
       class: classLabel,
     };
 
-    // Filter duplicate session entry: only replace if matching the exact same session slot (classId or date+subject+timeSlot)
-    const isSameHistorySession = (h: any) => {
-      if (h.date !== date) return false;
-      if (classIdStr && h.classId) {
-        return h.classId === classIdStr;
-      }
-      const sameSub = (h.subjects || h.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
-      if (!sameSub) return false;
-      if (timeSlotStr !== 'Class Session' && h.time && h.time !== 'Class Session') {
-        return h.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
-      }
-      return timeSlotStr === 'Class Session' || !h.time || h.time === 'Class Session';
+    const normSub = (s: string) => {
+      const lower = (s || '').toLowerCase().trim();
+      if (lower.includes('math')) return 'mathematics';
+      if (lower.includes('phys')) return 'physics';
+      if (lower.includes('chem')) return 'chemistry';
+      if (lower.includes('bio')) return 'biology';
+      if (lower.includes('comp') || /\bcs\b/i.test(lower)) return 'computer';
+      return lower;
     };
 
-    const prevHistory = (existing.history || []).filter((h: any) => !isSameHistorySession(h));
+    const normTime = (t: string) => {
+      if (!t) return '';
+      return t.split('•')[0].split('(')[0].trim().toLowerCase();
+    };
+
+    const isSameSession = (entry: any) => {
+      if (classIdStr && entry.classId && entry.classId === classIdStr) {
+        return true;
+      }
+      if (classIdStr && entry.classId && entry.classId !== classIdStr) {
+        return false;
+      }
+      const entryClassDate = entry.classDate || entry.class_date || parseDateToIso(entry.date);
+      if (targetClassDate && entryClassDate && targetClassDate !== entryClassDate) {
+        return false;
+      }
+      if (entry.date && date && entry.date !== date && !targetClassDate) {
+        return false;
+      }
+      const entrySub = normSub(entry.subjects || entry.subject || '');
+      const targetSub = normSub(subject);
+      if (entrySub && targetSub && entrySub !== targetSub && !entrySub.includes(targetSub) && !targetSub.includes(entrySub)) {
+        return false;
+      }
+      const entryTime = normTime(entry.time || '');
+      const targetTime = normTime(timeSlotStr);
+      if (targetTime && targetTime !== 'class session' && entryTime && entryTime !== 'class session') {
+        return entryTime === targetTime || entryTime.includes(targetTime) || targetTime.includes(entryTime);
+      }
+      return true;
+    };
+
+    const prevHistory = (existing.history || []).filter((h: any) => !isSameSession(h));
     const history = [historyEntry, ...prevHistory].slice(0, 60);
-    const attended = history.filter((h: any) => h.status === 'full').length;
+    const attended = history.filter((h: any) => h.status === 'full' || h.status === 'present' || h.score === '1/1').length;
     const total = history.length;
     const overall = total > 0 ? Math.round((attended / total) * 100) : 0;
 
-    // Update today's subjects / active day sessions
-    const isSameTodaySession = (s: any) => {
-      if (classIdStr && s.classId) {
-        return s.classId === classIdStr;
-      }
-      const sameSub = (s.subject || '').trim().toLowerCase() === subject.trim().toLowerCase();
-      if (!sameSub) return false;
-      if (timeSlotStr !== 'Class Session' && s.time && s.time !== 'Class Session') {
-        return s.time.trim().toLowerCase() === timeSlotStr.trim().toLowerCase();
-      }
-      return timeSlotStr === 'Class Session' || !s.time || s.time === 'Class Session';
-    };
-
-    const prevTodaySubjects = (existing.todaySubjects || []).filter((s: any) => !isSameTodaySession(s));
+    const prevTodaySubjects = (existing.todaySubjects || []).filter((s: any) => !isSameSession(s));
     const todaySubjects = [
       {
         id: classIdStr || `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -2357,6 +2526,7 @@ export const DataService = {
         sessionType: sessionTypeStr,
         status: status === 'P' ? 'present' : 'absent',
         date,
+        classDate: targetClassDate,
       },
       ...prevTodaySubjects,
     ];
@@ -2364,7 +2534,7 @@ export const DataService = {
     const updated = { ...existing, overall, attended, total, history, todaySubjects };
     await setCached(cacheKey, updated);
 
-    // 1. Sync to Supabase attendance_records matching table columns
+    // Sync to Supabase attendance_records matching table columns
     try {
       await supabase.from('attendance_records').upsert({
         roll_no: rollNo,
@@ -2382,7 +2552,7 @@ export const DataService = {
     return updated;
   },
 
-  // Batch save attendance for a full class (from faculty submit)
+  // Batch save attendance for a full class (from faculty submit) -> preserves history & fast atomic upsert
   async saveBatchAttendance(
     students: { rollNo: string; name: string; status: 'P' | 'A' }[],
     date: string,
@@ -2390,9 +2560,164 @@ export const DataService = {
     classLabel: string,
     meta?: SessionAttendanceMeta
   ) {
-    for (const stu of students) {
-      await this.saveAttendance(stu.rollNo, date, subject, classLabel, stu.status, meta);
+    if (!students || students.length === 0) return [];
+
+    const rollNos = students.map((s) => s.rollNo);
+    const remoteMap = new Map<string, any>();
+    try {
+      const { data: remoteData } = await withTimeout(
+        supabase.from('attendance_records').select('*').in('roll_no', rollNos),
+        3000
+      ) as any;
+      if (Array.isArray(remoteData)) {
+        remoteData.forEach((rec) => {
+          if (rec && rec.roll_no) remoteMap.set(rec.roll_no.toUpperCase(), rec);
+        });
+      }
+    } catch (e) {
+      console.warn('[Batch Attendance] Supabase fetch warning, using local cache:', e);
     }
+
+    const timeSlotStr = meta?.timeSlot || 'Class Session';
+    const classIdStr = meta?.classId || '';
+    const sessionTypeStr = meta?.sessionType || 'Regular Class';
+    const targetClassDate = meta?.classDate || parseDateToIso(date) || new Date().toISOString().slice(0, 10);
+
+    const normSub = (s: string) => {
+      const lower = (s || '').toLowerCase().trim();
+      if (lower.includes('math')) return 'mathematics';
+      if (lower.includes('phys')) return 'physics';
+      if (lower.includes('chem')) return 'chemistry';
+      if (lower.includes('bio')) return 'biology';
+      if (lower.includes('comp') || /\bcs\b/i.test(lower)) return 'computer';
+      return lower;
+    };
+
+    const normTime = (t: string) => {
+      if (!t) return '';
+      return t.split('•')[0].split('(')[0].trim().toLowerCase();
+    };
+
+    const isSameSession = (entry: any) => {
+      if (classIdStr && entry.classId && entry.classId === classIdStr) {
+        return true;
+      }
+      if (classIdStr && entry.classId && entry.classId !== classIdStr) {
+        return false;
+      }
+      const entryClassDate = entry.classDate || entry.class_date || parseDateToIso(entry.date);
+      if (targetClassDate && entryClassDate && targetClassDate !== entryClassDate) {
+        return false;
+      }
+      if (entry.date && date && entry.date !== date && !targetClassDate) {
+        return false;
+      }
+      const entrySub = normSub(entry.subjects || entry.subject || '');
+      const targetSub = normSub(subject);
+      if (entrySub && targetSub && entrySub !== targetSub && !entrySub.includes(targetSub) && !targetSub.includes(entrySub)) {
+        return false;
+      }
+      const entryTime = normTime(entry.time || '');
+      const targetTime = normTime(timeSlotStr);
+      if (targetTime && targetTime !== 'class session' && entryTime && entryTime !== 'class session') {
+        return entryTime === targetTime || entryTime.includes(targetTime) || targetTime.includes(entryTime);
+      }
+      return true;
+    };
+
+    const upsertBatch: any[] = [];
+    const results: any[] = [];
+
+    for (const stu of students) {
+      const cacheKey = `attendance_${stu.rollNo}`;
+      let existing = await getCached<any>(cacheKey);
+      const remote = remoteMap.get(stu.rollNo.toUpperCase());
+
+      // If local cache lacks history, use remote record to ensure past days are never lost
+      if (!existing || !existing.history || existing.history.length === 0) {
+        if (remote) {
+          existing = {
+            overall: remote.overall || 0,
+            attended: remote.attended || 0,
+            total: remote.total || 0,
+            history: Array.isArray(remote.history) ? remote.history : [],
+            todaySubjects: Array.isArray(remote.today_subjects) ? remote.today_subjects : [],
+          };
+        }
+      } else if (remote && Array.isArray(remote.history) && remote.history.length > existing.history.length) {
+        existing = {
+          overall: remote.overall || 0,
+          attended: remote.attended || 0,
+          total: remote.total || 0,
+          history: remote.history,
+          todaySubjects: Array.isArray(remote.today_subjects) ? remote.today_subjects : existing.todaySubjects,
+        };
+      }
+
+      if (!existing) {
+        existing = { overall: 0, attended: 0, total: 0, history: [], todaySubjects: [] };
+      }
+
+      const historyEntry = {
+        date,
+        classDate: targetClassDate,
+        subjects: subject,
+        time: timeSlotStr,
+        classId: classIdStr,
+        sessionType: sessionTypeStr,
+        score: stu.status === 'P' ? '1/1' : '0/1',
+        status: stu.status === 'P' ? 'full' : 'absent',
+        class: classLabel,
+      };
+
+      const prevHistory = (existing.history || []).filter((h: any) => !isSameSession(h));
+      const history = [historyEntry, ...prevHistory].slice(0, 60);
+      const attended = history.filter((h: any) => h.status === 'full' || h.status === 'present' || h.score === '1/1').length;
+      const total = history.length;
+      const overall = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+      const prevTodaySubjects = (existing.todaySubjects || []).filter((s: any) => !isSameSession(s));
+      const todaySubjects = [
+        {
+          id: classIdStr || `att-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          classId: classIdStr,
+          subject,
+          time: timeSlotStr,
+          sessionType: sessionTypeStr,
+          status: stu.status === 'P' ? 'present' : 'absent',
+          date,
+          classDate: targetClassDate,
+        },
+        ...prevTodaySubjects,
+      ];
+
+      const updated = { ...existing, overall, attended, total, history, todaySubjects };
+      await setCached(cacheKey, updated);
+      results.push({ rollNo: stu.rollNo, ...updated });
+
+      upsertBatch.push({
+        roll_no: stu.rollNo,
+        overall,
+        attended,
+        total,
+        today_subjects: todaySubjects,
+        history,
+        updated_at: new Date().toISOString(),
+      });
+    }
+
+    if (upsertBatch.length > 0) {
+      try {
+        const { error: upsertErr } = await supabase.from('attendance_records').upsert(upsertBatch, { onConflict: 'roll_no' });
+        if (upsertErr) {
+          console.warn('[Batch Attendance] Error batch saving to Supabase:', upsertErr);
+        }
+      } catch (e) {
+        console.warn('[Batch Attendance] Error batch saving to Supabase:', e);
+      }
+    }
+
+    return results;
   },
 
   // ─── TESTS & EXAM PAPERS MANAGEMENT ──────────────────────────────────────────

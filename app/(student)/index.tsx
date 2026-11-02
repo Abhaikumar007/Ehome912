@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { useAuth } from '../../lib/authContext';
-import { DataService, compareClassTimes, resolveSessionType, resolveClassTargetSyllabus } from '../../lib/dataService';
+import { DataService, compareClassTimes, resolveSessionType, resolveClassTargetSyllabus, isStudentEnrolledInSubject, parseDateToIso } from '../../lib/dataService';
 import { todaysClasses as defaultClasses, attendanceData as defaultAtt, feesData as defaultFees } from '../../constants/mockData';
 import { supabase } from '../../lib/supabase';
 
@@ -260,14 +260,14 @@ export default function DashboardScreen() {
 
   const rollNo = student?.rollNo || '';
 
-  const loadData = async () => {
+  const loadData = async (forceFresh = false) => {
     setGreeting(getDynamicGreeting());
     try {
       const [cls, anns, att, fees, alert, opinions, notifs, pubDates] = await Promise.all([
-        DataService.getClasses(rollNo, student?.class, student?.syllabus),
-        DataService.getAnnouncements(false, student?.class, true, student?.syllabus),
-        DataService.getAttendance(rollNo),
-        DataService.getFees(rollNo),
+        DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, forceFresh),
+        DataService.getAnnouncements(forceFresh, student?.class, true, student?.syllabus),
+        DataService.getAttendance(rollNo, forceFresh),
+        DataService.getFees(rollNo, forceFresh),
         DataService.getAcademicAlert(student?.class, student?.syllabus),
         DataService.getStudentTeacherOpinions(rollNo),
         DataService.getNotifications(rollNo, student?.class, student?.syllabus),
@@ -304,13 +304,13 @@ export default function DashboardScreen() {
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records', filter: `roll_no=eq.${rollNo}` }, () => {
-        DataService.getAttendance(rollNo).then((att) => {
+        DataService.getAttendance(rollNo, true).then((att) => {
           if (att) setAttSummary(att);
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
         console.log('[Realtime] Classes change detected in Supabase');
-        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+        DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, true).then((cls) => {
           if (cls) setClasses(cls);
         });
         DataService.getPublishedTimetableDates().then((dates) => {
@@ -442,8 +442,8 @@ export default function DashboardScreen() {
     setGreeting(getDynamicGreeting());
     try {
       await Promise.all([
-        loadData(),
         refreshAuth(),
+        loadData(true),
         DataService.getAnnouncements(true, student?.class, true, student?.syllabus),
         DataService.getAcademicAlert(student?.class, student?.syllabus),
       ]);
@@ -493,6 +493,11 @@ export default function DashboardScreen() {
       if (targetSyllabus !== 'Both') {
         if (studentSyllabus === 'CBSE' && targetSyllabus !== 'CBSE') continue;
         if (studentSyllabus === 'State Syllabus' && targetSyllabus !== 'State Syllabus') continue;
+      }
+      // Filter strictly by student's assigned subjects: unassigned subjects are strictly hidden
+      const studentSubjects = student?.subjects;
+      if (studentSubjects && !isStudentEnrolledInSubject(studentSubjects, cls.subject)) {
+        continue;
       }
       const matchesDate = cls.class_date ? (cls.class_date === targetIso) : (offset === 0);
       if (!matchesDate) continue;
@@ -769,9 +774,10 @@ export default function DashboardScreen() {
                 const normSub = (cls?.subject || '').trim().toLowerCase();
                 const clsTimeSlot = (cls?.time || '').split('•')[0].trim().toLowerCase();
                 const clsId = String(cls?.id || '');
+                const clsDateIso = cls?.class_date || targetDateIsoStr;
 
-                // Look in both todaySubjects and history
-                const candidates = [
+                // Look in both todaySubjects and history, strictly scoped to target date
+                const allEntries = [
                   ...(Array.isArray(attSummary?.todaySubjects) ? attSummary.todaySubjects : [])
                     .filter((s: any) => s && typeof s === 'object'),
                   ...(Array.isArray(attSummary?.history) ? attSummary.history : []).map((h: any) => ({
@@ -780,6 +786,15 @@ export default function DashboardScreen() {
                     status: (h.status === 'full' || h.score === '1/1' || h.status === 'present') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : (h.status || 'upcoming'),
                   })),
                 ];
+
+                const candidates = allEntries.filter((s: any) => {
+                  const sIso = s.classDate || s.class_date || parseDateToIso(s.date);
+                  if (sIso && clsDateIso) {
+                    return sIso === clsDateIso;
+                  }
+                  if (dateOffset === 0 && !s.date && !s.classDate) return true;
+                  return false;
+                });
 
                 // 1. Direct classId match
                 if (clsId) {

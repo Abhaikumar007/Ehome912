@@ -10,7 +10,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '../../constants/colors';
 import { studentData, progressData } from '../../constants/mockData';
 import { useAuth } from '../../lib/authContext';
-import { DataService } from '../../lib/dataService';
+import { DataService, formatStudentDisplayClassAndSyllabus } from '../../lib/dataService';
+import { checkAndApplyUpdates } from '../../lib/updateService';
 
 const menuItems = [
   { icon: 'person-outline',       title: 'Personal Details',    sub: 'Name, class, contact info',      color: Colors.primary,  bg: Colors.primaryLight },
@@ -93,7 +94,7 @@ export default function ProfileScreen() {
   const openEditModal = () => {
     setNameInput(student?.name || studentData.name);
     setPhoneInput(student?.phone || '');
-    setGoalsInput(student?.goals || studentClass);
+    setGoalsInput((student?.goals && !student.goals.startsWith('Class ')) ? student.goals : '');
     setSelectedAvatar(student?.avatar || 'AS');
     setSelectedPhoto(student?.photoUrl || null);
     setChangePin(false);
@@ -236,9 +237,9 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             <View style={styles.profileInfo}>
               <Text style={styles.profileName}>{studentName}</Text>
-              <Text style={styles.profileClass}>{studentClass} • {student?.batch || 'Class 12'}</Text>
+              <Text style={styles.profileClass}>{formatStudentDisplayClassAndSyllabus(student)}</Text>
               <Text style={styles.profileMotivation} numberOfLines={1}>
-                🎯 {student?.goals || '"Consistent steps, bigger..."'}
+                🎯 {student?.goals && !student.goals.startsWith('Class ') ? student.goals : '"Consistent steps, bigger goals!"'}
               </Text>
               <TouchableOpacity style={styles.editBtn} onPress={openEditModal}>
                 <Ionicons name="pencil" size={12} color={Colors.primary} />
@@ -385,6 +386,24 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Check for App Updates */}
+        <View style={styles.menuCard}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => checkAndApplyUpdates(true)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIcon, { backgroundColor: '#F0F9FF' }]}>
+              <Ionicons name="cloud-download-outline" size={18} color="#0284C7" />
+            </View>
+            <View style={styles.menuText}>
+              <Text style={styles.menuTitle}>Check for Updates</Text>
+              <Text style={styles.menuSub}>EduHome v1.0.1 • Tap to sync latest changes</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
         {/* Logout */}
         <View style={styles.menuCard}>
           <TouchableOpacity
@@ -506,7 +525,7 @@ export default function ProfileScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={styles.lockedFieldVal}>{student?.name || studentData.name}</Text>
                     <Text style={styles.lockedFieldSub}>
-                      {student?.class || studentData.class} • {student?.batch || studentData.batch} • {student?.rollNo || studentData.rollNo}
+                      {formatStudentDisplayClassAndSyllabus(student)} • {student?.rollNo || studentData.rollNo}
                     </Text>
                   </View>
                   <Ionicons name="shield-checkmark" size={16} color={Colors.green} />

@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View, Text, ScrollView, StyleSheet, TouchableOpacity,
-  TextInput, Alert, Modal, Image, RefreshControl,
+  TextInput, Alert, Modal, Image, RefreshControl, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { teacherData } from '../../constants/mockData';
-import { DataService, resolveClassTargetSyllabus, resolveStudentSyllabus } from '../../lib/dataService';
+import { DataService, resolveClassTargetSyllabus, resolveStudentSyllabus, parseDateToIso } from '../../lib/dataService';
 import { EDUSYNC_STUDENTS } from '../../lib/studentsRoster';
 import {
   getActiveTeacher,
@@ -33,7 +33,8 @@ interface StudentRoster {
   subjects: string;
   school?: string;
   note?: string;
-  syllabus?: 'State Syllabus' | 'CBSE';
+  syllabus?: 'State Syllabus' | 'CBSE' | 'Both';
+  isManuallyAdded?: boolean;
 }
 
 const INITIAL_CLASSES = [
@@ -119,12 +120,27 @@ export default function FacultyAttendanceScreen() {
   const [activeSessionTime, setActiveSessionTime] = useState<string>(params.timeSlot || '');
   const [activeClassId, setActiveClassId] = useState<string>(params.classId || '');
   const [activeSessionType, setActiveSessionType] = useState<string>(params.sessionType || '');
+  const [selectedSyllabus, setSelectedSyllabus] = useState<'All' | 'CBSE' | 'State Syllabus'>(() => {
+    if (params.targetSyllabus === 'CBSE' || params.targetSyllabus === 'State Syllabus') {
+      return params.targetSyllabus;
+    }
+    return 'All';
+  });
+  const [manuallyAddedStudents, setManuallyAddedStudents] = useState<any[]>([]);
+  const [attendanceMap, setAttendanceMap] = useState<Record<string, 'P' | 'A'>>({});
+  const [addStudentModalVisible, setAddStudentModalVisible] = useState(false);
+  const [addStudentSearch, setAddStudentSearch] = useState('');
+  const [addStudentScope, setAddStudentScope] = useState<'class' | 'all'>('class');
+  const [addStudentBoardFilter, setAddStudentBoardFilter] = useState<'All' | 'CBSE' | 'State Syllabus'>('All');
   const [attRecords, setAttRecords] = useState<any[]>([]);
   const [adminClasses, setAdminClasses] = useState<any[]>(() => {
     return DataService.getCachedAdminTimetableClasses() || [];
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [isPreviouslySubmitted, setIsPreviouslySubmitted] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savingAttendance, setSavingAttendance] = useState(false);
   const [students, setStudents] = useState<StudentRoster[]>([]);
   const [dateOffset, setDateOffset] = useState(() => (params.dateOffset !== undefined ? parseInt(params.dateOffset, 10) || 0 : 0));
   const [classModalVisible, setClassModalVisible] = useState(false);
@@ -434,6 +450,22 @@ export default function FacultyAttendanceScreen() {
     return resolveClassTargetSyllabus(activeSession);
   }, [activeSession, params.targetSyllabus]);
 
+  // Auto-synchronize selectedSyllabus when activeSession or params changes
+  useEffect(() => {
+    if (params.targetSyllabus === 'CBSE' || params.targetSyllabus === 'State Syllabus') {
+      setSelectedSyllabus(params.targetSyllabus);
+    } else if (activeSessionSyllabus && activeSessionSyllabus !== 'Both') {
+      setSelectedSyllabus(activeSessionSyllabus);
+    }
+  }, [params.targetSyllabus, activeSessionSyllabus]);
+
+  // When selected class changes, reset manually added flexible students & temporary attendance marks
+  useEffect(() => {
+    setManuallyAddedStudents([]);
+    setAttendanceMap({});
+    setHasUnsavedChanges(false);
+  }, [selectedClassId]);
+
   useEffect(() => {
     if (sessionsForSelectedClassAndSubject.length > 0) {
       const preferredId = params.classId || activeClassId;
@@ -623,6 +655,31 @@ export default function FacultyAttendanceScreen() {
     };
   }, [fetchLiveStudents]);
 
+  // Count enrolled students by board for currently selected class & subject
+  const { cbseCount, stateCount, totalSubjectCount } = useMemo(() => {
+    const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+    const classStudents = liveStudents.filter((s) => s.class.startsWith(classPrefix));
+    const targetSub = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
+      ? selectedSubject
+      : (activeTeacher ? getTeacherDefaultSubject(activeTeacher) : '');
+
+    const enrolled = classStudents.filter((s) => isStudentEnrolledInSubject(s.subjects, targetSub));
+    let cbse = 0;
+    let state = 0;
+    enrolled.forEach((s) => {
+      const syl = resolveStudentSyllabus(s);
+      if (syl === 'Both') {
+        cbse++;
+        state++;
+      } else if (syl === 'CBSE') {
+        cbse++;
+      } else {
+        state++;
+      }
+    });
+    return { cbseCount: cbse, stateCount: state, totalSubjectCount: enrolled.length };
+  }, [selectedClassId, liveStudents, selectedSubject, activeTeacher]);
+
   // Load students accurately filtered by class AND allotted subjects for this logged-in teacher
   // BUG FIX: Now uses liveStudents (Supabase-backed) instead of static EDUSYNC_STUDENTS,
   // so any admin panel updates are reflected here on next render/refresh.
@@ -643,59 +700,76 @@ export default function FacultyAttendanceScreen() {
       isStudentEnrolledInSubject(s.subjects, targetSubject)
     );
 
-    // Filter students strictly by selected session syllabus:
-    // - If CBSE session: ONLY CBSE students
-    // - If State Syllabus session: ONLY State Syllabus students
-    // - If Both/Shared session (or no specific session): all eligible students
+    // Filter students strictly by selected board syllabus:
+    // - If CBSE: ONLY CBSE students
+    // - If State Syllabus: ONLY State Syllabus students
+    // - If All: all enrolled students
     const syllabusFiltered = subjectFiltered.filter((s) => {
-      if (activeSessionSyllabus === 'Both') return true;
+      if (selectedSyllabus === 'All') return true;
       const studentSyllabus = resolveStudentSyllabus(s);
-      if (activeSessionSyllabus === 'CBSE') {
-        return studentSyllabus === 'CBSE';
-      }
-      if (activeSessionSyllabus === 'State Syllabus') {
-        return studentSyllabus === 'State Syllabus';
-      }
-      return true;
+      if (studentSyllabus === 'Both') return true;
+      return studentSyllabus === selectedSyllabus;
     });
 
-    const rosterStudents: StudentRoster[] = syllabusFiltered.map((s, idx) => {
-      let initialAttendance: 'P' | 'A' = 'P';
-      const studentAtt = attRecords.find((a) => (a.roll_no || '').toUpperCase() === s.rollNo.toUpperCase());
-      if (studentAtt) {
-        const allEntries = [...(studentAtt.today_subjects || []), ...(studentAtt.history || [])];
-        const matched = allEntries.find((entry: any) => {
-          // 1. Direct classId match is the primary discriminator
-          if (activeClassId && entry.classId) {
-            return entry.classId === activeClassId;
-          }
-          // If activeClassId is set but entry has a different classId, do NOT match
-          if (activeClassId && entry.classId && entry.classId !== activeClassId) {
-            return false;
-          }
+    // Merge any flexibly added students (cross-batch or extra students added by teacher)
+    const combinedStudents = [...syllabusFiltered];
+    manuallyAddedStudents.forEach((extra) => {
+      if (!combinedStudents.some((s) => s.rollNo.toUpperCase() === extra.rollNo.toUpperCase())) {
+        combinedStudents.push(extra);
+      }
+    });
 
-          // 2. Subject match
-          const entrySub = (entry.subject || entry.subjects || '').trim().toLowerCase();
-          const targetSubNorm = targetSubject.trim().toLowerCase();
-          const sameSub = entrySub === targetSubNorm || entrySub.includes(targetSubNorm) || targetSubNorm.includes(entrySub);
-          if (!sameSub) return false;
+    let foundSubmitted = false;
 
-          // 3. Time slot match (if specific session time is active)
-          if (activeSessionTime && activeSessionTime !== 'Class Session') {
-            if (entry.time && entry.time !== 'Class Session') {
-              const entryTimeNorm = entry.time.split('•')[0].trim().toLowerCase();
-              const activeTimeNorm = activeSessionTime.split('•')[0].trim().toLowerCase();
-              return entryTimeNorm === activeTimeNorm || entryTimeNorm.includes(activeTimeNorm) || activeTimeNorm.includes(entryTimeNorm);
+    const rosterStudents: StudentRoster[] = combinedStudents.map((s, idx) => {
+      const isManual = manuallyAddedStudents.some((m) => m.rollNo.toUpperCase() === s.rollNo.toUpperCase());
+      let currentAttendance: 'P' | 'A' = attendanceMap[s.rollNo] || 'P';
+
+      if (!attendanceMap[s.rollNo]) {
+        const studentAtt = attRecords.find((a) => (a.roll_no || '').toUpperCase() === s.rollNo.toUpperCase());
+        if (studentAtt) {
+          const allEntries = [...(studentAtt.today_subjects || []), ...(studentAtt.history || [])];
+          const matched = allEntries.find((entry: any) => {
+            // Check date match first! Must match targetDateIso
+            const entryDateIso = entry.classDate || entry.class_date || parseDateToIso(entry.date);
+            if (entryDateIso && targetDateIso && entryDateIso !== targetDateIso) {
+              return false;
             }
-            return false;
-          }
 
-          return true;
-        });
-        if (matched) {
-          initialAttendance = (matched.status === 'absent' || matched.score === '0/1') ? 'A' : 'P';
+            // 1. Direct classId match is the primary discriminator
+            if (activeClassId && entry.classId) {
+              return entry.classId === activeClassId;
+            }
+            // If activeClassId is set but entry has a different classId, do NOT match
+            if (activeClassId && entry.classId && entry.classId !== activeClassId) {
+              return false;
+            }
+
+            // 2. Subject match
+            const entrySub = (entry.subject || entry.subjects || '').trim().toLowerCase();
+            const targetSubNorm = targetSubject.trim().toLowerCase();
+            const sameSub = entrySub === targetSubNorm || entrySub.includes(targetSubNorm) || targetSubNorm.includes(entrySub);
+            if (!sameSub) return false;
+
+            // 3. Time slot match (if specific session time is active)
+            if (activeSessionTime && activeSessionTime !== 'Class Session') {
+              if (entry.time && entry.time !== 'Class Session') {
+                const entryTimeNorm = entry.time.split('•')[0].trim().toLowerCase();
+                const activeTimeNorm = activeSessionTime.split('•')[0].trim().toLowerCase();
+                return entryTimeNorm === activeTimeNorm || entryTimeNorm.includes(activeTimeNorm) || activeTimeNorm.includes(entryTimeNorm);
+              }
+              return false;
+            }
+
+            return true;
+          });
+          if (matched) {
+            foundSubmitted = true;
+            currentAttendance = (matched.status === 'absent' || matched.score === '0/1') ? 'A' : 'P';
+          }
         }
       }
+
       return {
         id: s.rollNo,
         no: String(idx + 1).padStart(2, '0'),
@@ -703,16 +777,81 @@ export default function FacultyAttendanceScreen() {
         roll: s.rollNo,
         overall: `${s.accuracy || 85}%`,
         online: true,
-        attendance: initialAttendance,
+        attendance: currentAttendance,
         subjects: s.subjects || 'General',
         school: s.school,
         syllabus: resolveStudentSyllabus(s),
+        isManuallyAdded: isManual,
       };
     });
 
     setStudents(rosterStudents);
-    setSubmitted(false);
-  }, [selectedClassId, selectedSubject, activeTeacher, liveStudents, activeClassId, activeSessionTime, activeSessionSyllabus, attRecords]);
+    if (foundSubmitted) {
+      setIsPreviouslySubmitted(true);
+      setSubmitted(true);
+    } else {
+      setIsPreviouslySubmitted(false);
+      setSubmitted(false);
+    }
+  }, [
+    selectedClassId,
+    selectedSubject,
+    activeTeacher,
+    liveStudents,
+    activeClassId,
+    activeSessionTime,
+    selectedSyllabus,
+    manuallyAddedStudents,
+    attendanceMap,
+    attRecords,
+  ]);
+
+  // Candidates available for flexible manual adding to the current session
+  const candidateStudents = useMemo(() => {
+    const classPrefix = CLASS_MAP[selectedClassId] || 'Class 10';
+    const pool = addStudentScope === 'class'
+      ? liveStudents.filter((s) => s.class.startsWith(classPrefix))
+      : liveStudents;
+
+    const currentRolls = new Set(students.map((s) => s.roll.toUpperCase()));
+    const unadded = pool.filter((s) => !currentRolls.has(s.rollNo.toUpperCase()));
+
+    return unadded.filter((s) => {
+      if (addStudentBoardFilter !== 'All') {
+        const syl = resolveStudentSyllabus(s);
+        if (syl !== addStudentBoardFilter) return false;
+      }
+      if (addStudentSearch.trim()) {
+        const q = addStudentSearch.trim().toLowerCase();
+        const matchesName = (s.name || '').toLowerCase().includes(q);
+        const matchesRoll = (s.rollNo || '').toLowerCase().includes(q);
+        const matchesSchool = (s.school || '').toLowerCase().includes(q);
+        const matchesSubjects = (s.subjects || '').toLowerCase().includes(q);
+        return matchesName || matchesRoll || matchesSchool || matchesSubjects;
+      }
+      return true;
+    });
+  }, [liveStudents, selectedClassId, students, addStudentScope, addStudentBoardFilter, addStudentSearch]);
+
+  const handleAddStudent = (stu: any) => {
+    setManuallyAddedStudents((prev) => {
+      if (prev.some((m) => m.rollNo.toUpperCase() === stu.rollNo.toUpperCase())) return prev;
+      return [...prev, stu];
+    });
+    setAttendanceMap((prev) => ({
+      ...prev,
+      [stu.rollNo]: 'P',
+    }));
+  };
+
+  const handleRemoveManualStudent = (rollNo: string) => {
+    setManuallyAddedStudents((prev) => prev.filter((m) => m.rollNo.toUpperCase() !== rollNo.toUpperCase()));
+    setAttendanceMap((prev) => {
+      const copy = { ...prev };
+      delete copy[rollNo];
+      return copy;
+    });
+  };
 
   // Format date display
   const getDateLabel = () => {
@@ -735,32 +874,59 @@ export default function FacultyAttendanceScreen() {
   const totalCount = students.length;
 
   const toggleAttendance = (id: string, status: 'P' | 'A') => {
+    setAttendanceMap((prev) => ({ ...prev, [id]: status }));
     setStudents((prev) =>
       prev.map((s) => (s.id === id ? { ...s, attendance: status } : s))
     );
     setSubmitted(false);
+    setHasUnsavedChanges(true);
   };
 
   const markAllPresent = () => {
+    setAttendanceMap((prev) => {
+      const next = { ...prev };
+      students.forEach((s) => { next[s.id] = 'P'; });
+      return next;
+    });
     setStudents((prev) => prev.map((s) => ({ ...s, attendance: 'P' })));
     setSubmitted(false);
+    setHasUnsavedChanges(true);
   };
 
   const clearAll = () => {
-    setStudents((prev) => prev.map((s) => ({ ...s, attendance: 'A' })));
-    setSubmitted(false);
+    Alert.alert(
+      'Mark All Students Absent?',
+      `Are you sure you want to mark all ${students.length} students as absent for this session?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Mark All Absent',
+          style: 'destructive',
+          onPress: () => {
+            setAttendanceMap((prev) => {
+              const next = { ...prev };
+              students.forEach((s) => { next[s.id] = 'A'; });
+              return next;
+            });
+            setStudents((prev) => prev.map((s) => ({ ...s, attendance: 'A' })));
+            setSubmitted(false);
+            setHasUnsavedChanges(true);
+          },
+        },
+      ]
+    );
   };
 
-  const handleSaveSubmit = async () => {
+  const executeSaveSubmit = async () => {
     const dateLabel = getDateLabel();
     const teacherName = activeTeacher?.name || 'Faculty Member';
     const subjectName = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
       ? selectedSubject
       : (activeTeacher?.subject?.split('(')[0]?.trim() || 'General');
-    setSubmitted(true);
-    // Save to DataService so it syncs to each student's portal
+
+    setSavingAttendance(true);
     try {
-      await DataService.saveBatchAttendance(
+      const updatedResults = await DataService.saveBatchAttendance(
         students.map((s) => ({ rollNo: s.roll, name: s.name, status: s.attendance })),
         dateLabel,
         subjectName,
@@ -772,14 +938,104 @@ export default function FacultyAttendanceScreen() {
           classDate: targetDateIso,
         }
       );
+
+      // Immediately merge updated results into in-memory attRecords so class/session switches retain edits
+      if (Array.isArray(updatedResults) && updatedResults.length > 0) {
+        setAttRecords((prev) => {
+          const map = new Map<string, any>();
+          prev.forEach((r) => map.set((r.roll_no || '').toUpperCase(), r));
+          updatedResults.forEach((u) => {
+            if (u.rollNo) {
+              const existing = map.get(u.rollNo.toUpperCase()) || {};
+              map.set(u.rollNo.toUpperCase(), {
+                ...existing,
+                roll_no: u.rollNo,
+                today_subjects: u.todaySubjects,
+                history: u.history,
+                overall: u.overall,
+                attended: u.attended,
+                total: u.total,
+              });
+            }
+          });
+          return Array.from(map.values());
+        });
+      }
+
+      setAttendanceMap({});
+      setSubmitted(true);
+      setIsPreviouslySubmitted(true);
+      setHasUnsavedChanges(false);
+
+      Alert.alert(
+        isPreviouslySubmitted ? 'Attendance Corrected & Synced' : 'Attendance Submitted Successfully',
+        `Class: ${currentClass.label}\nSubject: ${subjectName}\nBoard: ${selectedSyllabus === 'All' ? 'Both (CBSE & State)' : selectedSyllabus}\nSession: ${activeSessionTime || 'Class Session'}${activeSessionType ? ` (${activeSessionType})` : ''}\nDate: ${dateLabel}\nTeacher: ${teacherName}\nPresent: ${presentCount} | Absent: ${absentCount}${manuallyAddedStudents.length > 0 ? `\nFlexible Added: ${manuallyAddedStudents.length} student(s)` : ''}\n\nAttendance has been recorded and synced to student portals in real time.`,
+        [{ text: 'OK' }]
+      );
     } catch {
-      // Offline fallback — still mark submitted
+      // Offline fallback
+      setSubmitted(true);
+      setIsPreviouslySubmitted(true);
+      setHasUnsavedChanges(false);
+      Alert.alert('Saved Offline', 'Attendance saved to your device. It will sync automatically when an internet connection is available.');
+    } finally {
+      setSavingAttendance(false);
     }
-    Alert.alert(
-      'Attendance Submitted Successfully',
-      `Class: ${currentClass.label}\nSubject: ${subjectName}\nSession: ${activeSessionTime || 'Class Session'}${activeSessionType ? ` (${activeSessionType})` : ''}\nDate: ${dateLabel}\nTeacher: ${teacherName}\nPresent: ${presentCount} | Absent: ${absentCount}\n\nAttendance has been recorded separately for this session and synced with student portals.`,
-      [{ text: 'OK' }]
-    );
+  };
+
+  const handlePressSubmit = () => {
+    const presentList = students.filter((s) => s.attendance === 'P');
+    const absentList = students.filter((s) => s.attendance === 'A');
+    const subjectName = (selectedSubject && selectedSubject !== 'All' && selectedSubject !== 'All Subjects' && selectedSubject !== 'All Students')
+      ? selectedSubject
+      : (activeTeacher?.subject?.split('(')[0]?.trim() || 'General');
+    const boardLabel = selectedSyllabus === 'All' ? 'Both (CBSE & State)' : selectedSyllabus;
+
+    if (isPreviouslySubmitted) {
+      // Editing / Correcting previously submitted attendance
+      Alert.alert(
+        'Confirm Attendance Corrections',
+        `Class: ${currentClass.label} • ${subjectName}\n` +
+        `Board: ${boardLabel}\n` +
+        `Session: ${activeSessionTime || 'Class Session'}\n` +
+        `Date: ${getDateLabel()}\n\n` +
+        `Updated Turnout:\n` +
+        `✓ Present: ${presentList.length} student(s)\n` +
+        `✗ Absent: ${absentList.length} student(s)\n` +
+        (absentList.length > 0 ? `\nAbsent: ${absentList.map((s) => s.name).join(', ')}\n` : '\nAll students marked Present!\n') +
+        `\nStudent portals and turnout records will be updated immediately.`,
+        [
+          { text: 'Review / Cancel', style: 'cancel' },
+          {
+            text: 'Save Corrections',
+            style: 'default',
+            onPress: () => executeSaveSubmit(),
+          },
+        ]
+      );
+    } else {
+      // First-time submission
+      Alert.alert(
+        'Confirm Attendance Submission',
+        `Class: ${currentClass.label} • ${subjectName}\n` +
+        `Board: ${boardLabel}\n` +
+        `Session: ${activeSessionTime || 'Class Session'}\n` +
+        `Date: ${getDateLabel()}\n\n` +
+        `Turnout:\n` +
+        `✓ Present: ${presentList.length} student(s)\n` +
+        `✗ Absent: ${absentList.length} student(s)\n` +
+        (absentList.length > 0 ? `\nAbsent: ${absentList.map((s) => s.name).join(', ')}\n` : '\nAll students marked Present!\n') +
+        `\nYou can edit or correct this record anytime.`,
+        [
+          { text: 'Review / Cancel', style: 'cancel' },
+          {
+            text: 'Confirm & Submit',
+            style: 'default',
+            onPress: () => executeSaveSubmit(),
+          },
+        ]
+      );
+    }
   };
 
   return (
@@ -938,6 +1194,73 @@ export default function FacultyAttendanceScreen() {
           </ScrollView>
         </View>
 
+        {/* Board / Syllabus Filter Section */}
+        <View style={styles.boardFilterSection}>
+          <View style={styles.boardFilterHeader}>
+            <View style={styles.boardFilterLabelRow}>
+              <Ionicons name="ribbon-outline" size={12} color="#0284C7" />
+              <Text style={styles.boardFilterLabel}>Target Board / Syllabus Filter:</Text>
+            </View>
+            {activeSessionSyllabus !== 'Both' ? (
+              <View style={[styles.sessionAssignedBadge, activeSessionSyllabus === 'CBSE' ? styles.sessionAssignedCBSE : styles.sessionAssignedState]}>
+                <Ionicons
+                  name="bookmark"
+                  size={10}
+                  color={activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D'}
+                />
+                <Text
+                  style={[
+                    styles.sessionAssignedText,
+                    { color: activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D' },
+                  ]}
+                >
+                  Assigned: {activeSessionSyllabus}
+                </Text>
+              </View>
+            ) : (
+              <Text style={styles.boardFilterCount}>
+                {selectedSyllabus === 'All' ? `${totalSubjectCount} Students (All)` : selectedSyllabus === 'CBSE' ? `${cbseCount} CBSE Students` : `${stateCount} State Students`}
+              </Text>
+            )}
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.boardScroll}>
+            {(['CBSE', 'State Syllabus', 'All'] as const).map((syl) => {
+              const isSelected = selectedSyllabus === syl;
+              const count = syl === 'All'
+                ? totalSubjectCount
+                : (syl === 'CBSE' ? cbseCount : stateCount);
+              return (
+                <TouchableOpacity
+                  key={syl}
+                  style={[
+                    styles.boardChip,
+                    isSelected && styles.boardChipActive,
+                  ]}
+                  onPress={() => {
+                    setSelectedSyllabus(syl);
+                    setSubmitted(false);
+                  }}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={isSelected ? "checkmark" : "ribbon-outline"}
+                    size={13}
+                    color={isSelected ? "#fff" : "#0284C7"}
+                  />
+                  <Text style={[styles.boardChipText, isSelected && styles.boardChipTextActive]}>
+                    {syl === 'All' ? 'All (Both)' : syl}
+                  </Text>
+                  <View style={[styles.boardChipCountBadge, isSelected && styles.boardChipCountBadgeActive]}>
+                    <Text style={[styles.boardChipCountText, isSelected && styles.boardChipCountTextActive]}>
+                      {count}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
         {/* Scheduled Sessions Selector (for multiple sessions per day/class/subject) */}
         {sessionsForSelectedClassAndSubject.length > 0 && (
           <View style={styles.sessionSelectSection}>
@@ -963,6 +1286,11 @@ export default function FacultyAttendanceScreen() {
                       setActiveClassId(sess.id || '');
                       setActiveSessionTime(sTime);
                       setActiveSessionType(sType);
+                      if (sSyllabus === 'CBSE' || sSyllabus === 'State Syllabus') {
+                        setSelectedSyllabus(sSyllabus);
+                      } else if (sSyllabus === 'Both') {
+                        setSelectedSyllabus('All');
+                      }
                       setSubmitted(false);
                     }}
                     activeOpacity={0.8}
@@ -1004,10 +1332,32 @@ export default function FacultyAttendanceScreen() {
                   </View>
                 </View>
 
-                <View style={[styles.readyBadge, submitted && styles.submittedBadge]}>
-                  <View style={[styles.readyDot, submitted && { backgroundColor: Colors.green }]} />
-                  <Text style={[styles.readyText, submitted && { color: Colors.green }]}>
-                    {submitted ? 'Submitted ✓' : 'Ready to Submit'}
+                <View
+                  style={[
+                    styles.readyBadge,
+                    (submitted || isPreviouslySubmitted) && !hasUnsavedChanges && styles.submittedBadge,
+                    hasUnsavedChanges && isPreviouslySubmitted && styles.editingBadge,
+                  ]}
+                >
+                  <View
+                    style={[
+                      styles.readyDot,
+                      (submitted || isPreviouslySubmitted) && !hasUnsavedChanges && { backgroundColor: Colors.green },
+                      hasUnsavedChanges && isPreviouslySubmitted && { backgroundColor: '#D97706' },
+                    ]}
+                  />
+                  <Text
+                    style={[
+                      styles.readyText,
+                      (submitted || isPreviouslySubmitted) && !hasUnsavedChanges && { color: Colors.green },
+                      hasUnsavedChanges && isPreviouslySubmitted && { color: '#D97706' },
+                    ]}
+                  >
+                    {hasUnsavedChanges && isPreviouslySubmitted
+                      ? 'Editing (Unsaved)'
+                      : (submitted || isPreviouslySubmitted)
+                      ? 'Submitted & Synced ✓'
+                      : 'Ready to Submit'}
                   </Text>
                 </View>
               </View>
@@ -1026,11 +1376,18 @@ export default function FacultyAttendanceScreen() {
                   </View>
                 ) : null}
 
-                {activeSessionSyllabus !== 'Both' ? (
-                  <View style={[styles.metaBadge, styles.metaBadgeSyllabus]}>
-                    <Ionicons name="ribbon-outline" size={12} color={activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D'} />
-                    <Text style={[styles.metaBadgeText, { color: activeSessionSyllabus === 'CBSE' ? '#0369A1' : '#15803D' }]}>
-                      {activeSessionSyllabus}
+                <View style={[styles.metaBadge, styles.metaBadgeSyllabus]}>
+                  <Ionicons name="ribbon-outline" size={12} color={selectedSyllabus === 'CBSE' ? '#0369A1' : selectedSyllabus === 'State Syllabus' ? '#15803D' : '#6366F1'} />
+                  <Text style={[styles.metaBadgeText, { color: selectedSyllabus === 'CBSE' ? '#0369A1' : selectedSyllabus === 'State Syllabus' ? '#15803D' : '#6366F1' }]}>
+                    {selectedSyllabus === 'All' ? 'Both (CBSE & State)' : selectedSyllabus}
+                  </Text>
+                </View>
+
+                {manuallyAddedStudents.length > 0 ? (
+                  <View style={[styles.metaBadge, { backgroundColor: '#FEF3C7', borderColor: '#FDE68A' }]}>
+                    <Ionicons name="sparkles" size={11} color="#B45309" />
+                    <Text style={[styles.metaBadgeText, { color: '#B45309' }]}>
+                      +{manuallyAddedStudents.length} flexible student{manuallyAddedStudents.length !== 1 ? 's' : ''}
                     </Text>
                   </View>
                 ) : null}
@@ -1142,12 +1499,21 @@ export default function FacultyAttendanceScreen() {
             )}
           </View>
 
+          <TouchableOpacity
+            style={styles.addStudentBtn}
+            onPress={() => setAddStudentModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="person-add" size={13} color="#0284C7" />
+            <Text style={styles.addStudentBtnText}>+ Add</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity style={styles.allPresentBtn} onPress={markAllPresent} activeOpacity={0.8}>
-            <Text style={styles.allPresentText}>All Present</Text>
+            <Text style={styles.allPresentText}>All P</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.clearBtn} onPress={clearAll} activeOpacity={0.8}>
-            <Text style={styles.clearBtnText}>Clear</Text>
+            <Text style={styles.clearBtnText}>All A</Text>
           </TouchableOpacity>
         </View>
 
@@ -1157,11 +1523,28 @@ export default function FacultyAttendanceScreen() {
             <View style={{ padding: 24, alignItems: 'center', backgroundColor: '#fff', borderRadius: 14, borderWidth: 1, borderColor: Colors.border }}>
               <Ionicons name="person-remove-outline" size={32} color={Colors.textMuted} style={{ marginBottom: 8 }} />
               <Text style={{ fontSize: 14, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
-                {activeSessionSyllabus !== 'Both' ? `No ${activeSessionSyllabus} students enrolled in ${selectedSubject || 'this subject'}` : `No students enrolled in ${selectedSubject || 'this subject'}`}
+                {selectedSyllabus !== 'All' ? `No ${selectedSyllabus} students enrolled in ${selectedSubject || 'this subject'}` : `No students enrolled in ${selectedSubject || 'this subject'}`}
               </Text>
               <Text style={{ fontSize: 12, fontFamily: 'Inter_400Regular', color: Colors.textMuted, textAlign: 'center', marginTop: 4 }}>
-                {activeSessionSyllabus !== 'Both' ? `No students in ${currentClass.label} are enrolled under ${activeSessionSyllabus}. Switch session or select another class.` : 'Switch subject filter to "All Subjects" or select another class.'}
+                {selectedSyllabus !== 'All' ? `No students in ${currentClass.label} are enrolled under ${selectedSyllabus}. You can add extra students or switch boards.` : 'Switch subject filter to "All Subjects" or select another class.'}
               </Text>
+              <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
+                <TouchableOpacity
+                  style={styles.emptyAddBtn}
+                  onPress={() => setAddStudentModalVisible(true)}
+                >
+                  <Ionicons name="person-add" size={13} color="#fff" />
+                  <Text style={styles.emptyAddBtnText}>+ Add Student</Text>
+                </TouchableOpacity>
+                {selectedSyllabus !== 'All' && (
+                  <TouchableOpacity
+                    style={styles.emptySwitchBtn}
+                    onPress={() => setSelectedSyllabus('All')}
+                  >
+                    <Text style={styles.emptySwitchBtnText}>Show All (Both)</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
           ) : (
             filteredStudents.map((item) => {
@@ -1180,6 +1563,12 @@ export default function FacultyAttendanceScreen() {
                     <View style={styles.nameRow}>
                       <Text style={styles.studentName}>{item.name}</Text>
                       {item.online && <View style={styles.onlineDot} />}
+                      {item.isManuallyAdded && (
+                        <View style={styles.manualAddedBadge}>
+                          <Ionicons name="sparkles" size={10} color="#B45309" />
+                          <Text style={styles.manualAddedBadgeText}>Flexible</Text>
+                        </View>
+                      )}
                       {!isPresent && (
                         <View style={styles.absentBadge}>
                           <Text style={styles.absentBadgeText}>Absent</Text>
@@ -1197,6 +1586,18 @@ export default function FacultyAttendanceScreen() {
                       </View>
                     ) : null}
                   </View>
+
+                  {/* Delete button for manually added students */}
+                  {item.isManuallyAdded && (
+                    <TouchableOpacity
+                      style={styles.removeManualBtn}
+                      onPress={() => handleRemoveManualStudent(item.roll)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityLabel="Remove from session"
+                    >
+                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                    </TouchableOpacity>
+                  )}
 
                   {/* P / A Action Switcher */}
                   <View style={styles.paToggleWrap}>
@@ -1227,9 +1628,41 @@ export default function FacultyAttendanceScreen() {
         </View>
 
         {/* Bottom Submit Button */}
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSaveSubmit} activeOpacity={0.85}>
-          <Ionicons name="checkmark" size={18} color="#fff" style={{ marginRight: 6 }} />
-          <Text style={styles.submitBtnText}>Save & Submit Attendance</Text>
+        <TouchableOpacity
+          style={[
+            styles.submitBtn,
+            isPreviouslySubmitted && !hasUnsavedChanges && styles.submitBtnAlreadySaved,
+            hasUnsavedChanges && isPreviouslySubmitted && styles.submitBtnUpdate,
+            savingAttendance && { opacity: 0.7 },
+          ]}
+          onPress={handlePressSubmit}
+          activeOpacity={0.85}
+          disabled={savingAttendance}
+        >
+          {savingAttendance ? (
+            <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+          ) : (
+            <Ionicons
+              name={hasUnsavedChanges && isPreviouslySubmitted ? "sync-outline" : isPreviouslySubmitted && !hasUnsavedChanges ? "checkmark-done-circle-outline" : "checkmark"}
+              size={18}
+              color={isPreviouslySubmitted && !hasUnsavedChanges ? Colors.primary : "#fff"}
+              style={{ marginRight: 6 }}
+            />
+          )}
+          <Text
+            style={[
+              styles.submitBtnText,
+              isPreviouslySubmitted && !hasUnsavedChanges && styles.submitBtnTextAlreadySaved,
+            ]}
+          >
+            {savingAttendance
+              ? 'Saving Attendance...'
+              : hasUnsavedChanges && isPreviouslySubmitted
+              ? `Save Corrected Attendance (${presentCount} Present, ${absentCount} Absent)`
+              : isPreviouslySubmitted && !hasUnsavedChanges
+              ? 'Attendance Submitted ✓ (Tap to Edit)'
+              : 'Save & Submit Attendance'}
+          </Text>
         </TouchableOpacity>
 
         <View style={styles.syncFooter}>
@@ -1269,6 +1702,152 @@ export default function FacultyAttendanceScreen() {
             ))}
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Flexible Student Add Modal */}
+      <Modal visible={addStudentModalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.addModalContainer}>
+            {/* Header */}
+            <View style={styles.addModalHeader}>
+              <View style={{ flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="person-add" size={18} color="#0284C7" />
+                  <Text style={styles.addModalTitle}>Add Flexible Student</Text>
+                </View>
+                <Text style={styles.addModalSub}>
+                  Include cross-batch or extra students into this session ({selectedSyllabus === 'All' ? 'Both Boards' : selectedSyllabus})
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  setAddStudentModalVisible(false);
+                  setAddStudentSearch('');
+                }}
+                style={styles.closeBtn}
+              >
+                <Ionicons name="close-circle" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {/* Scope Toggle: Current Class vs All Classes */}
+            <View style={styles.scopeToggleRow}>
+              <TouchableOpacity
+                style={[styles.scopeChip, addStudentScope === 'class' && styles.scopeChipActive]}
+                onPress={() => setAddStudentScope('class')}
+              >
+                <Text style={[styles.scopeChipText, addStudentScope === 'class' && styles.scopeChipTextActive]}>
+                  {currentClass.label}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.scopeChip, addStudentScope === 'all' && styles.scopeChipActive]}
+                onPress={() => setAddStudentScope('all')}
+              >
+                <Text style={[styles.scopeChipText, addStudentScope === 'all' && styles.scopeChipTextActive]}>
+                  All Students / Grades
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Modal Board Filter */}
+            <View style={styles.modalBoardRow}>
+              {(['All', 'CBSE', 'State Syllabus'] as const).map((b) => (
+                <TouchableOpacity
+                  key={b}
+                  style={[styles.modalBoardChip, addStudentBoardFilter === b && styles.modalBoardChipActive]}
+                  onPress={() => setAddStudentBoardFilter(b)}
+                >
+                  <Text style={[styles.modalBoardChipText, addStudentBoardFilter === b && styles.modalBoardChipTextActive]}>
+                    {b}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {/* Modal Search Input */}
+            <View style={styles.modalSearchWrap}>
+              <Ionicons name="search" size={16} color={Colors.textMuted} style={{ marginRight: 6 }} />
+              <TextInput
+                style={styles.modalSearchInput}
+                placeholder="Search by student name, roll no, or school..."
+                placeholderTextColor={Colors.textMuted}
+                value={addStudentSearch}
+                onChangeText={setAddStudentSearch}
+              />
+              {addStudentSearch.length > 0 && (
+                <TouchableOpacity onPress={() => setAddStudentSearch('')}>
+                  <Ionicons name="close-circle" size={16} color={Colors.textMuted} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Candidate List */}
+            <ScrollView style={styles.candidateListScroll} showsVerticalScrollIndicator={false}>
+              {candidateStudents.length === 0 ? (
+                <View style={{ padding: 24, alignItems: 'center' }}>
+                  <Ionicons name="checkmark-done-circle-outline" size={36} color={Colors.green} style={{ marginBottom: 6 }} />
+                  <Text style={{ fontSize: 13, fontFamily: 'Inter_600SemiBold', color: Colors.textPrimary }}>
+                    No other eligible students found
+                  </Text>
+                  <Text style={{ fontSize: 11, color: Colors.textMuted, textAlign: 'center', marginTop: 2 }}>
+                    All matching students are already in this attendance roster or match your search.
+                  </Text>
+                </View>
+              ) : (
+                candidateStudents.map((cand) => {
+                  const candSyllabus = resolveStudentSyllabus(cand);
+                  const isCBSE = candSyllabus === 'CBSE';
+                  return (
+                    <View key={cand.rollNo} style={styles.candidateCard}>
+                      <View style={styles.candAvatarCircle}>
+                        <Text style={styles.candAvatarText}>{(cand.name || 'ST').slice(0, 2).toUpperCase()}</Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                          <Text style={styles.candidateName}>{cand.name}</Text>
+                          <View style={[styles.candSyllabusBadge, isCBSE ? styles.candSyllabusCBSE : styles.candSyllabusState]}>
+                            <Text style={[styles.candSyllabusText, isCBSE ? styles.candSyllabusTextCBSE : styles.candSyllabusTextState]}>
+                              {candSyllabus}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.candidateSub}>
+                          {cand.class} • {cand.rollNo} • {cand.school || 'EduHome'}
+                        </Text>
+                        {cand.subjects ? (
+                          <Text style={styles.candidateSubSubjects} numberOfLines={1}>
+                            📚 {cand.subjects}
+                          </Text>
+                        ) : null}
+                      </View>
+                      <TouchableOpacity
+                        style={styles.addCandBtn}
+                        onPress={() => {
+                          handleAddStudent(cand);
+                        }}
+                      >
+                        <Ionicons name="add" size={14} color="#fff" />
+                        <Text style={styles.addCandBtnText}>Add</Text>
+                      </TouchableOpacity>
+                    </View>
+                  );
+                })
+              )}
+            </ScrollView>
+
+            {/* Done Button */}
+            <TouchableOpacity
+              style={styles.modalDoneBtn}
+              onPress={() => {
+                setAddStudentModalVisible(false);
+                setAddStudentSearch('');
+              }}
+            >
+              <Text style={styles.modalDoneBtnText}>Done</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </Modal>
 
 
@@ -1558,6 +2137,45 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderWidth: 1,
     borderColor: '#FDE68A',
+  },
+  editingBadge: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FDE68A',
+  },
+  editNoticeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+  },
+  editNoticeTitle: {
+    fontSize: 12.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#B45309',
+  },
+  editNoticeSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: '#92400E',
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  submitBtnAlreadySaved: {
+    backgroundColor: '#F0F9FF',
+    borderWidth: 1.5,
+    borderColor: '#BAE6FD',
+  },
+  submitBtnTextAlreadySaved: {
+    color: Colors.primary,
+  },
+  submitBtnUpdate: {
+    backgroundColor: '#0284C7',
+    borderWidth: 0,
   },
   submittedBadge: {
     backgroundColor: '#ECFDF3',
@@ -1954,5 +2572,363 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontFamily: 'Inter_700Bold',
     color: '#D97706',
+  },
+
+  // Target Board / Syllabus Filter Styles
+  boardFilterSection: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  boardFilterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  boardFilterLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  boardFilterLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+  sessionAssignedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  sessionAssignedCBSE: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+  },
+  sessionAssignedState: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  sessionAssignedText: {
+    fontSize: 10,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  boardFilterCount: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
+    color: Colors.textSecondary,
+  },
+  boardScroll: {
+    gap: 8,
+  },
+  boardChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  boardChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  boardChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textSecondary,
+  },
+  boardChipTextActive: {
+    color: '#fff',
+  },
+  boardChipCountBadge: {
+    backgroundColor: '#E0F2FE',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1.5,
+  },
+  boardChipCountBadgeActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  boardChipCountText: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_700Bold',
+    color: '#0369A1',
+  },
+  boardChipCountTextActive: {
+    color: '#fff',
+  },
+
+  // Add Student Button in Search Row
+  addStudentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  addStudentBtnText: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#0284C7',
+  },
+
+  // Flexible Student Badge & Remove Action in Student Card
+  manualAddedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#FEF3C7',
+    borderRadius: 6,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
+  },
+  manualAddedBadgeText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#B45309',
+  },
+  removeManualBtn: {
+    padding: 6,
+    marginRight: 4,
+  },
+
+  // Empty State buttons
+  emptyAddBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  emptyAddBtnText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  emptySwitchBtn: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  emptySwitchBtnText: {
+    color: Colors.textPrimary,
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+  },
+
+  // Flexible Student Add Modal Styles
+  addModalContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 18,
+    padding: 16,
+    width: '100%',
+    maxHeight: '85%',
+  },
+  addModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  addModalTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter_700Bold',
+    color: Colors.textPrimary,
+  },
+  addModalSub: {
+    fontSize: 11,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textMuted,
+    marginTop: 2,
+  },
+  scopeToggleRow: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 10,
+    padding: 3,
+    marginBottom: 8,
+    gap: 4,
+  },
+  scopeChip: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  scopeChipActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  scopeChipText: {
+    fontSize: 11.5,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textMuted,
+  },
+  scopeChipTextActive: {
+    color: '#0284C7',
+  },
+  modalBoardRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 10,
+  },
+  modalBoardChip: {
+    flex: 1,
+    paddingVertical: 5,
+    alignItems: 'center',
+    borderRadius: 14,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalBoardChipActive: {
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
+  },
+  modalBoardChipText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textMuted,
+  },
+  modalBoardChipTextActive: {
+    color: '#fff',
+  },
+  modalSearchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 10,
+    height: 38,
+    marginBottom: 10,
+  },
+  modalSearchInput: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textPrimary,
+  },
+  candidateListScroll: {
+    maxHeight: 280,
+    marginBottom: 12,
+  },
+  candidateCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  candAvatarCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#0284C7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  candAvatarText: {
+    fontSize: 11,
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
+  candidateName: {
+    fontSize: 13,
+    fontFamily: 'Inter_600SemiBold',
+    color: Colors.textPrimary,
+  },
+  candSyllabusBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    borderWidth: 1,
+  },
+  candSyllabusCBSE: {
+    backgroundColor: '#F0F9FF',
+    borderColor: '#BAE6FD',
+  },
+  candSyllabusState: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+  },
+  candSyllabusText: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_600SemiBold',
+  },
+  candSyllabusTextCBSE: {
+    color: '#0369A1',
+  },
+  candSyllabusTextState: {
+    color: '#15803D',
+  },
+  candidateSub: {
+    fontSize: 10.5,
+    fontFamily: 'Inter_400Regular',
+    color: Colors.textSecondary,
+    marginTop: 1,
+  },
+  candidateSubSubjects: {
+    fontSize: 9.5,
+    fontFamily: 'Inter_500Medium',
+    color: '#0369A1',
+    marginTop: 1,
+  },
+  addCandBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#0284C7',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  addCandBtnText: {
+    fontSize: 11,
+    fontFamily: 'Inter_600SemiBold',
+    color: '#fff',
+  },
+  modalDoneBtn: {
+    backgroundColor: '#0284C7',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalDoneBtnText: {
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'Inter_700Bold',
   },
 });

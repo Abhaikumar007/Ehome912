@@ -5,6 +5,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { AuthProvider } from '../lib/authContext';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { initAutoUpdater } from '../lib/updateService';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -17,6 +18,11 @@ export default function RootLayout() {
   useEffect(() => {
     SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    const unsub = initAutoUpdater();
+    return () => unsub();
+  }, []);
 
   return (
     <SafeAreaProvider>

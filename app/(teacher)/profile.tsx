@@ -21,6 +21,7 @@ import {
 } from '../../lib/teacherRoster';
 import * as ImagePicker from 'expo-image-picker';
 import { supabase } from '../../lib/supabase';
+import { checkAndApplyUpdates } from '../../lib/updateService';
 
 const FACULTY_AVATAR_PRESETS = [
   { id: '👨‍🏫', label: 'Teacher', bg: '#0284C7' },
@@ -291,6 +292,20 @@ export default function TeacherProfileScreen() {
             <View style={styles.menuTextWrap}>
               <Text style={styles.menuTitle}>Center Database Sync</Text>
               <Text style={styles.menuSub}>Real-time timetable & cloud backup</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Check for App Updates */}
+        <View style={[styles.menuCard, { marginTop: 12 }]}>
+          <TouchableOpacity style={styles.menuItem} onPress={() => checkAndApplyUpdates(true)} activeOpacity={0.7}>
+            <View style={[styles.menuIconBox, { backgroundColor: '#F0F9FF' }]}>
+              <Ionicons name="cloud-download-outline" size={18} color="#0284C7" />
+            </View>
+            <View style={styles.menuTextWrap}>
+              <Text style={styles.menuTitle}>Check for Updates</Text>
+              <Text style={styles.menuSub}>EduHome v1.0.1 • Tap to sync latest changes</Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={Colors.textMuted} />
           </TouchableOpacity>

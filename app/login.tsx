@@ -42,8 +42,8 @@ export default function LoginScreen() {
     if (!activeRoll) {
       setErrorMsg(
         role === 'student'
-          ? 'Please enter your Tuition Roll Number or Phone (e.g. EDU-2026-DEMO).'
-          : 'Please enter your Faculty ID (e.g. FAC-2026-XXX).'
+          ? 'Please enter your Tuition Roll Number or Phone.'
+          : 'Please enter your Faculty ID.'
       );
       return;
     }
@@ -140,7 +140,7 @@ export default function LoginScreen() {
             <Ionicons name="id-card-outline" size={18} color={Colors.textMuted} style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder={role === 'student' ? 'Roll No or Phone (e.g. EDU-2026-DEMO)' : 'FAC-2026-XXX'}
+              placeholder={role === 'student' ? 'Roll No or Phone Number' : 'Faculty ID'}
               placeholderTextColor={Colors.textMuted}
               value={rollNo}
               onChangeText={setRollNo}

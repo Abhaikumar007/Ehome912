@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Redirect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { attendanceData as defaultAtt } from '../../constants/mockData';
-import { DataService } from '../../lib/dataService';
+import { DataService, parseDateToIso, isStudentEnrolledInSubject, formatStudentDisplayClassAndSyllabus } from '../../lib/dataService';
 import { useAuth } from '../../lib/authContext';
 
 type AttStatus = 'present' | 'absent';
@@ -67,10 +67,10 @@ export default function AttendanceScreen() {
 
   const rollNo = student?.rollNo || '';
 
-  const loadData = async () => {
+  const loadData = async (forceFresh = false) => {
     if (!rollNo) return;
     try {
-      const res = await DataService.getAttendance(rollNo);
+      const res = await DataService.getAttendance(rollNo, forceFresh);
       if (res) setAttendance(res);
     } catch {
       // ignore
@@ -84,7 +84,7 @@ export default function AttendanceScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadData();
+      await loadData(true);
     } catch {}
     setRefreshing(false);
   };
@@ -118,20 +118,30 @@ export default function AttendanceScreen() {
         sessionType: h.sessionType || 'Regular Class',
         status: (h.status === 'full' || h.score === '1/1' || h.status === 'present') ? 'present' : (h.status === 'absent' || h.score === '0/1') ? 'absent' : (h.status || 'pending'),
         date: h.date,
+        classDate: h.classDate,
       })),
     ];
 
-    // Filter sessions matching target date
+    // Filter sessions strictly matching target date
     const matchedSessions = allCandidates.filter((s: any) => {
-      if (offset === 0 && !s.date) return true;
-      if (s.date && (s.date === targetDateLabel || s.date.includes(targetIso))) return true;
+      const sIso = s.classDate || s.class_date || parseDateToIso(s.date);
+      if (sIso && targetIso) {
+        return sIso === targetIso;
+      }
+      if (offset === 0 && !s.date && !s.classDate) return true;
       return false;
     });
+
+    // Filter strictly by student's assigned subjects
+    const studentSubjects = student?.subjects;
+    const subjectFiltered = studentSubjects
+      ? matchedSessions.filter((s: any) => isStudentEnrolledInSubject(studentSubjects, s.subject))
+      : matchedSessions;
 
     // Deduplicate by classId or subject+time
     const seen = new Set<string>();
     const sessionList: any[] = [];
-    matchedSessions.forEach((s: any) => {
+    subjectFiltered.forEach((s: any) => {
       const key = s.classId || `${(s.subject || '').toLowerCase()}_${(s.time || '').toLowerCase()}`;
       if (!seen.has(key)) {
         seen.add(key);
@@ -172,7 +182,7 @@ export default function AttendanceScreen() {
         </View>
         <View style={styles.batchBadge}>
           <View style={styles.batchDot} />
-          <Text style={styles.batchText}>{student?.batch || 'Batch A1'}</Text>
+          <Text style={styles.batchText}>{formatStudentDisplayClassAndSyllabus(student)}</Text>
         </View>
       </View>
 
@@ -361,24 +371,27 @@ export default function AttendanceScreen() {
         </View>
 
         {attendance.history.length > 0 ? (
-          attendance.history.map((h, i) => (
-            <View key={i} style={[styles.historyRow, i < attendance.history.length - 1 && styles.historyBorder]}>
-              <View style={styles.historyLeft}>
-                <Text style={styles.historyDate}>{h.date}</Text>
-                <Text style={styles.historySubjects}>{h.subjects}</Text>
+          attendance.history.map((h, i) => {
+            const isPresent = h.status === 'full' || h.status === 'present' || h.score === '1/1';
+            return (
+              <View key={i} style={[styles.historyRow, i < attendance.history.length - 1 && styles.historyBorder]}>
+                <View style={styles.historyLeft}>
+                  <Text style={styles.historyDate}>{h.date}</Text>
+                  <Text style={styles.historySubjects}>{h.subjects}</Text>
+                </View>
+                <View style={[styles.historyBadge, { backgroundColor: isPresent ? Colors.greenLight : Colors.redLight }]}>
+                  <Ionicons
+                    name={isPresent ? 'checkmark' : 'close'}
+                    size={12}
+                    color={isPresent ? Colors.green : Colors.red}
+                  />
+                  <Text style={[styles.historyScore, { color: isPresent ? Colors.green : Colors.red }]}>
+                    {h.score || (isPresent ? '1/1' : '0/1')} {isPresent ? 'Present' : 'Absent'}
+                  </Text>
+                </View>
               </View>
-              <View style={[styles.historyBadge, { backgroundColor: h.status === 'full' ? Colors.greenLight : Colors.redLight }]}>
-                <Ionicons
-                  name={h.status === 'full' ? 'checkmark' : 'close'}
-                  size={12}
-                  color={h.status === 'full' ? Colors.green : Colors.red}
-                />
-                <Text style={[styles.historyScore, { color: h.status === 'full' ? Colors.green : Colors.red }]}>
-                  {h.score} Present
-                </Text>
-              </View>
-            </View>
-          ))
+            );
+          })
         ) : (
           <View style={styles.emptyHistoryBox}>
             <Ionicons name="calendar-outline" size={24} color={Colors.textMuted} />

@@ -36,7 +36,7 @@ export const feesData = {
   daysLeft: 0,
   isPaid: false,
   status: 'due' as 'due' | 'pending_verification' | 'paid',
-  upiId: 'devitintu12345@oksbi',
+  upiId: 'madhuakshay987@oksbi',
   payeeName: 'EduHome Tuition Center',
   loyaltyMonths: [
     { label: 'Month 1', earned: false },
