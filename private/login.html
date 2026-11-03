@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – Edu Home Admin</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+    <title>Edu Home Admin – Secured Access</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -13,201 +13,622 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #0a1628 0%, #0d2a4a 50%, #003366 100%);
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #091322 0%, #0d2342 50%, #003366 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
+            padding: 20px;
         }
 
-        /* Animated background circles */
+        /* Animated background pulse */
         body::before, body::after {
             content: '';
             position: fixed;
             border-radius: 50%;
-            opacity: 0.07;
-            background: #0088ff;
-            animation: pulse 6s ease-in-out infinite;
+            opacity: 0.08;
+            background: #0284c7;
+            animation: pulse 8s ease-in-out infinite;
         }
-        body::before { width: 500px; height: 500px; top: -150px; left: -150px; }
-        body::after  { width: 400px; height: 400px; bottom: -120px; right: -120px;
-                       animation-delay: 3s; background: #00ccff; }
+        body::before { width: 550px; height: 550px; top: -160px; left: -160px; }
+        body::after  { width: 450px; height: 450px; bottom: -140px; right: -140px;
+                       animation-delay: 4s; background: #38bdf8; }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
-            50%       { transform: scale(1.15); }
+            50%       { transform: scale(1.18); }
         }
 
-        .card {
-            background: rgba(255,255,255,0.97);
-            border-radius: 20px;
-            padding: 44px 40px 36px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+        .login-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 22px;
+            padding: 42px 36px 32px;
+            width: 100%;
+            max-width: 410px;
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45), 0 0 1px rgba(255,255,255,0.4) inset;
             position: relative;
             z-index: 10;
+            transition: transform 0.2s ease;
         }
 
-        .logo {
-            width: 64px; height: 64px;
-            background: linear-gradient(135deg, #003366, #0088ff);
-            border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.8rem;
-            margin: 0 auto 18px;
-            box-shadow: 0 8px 24px rgba(0,136,255,0.3);
+        .login-card.shake {
+            animation: shake 0.45s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        .logo-wrap {
+            width: 68px;
+            height: 68px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: #fff;
+            margin: 0 auto 16px;
+            box-shadow: 0 10px 25px rgba(2, 132, 199, 0.35);
         }
 
         h1 {
             text-align: center;
-            font-size: 1.45rem;
-            color: #003366;
-            font-weight: 700;
+            font-size: 1.5rem;
+            color: #0f172a;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             margin-bottom: 4px;
         }
+
         .subtitle {
             text-align: center;
-            color: #6c757d;
-            font-size: 0.88rem;
-            margin-bottom: 30px;
+            color: #64748b;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+
+        .banner-notice {
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            display: none;
+            line-height: 1.4;
+        }
+        .banner-notice.info {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            color: #1e40af;
+            display: block;
+        }
+        .banner-notice.warning {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            color: #b45309;
+            display: block;
+        }
+        .banner-notice.danger {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            display: block;
+        }
+
+        .input-group-custom {
+            position: relative;
+            margin-bottom: 18px;
         }
 
         label {
             display: block;
             font-size: 0.82rem;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 6px;
-            letter-spacing: 0.04em;
+            font-weight: 700;
+            color: #334155;
+            margin-bottom: 7px;
+            letter-spacing: 0.03em;
             text-transform: uppercase;
         }
 
-        .field { margin-bottom: 18px; }
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
 
-        input[type="password"] {
+        input[type="password"], input[type="text"] {
             width: 100%;
-            padding: 13px 14px;
-            font-size: 1.4rem;
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
+            padding: 14px 48px 14px 18px;
+            font-size: 1.35rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
             outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            color: #212529;
+            transition: all 0.2s ease;
+            color: #0f172a;
+            letter-spacing: 0.35em;
             text-align: center;
-            letter-spacing: 0.5em;
+            font-weight: 700;
+            background: #f8fafc;
         }
-        input:focus {
-            border-color: #0088ff;
-            box-shadow: 0 0 0 4px rgba(0,136,255,0.12);
-        }
-        input.error { border-color: #dc3545; }
 
-        .btn-login {
+        input:focus {
+            border-color: #0284c7;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.15);
+        }
+
+        .btn-toggle-eye {
+            position: absolute;
+            right: 14px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s;
+        }
+        .btn-toggle-eye:hover {
+            color: #0284c7;
+        }
+
+        /* Remember device toggle */
+        .remember-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 10px 14px;
+        }
+
+        .remember-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .remember-title {
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .remember-sub {
+            font-size: 0.74rem;
+            color: #64748b;
+        }
+
+        /* Switch toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .3s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }
+
+        input:checked + .slider {
+            background-color: #0284c7;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .btn-submit {
             width: 100%;
             padding: 14px;
-            background: linear-gradient(135deg, #003366, #0066cc);
-            color: #fff;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
             border: none;
-            border-radius: 10px;
-            font-size: 1rem;
+            border-radius: 12px;
+            font-size: 1.05rem;
             font-weight: 700;
             cursor: pointer;
-            transition: opacity 0.2s, transform 0.1s;
-            margin-top: 6px;
-            letter-spacing: 0.03em;
+            transition: all 0.2s ease;
+            box-shadow: 0 8px 20px rgba(2, 132, 199, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
-        .btn-login:hover   { opacity: 0.92; }
-        .btn-login:active  { transform: scale(0.98); }
-        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
 
-        #error-msg {
-            background: #fff5f5;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 0.85rem;
-            margin-top: 14px;
-            display: none;
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(2, 132, 199, 0.4);
         }
-        #error-msg.show { display: block; }
+
+        .btn-submit:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .btn-submit:disabled {
+            background: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        #feedback-msg {
+            margin-top: 16px;
+            font-size: 0.88rem;
+            padding: 10px 14px;
+            border-radius: 10px;
+            text-align: center;
+            display: none;
+            line-height: 1.4;
+        }
+        #feedback-msg.error {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            display: block !important;
+        }
+        #feedback-msg.lockout {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            display: block !important;
+            font-weight: 600;
+        }
+        #feedback-msg.success {
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: #047857;
+            display: block !important;
+        }
 
         .footer-note {
             text-align: center;
-            font-size: 0.78rem;
-            color: #adb5bd;
-            margin-top: 22px;
+            font-size: 0.76rem;
+            color: #94a3b8;
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="logo">🏫</div>
-        <h1>Edu Home Admin</h1>
-        <p class="subtitle">Enter your admin PIN to continue</p>
-
-        <div class="field">
-            <label for="pin">Admin PIN</label>
-            <input type="password" id="pin" placeholder="••••" maxlength="10" autocomplete="off" inputmode="numeric" />
+    <div class="login-card" id="loginCard">
+        <div class="logo-wrap">
+            <i class="fas fa-graduation-cap"></i>
         </div>
+        <h1>Edu Home Admin</h1>
+        <p class="subtitle">Enter Faculty / Staff Center PIN</p>
 
-        <button class="btn-login" id="loginBtn" onclick="doLogin()">
-            <i class="fas fa-sign-in-alt mr-1"></i> Sign In
-        </button>
+        <!-- Dynamic Reason Notice -->
+        <div id="bannerNotice" class="banner-notice"></div>
 
-        <div id="error-msg"></div>
-        <p class="footer-note"><i class="fas fa-lock"></i> Secured Login</p>
+        <form id="authForm" onsubmit="event.preventDefault(); handleLogin();">
+            <div class="input-group-custom">
+                <label for="pin">Center Passcode</label>
+                <div class="input-wrapper">
+                    <input 
+                        type="password" 
+                        id="pin" 
+                        placeholder="••••" 
+                        maxlength="10" 
+                        autocomplete="off" 
+                        inputmode="numeric" 
+                        pattern="[0-9]*"
+                        autofocus
+                        required
+                    />
+                    <button type="button" class="btn-toggle-eye" id="toggleEye" onclick="togglePinVisibility()" title="Show/Hide PIN">
+                        <i class="far fa-eye" id="eyeIcon"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember Device Toggle (Enabled by default for 60-day faculty convenience) -->
+            <div class="remember-wrap">
+                <div class="remember-text">
+                    <span class="remember-title">Trust this device (60 Days)</span>
+                    <span class="remember-sub">Stay logged in without re-entering PIN</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="rememberDevice" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-submit" id="submitBtn">
+                <i class="fas fa-sign-in-alt"></i> Sign In to Portal
+            </button>
+        </form>
+
+        <div id="feedback-msg"></div>
+
+        <div class="footer-note">
+            <i class="fas fa-shield-alt" style="color: #0284c7;"></i> Cryptographically Protected Session
+        </div>
     </div>
 
     <script src="js/config.js"></script>
     <script>
-        // If already logged in, skip login page
-        (function() {
-            try {
-                var raw = localStorage.getItem('eduHome_auth');
-                if (raw) {
-                    var session = JSON.parse(raw);
-                    if (session && session.authenticated) {
-                        window.location.replace('index.html');
-                    }
-                }
-            } catch(e) {}
-        })();
+        // Constants (from config.js or fallback)
+        const SALT = (typeof AUTH_SALT !== 'undefined') ? AUTH_SALT : 'eduhome_secure_salt_2026';
+        const HASH = (typeof AUTH_HASH !== 'undefined') ? AUTH_HASH : '3d53125c9a7a917a82edebb7060ab5b802a7cd92a0ffec38e651437e8384c0d0';
+        const STORAGE_KEY = 'eduHome_auth';
+        const LOCKOUT_KEY = 'eduHome_lockout';
+        const MAX_ATTEMPTS = (typeof AUTH_MAX_ATTEMPTS !== 'undefined') ? AUTH_MAX_ATTEMPTS : 5;
+        const LOCKOUT_DURATION_MS = (typeof AUTH_LOCKOUT_MS !== 'undefined') ? AUTH_LOCKOUT_MS : (15 * 60 * 1000);
 
-        // Allow Enter key
-        document.getElementById('pin').addEventListener('keydown', function (e) {
-            if (e.key === 'Enter') doLogin();
-        });
+        let countdownTimer = null;
 
-        function doLogin() {
-            var pin    = document.getElementById('pin').value.trim();
-            var btn    = document.getElementById('loginBtn');
-            var errEl  = document.getElementById('error-msg');
+        // Standard SHA-256 via Web Crypto
+        async function sha256Hex(text) {
+            const data = new TextEncoder().encode(text);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
 
-            errEl.classList.remove('show');
+        // Toggle Password Visibility
+        function togglePinVisibility() {
+            const pinInput = document.getElementById('pin');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (pinInput.type === 'password') {
+                pinInput.type = 'text';
+                eyeIcon.className = 'far fa-eye-slash';
+            } else {
+                pinInput.type = 'password';
+                eyeIcon.className = 'far fa-eye';
+            }
+        }
 
-            if (!pin) {
-                errEl.textContent = 'Please enter your PIN.';
-                errEl.classList.add('show');
-                return;
+        // 1. Initial State Check on Page Load
+        (async function checkExistingAuthAndLockout() {
+            // Check URL parameters for reasons
+            const params = new URLSearchParams(window.location.search);
+            const reason = params.get('reason');
+            const banner = document.getElementById('bannerNotice');
+
+            if (reason === 'logout') {
+                banner.className = 'banner-notice info';
+                banner.innerHTML = '<i class="fas fa-check-circle"></i> You have safely signed out.';
+            } else if (reason === 'expired') {
+                banner.className = 'banner-notice warning';
+                banner.innerHTML = '<i class="fas fa-history"></i> Your 60-day session has expired. Please enter the PIN.';
+            } else if (reason === 'tampered' || reason === 'invalid') {
+                banner.className = 'banner-notice danger';
+                banner.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Security check failed. Please sign in again.';
             }
 
-            // Check against the configured admin PIN
-            var correctPin = (typeof ADMIN_PIN !== 'undefined') ? ADMIN_PIN : '2025';
+            // Check if already authenticated with valid signature
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const session = JSON.parse(raw);
+                    if (session && session.authenticated && session.expiresAt && session.sig) {
+                        if (Date.now() < session.expiresAt) {
+                            const expectedSig = await sha256Hex(SALT + '|' + session.createdAt + '|' + session.expiresAt + '|' + HASH);
+                            if (session.sig === expectedSig) {
+                                // Valid session! Redirect to index
+                                window.location.replace('index.html');
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                localStorage.removeItem(STORAGE_KEY);
+            }
 
-            if (pin === correctPin) {
-                // ✅ Correct PIN — save session and redirect
-                var session = {
-                    authenticated: true,
-                    loginTime: new Date().toISOString()
-                };
-                localStorage.setItem('eduHome_auth', JSON.stringify(session));
-                window.location.replace('index.html');
+            // Check Lockout
+            checkLockoutStatus();
+        })();
+
+        // Check if currently locked out
+        function checkLockoutStatus() {
+            const rawLockout = localStorage.getItem(LOCKOUT_KEY);
+            if (!rawLockout) return false;
+
+            try {
+                const lockout = JSON.parse(rawLockout);
+                if (lockout && lockout.lockoutUntil && Date.now() < lockout.lockoutUntil) {
+                    startLockoutCountdown(lockout.lockoutUntil);
+                    return true;
+                } else if (lockout && lockout.lockoutUntil && Date.now() >= lockout.lockoutUntil) {
+                    // Lockout expired, reset attempts
+                    localStorage.removeItem(LOCKOUT_KEY);
+                    clearFeedback();
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        // Lockout Countdown Timer
+        function startLockoutCountdown(until) {
+            const pinInput = document.getElementById('pin');
+            const submitBtn = document.getElementById('submitBtn');
+            const feedback = document.getElementById('feedback-msg');
+
+            pinInput.disabled = true;
+            submitBtn.disabled = true;
+
+            if (countdownTimer) clearInterval(countdownTimer);
+
+            function update() {
+                const remainingMs = until - Date.now();
+                if (remainingMs <= 0) {
+                    clearInterval(countdownTimer);
+                    localStorage.removeItem(LOCKOUT_KEY);
+                    pinInput.disabled = false;
+                    submitBtn.disabled = false;
+                    clearFeedback();
+                    pinInput.focus();
+                    return;
+                }
+
+                const totalSec = Math.ceil(remainingMs / 1000);
+                const mins = Math.floor(totalSec / 60);
+                const secs = totalSec % 60;
+                const formatted = mins + ':' + (secs < 10 ? '0' : '') + secs;
+
+                showFeedback('lockout', '<i class="fas fa-lock"></i> <strong>Device Locked Out</strong><br>Too many wrong attempts. Try again in <strong>' + formatted + '</strong>');
+            }
+
+            update();
+            countdownTimer = setInterval(update, 1000);
+        }
+
+        function clearFeedback() {
+            const feedback = document.getElementById('feedback-msg');
+            feedback.style.display = 'none';
+            feedback.textContent = '';
+            feedback.className = '';
+        }
+
+        function showFeedback(type, html) {
+            const feedback = document.getElementById('feedback-msg');
+            feedback.className = type;
+            feedback.innerHTML = html;
+            feedback.style.display = 'block';
+        }
+
+        // Handle Login Submission
+        async function handleLogin() {
+            if (checkLockoutStatus()) return;
+
+            const pinInput = document.getElementById('pin');
+            const rememberCheck = document.getElementById('rememberDevice');
+            const submitBtn = document.getElementById('submitBtn');
+            const feedback = document.getElementById('feedback-msg');
+            const card = document.getElementById('loginCard');
+
+            const enteredPin = pinInput.value.trim();
+            if (!enteredPin) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verifying...';
+
+            try {
+                // Compute SHA-256 of salt + entered PIN
+                const computedHash = await sha256Hex(SALT + enteredPin);
+
+                if (computedHash === HASH) {
+                    // ✅ SUCCESSFUL AUTHENTICATION
+                    localStorage.removeItem(LOCKOUT_KEY);
+
+                    const remember = rememberCheck.checked;
+                    const now = Date.now();
+                    // 60 days if remembered, 24 hours if not
+                    const durationMs = remember ? (60 * 24 * 60 * 60 * 1000) : (24 * 60 * 60 * 1000);
+                    const expiresAt = now + durationMs;
+
+                    // Generate Cryptographic Signature
+                    const signature = await sha256Hex(SALT + '|' + now + '|' + expiresAt + '|' + HASH);
+
+                    const sessionData = {
+                        authenticated: true,
+                        role: 'faculty_admin',
+                        createdAt: now,
+                        expiresAt: expiresAt,
+                        remember: remember,
+                        sig: signature
+                    };
+
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionData));
+
+                    showFeedback('success', '<i class="fas fa-check-circle"></i> <strong>Verified!</strong> Redirecting to dashboard...');
+
+                    submitBtn.style.background = '#059669';
+                    submitBtn.innerHTML = '<i class="fas fa-check"></i> Access Granted';
+
+                    setTimeout(function() {
+                        window.location.replace('index.html');
+                    }, 500);
+
+                } else {
+                    // ❌ INCORRECT PIN
+                    handleFailedAttempt();
+                }
+            } catch (err) {
+                console.error('Login error:', err);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In to Portal';
+                showFeedback('error', 'An error occurred during verification. Please try again.');
+            }
+        }
+
+        // Record Failed Attempt & Apply Brute-Force Rate Limiting
+        function handleFailedAttempt() {
+            const pinInput = document.getElementById('pin');
+            const submitBtn = document.getElementById('submitBtn');
+            const card = document.getElementById('loginCard');
+
+            pinInput.value = '';
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In to Portal';
+
+            // Shake card animation
+            card.classList.remove('shake');
+            void card.offsetWidth; // Trigger reflow
+            card.classList.add('shake');
+
+            // Read lockout history
+            let attempts = 1;
+            const rawLockout = localStorage.getItem(LOCKOUT_KEY);
+            if (rawLockout) {
+                try {
+                    const l = JSON.parse(rawLockout);
+                    attempts = (l.attempts || 0) + 1;
+                } catch(e) {}
+            }
+
+            if (attempts >= MAX_ATTEMPTS) {
+                const lockoutUntil = Date.now() + LOCKOUT_DURATION_MS;
+                localStorage.setItem(LOCKOUT_KEY, JSON.stringify({
+                    attempts: attempts,
+                    lockoutUntil: lockoutUntil
+                }));
+                startLockoutCountdown(lockoutUntil);
             } else {
-                // ❌ Wrong PIN
-                errEl.textContent = '❌ Wrong PIN. Try again.';
-                errEl.classList.add('show');
-                document.getElementById('pin').value = '';
-                document.getElementById('pin').focus();
+                localStorage.setItem(LOCKOUT_KEY, JSON.stringify({
+                    attempts: attempts,
+                    lockoutUntil: 0
+                }));
+                const remaining = MAX_ATTEMPTS - attempts;
+                showFeedback('error', '<i class="fas fa-times-circle"></i> Incorrect PIN. <strong>' + remaining + ' attempt' + (remaining === 1 ? '' : 's') + '</strong> remaining before 15-min lockout.');
+                pinInput.focus();
             }
         }
     </script>
