@@ -619,6 +619,15 @@ export function getFeeTargetMonth(
     }
   }
 
+  // If student has an approved payment up to maxPaidKey, all prior months are settled
+  let maxPaidKey = -1;
+  paid.forEach((k) => {
+    if (k > maxPaidKey) maxPaidKey = k;
+  });
+  if (maxPaidKey >= startKey) {
+    startKey = maxPaidKey + 1;
+  }
+
   let firstUnpaid: number | null = null;
   let unpaidCount = 0;
   for (let k = startKey; k <= curKey; k++) {
@@ -1478,8 +1487,12 @@ export const DataService = {
           feeNow
         );
         const pendingItem = payments.find((p: any) => p.status === 'pending_verification');
+
+        // Check if database explicitly marked as cleared by Admin
+        const isExplicitlyClearedInDb = (Number(data.current_due) === 0 || data.due_date === 'All Cleared' || data.status === 'paid');
+
         // Everything up to the current month is paid -> cleared (unless an advance payment is in review)
-        const isPaid = isAdvance && !hasPendingVerification && approvedPayments.length > 0;
+        const isPaid = (isExplicitlyClearedInDb || isAdvance) && !hasPendingVerification;
         const computedStatus = hasPendingVerification ? 'pending_verification' : (isPaid ? 'paid' : 'due');
 
         // Most recent month that has been paid (by calendar order, not array order)
