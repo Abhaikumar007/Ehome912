@@ -579,7 +579,7 @@ const MASTER_STUDENTS_ROSTER = [
         "class": "12",
         "school": "SG",
         "phone": "919567026060",
-        "joiningDate": "2026-04-28",
+        "joiningDate": "2026-09-20",
         "amount": "4500",
         "pin": "3991",
         "subjects": [
@@ -1990,9 +1990,36 @@ function _computeStudentFeeDues(student, pmts, monthlyFee) {
     }
     
     const paidList = Array.isArray(pmts) ? pmts : [];
+
+    // Find the latest approved payment month key (if any)
+    let latestPaidKey = -1;
+    paidList.forEach(p => {
+        if (!p || p.status === 'pending_verification') return;
+        for (let m = 0; m < 12; m++) {
+            const mLong = months[m];
+            const mShort = mLong.slice(0, 3).toUpperCase();
+            if ((p.fullMonth && p.fullMonth.toLowerCase().includes(mLong.toLowerCase())) || p.month === mShort) {
+                let y = nowDate.getFullYear();
+                const mMatch = (p.fullMonth || '').match(/(20\d\d)/);
+                if (mMatch) y = parseInt(mMatch[1], 10);
+                const k = y * 12 + m;
+                if (k > latestPaidKey) latestPaidKey = k;
+            }
+        }
+    });
+
+    // If student has an approved payment up to latestPaidKey, all prior months are settled
+    if (latestPaidKey >= startKey) {
+        startKey = latestPaidKey + 1;
+    }
+
+    // Current month is only overdue if today's date has reached or passed the due day
+    const isCurrentMonthDueYet = nowDate.getDate() >= dueDay;
+    const maxEvaluationKey = isCurrentMonthDueYet ? nowKey : nowKey - 1;
+
     let firstUnpaid = null;
     let unpaidCount = 0;
-    for (let k = startKey; k <= nowKey; k++) {
+    for (let k = startKey; k <= maxEvaluationKey; k++) {
         const mLong = months[k % 12];
         const mShort = mLong.slice(0, 3).toUpperCase();
         const y = Math.floor(k / 12);
@@ -2022,7 +2049,7 @@ function _computeStudentFeeDues(student, pmts, monthlyFee) {
     return {
         currentDue,
         dueDate,
-        daysLeft,
+        daysLeft: unpaidCount === 0 ? 0 : daysLeft,
         unpaidCount,
         firstUnpaid,
         monthlyFee
