@@ -2,7 +2,7 @@
   "expo": {
     "name": "EduHome",
     "slug": "eduhome-app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       },
       "package": "com.eduhome.app",
-      "versionCode": 3,
+      "versionCode": 4,
       "googleServicesFile": "./google-services.json"
     },
     "web": {
