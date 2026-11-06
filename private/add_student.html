@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <link rel="stylesheet" href="css/admin.css">
+    <style>
+        .custom-switch .custom-control-input:checked ~ .custom-control-label::before {
+            background-color: #10b981 !important;
+            border-color: #10b981 !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -120,21 +126,26 @@
 
         <div class="row justify-content-center mt-5 mb-5">
             <div class="col-md-10">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="m-0">Manage Students</h3>
-                    <div class="d-flex align-items-center flex-wrap" style="gap: 12px;">
-                        <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm" style="border: 1px solid #dee2e6;">
-                            <span id="labelLocal" class="font-weight-bold" style="color: #003366; margin-right: 8px;">💾 Local Storage</span>
+                <div class="d-flex justify-content-between align-items-center flex-wrap mb-3" style="gap: 12px;">
+                    <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                        <h3 class="m-0 font-weight-bold" style="color: #003366;">Manage Students</h3>
+                        <span id="cloudStatusBadge" class="badge badge-success px-2 py-1 shadow-sm" style="font-size: 0.8rem; font-weight: 600; background-color: #10b981;">
+                            <i class="fas fa-check-circle mr-1"></i>Cloud Sync: ON (Supabase Live)
+                        </span>
+                    </div>
+                    <div class="d-flex align-items-center flex-wrap" style="gap: 10px;">
+                        <div id="storageToggleBox" class="d-flex align-items-center bg-white p-2 rounded shadow-sm" style="border: 1.5px solid #10b981; background: #f0fdf4 !important; transition: all 0.3s ease;">
+                            <span id="labelLocal" class="text-muted" style="margin-right: 8px; font-size: 0.85rem;">💾 Local</span>
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="sourceToggleSwitch">
+                                <input type="checkbox" class="custom-control-input" id="sourceToggleSwitch" checked>
                                 <label class="custom-control-label" for="sourceToggleSwitch" style="cursor: pointer;"></label>
                             </div>
-                            <span id="labelCloud" class="text-muted" style="margin-left: 8px;">☁️ Cloud Storage</span>
+                            <span id="labelCloud" class="font-weight-bold" style="color: #15803d; margin-left: 8px; font-size: 0.85rem;">☁️ Cloud Storage (Live)</span>
                         </div>
-                        <button id="pullCloudBtn" class="btn btn-sm btn-outline-primary shadow-sm" style="padding: 8px 12px; font-weight: 600;" onclick="runPullFromCloud()">
+                        <button id="pullCloudBtn" class="btn btn-sm btn-outline-primary shadow-sm" style="padding: 7px 14px; font-weight: 600; border-radius: 6px;" onclick="runPullFromCloud()">
                             <i class="fas fa-cloud-download-alt mr-1"></i> Pull
                         </button>
-                        <button id="pushCloudBtn" class="btn btn-sm btn-outline-success shadow-sm" style="padding: 8px 12px; font-weight: 600;" onclick="runPushToCloud()">
+                        <button id="pushCloudBtn" class="btn btn-sm btn-outline-success shadow-sm" style="padding: 7px 14px; font-weight: 600; border-radius: 6px;" onclick="runPushToCloud()">
                             <i class="fas fa-cloud-upload-alt mr-1"></i> Push
                         </button>
                     </div>
@@ -317,14 +328,46 @@
     <!-- Google Sheets Cloud Sync -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/config.js"></script>
-    <script src="js/sheets-client.js?v=20261018_v3"></script>
-    <script src="js/admin.js?v=20261018_v3"></script>
+    <script src="js/sheets-client.js?v=20261106_cloudsync"></script>
+    <script src="js/admin.js?v=20261106_cloudsync"></script>
 
     <script>
     // ── Manual Sync Handlers ──────────────────────────────────────────
 
     // Auto-pull on load to keep data fresh without manual clicks
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
+        const toggle = document.getElementById('sourceToggleSwitch');
+        if (toggle) {
+            const savedPref = localStorage.getItem('admin_storage_mode');
+            toggle.checked = savedPref !== 'local';
+            if (typeof window.updateToggleLabels === 'function') {
+                window.updateToggleLabels(toggle.checked);
+            }
+        }
+
+        // Live Supabase connectivity verification
+        if (typeof _getSupabaseClient === 'function') {
+            try {
+                const sb = _getSupabaseClient();
+                if (sb) {
+                    const { count, error } = await sb.from('students').select('*', { count: 'exact', head: true });
+                    const badge = document.getElementById('cloudStatusBadge');
+                    if (badge) {
+                        if (!error) {
+                            badge.className = 'badge badge-success px-2 py-1 shadow-sm';
+                            badge.style.backgroundColor = '#10b981';
+                            badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Cloud Sync: ON (Supabase Live · ' + (count != null ? count + ' students' : 'Connected') + ')';
+                        } else {
+                            badge.className = 'badge badge-warning px-2 py-1 shadow-sm';
+                            badge.innerHTML = '<i class="fas fa-exclamation-circle mr-1"></i>Cloud Sync: Offline/Degraded';
+                        }
+                    }
+                }
+            } catch (connErr) {
+                console.warn('[SyncStatus] Ping error:', connErr);
+            }
+        }
+
         if (typeof sb_loadFromCloud === 'function') {
             sb_loadFromCloud().then(function(result) {
                 if (result && result.ok) {
@@ -340,7 +383,7 @@
         
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Pulling...';
-        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading from cloud...</span>';
+        status.innerHTML = '<span class="text-muted"><i class="fas fa-cloud-download-alt mr-1"></i>Downloading latest live records from Supabase...</span>';
 
         const result = await sb_loadFromCloud();
 
@@ -348,15 +391,16 @@
         btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-1"></i> Pull';
 
         if (result && result.ok) {
-            status.innerHTML = '<span class="text-success" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully pulled ' + result.students.length + ' students from cloud!</span>';
-            // Switch toggle to Local to show the new downloaded data
+            status.innerHTML = '<span class="text-success font-weight-bold" style="font-size:0.85rem;"><i class="fas fa-check-circle mr-1"></i>Successfully synced ' + result.students.length + ' students from Cloud (Supabase Live)!</span>';
             const toggle = document.getElementById('sourceToggleSwitch');
-            if (toggle && toggle.checked) {
-                toggle.click(); // This will trigger change event and re-render
-            } else {
-                if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
+            if (toggle) {
+                toggle.checked = true;
+                if (typeof window.updateToggleLabels === 'function') {
+                    window.updateToggleLabels(true);
+                }
             }
-            setTimeout(() => { status.innerHTML = ''; }, 4000);
+            if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
+            setTimeout(() => { status.innerHTML = ''; }, 4500);
         } else {
             status.innerHTML = '<span class="text-danger" style="font-size:0.85rem;"><i class="fas fa-exclamation-triangle mr-1"></i>Pull failed: ' + (result ? result.msg : 'Network error') + '</span>';
         }

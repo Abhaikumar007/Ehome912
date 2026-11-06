@@ -1071,7 +1071,7 @@ window.exportStudentData = function () {
 // --- SUPABASE EXPORT HELPERS (SQL & CSV) ---
 async function getStudentsForSupabaseExport() {
     var toggle = document.getElementById('sourceToggleSwitch');
-    var isCloud = toggle ? toggle.checked : false;
+    var isCloud = toggle ? toggle.checked : true;
 
     // 1. If toggle is set to cloud, try cloud first
     if (isCloud && typeof sb_getStudents === 'function') {
@@ -4073,7 +4073,7 @@ if (document.getElementById('studentListBody')) {
     window.renderStudentManagementList = async function renderStudentManagementList() {
         const tbody = document.getElementById('studentListBody');
         const toggle = document.getElementById('sourceToggleSwitch');
-        const isCloud = toggle ? toggle.checked : false;
+        const isCloud = toggle ? toggle.checked : true;
         
         tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
         
@@ -4083,6 +4083,7 @@ if (document.getElementById('studentListBody')) {
                 const cloudData = await sb_getStudents();
                 if (cloudData) {
                     students = cloudData;
+                    window._lastCloudStudents = cloudData;
                 } else {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to fetch from Cloud. Check console for errors.</td></tr>';
                     return;
@@ -4220,22 +4221,43 @@ if (document.getElementById('studentListBody')) {
         }
     };
 
+    // Global helper to update toggle labels and status badge
+    window.updateToggleLabels = function(isCloud) {
+        const lblLoc = document.getElementById('labelLocal');
+        const lblCld = document.getElementById('labelCloud');
+        const box = document.getElementById('storageToggleBox');
+        const badge = document.getElementById('cloudStatusBadge');
+        if (isCloud) {
+            if (lblLoc) { lblLoc.className = 'text-muted'; lblLoc.style.color = ''; lblLoc.innerText = '💾 Local'; }
+            if (lblCld) { lblCld.className = 'font-weight-bold'; lblCld.style.color = '#15803d'; lblCld.innerText = '☁️ Cloud Storage (Live)'; }
+            if (box) { box.style.borderColor = '#10b981'; box.style.backgroundColor = '#f0fdf4'; }
+            if (badge) {
+                badge.className = 'badge badge-success px-2 py-1 shadow-sm';
+                badge.style.backgroundColor = '#10b981';
+                badge.innerHTML = '<i class="fas fa-check-circle mr-1"></i>Cloud Sync: ON (Supabase Live)';
+            }
+        } else {
+            if (lblCld) { lblCld.className = 'text-muted'; lblCld.style.color = ''; lblCld.innerText = '☁️ Cloud'; }
+            if (lblLoc) { lblLoc.className = 'font-weight-bold'; lblLoc.style.color = '#003366'; lblLoc.innerText = '💾 Local Storage'; }
+            if (box) { box.style.borderColor = '#cbd5e1'; box.style.backgroundColor = '#ffffff'; }
+            if (badge) {
+                badge.className = 'badge badge-secondary px-2 py-1 shadow-sm';
+                badge.style.backgroundColor = '#64748b';
+                badge.innerHTML = '<i class="fas fa-hdd mr-1"></i>Local Storage View (Offline Mode)';
+            }
+        }
+    };
+
     // Listen to toggle
     const toggleSwitch = document.getElementById('sourceToggleSwitch');
     if (toggleSwitch) {
+        if (typeof window.updateToggleLabels === 'function') {
+            window.updateToggleLabels(toggleSwitch.checked);
+        }
         toggleSwitch.addEventListener('change', function() {
-            const lblLoc = document.getElementById('labelLocal');
-            const lblCld = document.getElementById('labelCloud');
-            if (this.checked) {
-                lblLoc.classList.replace('font-weight-bold', 'text-muted');
-                lblLoc.style.color = '';
-                lblCld.classList.replace('text-muted', 'font-weight-bold');
-                lblCld.style.color = '#003366';
-            } else {
-                lblCld.classList.replace('font-weight-bold', 'text-muted');
-                lblCld.style.color = '';
-                lblLoc.classList.replace('text-muted', 'font-weight-bold');
-                lblLoc.style.color = '#003366';
+            localStorage.setItem('admin_storage_mode', this.checked ? 'cloud' : 'local');
+            if (typeof window.updateToggleLabels === 'function') {
+                window.updateToggleLabels(this.checked);
             }
             renderStudentManagementList();
         });
@@ -4321,13 +4343,23 @@ if (document.getElementById('studentListBody')) {
     window.editStudent = function (id) {
         const _viewOpBtn = document.getElementById('btnViewStudentOpinionsInForm');
         if (_viewOpBtn) { _viewOpBtn.style.display = 'inline-block'; }
-        const students = getStudents();
         const normTarget = String(id || '').toUpperCase().trim();
-        const student = students.find(s => {
+        let students = (Array.isArray(window._lastCloudStudents) && window._lastCloudStudents.length > 0)
+            ? window._lastCloudStudents
+            : getStudents();
+        let student = students.find(s => {
             const sId = String(s.id || '').toUpperCase().trim();
             const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
             return sId === normTarget || sRoll === normTarget;
         });
+        if (!student) {
+            students = getStudents();
+            student = students.find(s => {
+                const sId = String(s.id || '').toUpperCase().trim();
+                const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+                return sId === normTarget || sRoll === normTarget;
+            });
+        }
         if (!student) return;
 
         // Populate Form
