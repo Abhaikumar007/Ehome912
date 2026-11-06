@@ -442,6 +442,13 @@ window.sb_getStudents = async function () {
     return JSON.parse(localStorage.getItem('students')) || [];
 };
 
+function _isMissingColumnError(err) {
+    if (!err) return false;
+    const c = String(err.code || '');
+    const m = String(err.message || '').toLowerCase();
+    return c === '42703' || c === 'PGRST204' || m.includes('schema cache') || m.includes('column') || m.includes('subjects');
+}
+
 window.sb_saveStudent = async function (student) {
     let sheetsSuccess = false;
     let supabaseSuccess = false;
@@ -491,9 +498,11 @@ window.sb_saveStudent = async function (student) {
                 streak: student.streak || 0,
                 accuracy: student.accuracy || 0,
                 tests_completed: student.tests_completed || 0,
-                top_percent: student.top_percent || 0,
-                subjects: subjectsStr
+                top_percent: student.top_percent || 0
             };
+            if (window._supabaseHasSubjectsColumn === true) {
+                stuPayload.subjects = subjectsStr;
+            }
 
             // Check if student exists in Supabase
             const { data: existingStu } = await sb.from('students').select('id, pin').eq('roll_no', rollNo).maybeSingle();
@@ -506,8 +515,9 @@ window.sb_saveStudent = async function (student) {
                     stuPayload.pin = String(Math.floor(1000 + Math.random() * 9000));
                 }
                 let res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
-                if (res.error && res.error.code === '42703') {
+                if (res.error && _isMissingColumnError(res.error)) {
                     delete stuPayload.subjects;
+                    window._supabaseHasSubjectsColumn = false;
                     res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
                 }
                 stuError = res.error;
@@ -518,8 +528,9 @@ window.sb_saveStudent = async function (student) {
                     ? String(student.pin).trim()
                     : String(Math.floor(1000 + Math.random() * 9000));
                 let res = await sb.from('students').insert(stuPayload);
-                if (res.error && res.error.code === '42703') {
+                if (res.error && _isMissingColumnError(res.error)) {
                     delete stuPayload.subjects;
+                    window._supabaseHasSubjectsColumn = false;
                     res = await sb.from('students').insert(stuPayload);
                 }
                 stuError = res.error;
@@ -597,12 +608,15 @@ window.sb_saveStudent = async function (student) {
                     days_left: 5,
                     months_paid_on_time: 0,
                     loyalty_months: loyalty,
-                    recent_payments: [],
-                    subjects: subjectsStr
+                    recent_payments: []
                 };
+                if (window._supabaseHasSubjectsColumn === true) {
+                    insertFeePayload.subjects = subjectsStr;
+                }
                 let { error: feeError } = await sb.from('fees_records').upsert(insertFeePayload, { onConflict: 'roll_no' });
-                if (feeError && feeError.code === '42703') {
+                if (feeError && _isMissingColumnError(feeError)) {
                     delete insertFeePayload.subjects;
+                    window._supabaseHasSubjectsColumn = false;
                     feeError = (await sb.from('fees_records').upsert(insertFeePayload, { onConflict: 'roll_no' })).error;
                 }
                 if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
@@ -619,12 +633,15 @@ window.sb_saveStudent = async function (student) {
                 const updateFeePayload = {
                     current_due: newCurrentDue,
                     loyalty_months: loyalty,
-                    subjects: subjectsStr,
                     updated_at: new Date().toISOString()
                 };
+                if (window._supabaseHasSubjectsColumn === true) {
+                    updateFeePayload.subjects = subjectsStr;
+                }
                 let { error: feeError } = await sb.from('fees_records').update(updateFeePayload).eq('roll_no', rollNo);
-                if (feeError && feeError.code === '42703') {
+                if (feeError && _isMissingColumnError(feeError)) {
                     delete updateFeePayload.subjects;
+                    window._supabaseHasSubjectsColumn = false;
                     feeError = (await sb.from('fees_records').update(updateFeePayload).eq('roll_no', rollNo)).error;
                 }
                 if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
@@ -1119,7 +1136,7 @@ window.sb_migrateFromLocalStorage = async function () {
 
             // Fast Bulk Upsert all students to Supabase (with fallback if subjects column does not exist)
             let { error: stuError } = await sb.from('students').upsert(studentPayloads, { onConflict: 'roll_no' });
-            if (stuError && stuError.code === '42703') {
+            if (stuError && _isMissingColumnError(stuError)) {
                 const strippedPayloads = studentPayloads.map(p => {
                     const copy = { ...p };
                     delete copy.subjects;
@@ -1201,7 +1218,7 @@ window.sb_migrateFromLocalStorage = async function () {
 
             if (feeRecordsToUpsert.length > 0) {
                 let { error: feeError } = await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
-                if (feeError && feeError.code === '42703') {
+                if (feeError && _isMissingColumnError(feeError)) {
                     const strippedFeeRecords = feeRecordsToUpsert.map(f => {
                         const copy = { ...f };
                         delete copy.subjects;
