@@ -4361,8 +4361,11 @@ if (document.getElementById('studentListBody')) {
         if (hint) hint.textContent = 'Editing mode: Auto-calc disabled. Clear amount to recalculate.';
 
         // Subjects
+        const currentSubjects = Array.isArray(student.subjects)
+            ? student.subjects
+            : (typeof student.subjects === 'string' ? student.subjects.split(',').map(x => x.trim()).filter(Boolean) : []);
         document.querySelectorAll('input[name="subject"]').forEach(cb => {
-            cb.checked = student.subjects.includes(cb.value);
+            cb.checked = currentSubjects.includes(cb.value);
         });
 
         // Change Button Text and scroll to top

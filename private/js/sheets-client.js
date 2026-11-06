@@ -236,6 +236,10 @@ window.sb_loadFromCloud = async function () {
                     const local = localMap.get(roll.toUpperCase());
                     const sClass = String(r.class_name || (local ? local.class : '10')).replace('Class ', '').trim();
                     const sSyl = (r.batch && /cbse/i.test(r.batch)) ? 'CBSE' : (local?.syllabus || 'State Syllabus');
+                    let initSubjects = (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? [...local.subjects] : [];
+                    if (r.subjects) {
+                        initSubjects = Array.isArray(r.subjects) ? r.subjects : String(r.subjects).split(',').map(s => s.trim()).filter(Boolean);
+                    }
                     return {
                         ...(local || {}),
                         id: roll,
@@ -248,7 +252,7 @@ window.sb_loadFromCloud = async function () {
                         phone: r.phone || (local ? local.phone : ''),
                         joiningDate: r.joining_date || (local ? (local.joiningDate || local.joining_date) : '2026-01-15'),
                         amount: (local && local.amount) ? String(local.amount) : '',
-                        subjects: (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? local.subjects : [],
+                        subjects: initSubjects,
                         pin: r.pin || (local ? local.pin : '')
                     };
                 });
@@ -281,8 +285,19 @@ window.sb_loadFromCloud = async function () {
                         } else {
                             st.amount = st.amount || '';
                         }
+                        // Priority cloud subjects extraction: fr.subjects column OR loyalty_months.__enrolled_subjects
+                        let feeEnrolledSubs = null;
                         if (fr.subjects) {
-                            st.subjects = fr.subjects.split(',').map(s => s.trim());
+                            feeEnrolledSubs = Array.isArray(fr.subjects) ? fr.subjects : String(fr.subjects).split(',').map(s => s.trim()).filter(Boolean);
+                        } else if (Array.isArray(fr.loyalty_months)) {
+                            const subTag = fr.loyalty_months.find(x => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+                            if (subTag) {
+                                const found = subTag.__enrolled_subjects || subTag.subjects;
+                                feeEnrolledSubs = Array.isArray(found) ? found : String(found || '').split(',').map(s => s.trim()).filter(Boolean);
+                            }
+                        }
+                        if (feeEnrolledSubs && feeEnrolledSubs.length > 0) {
+                            st.subjects = feeEnrolledSubs;
                         }
                         const payments = Array.isArray(fr.recent_payments) ? fr.recent_payments : [];
                         const subs = (Array.isArray(st.subjects) && st.subjects.length > 0) ? st.subjects : ['General'];
@@ -390,7 +405,9 @@ window.sb_loadFromCloud = async function () {
                 amount: (st.amount && st.amount !== '') ? String(st.amount) : (master ? String(master.amount) : '3000'),
                 subjects: (st.subjects && Array.isArray(st.subjects) && st.subjects.length > 0)
                     ? st.subjects
-                    : (master && master.subjects ? master.subjects : ['General Tuition'])
+                    : ((localMap.get(canonicalRoll.toUpperCase()) && Array.isArray(localMap.get(canonicalRoll.toUpperCase()).subjects) && localMap.get(canonicalRoll.toUpperCase()).subjects.length > 0)
+                        ? localMap.get(canonicalRoll.toUpperCase()).subjects
+                        : (master && master.subjects ? master.subjects : ['General Tuition']))
             });
         } else {
             const existing = dedupMap.get(canonicalRoll);
@@ -474,7 +491,8 @@ window.sb_saveStudent = async function (student) {
                 streak: student.streak || 0,
                 accuracy: student.accuracy || 0,
                 tests_completed: student.tests_completed || 0,
-                top_percent: student.top_percent || 0
+                top_percent: student.top_percent || 0,
+                subjects: subjectsStr
             };
 
             // Check if student exists in Supabase
@@ -487,7 +505,11 @@ window.sb_saveStudent = async function (student) {
                 } else if (!existingStu.pin) {
                     stuPayload.pin = String(Math.floor(1000 + Math.random() * 9000));
                 }
-                const res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
+                let res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
+                if (res.error && res.error.code === '42703') {
+                    delete stuPayload.subjects;
+                    res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
+                }
                 stuError = res.error;
             } else {
                 // INSERT: New student - use provided pin or generate random 4-digit PIN
@@ -495,7 +517,11 @@ window.sb_saveStudent = async function (student) {
                 stuPayload.pin = (student.pin && /^\d{4}$/.test(String(student.pin).trim()) && String(student.pin).trim() !== '1234')
                     ? String(student.pin).trim()
                     : String(Math.floor(1000 + Math.random() * 9000));
-                const res = await sb.from('students').insert(stuPayload);
+                let res = await sb.from('students').insert(stuPayload);
+                if (res.error && res.error.code === '42703') {
+                    delete stuPayload.subjects;
+                    res = await sb.from('students').insert(stuPayload);
+                }
                 stuError = res.error;
             }
 
@@ -537,7 +563,7 @@ window.sb_saveStudent = async function (student) {
                 }
             }
 
-            // B. Upsert into fees_records (preserve existing payments & dues!)
+            // B. Upsert into fees_records (preserve existing payments & dues, and persist enrolled subjects)
             const { data: existingFee } = await sb.from('fees_records').select('*').eq('roll_no', rollNo).maybeSingle();
             
             // Extract or build loyalty array
@@ -555,16 +581,30 @@ window.sb_saveStudent = async function (student) {
                 loyalty.unshift({ __monthly_fee: monthlyFee, fee_standard: monthlyFee });
             }
 
+            // Dual-layer persistence: always persist enrolled subjects in loyalty_months
+            const subTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+            if (subTagIdx >= 0) {
+                loyalty[subTagIdx] = { ...loyalty[subTagIdx], __enrolled_subjects: subjectsList };
+            } else {
+                loyalty.push({ __enrolled_subjects: subjectsList });
+            }
+
             if (!existingFee) {
-                const { error: feeError } = await sb.from('fees_records').upsert({
+                const insertFeePayload = {
                     roll_no: rollNo,
                     current_due: monthlyFee,
                     due_date: '25th of month',
                     days_left: 5,
                     months_paid_on_time: 0,
                     loyalty_months: loyalty,
-                    recent_payments: []
-                }, { onConflict: 'roll_no' });
+                    recent_payments: [],
+                    subjects: subjectsStr
+                };
+                let { error: feeError } = await sb.from('fees_records').upsert(insertFeePayload, { onConflict: 'roll_no' });
+                if (feeError && feeError.code === '42703') {
+                    delete insertFeePayload.subjects;
+                    feeError = (await sb.from('fees_records').upsert(insertFeePayload, { onConflict: 'roll_no' })).error;
+                }
                 if (feeError) console.warn('[DualSync] Supabase fees error:', feeError.message);
             } else {
                 const payments = Array.isArray(existingFee.recent_payments) ? existingFee.recent_payments : [];
@@ -576,11 +616,34 @@ window.sb_saveStudent = async function (student) {
 
                 const newCurrentDue = isOctoberPaid ? 0 : monthlyFee;
 
-                const { error: feeError } = await sb.from('fees_records').update({
+                const updateFeePayload = {
                     current_due: newCurrentDue,
                     loyalty_months: loyalty,
+                    subjects: subjectsStr,
                     updated_at: new Date().toISOString()
-                }).eq('roll_no', rollNo);
+                };
+                let { error: feeError } = await sb.from('fees_records').update(updateFeePayload).eq('roll_no', rollNo);
+                if (feeError && feeError.code === '42703') {
+                    delete updateFeePayload.subjects;
+                    feeError = (await sb.from('fees_records').update(updateFeePayload).eq('roll_no', rollNo)).error;
+                }
+                if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
+            }
+
+            // Realtime notification: broadcast student_updated event immediately to student & faculty apps
+            try {
+                const stuChan = sb.channel('student_updates_broadcast');
+                stuChan.subscribe((subStatus) => {
+                    if (subStatus === 'SUBSCRIBED') {
+                        stuChan.send({
+                            type: 'broadcast',
+                            event: 'student_updated',
+                            payload: { rollNo, subjects: subjectsList, timestamp: new Date().toISOString() }
+                        });
+                        setTimeout(() => { try { sb.removeChannel(stuChan); } catch(_) {} }, 1500);
+                    }
+                });
+            } catch (_) {}
                 if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
             }
 
@@ -1036,6 +1099,10 @@ window.sb_migrateFromLocalStorage = async function () {
                 if (!batch || batch === className) batch = `${className} (${syl})`;
                 else if (!batch.includes(syl)) batch = `${batch} (${syl})`;
 
+                const subsList = (Array.isArray(s.subjects) && s.subjects.length > 0)
+                    ? s.subjects
+                    : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()).filter(Boolean) : ['General Tuition']);
+
                 return {
                     roll_no: rollNo,
                     name: name,
@@ -1047,12 +1114,21 @@ window.sb_migrateFromLocalStorage = async function () {
                     streak: Number(s.streak) || 0,
                     accuracy: Number(s.accuracy) || 0,
                     tests_completed: Number(s.tests_completed) || 0,
-                    top_percent: Number(s.top_percent) || 0
+                    top_percent: Number(s.top_percent) || 0,
+                    subjects: subsList.join(', ')
                 };
             });
 
-            // Fast Bulk Upsert all students to Supabase
-            const { error: stuError } = await sb.from('students').upsert(studentPayloads, { onConflict: 'roll_no' });
+            // Fast Bulk Upsert all students to Supabase (with fallback if subjects column does not exist)
+            let { error: stuError } = await sb.from('students').upsert(studentPayloads, { onConflict: 'roll_no' });
+            if (stuError && stuError.code === '42703') {
+                const strippedPayloads = studentPayloads.map(p => {
+                    const copy = { ...p };
+                    delete copy.subjects;
+                    return copy;
+                });
+                stuError = (await sb.from('students').upsert(strippedPayloads, { onConflict: 'roll_no' })).error;
+            }
             if (stuError) {
                 console.warn('[DualSync] Supabase bulk students upsert warning:', stuError);
             }
@@ -1070,7 +1146,9 @@ window.sb_migrateFromLocalStorage = async function () {
             students.forEach(s => {
                 const roll = _getRollNo(s);
                 if (!roll) return;
-                const subs = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
+                const subs = (Array.isArray(s.subjects) && s.subjects.length > 0)
+                    ? s.subjects
+                    : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()).filter(Boolean) : ['General']);
                 const isOctPaid = subs.every(sub => 
                     feesRaw[s.id + '_' + sub + '_October_2026'] === 'Paid' || 
                     feesRaw[roll + '_' + sub + '_October_2026'] === 'Paid' ||
@@ -1083,7 +1161,7 @@ window.sb_migrateFromLocalStorage = async function () {
 
                 let loyalty = [];
                 if (Array.isArray(existingRec?.loyalty_months)) {
-                    loyalty = [...existingRec.loyalty_months];
+                    loyalty = [...existingRec?.loyalty_months];
                 } else if (typeof existingRec?.loyalty_months === 'number') {
                     loyalty = [{ earned_count: existingRec.loyalty_months }];
                 }
@@ -1094,12 +1172,21 @@ window.sb_migrateFromLocalStorage = async function () {
                     loyalty.unshift({ __monthly_fee: monthlyFee, fee_standard: monthlyFee });
                 }
 
+                // Dual-layer persistence: always store verified enrolled subjects in loyalty_months
+                const subTagIdx = loyalty.findIndex(x => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+                if (subTagIdx >= 0) {
+                    loyalty[subTagIdx] = { ...loyalty[subTagIdx], __enrolled_subjects: subs };
+                } else {
+                    loyalty.push({ __enrolled_subjects: subs });
+                }
+
                 const recPayload = {
                     roll_no: roll,
                     current_due: isOctPaid ? 0 : monthlyFee,
                     due_date: isOctPaid ? 'All Cleared' : (existingRec?.due_date || '25 October 2026'),
                     days_left: isOctPaid ? 0 : (existingRec?.days_left ?? 22),
                     loyalty_months: loyalty,
+                    subjects: subs.join(', '),
                     updated_at: now.toISOString()
                 };
 
@@ -1115,7 +1202,15 @@ window.sb_migrateFromLocalStorage = async function () {
             });
 
             if (feeRecordsToUpsert.length > 0) {
-                const { error: feeError } = await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
+                let { error: feeError } = await sb.from('fees_records').upsert(feeRecordsToUpsert, { onConflict: 'roll_no' });
+                if (feeError && feeError.code === '42703') {
+                    const strippedFeeRecords = feeRecordsToUpsert.map(f => {
+                        const copy = { ...f };
+                        delete copy.subjects;
+                        return copy;
+                    });
+                    feeError = (await sb.from('fees_records').upsert(strippedFeeRecords, { onConflict: 'roll_no' })).error;
+                }
                 if (feeError) console.warn('[DualSync] Supabase bulk fees upsert warning:', feeError);
             }
 
