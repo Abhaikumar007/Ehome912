@@ -819,13 +819,40 @@ export const DataService = {
           finalGoals = data.goals;
         }
 
+        let resolvedSubjects = data.subjects
+          ? (Array.isArray(data.subjects) ? data.subjects.join(', ') : String(data.subjects).trim())
+          : '';
+
+        // Check cloud fees_records (__enrolled_subjects in loyalty_months or subjects column)
+        if (!resolvedSubjects) {
+          try {
+            const { data: feeData } = await withTimeout(
+              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', targetRoll).maybeSingle(),
+              2000
+            ) as any;
+            if (feeData?.subjects) {
+              resolvedSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
+            } else if (Array.isArray(feeData?.loyalty_months)) {
+              const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+              if (subTag) {
+                const found = subTag.__enrolled_subjects || subTag.subjects;
+                resolvedSubjects = Array.isArray(found) ? found.join(', ') : String(found || '').trim();
+              }
+            }
+          } catch {}
+        }
+
+        if (!resolvedSubjects) {
+          resolvedSubjects = matchedRoster?.subjects || current?.subjects || '';
+        }
+
         const updated: StudentProfile = {
           rollNo: data.roll_no || targetRoll,
           name: data.name || current?.name || targetRoll,
           class: className,
           batch: cleanBatch,
           syllabus: resolvedSyllabus,
-          subjects: data.subjects || (Array.isArray(data.subjects) ? data.subjects.join(', ') : '') || matchedRoster?.subjects || current?.subjects || '',
+          subjects: resolvedSubjects,
           phone: data.phone || current?.phone || '9876543210',
           avatar: localAvatar || data.avatar || current?.avatar || 'ST',
           photoUrl: localPhotoUrl || current?.photoUrl || undefined,
@@ -935,6 +962,32 @@ export const DataService = {
         const className = data.class_name || 'Class 10';
         const cleanBatch = sanitizeStudentBatch(className, data.batch, resolvedSyllabus);
 
+        let resolvedAuthSubjects = data.subjects
+          ? (Array.isArray(data.subjects) ? data.subjects.join(', ') : String(data.subjects).trim())
+          : '';
+
+        if (!resolvedAuthSubjects) {
+          try {
+            const { data: feeData } = await withTimeout(
+              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', trimmedRoll).maybeSingle(),
+              2000
+            ) as any;
+            if (feeData?.subjects) {
+              resolvedAuthSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
+            } else if (Array.isArray(feeData?.loyalty_months)) {
+              const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+              if (subTag) {
+                const found = subTag.__enrolled_subjects || subTag.subjects;
+                resolvedAuthSubjects = Array.isArray(found) ? found.join(', ') : String(found || '').trim();
+              }
+            }
+          } catch {}
+        }
+
+        if (!resolvedAuthSubjects) {
+          resolvedAuthSubjects = matchedRoster?.subjects || '';
+        }
+
         const student: StudentProfile = {
           id: data.id,
           rollNo: data.roll_no,
@@ -942,7 +995,7 @@ export const DataService = {
           class: className,
           batch: cleanBatch,
           syllabus: resolvedSyllabus,
-          subjects: data.subjects || (Array.isArray(data.subjects) ? data.subjects.join(', ') : '') || matchedRoster?.subjects || '',
+          subjects: resolvedAuthSubjects,
           avatar: data.avatar || 'ST',
           photoUrl: data.photo_url || undefined,
           phone: data.phone || '9876543210',
@@ -1106,6 +1159,23 @@ export const DataService = {
         if (cur && cur.rollNo === rollNo) {
           if (!effectiveSyllabus && cur.syllabus) effectiveSyllabus = cur.syllabus;
           if (!effectiveSubjects && cur.subjects) effectiveSubjects = cur.subjects;
+        }
+        if (!effectiveSubjects) {
+          try {
+            const { data: feeData } = await withTimeout(
+              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', rollNo).maybeSingle(),
+              2000
+            ) as any;
+            if (feeData?.subjects) {
+              effectiveSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
+            } else if (Array.isArray(feeData?.loyalty_months)) {
+              const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+              if (subTag) {
+                const found = subTag.__enrolled_subjects || subTag.subjects;
+                effectiveSubjects = Array.isArray(found) ? found.join(', ') : String(found || '').trim();
+              }
+            }
+          } catch {}
         }
         if (!effectiveSyllabus || !effectiveSubjects) {
           const r = EDUSYNC_STUDENTS.find((s) => s.rollNo === rollNo);

@@ -318,13 +318,21 @@ export default function DashboardScreen() {
         });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'students', filter: `roll_no=eq.${rollNo}` }, () => {
-        console.log('[Realtime] Student record updated in Supabase, refreshing session');
+        console.log('[Realtime] Student record updated in Supabase, refreshing session & timetable');
         refreshAuth();
+        loadData(true);
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records', filter: `roll_no=eq.${rollNo}` }, () => {
-        DataService.getFees(rollNo).then((f) => {
-          if (f) setFeesSummary(f);
-        });
+        console.log('[Realtime] Fees / Enrolled subjects updated in Supabase');
+        refreshAuth();
+        loadData(true);
+      })
+      .on('broadcast', { event: 'student_updated' }, (event: any) => {
+        if (!event?.payload?.rollNo || event.payload.rollNo === rollNo) {
+          console.log('[Realtime] Student subjects updated broadcast received:', event?.payload);
+          refreshAuth();
+          loadData(true);
+        }
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `roll_no=eq.${rollNo}` }, () => {
         console.log('[Realtime] Notifications / Teacher opinions change detected in Supabase');

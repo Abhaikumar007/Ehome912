@@ -169,13 +169,33 @@ export default function FacultyAttendanceScreen() {
   // reflect immediately without needing a code change to the static EDUSYNC_STUDENTS array.
   const fetchLiveStudents = useCallback(async () => {
     try {
-      const [{ data, error }, { data: attData }] = await Promise.all([
+      const [{ data, error }, { data: attData }, { data: feeData }] = await Promise.all([
         supabase.from('students').select('*').order('created_at', { ascending: true }),
         supabase.from('attendance_records').select('roll_no, today_subjects, history'),
+        supabase.from('fees_records').select('roll_no, loyalty_months, subjects'),
       ]);
 
       if (Array.isArray(attData)) {
         setAttRecords(attData);
+      }
+
+      const feeSubjectMap = new Map<string, string>();
+      if (Array.isArray(feeData)) {
+        feeData.forEach((f: any) => {
+          if (!f.roll_no) return;
+          const k = String(f.roll_no).toUpperCase().trim();
+          if (f.subjects) {
+            feeSubjectMap.set(k, Array.isArray(f.subjects) ? f.subjects.join(', ') : String(f.subjects).trim());
+          } else if (Array.isArray(f.loyalty_months)) {
+            const subTag = f.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
+            if (subTag) {
+              const found = subTag.__enrolled_subjects || subTag.subjects;
+              if (found) {
+                feeSubjectMap.set(k, Array.isArray(found) ? found.join(', ') : String(found).trim());
+              }
+            }
+          }
+        });
       }
 
       if (!error && Array.isArray(data) && data.length > 0) {
@@ -236,11 +256,9 @@ export default function FacultyAttendanceScreen() {
             syllabus: resolveStudentSyllabus(remote || s),
             phone: remote.phone || s.phone,
             school: remote.school || s.school,
-            subjects: (attSubjects && attSubjects.length > 0)
-              ? attSubjects.join(', ')
-              : (remote.subjects
-                  ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
-                  : s.subjects),
+            subjects: (remote.subjects
+                ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
+                : (feeSubjectMap.get(s.rollNo.toUpperCase()) || (attSubjects && attSubjects.length > 0 ? attSubjects.join(', ') : s.subjects))),
             accuracy: remote.accuracy ?? s.accuracy,
             streak: remote.streak ?? s.streak,
             testsCompleted: remote.tests_completed ?? s.testsCompleted,
@@ -639,13 +657,16 @@ export default function FacultyAttendanceScreen() {
   useEffect(() => {
     fetchLiveStudents();
 
-    // Also subscribe to realtime changes on both students and attendance_records tables
+    // Also subscribe to realtime changes on students, attendance_records and fees_records tables
     const studentChannel = supabase
       .channel('attendance_students_realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'students' }, () => {
         fetchLiveStudents();
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records' }, () => {
+        fetchLiveStudents();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fees_records' }, () => {
         fetchLiveStudents();
       })
       .subscribe();
