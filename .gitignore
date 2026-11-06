@@ -9,3 +9,4 @@ keam_previous_year_question_papers/
 # private/js/config.js
 
 *.bak
+backups/
