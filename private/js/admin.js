@@ -4079,18 +4079,35 @@ if (document.getElementById('studentListBody')) {
         
         let students = [];
         if (isCloud) {
+            // Wait briefly if sheets-client.js is still initializing
+            if (typeof sb_getStudents !== 'function') {
+                for (let i = 0; i < 5; i++) {
+                    if (typeof sb_getStudents === 'function') break;
+                    await new Promise(r => setTimeout(r, 200));
+                }
+            }
+
             if (typeof sb_getStudents === 'function') {
-                const cloudData = await sb_getStudents();
-                if (cloudData) {
-                    students = cloudData;
-                    window._lastCloudStudents = cloudData;
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Failed to fetch from Cloud. Check console for errors.</td></tr>';
-                    return;
+                try {
+                    const cloudData = await sb_getStudents();
+                    if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
+                        students = cloudData;
+                        window._lastCloudStudents = cloudData;
+                    } else {
+                        // Fallback to local cache if cloud returns empty
+                        students = getStudents();
+                        if (students.length === 0) {
+                            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fas fa-info-circle mr-1"></i> No students found in Cloud. Click Push to sync local records.</td></tr>';
+                            return;
+                        }
+                    }
+                } catch (cErr) {
+                    console.warn('[Sync] Fetch from cloud failed, using local cache:', cErr);
+                    students = getStudents();
                 }
             } else {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger"><i class="fas fa-exclamation-triangle"></i> Cloud sync not available.</td></tr>';
-                return;
+                console.warn('[Sync] sb_getStudents not available yet, using local cache');
+                students = getStudents();
             }
         } else {
             students = getStudents();

@@ -644,8 +644,6 @@ window.sb_saveStudent = async function (student) {
                     }
                 });
             } catch (_) {}
-                if (feeError) console.warn('[DualSync] Supabase fees update error:', feeError.message);
-            }
 
             // Realtime notification: broadcast fee_updated event immediately to student app
             try {
