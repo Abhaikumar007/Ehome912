@@ -23,23 +23,28 @@ export async function checkAndApplyUpdates(manual = false) {
     const update = await Updates.checkForUpdateAsync();
     if (update.isAvailable) {
       await Updates.fetchUpdateAsync();
-      Alert.alert(
-        'New Update Ready 🎉',
-        'A new update for EduHome has been downloaded. Restart the app now to apply the latest features?',
-        [
-          { text: 'Later', style: 'cancel' },
-          {
-            text: 'Restart Now',
-            onPress: async () => {
-              try {
-                await Updates.reloadAsync();
-              } catch (e) {
-                console.warn('[Updates] reloadAsync error:', e);
-              }
+      try {
+        await Updates.reloadAsync();
+      } catch (e) {
+        console.warn('[Updates] reloadAsync automatic reload notice:', e);
+        Alert.alert(
+          'New Update Ready 🎉',
+          'A new update for EduHome has been downloaded. Restart the app now to apply the latest features?',
+          [
+            { text: 'Later', style: 'cancel' },
+            {
+              text: 'Restart Now',
+              onPress: async () => {
+                try {
+                  await Updates.reloadAsync();
+                } catch (err) {
+                  console.warn('[Updates] reloadAsync error:', err);
+                }
+              },
             },
-          },
-        ]
-      );
+          ]
+        );
+      }
     } else if (manual) {
       Alert.alert('Up to Date', 'You are already using the latest version of EduHome.');
     }

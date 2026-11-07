@@ -251,11 +251,14 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [greeting, setGreeting] = useState<string>(getDynamicGreeting());
 
-  // Automatically recalculate dynamic greeting when student opens or switches to Home tab
+  // Automatically recalculate dynamic greeting and fetch latest timetable when student opens or switches to Home tab
   useFocusEffect(
     React.useCallback(() => {
       setGreeting(getDynamicGreeting());
-    }, [])
+      if (student?.rollNo || student?.class) {
+        loadData(false);
+      }
+    }, [student?.rollNo, student?.class, student?.syllabus, student?.subjects])
   );
 
   const rollNo = student?.rollNo || '';
