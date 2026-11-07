@@ -2664,7 +2664,7 @@ export const DataService = {
 
     // Sync to Supabase attendance_records matching table columns
     try {
-      await supabase.from('attendance_records').upsert({
+      const { error: singleErr } = await supabase.from('attendance_records').upsert({
         roll_no: rollNo,
         overall,
         attended,
@@ -2673,6 +2673,9 @@ export const DataService = {
         history,
         updated_at: new Date().toISOString(),
       }, { onConflict: 'roll_no' });
+      if (singleErr) {
+        console.warn('[Attendance Sync] Error saving to Supabase attendance_records:', singleErr);
+      }
     } catch (e) {
       console.warn('[Attendance Sync] Error saving to Supabase attendance_records:', e);
     }
@@ -2838,10 +2841,34 @@ export const DataService = {
       try {
         const { error: upsertErr } = await supabase.from('attendance_records').upsert(upsertBatch, { onConflict: 'roll_no' });
         if (upsertErr) {
-          console.warn('[Batch Attendance] Error batch saving to Supabase:', upsertErr);
+          console.warn('[Batch Attendance] Error batch saving to Supabase, attempting per-student fallback:', upsertErr);
+          let successCount = 0;
+          for (const item of upsertBatch) {
+            try {
+              const { error: singleErr } = await supabase.from('attendance_records').upsert(item, { onConflict: 'roll_no' });
+              if (!singleErr) {
+                successCount++;
+              } else {
+                console.warn(`[Batch Attendance] Fallback upsert failed for ${item.roll_no}:`, singleErr.message);
+              }
+            } catch (err) {
+              console.warn(`[Batch Attendance] Fallback error for ${item.roll_no}:`, err);
+            }
+          }
+          console.log(`[Batch Attendance] Fallback complete: ${successCount}/${upsertBatch.length} saved to Supabase.`);
+        } else {
+          console.log(`[Batch Attendance] Successfully synced all ${upsertBatch.length} records to Supabase.`);
         }
       } catch (e) {
-        console.warn('[Batch Attendance] Error batch saving to Supabase:', e);
+        console.warn('[Batch Attendance] Error batch saving to Supabase, attempting per-student fallback:', e);
+        let successCount = 0;
+        for (const item of upsertBatch) {
+          try {
+            const { error: singleErr } = await supabase.from('attendance_records').upsert(item, { onConflict: 'roll_no' });
+            if (!singleErr) successCount++;
+          } catch (_) {}
+        }
+        console.log(`[Batch Attendance] Fallback complete: ${successCount}/${upsertBatch.length} saved to Supabase.`);
       }
     }
 
