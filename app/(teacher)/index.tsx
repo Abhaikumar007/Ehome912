@@ -361,13 +361,12 @@ export default function TeacherHomeScreen() {
             name: remote.name || s.name,
             class: remote.class_name || s.class,
             batch: remote.batch || remote.class_name || s.batch,
+            syllabus: DataService.resolveStudentSyllabus(remote || s),
             phone: remote.phone || s.phone,
             school: remote.school || s.school,
-            subjects: (attSubjects && attSubjects.length > 0)
-              ? attSubjects.join(', ')
-              : (remote.subjects
-                  ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
-                  : s.subjects),
+            subjects: (remote.subjects
+                ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
+                : ((attSubjects && attSubjects.length > 0) ? attSubjects.join(', ') : s.subjects)),
             accuracy: remote.accuracy ?? s.accuracy,
             streak: remote.streak ?? s.streak,
             testsCompleted: remote.tests_completed ?? s.testsCompleted,
@@ -387,6 +386,7 @@ export default function TeacherHomeScreen() {
               name: d.name || '',
               class: d.class_name || 'Class 10',
               batch: d.batch || d.class_name || 'Class 10',
+              syllabus: DataService.resolveStudentSyllabus(d),
               avatar: (d.name || 'ST').slice(0, 2).toUpperCase(),
               phone: d.phone || '',
               school: d.school || 'EduHome',
@@ -403,11 +403,9 @@ export default function TeacherHomeScreen() {
               joiningDate: '',
               joiningDateIso: '',
               monthsPaidOnTime: 0,
-              subjects: (attSubjects && attSubjects.length > 0)
-                ? attSubjects.join(', ')
-                : (d.subjects
-                    ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
-                    : 'General'),
+              subjects: (d.subjects
+                  ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
+                  : ((attSubjects && attSubjects.length > 0) ? attSubjects.join(', ') : 'General')),
             } as any);
           }
         });

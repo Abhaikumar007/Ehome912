@@ -172,7 +172,7 @@ export default function FacultyAttendanceScreen() {
       const [{ data, error }, { data: attData }, { data: feeData }] = await Promise.all([
         supabase.from('students').select('*').order('created_at', { ascending: true }),
         supabase.from('attendance_records').select('roll_no, today_subjects, history'),
-        supabase.from('fees_records').select('roll_no, loyalty_months, subjects'),
+        supabase.from('fees_records').select('roll_no, loyalty_months'),
       ]);
 
       if (Array.isArray(attData)) {

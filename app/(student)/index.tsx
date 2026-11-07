@@ -264,17 +264,20 @@ export default function DashboardScreen() {
     setGreeting(getDynamicGreeting());
     try {
       const [cls, anns, att, fees, alert, opinions, notifs, pubDates] = await Promise.all([
-        DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, forceFresh),
-        DataService.getAnnouncements(forceFresh, student?.class, true, student?.syllabus),
-        DataService.getAttendance(rollNo, forceFresh),
-        DataService.getFees(rollNo, forceFresh),
-        DataService.getAcademicAlert(student?.class, student?.syllabus),
-        DataService.getStudentTeacherOpinions(rollNo),
-        DataService.getNotifications(rollNo, student?.class, student?.syllabus),
-        DataService.getPublishedTimetableDates(),
+        DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, forceFresh).catch((e) => {
+          console.warn('[DashboardScreen] getClasses error:', e);
+          return [];
+        }),
+        DataService.getAnnouncements(forceFresh, student?.class, true, student?.syllabus).catch(() => []),
+        DataService.getAttendance(rollNo, forceFresh).catch(() => null),
+        DataService.getFees(rollNo, forceFresh).catch(() => null),
+        DataService.getAcademicAlert(student?.class, student?.syllabus).catch(() => null),
+        DataService.getStudentTeacherOpinions(rollNo).catch(() => []),
+        DataService.getNotifications(rollNo, student?.class, student?.syllabus).catch(() => []),
+        DataService.getPublishedTimetableDates().catch(() => []),
       ]);
-      if (cls) setClasses(cls);
-      if (pubDates) setPublishedDates(pubDates);
+      if (cls && Array.isArray(cls)) setClasses(cls);
+      if (pubDates && Array.isArray(pubDates)) setPublishedDates(pubDates);
       setAnnouncementsList(anns || []);
       if (att) setAttSummary(att);
       if (fees) setFeesSummary(fees);
@@ -302,14 +305,18 @@ export default function DashboardScreen() {
         DataService.getAcademicAlert(student?.class, student?.syllabus).then((alt) => {
           setAcademicAlert(alt || null);
         });
+        DataService.getNotifications(rollNo, student?.class, student?.syllabus).then((notifs) => {
+          if (notifs) setHasUnreadNotifs(notifs.some((n: any) => n.unread));
+        });
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'attendance_records', filter: `roll_no=eq.${rollNo}` }, () => {
         DataService.getAttendance(rollNo, true).then((att) => {
           if (att) setAttSummary(att);
         });
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'classes' }, async () => {
         console.log('[Realtime] Classes change detected in Supabase');
+        await DataService.clearClassesCache(rollNo, student?.syllabus);
         DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, true).then((cls) => {
           if (cls) setClasses(cls);
         });
@@ -334,12 +341,12 @@ export default function DashboardScreen() {
           loadData(true);
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications', filter: `roll_no=eq.${rollNo}` }, () => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => {
         console.log('[Realtime] Notifications / Teacher opinions change detected in Supabase');
         DataService.getStudentTeacherOpinions(rollNo).then((ops) => {
           setTeacherOpinions(ops || []);
         });
-        DataService.getNotifications(rollNo).then((notifs) => {
+        DataService.getNotifications(rollNo, student?.class, student?.syllabus).then((notifs) => {
           if (notifs) setHasUnreadNotifs(notifs.some((n: any) => n.unread));
         });
       })
@@ -397,11 +404,17 @@ export default function DashboardScreen() {
       .on('broadcast', { event: 'classes_changed' }, async () => {
         console.log('[Realtime] Classes changed broadcast received');
         await DataService.clearClassesCache(rollNo, student?.syllabus);
-        DataService.getClasses(rollNo, student?.class, student?.syllabus).then((cls) => {
+        DataService.getClasses(rollNo, student?.class, student?.syllabus, student?.subjects, true).then((cls) => {
           if (cls) setClasses(cls);
         });
         DataService.getPublishedTimetableDates().then((dates) => {
           if (dates) setPublishedDates(dates);
+        });
+        DataService.getAnnouncements(true, student?.class, true, student?.syllabus).then((anns) => {
+          setAnnouncementsList(anns || []);
+        });
+        DataService.getNotifications(rollNo, student?.class, student?.syllabus).then((notifs) => {
+          if (notifs) setHasUnreadNotifs(notifs.some((n: any) => n.unread));
         });
       })
       .on('broadcast', { event: 'announcement_deleted' }, async (event) => {
@@ -434,7 +447,7 @@ export default function DashboardScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [rollNo, student?.class, student?.syllabus]);
+  }, [rollNo, student?.class, student?.syllabus, student?.subjects]);
 
   // Keep dynamic greeting accurate if screen remains open over time boundary
   useEffect(() => {
@@ -507,7 +520,7 @@ export default function DashboardScreen() {
       if (studentSubjects && !isStudentEnrolledInSubject(studentSubjects, cls.subject)) {
         continue;
       }
-      const matchesDate = cls.class_date ? (cls.class_date === targetIso) : (offset === 0);
+      const matchesDate = cls.class_date ? (String(cls.class_date).trim().slice(0, 10) === targetIso) : (offset === 0);
       if (!matchesDate) continue;
       const normSubject = (cls.subject || '').trim().toLowerCase();
       const normTime = (cls.time || '').trim().toLowerCase();

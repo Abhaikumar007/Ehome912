@@ -305,11 +305,11 @@ export async function getTeacherRoster(): Promise<TeacherProfile[]> {
  * Accurately determines if a student's enrolled subjects list matches a target subject.
  * Note: Must NEVER use substring 'cs' because words like 'physics' and 'mathematics' end in 'cs'!
  */
-export function isStudentEnrolledInSubject(studentSubjectsStr?: string, targetSubject?: string): boolean {
+export function isStudentEnrolledInSubject(studentSubjectsStr?: string | string[], targetSubject?: string): boolean {
   if (!targetSubject || targetSubject === 'All' || targetSubject === 'All Subjects' || targetSubject === 'All Students') {
     return true;
   }
-  const stu = (studentSubjectsStr || '').toLowerCase();
+  const stu = (Array.isArray(studentSubjectsStr) ? studentSubjectsStr.join(', ') : String(studentSubjectsStr || '')).toLowerCase();
   const tgt = targetSubject.toLowerCase().trim();
 
   // 1. Computer Science (Do NOT use substring 'cs' because 'physics' ends in 'cs'!)

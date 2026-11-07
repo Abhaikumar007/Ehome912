@@ -69,7 +69,7 @@ export interface StudentProfile {
   class: string;
   batch: string;
   syllabus?: 'State Syllabus' | 'CBSE' | 'Both';
-  subjects?: string;
+  subjects?: string | string[];
   avatar: string;
   photoUrl?: string;
   phone?: string;
@@ -152,6 +152,9 @@ export function resolveClassTargetSyllabus(cls: any): 'State Syllabus' | 'CBSE' 
  * Returns 'State Syllabus', 'CBSE', or 'Both'
  */
 export function resolveStudentSyllabus(student: any): 'State Syllabus' | 'CBSE' | 'Both' {
+  if (student?.board === 'CBSE' || student?.board === 'State Syllabus' || student?.board === 'Both') {
+    return student.board;
+  }
   if (student?.syllabus === 'CBSE' || student?.syllabus === 'State Syllabus' || student?.syllabus === 'Both') {
     return student.syllabus;
   }
@@ -725,7 +728,11 @@ export const DataService = {
   // Store session locally
   async saveCurrentStudent(student: StudentProfile) {
     try {
-      await AppStorage.setItem(CURRENT_STUDENT_KEY, JSON.stringify(student));
+      const copy: any = { ...student };
+      if (Array.isArray(copy.subjects)) {
+        copy.subjects = copy.subjects.join(', ');
+      }
+      await AppStorage.setItem(CURRENT_STUDENT_KEY, JSON.stringify(copy));
     } catch (e) {
       console.warn('Failed to save student session', e);
     }
@@ -736,7 +743,12 @@ export const DataService = {
       const stored = await AppStorage.getItem(CURRENT_STUDENT_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && parsed.rollNo) return parsed;
+        if (parsed && parsed.rollNo) {
+          if (Array.isArray(parsed.subjects)) {
+            parsed.subjects = parsed.subjects.join(', ');
+          }
+          return parsed;
+        }
       }
     } catch (e) {
       console.warn('Failed to read student session', e);
@@ -782,7 +794,9 @@ export const DataService = {
         const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === String(targetRoll).toUpperCase());
         
         let resolvedSyllabus: 'State Syllabus' | 'CBSE' | 'Both' = 'State Syllabus';
-        if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
+        if (data.board === 'CBSE' || data.board === 'State Syllabus' || data.board === 'Both') {
+          resolvedSyllabus = data.board;
+        } else if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
           resolvedSyllabus = data.syllabus;
         } else if (batchLower.includes('both') || schoolLower.includes('both')) {
           resolvedSyllabus = 'Both';
@@ -823,16 +837,14 @@ export const DataService = {
           ? (Array.isArray(data.subjects) ? data.subjects.join(', ') : String(data.subjects).trim())
           : '';
 
-        // Check cloud fees_records (__enrolled_subjects in loyalty_months or subjects column)
+        // Check cloud fees_records (__enrolled_subjects in loyalty_months)
         if (!resolvedSubjects) {
           try {
             const { data: feeData } = await withTimeout(
-              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', targetRoll).maybeSingle(),
+              supabase.from('fees_records').select('loyalty_months').eq('roll_no', targetRoll).maybeSingle(),
               2000
             ) as any;
-            if (feeData?.subjects) {
-              resolvedSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
-            } else if (Array.isArray(feeData?.loyalty_months)) {
+            if (Array.isArray(feeData?.loyalty_months)) {
               const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
               if (subTag) {
                 const found = subTag.__enrolled_subjects || subTag.subjects;
@@ -946,7 +958,9 @@ export const DataService = {
         const matchedRoster = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === trimmedRoll.toUpperCase());
         
         let resolvedSyllabus: 'State Syllabus' | 'CBSE' | 'Both' = 'State Syllabus';
-        if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
+        if (data.board === 'CBSE' || data.board === 'State Syllabus' || data.board === 'Both') {
+          resolvedSyllabus = data.board;
+        } else if (data.syllabus === 'CBSE' || data.syllabus === 'State Syllabus' || data.syllabus === 'Both') {
           resolvedSyllabus = data.syllabus;
         } else if (batchLower.includes('both') || schoolLower.includes('both')) {
           resolvedSyllabus = 'Both';
@@ -969,12 +983,10 @@ export const DataService = {
         if (!resolvedAuthSubjects) {
           try {
             const { data: feeData } = await withTimeout(
-              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', trimmedRoll).maybeSingle(),
+              supabase.from('fees_records').select('loyalty_months').eq('roll_no', trimmedRoll).maybeSingle(),
               2000
             ) as any;
-            if (feeData?.subjects) {
-              resolvedAuthSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
-            } else if (Array.isArray(feeData?.loyalty_months)) {
+            if (Array.isArray(feeData?.loyalty_months)) {
               const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
               if (subTag) {
                 const found = subTag.__enrolled_subjects || subTag.subjects;
@@ -1142,33 +1154,51 @@ export const DataService = {
     return { success: true, student: mergedStudent };
   },
 
-  // Fetch Classes with Cache & 2.5s Timeout — Filtered strictly by Student Syllabus and Assigned Subjects
+  // Fetch Classes with Cache & 5s Timeout — Filtered strictly by Student Syllabus and Assigned Subjects
   async getClasses(
     rollNo: string,
     studentClass?: string,
     studentSyllabus?: string,
-    studentSubjects?: string,
+    studentSubjects?: string | string[],
     forceFresh: boolean = false
   ) {
     let effectiveSyllabus = studentSyllabus;
-    let effectiveSubjects = studentSubjects;
+    let effectiveSubjects: string = Array.isArray(studentSubjects)
+      ? studentSubjects.join(', ')
+      : String(studentSubjects || '').trim();
 
     if (!effectiveSyllabus || !effectiveSubjects) {
       try {
         const cur = await this.getCurrentStudent();
         if (cur && cur.rollNo === rollNo) {
           if (!effectiveSyllabus && cur.syllabus) effectiveSyllabus = cur.syllabus;
-          if (!effectiveSubjects && cur.subjects) effectiveSubjects = cur.subjects;
+          if (!effectiveSubjects && cur.subjects) {
+            effectiveSubjects = Array.isArray(cur.subjects) ? cur.subjects.join(', ') : String(cur.subjects || '').trim();
+          }
+        }
+        if (!effectiveSyllabus || !effectiveSubjects) {
+          try {
+            const { data: stuData } = await withTimeout(
+              supabase.from('students').select('board, batch, school, subjects').eq('roll_no', rollNo).maybeSingle(),
+              3500
+            ) as any;
+            if (stuData) {
+              if (!effectiveSyllabus) {
+                effectiveSyllabus = resolveStudentSyllabus(stuData);
+              }
+              if (!effectiveSubjects && stuData.subjects) {
+                effectiveSubjects = Array.isArray(stuData.subjects) ? stuData.subjects.join(', ') : String(stuData.subjects).trim();
+              }
+            }
+          } catch {}
         }
         if (!effectiveSubjects) {
           try {
             const { data: feeData } = await withTimeout(
-              supabase.from('fees_records').select('loyalty_months, subjects').eq('roll_no', rollNo).maybeSingle(),
-              2000
+              supabase.from('fees_records').select('loyalty_months').eq('roll_no', rollNo).maybeSingle(),
+              3500
             ) as any;
-            if (feeData?.subjects) {
-              effectiveSubjects = Array.isArray(feeData.subjects) ? feeData.subjects.join(', ') : String(feeData.subjects).trim();
-            } else if (Array.isArray(feeData?.loyalty_months)) {
+            if (Array.isArray(feeData?.loyalty_months)) {
               const subTag = feeData.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__enrolled_subjects' in x || 'subjects' in x));
               if (subTag) {
                 const found = subTag.__enrolled_subjects || subTag.subjects;
@@ -1180,12 +1210,16 @@ export const DataService = {
         if (!effectiveSyllabus || !effectiveSubjects) {
           const r = EDUSYNC_STUDENTS.find((s) => s.rollNo === rollNo);
           if (!effectiveSyllabus) effectiveSyllabus = r?.syllabus || 'State Syllabus';
-          if (!effectiveSubjects) effectiveSubjects = r?.subjects;
+          if (!effectiveSubjects) effectiveSubjects = Array.isArray(r?.subjects) ? r.subjects.join(', ') : String(r?.subjects || '').trim();
         }
       } catch {
         if (!effectiveSyllabus) effectiveSyllabus = 'State Syllabus';
       }
     }
+
+    effectiveSubjects = Array.isArray(effectiveSubjects)
+      ? (effectiveSubjects as any).join(', ')
+      : String(effectiveSubjects || '').trim();
 
     const cleanSubKey = (effectiveSubjects || 'all').replace(/[^a-zA-Z0-9]/g, '_');
     const cacheKey = `classes_${rollNo}_${effectiveSyllabus}_${cleanSubKey}`;
@@ -1202,7 +1236,7 @@ export const DataService = {
         .or(`roll_no.eq.${rollNo},roll_no.eq.${gradeStr},class_grade.eq.${gradeStr},class_grade.eq.${studentClass || gradeStr}`)
         .order('created_at', { ascending: true });
 
-      const { data, error } = await withTimeout(query, 2500) as any;
+      const { data, error } = await withTimeout(query, 5000) as any;
 
       if (!error && Array.isArray(data)) {
         // Filter strictly by target syllabus:
@@ -2132,15 +2166,15 @@ export const DataService = {
           supabase
             .from('announcements')
             .select('*')
-            .eq('tag', 'Timetable')
+            .or('title.ilike.%Timetable%,title.ilike.%Schedule%')
             .order('created_at', { ascending: false })
-            .limit(10),
+            .limit(20),
           2000
         ) as any;
 
         if (Array.isArray(ttData)) {
           timetableNotifs = ttData
-            .filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
+            .filter((a: any) => !a.title?.includes('[PENDING APPROVAL') && !a.title?.includes('[REJECTED]') && isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
             .map((a: any) => ({
               id: `tt_${a.id}`,
               title: a.title,
