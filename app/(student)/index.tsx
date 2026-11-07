@@ -478,10 +478,13 @@ export default function DashboardScreen() {
     }
   };
 
-  // Only show announcements that target this student's specific class & syllabus, AND whose start date has arrived
+  // Only show genuine community announcements that target this student's specific class & syllabus (exclude timetable schedules)
   const visibleAnnouncements = useMemo(() => {
     const today = new Date();
     return announcementsList.filter((a) => {
+      if (a.tag === 'Timetable' || a.title?.includes('Timetable:') || a.title?.startsWith('🗓️ Timetable')) {
+        return false;
+      }
       const matchesClass = !student?.class || DataService.isTargetedToClass(a, student.class);
       const matchesSyllabus = !student?.syllabus || DataService.isTargetedToSyllabus(a, student.syllabus);
       const isDateVisible = DataService.isAlertVisibleOnDate(a, today);

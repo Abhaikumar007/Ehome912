@@ -1433,7 +1433,12 @@ export const DataService = {
       if (!error) {
         if (data && data.length > 0) {
           const approvedOnly = data.filter(
-            (a: any) => !a.title?.includes('[PENDING APPROVAL') && a.time_label !== 'Pending Approval'
+            (a: any) =>
+              !a.title?.includes('[PENDING APPROVAL') &&
+              a.time_label !== 'Pending Approval' &&
+              a.tag !== 'Timetable' &&
+              !a.title?.startsWith('🗓️ Timetable') &&
+              !a.title?.toLowerCase().includes('timetable:')
           );
           const mapped = approvedOnly.map((a: any) => ({
             id: a.id,
@@ -1476,9 +1481,15 @@ export const DataService = {
 
     // 2. Offline fallback ONLY if network error occurred
     if (cached) {
+      const nonTimetable = cached.filter(
+        (a: any) =>
+          a.tag !== 'Timetable' &&
+          !a.title?.startsWith('🗓️ Timetable') &&
+          !a.title?.toLowerCase().includes('timetable:')
+      );
       const studentFiltered = (studentClass || studentSyllabus)
-        ? cached.filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
-        : cached;
+        ? nonTimetable.filter((a: any) => isTargetedToClass(a, studentClass) && isTargetedToSyllabus(a, studentSyllabus))
+        : nonTimetable;
       return (studentClass || isStudentView)
         ? studentFiltered.filter((a: any) => isAlertVisibleOnDate(a))
         : studentFiltered;
