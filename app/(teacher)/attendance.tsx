@@ -232,77 +232,38 @@ export default function FacultyAttendanceScreen() {
           });
         }
 
-        // Merge Supabase records with static roster: Supabase takes precedence for updated fields
-        const supabaseMap = new Map<string, any>();
-        data.forEach((d: any) => {
-          supabaseMap.set((d.roll_no || '').toUpperCase(), d);
-        });
-
-        // Start with static roster, override with Supabase data
-        const merged = EDUSYNC_STUDENTS.map((s) => {
-          const remote = supabaseMap.get(s.rollNo.toUpperCase());
-          const attSubjects = attMap.get(s.rollNo.toUpperCase());
-          if (!remote) {
-            if (attSubjects && attSubjects.length > 0) {
-              return { ...s, subjects: attSubjects.join(', ') };
-            }
-            return s;
-          }
-          return {
-            ...s,
-            name: remote.name || s.name,
-            class: remote.class_name || s.class,
-            batch: remote.batch || remote.class_name || s.batch,
-            syllabus: resolveStudentSyllabus(remote || s),
-            phone: remote.phone || s.phone,
-            school: remote.school || s.school,
-            subjects: (remote.subjects
-                ? (Array.isArray(remote.subjects) ? remote.subjects.join(', ') : remote.subjects)
-                : (feeSubjectMap.get(s.rollNo.toUpperCase()) || (attSubjects && attSubjects.length > 0 ? attSubjects.join(', ') : s.subjects))),
-            accuracy: remote.accuracy ?? s.accuracy,
-            streak: remote.streak ?? s.streak,
-            testsCompleted: remote.tests_completed ?? s.testsCompleted,
-            topPercent: remote.top_percent ?? s.topPercent,
-            pin: remote.pin || s.pin,
-          };
-        });
-
-        // Append any new students from Supabase not in the static roster
-        data.forEach((d: any) => {
+        // Live Supabase students are the source of truth (deleted students in admin app won't appear)
+        const merged = data.map((d: any) => {
           const roll = (d.roll_no || '').toUpperCase();
-          const exists = EDUSYNC_STUDENTS.some((s) => s.rollNo.toUpperCase() === roll);
-          if (!exists) {
-            const attSubjects = attMap.get(roll);
-            merged.push({
-              rollNo: d.roll_no || '',
-              pin: d.pin || '1234',
-              name: d.name || '',
-              class: d.class_name || 'Class 10',
-              batch: d.batch || d.class_name || 'Class 10',
-              syllabus: resolveStudentSyllabus(d),
-              avatar: (d.name || 'ST').slice(0, 2).toUpperCase(),
-              phone: d.phone || '',
-              school: d.school || 'EduHome',
-              streak: d.streak ?? 0,
-              accuracy: d.accuracy ?? 0,
-              testsCompleted: d.tests_completed ?? 0,
-              topPercent: d.top_percent ?? 0,
-              recentScore: `${d.accuracy ?? 0}%`,
-              avatarColor: '#0284C7',
-              monthlyFee: 0,
-              currentDue: 0,
-              dueDate: '',
-              daysLeft: 0,
-              joiningDate: '',
-              joiningDateIso: '',
-              monthsPaidOnTime: 0,
-              subjects: (attSubjects && attSubjects.length > 0)
-                ? attSubjects.join(', ')
-                : (d.subjects
-                    ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
-                    : 'General'),
-            } as any);
-          }
+          const staticStu = EDUSYNC_STUDENTS.find((s) => s.rollNo.toUpperCase() === roll);
+          const attSubjects = attMap.get(roll);
+          return {
+            rollNo: d.roll_no || '',
+            pin: d.pin || staticStu?.pin || '1234',
+            name: d.name || staticStu?.name || '',
+            class: d.class_name || staticStu?.class || 'Class 10',
+            batch: d.batch || d.class_name || staticStu?.batch || 'Class 10',
+            syllabus: resolveStudentSyllabus(d || staticStu),
+            avatar: staticStu?.avatar || (d.name || 'ST').slice(0, 2).toUpperCase(),
+            phone: d.phone || staticStu?.phone || '',
+            school: d.school || staticStu?.school || 'EduHome',
+            subjects: (d.subjects
+                ? (Array.isArray(d.subjects) ? d.subjects.join(', ') : d.subjects)
+                : (feeSubjectMap.get(roll) || (attSubjects && attSubjects.length > 0 ? attSubjects.join(', ') : staticStu?.subjects || ''))),
+            accuracy: d.accuracy ?? staticStu?.accuracy ?? 0,
+            streak: d.streak ?? staticStu?.streak ?? 0,
+            testsCompleted: d.tests_completed ?? staticStu?.testsCompleted ?? 0,
+            topPercent: d.top_percent ?? staticStu?.topPercent ?? 0,
+            recentScore: `${d.accuracy ?? staticStu?.accuracy ?? 0}%`,
+            avatarColor: staticStu?.avatarColor || '#0284C7',
+            monthlyFee: d.monthly_fee ?? staticStu?.monthlyFee ?? 0,
+            currentDue: staticStu?.currentDue ?? 0,
+            dueDate: staticStu?.dueDate ?? '',
+            daysLeft: staticStu?.daysLeft ?? 0,
+            joiningDate: d.joining_date || staticStu?.joiningDate || '',
+            joiningDateIso: d.joining_date || staticStu?.joiningDateIso || '',
+            monthsPaidOnTime: staticStu?.monthsPaidOnTime ?? 0,
+          };
         });
 
         setLiveStudents(merged as any);
