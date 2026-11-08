@@ -1,0 +1,2419 @@
+{
+  "board": "Kerala State Higher Secondary Education (DHSE)",
+  "class": "Class 12 (Plus Two)",
+  "academic_resource_type": "Previous Year Question Papers & Answer Keys",
+  "subjects": [
+    {
+      "subject_id": "maths",
+      "subject_name": "Mathematics",
+      "streams": [
+        "Science",
+        "Commerce"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": {
+              "title": "Plus Two Annual Exam 2026 Maths (Science) Question Paper",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2026 Maths (Science) Question Paper.pdf"
+            },
+            "answer_key": {
+              "title": "Plus Two Annual Exam 2026 Maths (Science) Answer Key",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2026 Maths (Science) Answer Key.pdf"
+            }
+          },
+          {
+            "year": 2026,
+            "stream": "Commerce",
+            "medium": "English",
+            "question_paper": {
+              "title": "Plus Two Annual Exam 2026 Maths (Commerce) Question Paper",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2026 Maths (Commerce) Question Paper.pdf"
+            },
+            "answer_key": {
+              "title": "Plus Two Annual Exam 2026 Maths (Commerce) Answer Key",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2026 Maths (Commerce) Answer Key.pdf"
+            }
+          },
+          {
+            "year": 2025,
+            "stream": "Science",
+            "medium": "English / Malayalam",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2025 Maths (Science) Question Paper (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2025 Maths (Science) Question Paper (Mal Med).pdf"
+              }
+            ],
+            "answer_key": {
+              "title": "Plus Two Annual Exam 2025 Maths (Science) Answer Key",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2025 Maths (Science) Answer Key.pdf"
+            }
+          },
+          {
+            "year": 2025,
+            "stream": "Commerce",
+            "medium": "English",
+            "answer_key": {
+              "title": "Plus Two Annual Exam 2025 Maths (Commerce) Answer Key",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Annual Exam 2025 Maths (Commerce) Answer Key.pdf"
+            }
+          },
+          {
+            "year": 2024,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": {
+              "title": "Kerala Plus Two Final Exam March 2024 Maths (Science)",
+              "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Final exam March 2024 Maths (Science) Question paper.pdf"
+            },
+            "answer_keys": [
+              {
+                "source": "Official (SY-554)",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Board Exam 2024 Maths (SY-554) Official Answer Key.pdf"
+              },
+              {
+                "source": "Anoop Chennassery Sir",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Maths (Science) Board exam 2024 Answer key by Anoop Chennassery Sir.pdf"
+              },
+              {
+                "source": "RAYS",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Maths (Science) Board exam 2024 Answer key by RAYS.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2023,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": {
+              "title": "HSC Plus Two Board Exam 2023 Maths (Science)",
+              "local_path": "downloaded_materials/Mathematics/HSC Plus Two Board Exam 2023 Maths (Science) Question Paper.pdf"
+            },
+            "answer_key": {
+              "source": "ANONS Academy",
+              "local_path": "downloaded_materials/Mathematics/Plus two maths answer key 2023 by ANONS academy .pdf"
+            }
+          },
+          {
+            "year": 2022,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": {
+              "title": "Kerala Plus Two Examination 2022 Maths (Science)",
+              "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Examination 2022- MATHS (SCIENCE) Question Paper.pdf"
+            },
+            "answer_key": {
+              "source": "Ann Saby Jacob",
+              "local_path": "downloaded_materials/Mathematics/Plus Two Board Exam 2022- Maths (Science) Answer key by Ann Saby Jacob.pdf"
+            }
+          },
+          {
+            "year": 2022,
+            "stream": "Commerce",
+            "medium": "English",
+            "papers": [
+              {
+                "code": "SY57",
+                "question_paper": "downloaded_materials/Mathematics/Kerala XII Annual Exam March 2022 Maths (Commerce) Question Paper (SY57).pdf",
+                "answer_key": "downloaded_materials/Mathematics/Kerala +2 Exam 2022 Maths (Commerce) Answer Key (SY57).pdf"
+              },
+              {
+                "code": "SY51",
+                "question_paper": "downloaded_materials/Mathematics/Kerala XII Annual Exam March 2022 Maths (Commerce) Question Paper (SY51).pdf",
+                "answer_key": "downloaded_materials/Mathematics/Kerala +2 Exam 2022 Maths (Commerce) Answer Key (SY51).pdf"
+              }
+            ]
+          },
+          {
+            "year": 2021,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala +2 Annual Exam April 2021 Maths (Science) Question Paper.PDF",
+            "answer_key": "downloaded_materials/Mathematics/Kerala +2 Annual Exam April 2021 Maths (Science) Answer Key.pdf"
+          },
+          {
+            "year": 2019,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two MATHS (SCIENCE) Question Paper March 2019.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two MATHS (SCIENCE) Answer Key March 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two March 2018 Maths (Science) question paper.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala +2 HSE Second Year Maths (Science) Answer Key March 2018 Exam.pdf"
+          },
+          {
+            "year": 2017,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Question Paper March 2017.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala Class 12 Maths (Science) Answer key March 2017.pdf"
+          },
+          {
+            "year": 2016,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala HSE Plus TWO March 2016 Exam Previous Question Paper Maths(Science).pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala 12th XII Class Exam March 2016 Answer Key Maths.pdf"
+          },
+          {
+            "year": 2015,
+            "stream": "Science",
+            "medium": "English",
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two XII March 2015 Question paper Maths (Science).pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "stream": "Science",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam 2025 MATHS (Science) Question Paper (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam 2025 MATHS (Science) Question Paper (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam 2025 Maths (Science) Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "stream": "Science",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam Question Paper 2024 Maths (Science) Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam Question Paper 2024 Maths (Science) Mal Med.pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Mathematics/Kerala +2 Model Exam 2024 Maths Answer Key by Anoop Sir.pdf"
+          },
+          {
+            "year": 2023,
+            "stream": "Science",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Exam Question Paper Feb 2023 (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Exam Question Paper Feb 2023 (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Exam Feb 2023 Answer key by Ann Mam.pdf"
+          },
+          {
+            "year": 2022,
+            "stream": "Science",
+            "question_paper": "downloaded_materials/Mathematics/Kerala +2 Maths (Science) Model Exam Question Paper 2022.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala +2 Maths (Science) Model Exam Answer Key 2022.pdf"
+          },
+          {
+            "year": 2021,
+            "stream": "Science",
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam Maths (Science) Question Paper March 2021.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two Model Exam Maths (Science) Answer Key March 2021.pdf"
+          },
+          {
+            "year": 2020,
+            "stream": "Science",
+            "question_paper": "downloaded_materials/Mathematics/MATHS (SCIENCE) Question Paper Kerala Plus Two Model Exam February 2020.pdf"
+          },
+          {
+            "year": 2019,
+            "stream": "Science",
+            "question_paper": "downloaded_materials/Mathematics/Kerala +2 Model Exam Maths (Science) Question Paper 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "stream": "Science",
+            "answer_key": "downloaded_materials/Mathematics/Plus Two Model Exam Feb 2018 Maths (Science) Answer Key.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_papers": [
+              "downloaded_materials/Mathematics/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Maths (Science) 1.pdf",
+              "downloaded_materials/Mathematics/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Maths (Science) 2.pdf",
+              "downloaded_materials/Mathematics/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Maths (Science) 3.pdf"
+            ],
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two Ist Term Onam Exam Maths (Science) Answer Key 2025.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two First Term Onam Exam Maths (Science) Question Paper 2024.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Mathematics/Plus Two Maths (Science) First Term Exam Question Paper 2023.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Plus Two Onam Exam Answer key 2023 Maths (Science).pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Second Term exam 2024 Maths (Science) Question paper (EM).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Mathematics/Plus Two Second Term exam 2024 Maths (Science) Question paper (MM).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Mathematics/Plus Two Second Term Exam 2024  Maths (Science) Answer Key.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Mathematics/Kerala Plus Two Second Term Exam 2023 Question Paper Maths (Science) (Eng Med).pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala Plus Two Second Term Exam 2023 Answer Key Maths (Science).pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2022,
+            "question_paper": "downloaded_materials/Mathematics/Kerala +2 Half Yearly Exam 2022 Maths (Science) Question Paper EM.pdf",
+            "answer_key": "downloaded_materials/Mathematics/Kerala +2 Half Yearly Exam 2022 Maths (Science) Answer Key EM.pdf"
+          }
+        ],
+        "model_practice_sets": [
+          {
+            "set": 1,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 1.pdf"
+          },
+          {
+            "set": 2,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 2.pdf"
+          },
+          {
+            "set": 3,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 3.pdf"
+          },
+          {
+            "set": 4,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 4.pdf"
+          },
+          {
+            "set": 5,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 5.pdf"
+          },
+          {
+            "set": 6,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 6.pdf"
+          },
+          {
+            "set": 7,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 7.pdf"
+          },
+          {
+            "set": 8,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 8.pdf"
+          },
+          {
+            "set": 9,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 9.pdf"
+          },
+          {
+            "set": 10,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 10.pdf"
+          },
+          {
+            "set": 11,
+            "local_path": "downloaded_materials/Mathematics/Kerala Plus Two Maths (Science) Model Question Paper 11.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "physics",
+      "subject_name": "Physics",
+      "streams": [
+        "Science"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "question_paper": "downloaded_materials/Physics/Plus Two Board exam 2026-Question paper-PHYSICS.pdf",
+            "answer_key": {
+              "source": "Lalan Sir",
+              "local_path": "downloaded_materials/Physics/PLus Two Board exam 2026 Physics Answer key by Lalan Sir.pdf"
+            }
+          },
+          {
+            "year": 2025,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Plus Two Annual Exam PHYSICS Question Paper 2025 (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Plus Two Annual Exam PHYSICS Question Paper 2025 (Mal Med).pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Lalan Sir",
+              "local_path": "downloaded_materials/Physics/Plus Two Annual Exam 2025 Physics Answer Key by Lalan Sir.pdf"
+            }
+          },
+          {
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Final exam March 2024 Physics Question paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Final exam March 2024 Physics Question paper MM.pdf"
+              }
+            ],
+            "answer_keys": [
+              {
+                "source": "Official Key (SY-524)",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Board Exam 2024 PHYSICS (SY-524) Official Answer Key.pdf"
+              },
+              {
+                "source": "Binu Sir",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Board exam 2024 PHYSICS Answer key by Binu Sir.pdf"
+              },
+              {
+                "source": "Irshad Panoly Sir",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Final exam March 2024 Physics Answer key by Irshad Panoly sir.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two Final Exam March 2023 Physics Question paper.pdf",
+            "answer_key": {
+              "source": "Lalan Sir",
+              "local_path": "downloaded_materials/Physics/Plus Two Physics answer key 2023 by Lalan Sir.pdf"
+            }
+          },
+          {
+            "year": 2022,
+            "code": "SY24",
+            "question_paper": "downloaded_materials/Physics/Kerala XII Annual Exam March 2022 Physics Question Paper (SY24).pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala 12th Annual Exam 2022 Physics Answer Key (SY24).pdf"
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Physics/Kerala +2 Annual Exam April 2021 Physics Question Paper.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala +2 Annual Exam April 2021 Physics Answer Key.pdf"
+          },
+          {
+            "year": 2020,
+            "question_paper": "downloaded_materials/Physics/PHYSICS Question Paper Kerala +2 Annual Exam March 2020.pdf",
+            "answer_key": "downloaded_materials/Physics/PHYSICS Answer Key Kerala +2 Annual Exam March 2020.pdf"
+          },
+          {
+            "year": 2019,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two PHYSICS Question Paper March 2019.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two PHYSICS Answer Key March 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two March 2018 Physics question paper.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala +2 HSE Second Year Physics Answer Key March 2018 Exam.pdf"
+          },
+          {
+            "year": 2017,
+            "question_paper": "downloaded_materials/Physics/Kerala 12th Physics Question paper March 2017.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two Physics Answer key March 2017.pdf"
+          },
+          {
+            "year": 2016,
+            "question_paper": "downloaded_materials/Physics/Kerala HSE Plus TWO March 2016 Exam Previous Question Paper Physics.PDF",
+            "answer_key": "downloaded_materials/Physics/Kerala 12th XII Class Exam March 2016 Answer Key Physics.pdf"
+          },
+          {
+            "year": 2015,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two XII March 2015 Question paper Physics.pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Model Exam 2025 PHYSICS Question Paper (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Model Exam 2025 PHYSICS Question Paper (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two Model Exam 2025 PHYSICS Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Model Exam Question Paper 2024 Physics Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Model Exam Question Paper 2024 Physics Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Lalan Sir",
+              "local_path": "downloaded_materials/Physics/Kerala +2 Model Exam 2024 Physics Answer Key by Lalan Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Exam Question Paper Feb 2023 (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Exam Question Paper Feb 2023 (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two Physics Model Exam Feb 2023 Answer key.pdf"
+          },
+          {
+            "year": 2022,
+            "question_paper": "downloaded_materials/Physics/Kerala +2 Physics Model Question Paper 2022.pdf",
+            "answer_keys": [
+              "downloaded_materials/Physics/Kerala +2 Physics Model Exam Answer Key March 2022.pdf",
+              "downloaded_materials/Physics/Kerala +2 Physics Model Exam Answer Key 2022.pdf"
+            ]
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two Model Exam PHYSICS Question Paper March 2021.pdf",
+            "answer_keys": [
+              "downloaded_materials/Physics/Kerala Plus Two Model Exam PHYSICS Answer Key March 2021.pdf",
+              "downloaded_materials/Physics/Kerala +2 Physics Answer Key by Ebrahim Vathimattom Sir.pdf"
+            ]
+          },
+          {
+            "year": 2020,
+            "question_paper": "downloaded_materials/Physics/PHYSICS Question Paper Kerala XII Model Exam February 2020.pdf",
+            "answer_key": "downloaded_materials/Physics/PHYSICS Answer Key Kerala XII Model Exam February 2020.pdf"
+          },
+          {
+            "year": 2019,
+            "question_paper": "downloaded_materials/Physics/Kerala +2 Model Exam Physics Question Paper 2019.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala +2 Physics Model Exam Answer Key 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "question_paper": "downloaded_materials/Physics/Kerala 12th Model Exam February 2018 Physics Question paper.pdf",
+            "answer_key": "downloaded_materials/Physics/Plus Two Model Exam Feb 2018 Physics Answer Key.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Physics.pdf",
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two Ist Term Onam Exam Physics Answer Key 2025.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Physics/Kerala Plus Two First Term Onam Exam Physics Question Paper 2024.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Physics/Plus Two Physics First Term Exam Question Paper 2023.pdf",
+            "answer_key": "downloaded_materials/Physics/Plus Two Onam Exam Answer key 2023 Physics.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Plus Two Second Term exam 2024 Physics Question paper (EM).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Plus Two Second Term exam 2024 Physics Question paper (MM).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Physics/Plus Two Second Term Exam 2024  Physics Answer Key.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Second Term Exam 2023 Question Paper Physics (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala Plus Two Second Term Exam 2023 Question Paper Physics (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Physics/Kerala Plus Two Second Term Exam 2023 Answer Key Physics.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2022,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Physics/Kerala +2 Half Yearly Exam 2022 Physics Question Paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Physics/Kerala +2 Half Yearly Exam 2022 Physics Question Paper MM.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Lalan Sir",
+              "local_path": "downloaded_materials/Physics/Kerala +2 Half Yearly Exam 2022 Physics Answer Key EM by Lalan Sir.pdf"
+            }
+          }
+        ],
+        "model_practice_sets": [
+          {
+            "set": 1,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 1.pdf"
+          },
+          {
+            "set": 2,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 2.pdf"
+          },
+          {
+            "set": 3,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 3.pdf"
+          },
+          {
+            "set": 4,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 4.pdf"
+          },
+          {
+            "set": 5,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 5.pdf"
+          },
+          {
+            "set": 7,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 7.pdf"
+          },
+          {
+            "set": 8,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 8.pdf"
+          },
+          {
+            "set": 9,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 9.pdf"
+          },
+          {
+            "set": 10,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 10.pdf"
+          },
+          {
+            "set": 11,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 11.pdf"
+          },
+          {
+            "set": 12,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 12.pdf"
+          },
+          {
+            "set": 13,
+            "local_path": "downloaded_materials/Physics/Kerala Plus Two Physics Model Question Paper 13.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "chemistry",
+      "subject_name": "Chemistry",
+      "streams": [
+        "Science"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "answer_keys": [
+              {
+                "source": "Anilkumar Sir",
+                "local_path": "downloaded_materials/Chemistry/+2 Board exam 2026- Chemistry Answer key by Anilkumar sir.pdf"
+              },
+              {
+                "source": "General",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Exam 2026 Chemistry answer key.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2025,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Annual Exam Chemistry Question Paper 2025 (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Annual Exam Chemistry Question Paper 2025 (Mal Med).pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Anoop Sir",
+              "local_path": "downloaded_materials/Chemistry/Plus Two Annual Exam 2025 Chemistry Answer Key by Anoop Sir.pdf"
+            }
+          },
+          {
+            "year": 2024,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two Final exam March 2024 Chemistry Question paper.pdf",
+            "answer_keys": [
+              {
+                "source": "Official Key (SY-525)",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Board Exam 2024 Chemistry (SY-525) Official Answer Key.pdf"
+              },
+              {
+                "source": "General",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Board exam 2024 Chemistry Answer key.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Chemistry/HSC Plus Two Board Exam 2023 Chemistry Question Paper EM.pdf",
+            "answer_keys": [
+              {
+                "source": "Anil Sir",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Chemistry answer key 2023 by Anil Sir.pdf"
+              },
+              {
+                "source": "Part 1",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Chemistry Answer Key Part 1.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2022,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Examination 2022- CHEMISTRY Question Paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Examination 2022- CHEMISTRY Question Paper MM.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Anil Kumar Sir",
+              "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Examination 2022-CHEMISTRY Answer Key by Anil Kumar Sir.pdf"
+            }
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Chemistry/Kerala +2 Annual Exam April 2021 Chemistry Question Paper.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala +2 Annual Exam April 2021 Chemistry Answer Key.pdf"
+          },
+          {
+            "year": 2020,
+            "question_paper": "downloaded_materials/Chemistry/CHEMISTRY Question Paper Kerala +2 Annual Exam March 2020.pdf",
+            "answer_key": {
+              "source": "Santhosh Sir",
+              "local_path": "downloaded_materials/Chemistry/Plus Two CHEMISTRY Answer Key Annual Exam March 2020 by Santhosh Sir.pdf"
+            }
+          },
+          {
+            "year": 2019,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two  CHEMISTRY Question Paper March 2019.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala Plus Two CHEMISTRY Answer Key March 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two March 2018  Chemistry question paper.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala +2 HSE Second Year Chemistry Answer Key March 2018 Exam.pdf"
+          },
+          {
+            "year": 2017,
+            "question_paper": "downloaded_materials/Chemistry/Kerala +2 Chemistry Question paper March 2017.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala 12th Chemistry Answer Key March 2017.pdf"
+          },
+          {
+            "year": 2016,
+            "question_paper": "downloaded_materials/Chemistry/Kerala HSE Plus TWO March 2016 Exam Previous Question Paper Chemistry.PDF",
+            "answer_key": "downloaded_materials/Chemistry/Kerala 12th XII Class Exam March 2016 Answer Key Chemistry.pdf"
+          },
+          {
+            "year": 2015,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two XII March 2015 Question paper chemistry.pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Model Exam Question paper 2025 Chemistry (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Model Exam Question paper 2025 Chemistry (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Chemistry/Plus Two Model Exam 2025 Chemistry Answer key.pdf"
+          },
+          {
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Model Exam Question Paper 2024 Chemistry Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Model Exam Question Paper 2024 Chemistry Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Anil Sir",
+              "local_path": "downloaded_materials/Chemistry/Kerala +2 Model Exam 2024 Chemitry Answer Key by Anil Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Exam Question Paper Feb 2023.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Exam Feb 2023 Answer Key.pdf"
+          },
+          {
+            "year": 2022,
+            "question_paper": "downloaded_materials/Chemistry/Kerala +2 Chemistry Model Exam Question Paper 2022.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala +2 Chemistry Model Exam Answer Key 2022.pdf"
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two Model Exam Chemistry Question Paper March 2021.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala Plus Two Model Exam Chemistry Answer Key March 2021.pdf"
+          },
+          {
+            "year": 2020,
+            "question_paper": "downloaded_materials/Chemistry/CHEMISTRY Question Paper Kerala XII Model Exam February 2020.pdf",
+            "answer_key": "downloaded_materials/Chemistry/CHEMISTRY Answer Key Kerala XII Model Exam February 2020.pdf"
+          },
+          {
+            "year": 2019,
+            "answer_key": "downloaded_materials/Chemistry/Kerala +2 Chemistry Model Exam Answer Key 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "question_paper": "downloaded_materials/Chemistry/Kerala +2 Model Exam February 2018 Chemistry Question paper.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Chemistry.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Kerala Plus Two Ist Term Onam Exam Chemistry Answer Key 2025.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Chemistry/Kerala Plus Two First Term Onam Exam Chemistry Question Paper 2024.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Chemistry/Plus Two Chemistry First Term Exam Question Paper 2023.pdf",
+            "answer_key": "downloaded_materials/Chemistry/Plus Two Onam Exam Answer key 2023 Chemistry.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Second Term exam 2024 Chemistry Question paper (EM).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Plus Two Second Term exam 2024 Chemistry Question paper (MM).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Chemistry/Plus Two Second Term Exam 2024  Chemistry Answer Key.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Second Term Exam 2023 Question Paper Chemistry (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Second Term Exam 2023 Question Paper Chemistry (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Chemistry/Kerala Plus Two Second Term Exam 2023 Answer Key Chemistry.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2022,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Chemistry/Kerala +2 Half Yearly Exam 2022 Chemistry Question Paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Chemistry/Kerala +2 Half Yearly Exam 2022 Chemistry Question Paper MM.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Anil Sir",
+              "local_path": "downloaded_materials/Chemistry/Kerala +2 Half Yearly Exam 2022 Chemistry Answer Key EM by Anil Sir.pdf"
+            }
+          }
+        ],
+        "model_practice_sets": [
+          {
+            "set": 1,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 1.pdf"
+          },
+          {
+            "set": 2,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 2.pdf"
+          },
+          {
+            "set": 3,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 3.pdf"
+          },
+          {
+            "set": 4,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 4.pdf"
+          },
+          {
+            "set": 5,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 5.pdf"
+          },
+          {
+            "set": 6,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 6.pdf"
+          },
+          {
+            "set": 7,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 7.pdf"
+          },
+          {
+            "set": 8,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 8.pdf"
+          },
+          {
+            "set": 9,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 9.pdf"
+          },
+          {
+            "set": 10,
+            "local_path": "downloaded_materials/Chemistry/Kerala Plus Two Chemistry Model Question Paper 10.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "biology",
+      "subject_name": "Biology (Botany & Zoology)",
+      "streams": [
+        "Science"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "botany": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Botany Question Paper (EM).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Botany Question Paper (MM).pdf"
+                }
+              ],
+              "answer_key": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Botany Answer Key.pdf"
+            },
+            "zoology": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Zoology Question Paper (EM).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Zoology Question Paper (MM).pdf"
+                }
+              ],
+              "answer_key": "downloaded_materials/Biology/Plus Two Annual Exam 2026 Zoology Answer Key.pdf"
+            }
+          },
+          {
+            "year": 2025,
+            "botany": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam Botany Question Paper 2025 (Eng Med).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam Botany Question Paper 2025 (Mal Med).pdf"
+                }
+              ],
+              "answer_key": "downloaded_materials/Biology/Plus Two Annual Exam 2025 Botany Answer Key.pdf"
+            },
+            "zoology": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam Zoology Question Paper 2025 (Eng Med).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Plus Two Annual Exam Zoology Question Paper 2025 (Mal Med).pdf"
+                }
+              ],
+              "answer_key": {
+                "source": "Navas Sir",
+                "local_path": "downloaded_materials/Biology/Plus Two Annual Exam 2025 Zoology Answer Key by Navas Sir.pdf"
+              }
+            }
+          },
+          {
+            "year": 2024,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two Final exam March 2024 Biology Question paper.pdf",
+            "botany_keys": [
+              {
+                "source": "Official Key (SY-526)",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Board Exam 2024 Botany (SY-526) Official Answer Key.pdf"
+              },
+              {
+                "source": "Sunil Kumar Sir",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Board exam March 2024 Botany & Zoology answer key by Sunil Kumar Sir.pdf"
+              }
+            ],
+            "zoology_keys": [
+              {
+                "source": "Official Key (SY-526)",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Board Exam 2024 Zoology (SY-526) Official Answer Key.pdf"
+              },
+              {
+                "source": "Navas Sir",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Board exam March 2024 Zoology answer key by Navas Sir.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2023,
+            "botany": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Kerala Plus Two Final Exam March 2023  Botany Question paper (Eng Med).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Kerala Plus Two Final Exam March 2023  Botany Question paper (Mal Med).pdf"
+                }
+              ],
+              "answer_key": "downloaded_materials/Biology/Plus Two Botany Answer key (Eng Med) 2023 by Dr. Sunil Sir.pdf"
+            },
+            "zoology": {
+              "question_papers": [
+                {
+                  "medium": "English",
+                  "local_path": "downloaded_materials/Biology/Kerala Plus Two Final Exam March 2023  Zoology Question paper (Eng Med).pdf"
+                },
+                {
+                  "medium": "Malayalam",
+                  "local_path": "downloaded_materials/Biology/Kerala Plus Two Final Exam March 2023  Zoology Question paper (Mal Med).pdf"
+                }
+              ],
+              "answer_key": "downloaded_materials/Biology/Plus Two Zoology Answer key (Eng Med) 2023 by Dr. Sunil Sir.pdf"
+            }
+          },
+          {
+            "year": 2022,
+            "botany": {
+              "question_paper": "downloaded_materials/Biology/Kerala +2 Exam 2022- Botany Question Paper.pdf",
+              "answer_key": "downloaded_materials/Biology/Kerala Plus Two Botany Answer Key 2022.pdf"
+            },
+            "zoology": {
+              "question_paper": "downloaded_materials/Biology/Kerala +2 Exam 2022- Zoology Question Paper.pdf",
+              "answer_key": "downloaded_materials/Biology/Kerala Plus Two Zoology Answer Key 2022.pdf"
+            }
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Biology/Kerala Class 12 Annual Exam April 2021 Question Paper- Biology.pdf",
+            "botany_key": "downloaded_materials/Biology/Kerala +2 Annual Exam April 2021 Botany Answer Key.pdf",
+            "zoology_key": "downloaded_materials/Biology/Kerala +2 Annual Exam April 2021 Zoology Answer Key.pdf"
+          },
+          {
+            "year": 2019,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two BIOLOGY Question Paper March 2019.pdf",
+            "botany_key": "downloaded_materials/Biology/Kerala Plus Two BOTANY Answer Key March 2019.pdf",
+            "zoology_key": "downloaded_materials/Biology/Kerala Plus Two ZOOLOGY Answer Key March 2019.pdf"
+          },
+          {
+            "year": 2018,
+            "question_paper": "downloaded_materials/Biology/PLus Two March 2018 Biology Question paper.pdf",
+            "botany_key": "downloaded_materials/Biology/Kerala +2 HSE Second Year Botany Answer Key March 2018 Exam.pdf",
+            "zoology_key": "downloaded_materials/Biology/Kerala +2 HSE Second Year Zoology Answer Key March 2018 Exam.pdf"
+          },
+          {
+            "year": 2017,
+            "question_paper": "downloaded_materials/Biology/Kerala 12th Biology Question paper March 2017.pdf",
+            "answer_key": "downloaded_materials/Biology/Kerala HSE 12th Biology Answer key March 2017.pdf"
+          },
+          {
+            "year": 2016,
+            "question_paper": "downloaded_materials/Biology/Kerala HSE Plus TWO March 2016 Exam Previous Question Paper Biology.PDF",
+            "botany_key": "downloaded_materials/Biology/Kerala 12th XII Class Exam March 2016 Answer Key Biology.pdf",
+            "zoology_key": "downloaded_materials/Biology/Kerala 12th XII Class Exam March 2016 Answer Key Zoology.pdf"
+          },
+          {
+            "year": 2015,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two XII March 2015 Question paper Biology.pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "answer_key": "downloaded_materials/Biology/Plus Two Model Exam Biology Answer key 2025.pdf"
+          },
+          {
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Model Exam Question Paper 2024 Biology Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Biology/Kerala Plus Two Model Exam Question Paper 2024 Biology Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Dr. Sunil",
+              "local_path": "downloaded_materials/Biology/Kerala +2 Model Exam 2024 Biology Answer Key by Dr. Sunil.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two Biology Model Exam Question Paper Feb 2023.pdf",
+            "answer_key": "downloaded_materials/Biology/Kerala Plus Two Biology Model Exam Feb 2023 Answer Key.pdf"
+          },
+          {
+            "year": 2022,
+            "botany": {
+              "question_paper": "downloaded_materials/Biology/Kerala +2 Botany Model Exam Question Paper 2022.pdf",
+              "answer_key": "downloaded_materials/Biology/Kerala +2 Botany Model Exam Answer Key 2022.pdf"
+            },
+            "zoology": {
+              "question_paper": "downloaded_materials/Biology/Kerala +2 Zoology Model Exam Question Paper 2022.pdf",
+              "answer_key": "downloaded_materials/Biology/Kerala +2 Zoology Model Exam Answer Key 2022.pdf"
+            }
+          },
+          {
+            "year": 2021,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two Model Exam Question Paper March 2021- BIOLOGY.pdf",
+            "answer_keys": [
+              "downloaded_materials/Biology/Kerala Plus Two Model Exam March 2021- BOTANY Answer Key.pdf",
+              "downloaded_materials/Biology/Kerala Plus Two Model Exam March 2021- ZOOLOGY Answer Key.pdf"
+            ]
+          },
+          {
+            "year": 2020,
+            "question_paper": "downloaded_materials/Biology/BIOLOGY Question Paper Kerala Plus Two Model Exam February 2020.pdf",
+            "botany_key": "downloaded_materials/Biology/BOTANY Answer Key Kerala Plus Two Model Exam February 2020.pdf",
+            "zoology_key": "downloaded_materials/Biology/ZOOLOGY Answer Key Kerala Plus Two Model Exam February 2020.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Biology/Kerala Plus Two First Term Onam Exam Biology Question Paper 2024.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2023,
+            "botany": {
+              "question_paper": "downloaded_materials/Biology/Plus Two Botany First Term Exam Question Paper 2023.pdf",
+              "answer_key": "downloaded_materials/Biology/Plus Two Onam Exam Answer key 2023 Botany.pdf"
+            },
+            "zoology": {
+              "question_paper": "downloaded_materials/Biology/Plus Two Zoology First Term Exam Question Paper 2023.pdf"
+            }
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Second Term Exam 2023 Question Paper Biology (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Second Term Exam 2023 Question Paper Biology (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Second Term Exam 2023 Answer Key Biology.pdf"
+          }
+        ],
+        "model_practice_sets": {
+          "botany_sets": 41,
+          "zoology_sets": 9,
+          "sample_botany_set": "downloaded_materials/Biology/Kerala Plus Two Botany Model Question Paper 1.pdf",
+          "sample_zoology_set": "downloaded_materials/Biology/Kerala Plus Two Zoology Model Question Paper 1.pdf"
+        }
+      }
+    },
+    {
+      "subject_id": "computer_science_app",
+      "subject_name": "Computer Science / App",
+      "streams": [
+        "Science",
+        "Commerce",
+        "Humanities"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "specialization": "Computer Science",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Science Question Paper.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Science Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "specialization": "Computer Applications (Commerce)",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Application (Commerce) Question Paper.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Applications (Commerce) Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "specialization": "Computer Applications (Humanities)",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Application (Humanities) Question Paper.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2026 Computer Applications (Humanities) Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "specialization": "Computer Science",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam COMPUTER SCIENCE Question Paper 2025 (Eng Med).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2025 Computer Science Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "specialization": "Computer Applications (Commerce)",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam Computer Applications (Commerce) Question Paper 2025 (Mal Med).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Annual Exam 2025 Computer Applications (Commerce) Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "specialization": "Computer Applications (Humanities)",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Annual Exam Computer Applications (Humanities) Question Paper 2025 (Eng Med).pdf"
+          },
+          {
+            "year": 2024,
+            "specialization": "Computer Science",
+            "code": "SY-530",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala Plus Two Final exam March 2024 Computer Science Question paper.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala Plus Two Board Exam 2024 Computer Science (SY-530) Official Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "specialization": "Computer Applications (Commerce)",
+            "code": "SY-546",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Annual Exam 2024 Computer Application (Commerce) Question Paper (EM).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Annual Exam 2024 Computer Application (Commerce) Question Paper (MM).pdf"
+              }
+            ],
+            "answer_keys": [
+              {
+                "source": "Official Key (SY-546)",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Board Exam 2024 Computer Applications (Commerce) (SY-546) Official Answer Key.pdf"
+              },
+              {
+                "source": "TCA Gafoor Sir",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Board exam March 2024 CA (Commerce) answer key by TCA Gafoor sir.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2024,
+            "specialization": "Computer Applications (Humanities)",
+            "code": "SY-545",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala Plus Two Final exam March 2024 CA (Humanities) Question paper.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala Plus Two Board Exam 2024 Computer Applications (Humanities) (SY-545) Official Answer Key.pdf"
+          },
+          {
+            "year": 2022,
+            "specialization": "Computer Science",
+            "code": "SY30",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala XII Annual Exam March 2022 Computer Science Question Paper (SY30).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala 12th Annual Exam 2022 Computer Science Answer Key (SY30).pdf"
+          },
+          {
+            "year": 2022,
+            "specialization": "Computer Applications (Humanities)",
+            "code": "SY45",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala XII Annual Exam March 2022 Computer Applications (Humanities) Question Paper (SY45).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala 12th Annual Exam 2022 Computer Applications (Humanities) Answer Key (SY45).pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "specialization": "Computer Science",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam 2025 COMPUTER SCIENCE Question Paper (Eng Med).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam 2025 Computer Science Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "specialization": "Computer Applications (Commerce)",
+            "question_paper": "downloaded_materials/Computer Science  App/Plus Two Model Exam Question Paper 2025 CA (Commerce) (Eng Med).pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Model Exam Computer Application (Commerce) key 2025.pdf"
+          },
+          {
+            "year": 2024,
+            "specialization": "Computer Applications (Commerce)",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam Question Paper 2024 Computer Application (Commerce) Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam Question Paper 2024 Computer Application (Commerce) Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Gafoor Sir",
+              "local_path": "downloaded_materials/Computer Science  App/Kerala +2 Model Exam 2024 Computer Application (Commerce) Answer Key by Gafoor Sir.pdf"
+            }
+          },
+          {
+            "year": 2024,
+            "specialization": "Computer Applications (Humanities)",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam Question Paper 2024 Computer Application (Humanities) Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Computer Science  App/Kerala Plus Two Model Exam Question Paper 2024 Computer Application (Humanities) Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Bejoy Sir",
+              "local_path": "downloaded_materials/Computer Science  App/Kerala +2 Model Exam 2024 Computer Application (Humanities) Answer Key by Bejoy Sir.pdf"
+            }
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "specialization": "Computer Science",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Computer Science.pdf",
+            "answer_key": "downloaded_materials/Computer Science  App/Kerala Plus Two Ist Term Onam Exam Computer Science Answer Key 2025.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "specialization": "Computer Applications (Humanities)",
+            "question_paper": "downloaded_materials/Computer Science  App/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 CA (Humanities).pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "specialization": "Computer Application",
+            "answer_key": "downloaded_materials/Computer Science  App/Plus Two Second Term Exam 2024  Computer Application Answer Key.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "commerce",
+      "subject_name": "Commerce (Accountancy / Business Studies)",
+      "streams": [
+        "Commerce"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "paper": "Business Studies",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2026 Business Studies Question Paper.pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2026 Business Studies Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "paper": "Accountancy with AFS",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2026 Accountancy with AFS Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "paper": "Accountancy with CA",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2026 Accountancy with CA Question Paper.pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2026 Accountancy with CA Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "paper": "Business Studies",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam Business Studies Question Paper 2025 (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam Business Studies Question Paper 2025 (Mal Med).pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Prakash Sir",
+              "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2025 Business Studies Answer Key by Prakash Sir.pdf"
+            }
+          },
+          {
+            "year": 2025,
+            "paper": "Accountancy with AFS",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam ACCOUNTANCY with AFS Question Paper 2025 (Mal Med).pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2025 Accountancy wih AFS Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "paper": "Accountancy with CA",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Annual Exam 2025 Accountancy wih CA Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "paper": "Business Studies",
+            "code": "SY-548",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Final exam March 2024 Business Studies Question paper.pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Board Exam 2024 Business Studies (SY-548) Official Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "paper": "Accountancy with AFS",
+            "code": "SY-549",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Annual Exam 2024 Accountancy (AFS) Question Paper.pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Board Exam 2024 Accountancy with AFS (SY-549) Official Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "paper": "Accountancy with CA",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Annual Exam 2024 Accountancy Question Paper.pdf",
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Annual Exam 2024 Accountancy Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "paper": "Business Studies",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/HSC Plus Two Board Exam 2023 Business Studies Question Paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/HSC Plus Two Board Exam 2023 Business Studies Question Paper MM.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Shaju Sir Alappuzha",
+              "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/HSC Plus Two Board Exam 2023 Business Answer Key by Shaju Sir Alapuzha.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "paper": "Accountancy with CA",
+            "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Final Exam March 2023 Accountancy with CA Question paper.pdf",
+            "answer_key": {
+              "source": "Anil Sir",
+              "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Accountancy with CA answer key 2023 by Anil Sir.pdf"
+            }
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "paper": "Business Studies",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam Question paper 2025 Business Studies  (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam Question paper 2025 Business Studies  (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam 2025 Business Studies Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "paper": "Accountancy with CA",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam Question paper 2025 Accountancy with CA (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam Question paper 2025 Accountancy with CA (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Model Exam Accountancy with CA Answer key 2025.pdf"
+          },
+          {
+            "year": 2024,
+            "paper": "Business Studies",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Model Exam Question Paper 2024 Business Studies Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Model Exam Question Paper 2024 Business Studies Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Shaju Sir",
+              "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala +2 Model Exam 2024 Business Studies Answer Key by Shaju Sir.pdf"
+            }
+          },
+          {
+            "year": 2024,
+            "paper": "Accountancy with CA",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Model Exam Question Paper 2024 Accountancy (CA) Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Model Exam Question Paper 2024 Accountancy (CA) Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Binoy Sir",
+              "local_path": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala +2 Model Exam 2024 Accountancy CA Answer Key by Binoy Sir.pdf"
+            }
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "business_studies_papers": [
+              "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Business Studies (1).pdf",
+              "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Business Studies (2).pdf"
+            ]
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "business_studies": {
+              "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Second Term exam 2024 Business Studies Question paper (EM).pdf",
+              "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Kerala Plus Two Second Term Exam 2023 Answer Key Business Studies.pdf"
+            },
+            "accountancy_afs": {
+              "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Second Term exam 2024 Accountancy with AFS Question paper (EM).pdf",
+              "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Second Term Exam 2024  Accountancy with AFS Answer Key.pdf"
+            },
+            "accountancy_ca": {
+              "question_paper": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Second Term exam 2024 Accountancy with CA Question paper (EM).pdf",
+              "answer_key": "downloaded_materials/Commerce (AccountancyBusiness)/Plus Two Second Term Exam 2024  Accountancy with CA Answer Key.pdf"
+            }
+          }
+        ],
+        "model_practice_sets": {
+          "business_studies_sets": 35,
+          "accountancy_ca_sets": 36,
+          "accountancy_afs_sets": 10
+        }
+      }
+    },
+    {
+      "subject_id": "humanities",
+      "subject_name": "Humanities (History / Geography / Economics / Political Science)",
+      "streams": [
+        "Humanities",
+        "Commerce"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "papers": [
+              {
+                "subject": "Political Science",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Political Science Question Paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Political Science Answer Key.pdf"
+              },
+              {
+                "subject": "History",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 History Question Paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 History Answer Key.pdf"
+              },
+              {
+                "subject": "Geography",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Geography Question Paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Geography Answer Key.pdf"
+              },
+              {
+                "subject": "Economics",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Economics Question Paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2026 Economics Answer Key.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2025,
+            "papers": [
+              {
+                "subject": "Economics",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 Economics Question Paper (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 Economics Question Paper (Mal Med).pdf"
+                  }
+                ],
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 Economics Answer Key.pdf"
+              },
+              {
+                "subject": "History",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam HISTORY Question Paper 2025 (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam HISTORY Question Paper 2025 (Mal Med).pdf"
+                  }
+                ],
+                "answer_key": {
+                  "source": "Saifudheen Sir",
+                  "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 History Answer Key by Saifudheen Sir.pdf"
+                }
+              },
+              {
+                "subject": "Political Science",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam Political Science Question Paper 2025 (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam Political Science Question Paper 2025 (Mal Med).pdf"
+                  }
+                ],
+                "answer_key": {
+                  "source": "Lukmanul Sir",
+                  "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 Political Science Answer Key by Lukmanul Sir.pdf"
+                }
+              },
+              {
+                "subject": "Geography",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Annual Exam 2025 Geography Answer Key.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2024,
+            "papers": [
+              {
+                "subject": "Economics",
+                "code": "SY-535",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Final exam March 2024 Economics Question paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Board Exam 2024 Economics (SY-535) Official Answer Key.pdf"
+              },
+              {
+                "subject": "History",
+                "code": "SY-534",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Annual Exam 2024 History Question Paper (EM).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Annual Exam 2024 History Question Paper (MM).pdf"
+                  }
+                ],
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Board Exam 2024 History (SY-534) Official Answer Key.pdf"
+              },
+              {
+                "subject": "Political Science",
+                "code": "SY-536",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Final exam March 2024 Political Science Question paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Board Exam 2024 Poliotical Science (SY-536) Official Answer Key.pdf"
+              },
+              {
+                "subject": "Geography",
+                "code": "SY-537",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Final exam March 2024 Geography Question paper.pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Board Exam 2024 Geography (SY-537) Official Answer Key.pdf"
+              }
+            ]
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "papers": [
+              {
+                "subject": "Economics",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam 2025 ECONOMICS Question Paper (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam 2025 ECONOMICS Question Paper (Mal Med).pdf"
+                  }
+                ],
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam 2025 ECONOMICS Answer Key.pdf"
+              },
+              {
+                "subject": "History",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Model Exam 2025 History Question Paper (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Model Exam 2025 History Question Paper (Mal Med).pdf"
+                  }
+                ]
+              },
+              {
+                "subject": "Political Science",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Model Exam Question paper 2025 POLITICAL SCIENCE (Eng Med).pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Model Exam Question paper 2025 POLITICAL SCIENCE (Mal Med).pdf"
+                  }
+                ],
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Model Exam Answer key 2025 Political Science (MM and EM).pdf"
+              }
+            ]
+          },
+          {
+            "year": 2024,
+            "papers": [
+              {
+                "subject": "Economics",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Economics Eng Med.pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Economics Mal Med.pdf"
+                  }
+                ],
+                "answer_key": {
+                  "source": "Rajesh Sir",
+                  "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala +2 Model Exam 2024 Economics Answer Key by Rajesh Sir.pdf"
+                }
+              },
+              {
+                "subject": "Political Science",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Political Science Eng Med.pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Political Science Mal Med.pdf"
+                  }
+                ]
+              },
+              {
+                "subject": "History",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 History Eng Med.pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 History Mal Med.pdf"
+                  }
+                ]
+              },
+              {
+                "subject": "Geography",
+                "question_papers": [
+                  {
+                    "medium": "English",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Geography Eng Med.pdf"
+                  },
+                  {
+                    "medium": "Malayalam",
+                    "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two Model Exam Question Paper 2024 Geography Mal Med.pdf"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "papers": [
+              {
+                "subject": "Economics",
+                "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two First Term Onam Exam Economics Question Paper 2024.pdf"
+              },
+              {
+                "subject": "History",
+                "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two First Term Onam Exam History Question Paper 2024.pdf"
+              },
+              {
+                "subject": "Political Science",
+                "local_path": "downloaded_materials/Humanities (HistoryGeogEcon)/Kerala Plus Two First Term Onam Exam Political Science Question Paper 2024.pdf"
+              }
+            ]
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "papers": [
+              {
+                "subject": "Economics",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Second Term Exam 2024 Economics Question Paper (EM).pdf"
+              },
+              {
+                "subject": "History",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Second Term exam 2024 History Question paper (EM).pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Second Term Exam 2024  History Answer Key.pdf"
+              },
+              {
+                "subject": "Political Science",
+                "question_paper": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Second Term exam 2024 Political Science Question paper (EM).pdf",
+                "answer_key": "downloaded_materials/Humanities (HistoryGeogEcon)/Plus Two Second Term Exam 2024  Political Science Answer Key.pdf"
+              }
+            ]
+          }
+        ],
+        "model_practice_sets": {
+          "economics_sets": 32,
+          "political_science_sets": 8,
+          "history_sets": 9,
+          "geography_sets": 5
+        }
+      }
+    },
+    {
+      "subject_id": "social_science",
+      "subject_name": "Social Science (Sociology & Social Work)",
+      "streams": [
+        "Humanities"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "paper": "Sociology",
+            "question_paper": "downloaded_materials/Social Science/Plus Two Annual Exam 2026 Sociology Question Paper.pdf",
+            "answer_key": "downloaded_materials/Social Science/Plus Two Annual Exam 2026 Sociology Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "paper": "Sociology",
+            "question_paper": "downloaded_materials/Social Science/Plus Two Annual Exam SOCIOLOGY Question Paper 2025 (Eng Med).pdf"
+          },
+          {
+            "year": 2024,
+            "paper": "Sociology",
+            "code": "SY-538",
+            "question_paper": "downloaded_materials/Social Science/Kerala Plus Two Annual Exam 2024 Sociology Question Paper.pdf",
+            "answer_key": "downloaded_materials/Social Science/Kerala Plus Two Board Exam 2024 Sociology (SY-538) Official Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "paper": "Sociology",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Social Science/HSC Plus Two Board Exam 2023 Sociology Question Paper EM.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Social Science/HSC Plus Two Board Exam 2023 Sociology Question Paper MM.pdf"
+              }
+            ]
+          },
+          {
+            "year": 2022,
+            "paper": "Sociology",
+            "code": "SY38",
+            "question_paper": "downloaded_materials/Social Science/Kerala XII Annual Exam March 2022 Sociology Question Paper (SY38).pdf",
+            "answer_key": "downloaded_materials/Social Science/Kerala 12th Annual Exam 2022 Sociology Answer Key (SY38).pdf"
+          },
+          {
+            "year": 2022,
+            "paper": "Social Work",
+            "code": "SY42",
+            "question_paper": "downloaded_materials/Social Science/Kerala XII Annual Exam March 2022 Social Work Question Paper (SY42).pdf",
+            "answer_key": "downloaded_materials/Social Science/Kerala 12th Annual Exam 2022 Social Work Answer Key (SY42).pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "paper": "Sociology",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Social Science/Plus Two Model Exam Question Paper 2025 Sociology (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Social Science/Plus Two Model Exam Question Paper 2025 Sociology (Mal Med).pdf"
+              }
+            ]
+          },
+          {
+            "year": 2024,
+            "paper": "Sociology",
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Social Science/Kerala Plus Two Model Exam Question Paper 2024 Sociology Eng Med.pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Social Science/Kerala Plus Two Model Exam Question Paper 2024 Sociology Mal Med.pdf"
+              }
+            ],
+            "answer_key": {
+              "source": "Ashref Sir",
+              "local_path": "downloaded_materials/Social Science/Kerala +2 Model Exam 2024 Sociology Answer Key by Ashref Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "paper": "Sociology",
+            "question_paper": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Exam Question Paper Feb 2023.pdf",
+            "answer_key": {
+              "source": "Ashref Sir & Yaseer Sir",
+              "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Exam Feb 2023 Answer key by Ashref Sir & Yaseer Sir.pdf"
+            }
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Social Science/Plus Two Second Term exam 2024 Sociology Question paper (EM).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Social Science/Plus Two Second Term exam 2024 Sociology Question paper (MM).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Social Science/Plus Two Second Term Exam 2024  Sociology Answer Key.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_papers": [
+              {
+                "medium": "English",
+                "local_path": "downloaded_materials/Social Science/Kerala Plus Two Second Term Exam 2023 Question Paper Sociology (Eng Med).pdf"
+              },
+              {
+                "medium": "Malayalam",
+                "local_path": "downloaded_materials/Social Science/Kerala Plus Two Second Term Exam 2023 Question Paper Sociology (Mal Med).pdf"
+              }
+            ],
+            "answer_key": "downloaded_materials/Social Science/Kerala Plus Two Second Term Exam 2023 Answer Key Sociology.pdf"
+          }
+        ],
+        "model_practice_sets": [
+          {
+            "set": 1,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 1.pdf"
+          },
+          {
+            "set": 2,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 2.pdf"
+          },
+          {
+            "set": 3,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 3.pdf"
+          },
+          {
+            "set": 4,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 4.pdf"
+          },
+          {
+            "set": 5,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 5.pdf"
+          },
+          {
+            "set": 6,
+            "local_path": "downloaded_materials/Social Science/Kerala Plus Two Sociology Model Question Paper 6.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "english",
+      "subject_name": "English",
+      "streams": [
+        "General",
+        "Science",
+        "Commerce",
+        "Humanities"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "category": "English (Core/General)",
+            "question_paper": "downloaded_materials/English/Plus Two Annual Exam 2026 English Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Annual Exam 2026 English Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "category": "English Literature",
+            "question_paper": "downloaded_materials/English/Plus Two Annual Exam 2026 English Literature Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Annual Exam 2026 English Literature Answer Key.pdf"
+          },
+          {
+            "year": 2026,
+            "category": "Communicative English",
+            "question_paper": "downloaded_materials/English/Plus Two Annual Exam 2026 Communicative English Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Annual Exam 2026 Communicative English Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "category": "English (Core/General)",
+            "question_paper": "downloaded_materials/English/Plus Two Annual Exam ENGLISH Question Paper 2025.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Annual Exam 2025 English Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "category": "English (Core/General)",
+            "code": "SY-501",
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Annual Exam 2024 English Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Kerala Plus Two Annual Exam 2024 English Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "category": "English (Core/General)",
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Final Exam March 2023 English Question paper.pdf",
+            "answer_key": {
+              "source": "Sunil Sir, Suhana Mam, Joseph Sir",
+              "local_path": "downloaded_materials/English/Kerala Plus Tweo Final Exam English March 2023 Answer Key by Sunil Sir,Suhana  Mam, Joseph Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "category": "Communicative English",
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Final Exam March 2023 Communicative English Question paper.pdf",
+            "answer_key": "downloaded_materials/English/Kerala Plus Two Final Exam March 2023 Communicative English Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "category": "English Literature",
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Final Exam March 2023 English Literature Question paper.pdf",
+            "answer_key": "downloaded_materials/English/Kerala Plus Two Final Exam March 2023 English Literature Answer Key.pdf"
+          },
+          {
+            "year": 2022,
+            "category": "English (Core/General)",
+            "code": "SY01",
+            "question_paper": "downloaded_materials/English/Kerala XII Annual Exam March 2022 English Question Paper (SY01).pdf",
+            "answer_key": "downloaded_materials/English/Kerala 12th Annual Exam 2022 English Answer Key (SY01).pdf"
+          },
+          {
+            "year": 2022,
+            "category": "English Literature",
+            "code": "SY23",
+            "question_paper": "downloaded_materials/English/Kerala XII Annual Exam March 2022 English Literature Question Paper (SY23).pdf",
+            "answer_key": "downloaded_materials/English/Kerala 12th Annual Exam 2022 English Literature Answer Key (SY23).pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_paper": "downloaded_materials/English/Plus Two Model Exam 2025 English Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Model Exam 2025 English answer key.pdf"
+          },
+          {
+            "year": 2024,
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Model Exam Question Paper 2024 English.pdf",
+            "answer_key": {
+              "source": "Sunil Sir",
+              "local_path": "downloaded_materials/English/Kerala +2 Model Exam 2024 English Answer Key by Sunil Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/English/Kerala Plus Two English Model Exam Question Paper Feb 2023.pdf",
+            "answer_key": "downloaded_materials/English/Kerala Plus Two English Model Exam Feb 2023 Answer key.pdf"
+          },
+          {
+            "year": 2022,
+            "question_paper": "downloaded_materials/English/Kerala +2 English Model Exam Question Paper 2022.pdf",
+            "answer_key": "downloaded_materials/English/Kerala +2 English Model Exam Answer Key 2022.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_papers": [
+              "downloaded_materials/English/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 English.pdf",
+              "downloaded_materials/English/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 English by HSSTA.pdf"
+            ]
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/English/Plus Two Second Term 2024 English Question Paper.pdf",
+            "answer_key": "downloaded_materials/English/Plus Two Second Term Exam 2024 English Answer key.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/English/Kerala Plus Two Second Term Exam 2023 Question Paper English.pdf",
+            "answer_key": "downloaded_materials/English/Kerala Plus Two Second Term Exam 2023 Answer Key English.pdf"
+          }
+        ],
+        "model_practice_sets_count": 32,
+        "sample_practice_set": "downloaded_materials/English/Kerala Plus Two English Model Question Paper 1.pdf"
+      }
+    },
+    {
+      "subject_id": "malayalam",
+      "subject_name": "Malayalam I",
+      "streams": [
+        "General Language"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "question_paper": "downloaded_materials/Malayalam I/Plus Two Annual Exam 2026 Malayalam Question Paper.pdf",
+            "answer_key": "downloaded_materials/Malayalam I/Plus Two Annual Exam 2026 Malayalam Answer Key.pdf"
+          },
+          {
+            "year": 2025,
+            "question_paper": "downloaded_materials/Malayalam I/Plus Two Annual Exam 2025 Malayalam Question Paper.pdf"
+          },
+          {
+            "year": 2024,
+            "code": "SY-508",
+            "question_paper": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Final exam March 2024 Malayalam Question paper.pdf",
+            "answer_key": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Board Exam 2024 Malayalam (SY-508) Official Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala Plus Two Final Exam March 2023 Malayalam Question paper.pdf"
+          },
+          {
+            "year": 2022,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala +2 Exam 2022- Malayalam Question Paper.pdf",
+            "answer_key": "downloaded_materials/Malayalam I/Kerala +2 Exam 2022- Malayalam Answer Key.pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_paper": "downloaded_materials/Malayalam I/Plus Two Model Exam Question paper 2025 MALAYALAM.pdf"
+          },
+          {
+            "year": 2024,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala Plus Two Model Exam Question Paper 2024 Malayalam.pdf"
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala Plus Two Malayalam Model Exam Question Paper Feb 2023.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala Plus Two First Term Onam Exam Malayalam Question Paper 2024.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Malayalam I/Plus Two Malayalam First Term Exam Question Paper 2023.pdf",
+            "answer_key": "downloaded_materials/Malayalam I/Plus Two Onam Exam Answer key 2023 Malayalam.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Malayalam I/Kerala Plus Two Second Term Exam 2023 Question Paper Malayalam.pdf"
+          }
+        ],
+        "model_practice_sets_count": 12,
+        "sample_practice_set": "downloaded_materials/Malayalam I/Kerala Plus Two Malayalam Model Question Paper 1.pdf"
+      }
+    },
+    {
+      "subject_id": "hindi",
+      "subject_name": "Hindi",
+      "streams": [
+        "General Language"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "question_paper": "downloaded_materials/Hindi/Plus Two Annual Exam 2026 Hindi Question Paper.pdf",
+            "answer_key": "downloaded_materials/Hindi/Plus Two Annual Exam 2026 Hindi Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "code": "SY-505",
+            "question_paper": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Final exam March 2024 Hindi Question paper.pdf",
+            "answer_key": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Board Exam 2024 Hindi (SY-505) Official Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two Final Exam March 2023 Hindi Question paper.pdf"
+          },
+          {
+            "year": 2022,
+            "question_paper": "downloaded_materials/Hindi/Kerala +2 Exam 2022- HINDI Question Paper.pdf",
+            "answer_key": {
+              "source": "Shaji Sir",
+              "local_path": "downloaded_materials/Hindi/Kerala +2 Exam 2022- HINDI Answer Key by Shaji Sir.pdf"
+            }
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_paper": "downloaded_materials/Hindi/Plus Two Model Exam Question paper 2025 HINDI.pdf",
+            "answer_key": "downloaded_materials/Hindi/Plus Two Model Exam Answer Key 2025 Hindi.pdf"
+          },
+          {
+            "year": 2024,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two Model Exam Question Paper 2024 Hindi.pdf",
+            "answer_key": {
+              "source": "Shaji Sir",
+              "local_path": "downloaded_materials/Hindi/Kerala +2 Model Exam 2024 Hindi Answer Key by Shaji Sir.pdf"
+            }
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two Hindi Model Question Paper 2023.pdf",
+            "answer_key": "downloaded_materials/Hindi/Kerala Plus Two Hindi Model Exam 2023 answer key.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Hindi.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two First Term Onam Exam Hindi Question Paper 2024.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2023,
+            "question_paper": "downloaded_materials/Hindi/Kerala Plus Two Second Term Exam 2023 Question Paper Hindi.pdf",
+            "answer_key": "downloaded_materials/Hindi/Kerala Plus Two Second Term Exam 2023 Answer Key Hindi.pdf"
+          }
+        ],
+        "model_practice_sets_count": 24,
+        "sample_practice_set": "downloaded_materials/Hindi/Kerala Plus Two Hindi Model Question Paper 1.pdf"
+      }
+    },
+    {
+      "subject_id": "arabic",
+      "subject_name": "Arabic",
+      "streams": [
+        "General Language",
+        "Humanities"
+      ],
+      "resources": {
+        "board_annual_exams": [
+          {
+            "year": 2026,
+            "question_paper": "downloaded_materials/Arabic/Plus Two Annual Exam 2026 Arabic Question Paper.pdf",
+            "answer_key": "downloaded_materials/Arabic/Plus Two Annual Exam 2026 Arabic Answer Key.pdf"
+          },
+          {
+            "year": 2024,
+            "code": "SY-502",
+            "question_paper": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Final exam March 2024 Arabic Question paper.pdf",
+            "answer_key": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Board Exam 2024 Arabic (SY-502) Official Answer Key.pdf"
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Arabic/Kerala Plus Two Final Exam March 2023 Arabic Question paper.pdf"
+          }
+        ],
+        "model_exams": [
+          {
+            "year": 2025,
+            "question_paper": "downloaded_materials/Arabic/Plus Two Model Exam Question paper 2025 ARABIC.pdf"
+          },
+          {
+            "year": 2023,
+            "question_paper": "downloaded_materials/Arabic/Kerala Plus Two Arabic Model Exam Question Paper Feb 2023.pdf"
+          }
+        ],
+        "terminal_exams": [
+          {
+            "term": "First Term (Onam)",
+            "year": 2025,
+            "question_paper": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two Ist Term Onam Exam Question Paper 2025 Arabic.pdf"
+          },
+          {
+            "term": "First Term (Onam)",
+            "year": 2024,
+            "question_paper": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two First Term Onam Exam Arabic Question Paper 2024.pdf"
+          },
+          {
+            "term": "Second Term (Christmas)",
+            "year": 2017,
+            "question_paper": "downloaded_materials/Arabic/Kerala Plus Two Second Term Arabic Question Paper December 2017.pdf",
+            "answer_key": "downloaded_materials/Arabic/Kerala Plus Two Second Term Arabic Answer Key December 2017.pdf"
+          }
+        ]
+      }
+    },
+    {
+      "subject_id": "model_revision_pools",
+      "subject_name": "All Subjects (Model & Revision Pools)",
+      "description": "Cross-discipline collection containing SAY/Improvement exams (2008\u20132022), comprehensive terminal exam sets, and rare elective subjects (Journalism, Psychology, Sociology, Sanskrit, Urdu, French, German).",
+      "key_collections": [
+        {
+          "name": "SAY / Improvement Exams Pool",
+          "years_covered": [
+            "2022",
+            "2019",
+            "2018",
+            "2017",
+            "2016",
+            "2015",
+            "2008"
+          ],
+          "subjects_included": [
+            "Mathematics",
+            "Physics",
+            "Chemistry",
+            "Biology",
+            "Business Studies",
+            "Accountancy (AFS & CA)",
+            "Computer Science",
+            "Computer Applications",
+            "Economics",
+            "History",
+            "Political Science",
+            "Sociology",
+            "Geography",
+            "English",
+            "Languages (Malayalam, Hindi, Arabic, Sanskrit, Urdu, French)"
+          ],
+          "sample_file": "downloaded_materials/All Subjects (Model & Revision Pools)/Plus Two SAY Exam Question Paper July 2022- PHYSICS.pdf"
+        },
+        {
+          "name": "Second Term (Christmas) Exam Multi-Subject Bundles",
+          "years_covered": [
+            "2025",
+            "2024",
+            "2023",
+            "2022",
+            "2019",
+            "2018",
+            "2017"
+          ],
+          "sample_file": "downloaded_materials/All Subjects (Model & Revision Pools)/Plus Two Second Term Exam 2025 Question paper PHYSICS (EM).pdf"
+        },
+        {
+          "name": "First Term (Onam) Exam Multi-Subject Bundles",
+          "years_covered": [
+            "2025",
+            "2024",
+            "2023",
+            "2019",
+            "2018",
+            "2017"
+          ],
+          "sample_file": "downloaded_materials/All Subjects (Model & Revision Pools)/Kerala Plus Two First Term Onam Exam Question Paper 2024.pdf"
+        }
+      ]
+    }
+  ]
+}

@@ -265,11 +265,16 @@ if __name__ == '__main__':
         breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
     )
     
-    # Class 12
-    generate_class_pages(
-        json_path='c:\\Users\\madhu\\code_test\\scraped_class12.json',
-        output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs12',
-        class_name='class12',
-        class_title='Class 12 (Plus Two)',
-        breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
-    )
+    # Class 12 (Restructured Student-Friendly Study Materials with Google Drive Links)
+    try:
+        from scripts.build_class12_pages import generate_all_class12_pages
+        generate_all_class12_pages()
+    except Exception as e:
+        print(f"Fallback to legacy generator for Class 12 due to: {e}")
+        generate_class_pages(
+            json_path='c:\\Users\\madhu\\code_test\\scraped_class12.json',
+            output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs12',
+            class_name='class12',
+            class_title='Class 12 (Plus Two)',
+            breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
+        )
