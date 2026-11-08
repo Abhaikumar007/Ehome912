@@ -1598,7 +1598,7 @@ export const DataService = {
         const feeNow = new Date();
         const { target, isAdvance, unpaidCount } = getFeeTargetMonth(
           approvedPayments,
-          studentFeeInfo.joiningDateIso,
+          data.joining_date || studentFeeInfo.joiningDateIso,
           feeNow
         );
         const pendingItem = payments.find((p: any) => p.status === 'pending_verification');
@@ -1665,7 +1665,8 @@ export const DataService = {
         }
 
         // Due date of the month being paid = joining day of that month
-        const dueDay = Number((studentFeeInfo.joiningDateIso || '').slice(8)) || 25;
+        const resolvedJoiningIso = data.joining_date || studentFeeInfo.joiningDateIso || '';
+        const dueDay = Number(resolvedJoiningIso.slice(8)) || 25;
         const targetDueObj = new Date(target.year, target.monthIndex, dueDay);
         const targetDueStr = `${String(dueDay).padStart(2, '0')} ${target.long} ${target.year}`;
         const todayMid = new Date(feeNow.getFullYear(), feeNow.getMonth(), feeNow.getDate());
