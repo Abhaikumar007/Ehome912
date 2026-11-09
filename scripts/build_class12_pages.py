@@ -490,7 +490,7 @@ def generate_all_class12_pages():
         url = get_link(path_or_dict)
         if url == "#":
             return f'<span class="btn {btn_class} disabled" title="Uploading to Google Drive..."><i class="fa-solid {icon}"></i> {label}</span>'
-        return f'<a href="{url}" target="_blank" rel="noopener noreferrer" class="btn {btn_class}"><i class="fa-solid {icon}"></i> {label}</a>'
+        return f'<a href="{url}" target="_blank" rel="noopener noreferrer" class="btn {btn_class}" title="Open in Google Drive"><i class="fa-solid {icon}"></i> {label}</a>'
 
     def render_qp_buttons(item):
         html = []
@@ -625,9 +625,12 @@ def generate_all_class12_pages():
 
         actions_html = ""
         if direct_qps or direct_keys:
-            actions_html += f'<div class="action-group">{"".join(direct_qps + direct_keys)}</div>'
+            btns_formatted = "\n                    ".join(direct_qps + direct_keys)
+            actions_html += f'''<div class="action-group">
+                    {btns_formatted}
+                </div>'''
         if sub_blocks:
-            actions_html += "".join(sub_blocks)
+            actions_html += "\n" + "\n".join(sub_blocks)
 
         return f'''
         <div class="exam-card">
