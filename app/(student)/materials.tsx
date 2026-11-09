@@ -27,6 +27,10 @@ import {
   PyqCard,
   PyqLink,
 } from '../../constants/class12PyqData';
+import {
+  CLASS_10_PYQ_DATA,
+  CLASS_10_SUBJECTS_LIST,
+} from '../../constants/class10PyqData';
 
 // Map icon names to valid Ionicons
 const getSubjectIonIcon = (iconName: string): any => {
@@ -76,20 +80,37 @@ export default function MaterialsScreen() {
 
   const rollNo = student?.rollNo || '';
 
-  // Determine if the student is strictly in Class 12
+  // Determine if the student is strictly in Class 12 or Class 10
   const isClass12Student = useMemo(() => {
     if (!student?.class) return false;
     const cls = String(student.class).toLowerCase();
     return /\b12\b/.test(cls) || cls.includes('plus two');
   }, [student?.class]);
 
-  // Fee state for Class 12 locking
+  const isClass10Student = useMemo(() => {
+    if (!student?.class) return false;
+    const cls = String(student.class).toLowerCase();
+    return /\b10\b/.test(cls) || cls.includes('sslc') || cls.includes('tenth');
+  }, [student?.class]);
+
+  const hasPyqAccess = isClass12Student || isClass10Student;
+
+  // Active dataset depending on student's class
+  const pyqData: Record<string, PyqSubject> = isClass10Student
+    ? CLASS_10_PYQ_DATA
+    : CLASS_12_PYQ_DATA;
+
+  const subjectsList = isClass10Student
+    ? CLASS_10_SUBJECTS_LIST
+    : CLASS_12_SUBJECTS_LIST;
+
+  // Fee state for locking
   const [fees, setFees] = useState<any>(null);
-  const [feesLoading, setFeesLoading] = useState<boolean>(isClass12Student);
+  const [feesLoading, setFeesLoading] = useState<boolean>(hasPyqAccess);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const loadFeeStatus = useCallback(async (forceFresh = false) => {
-    if (!rollNo || !isClass12Student) {
+    if (!rollNo || !hasPyqAccess) {
       setFeesLoading(false);
       return;
     }
@@ -101,12 +122,12 @@ export default function MaterialsScreen() {
     } finally {
       setFeesLoading(false);
     }
-  }, [rollNo, isClass12Student]);
+  }, [rollNo, hasPyqAccess]);
 
   useEffect(() => {
     loadFeeStatus();
 
-    if (!rollNo || !isClass12Student) return;
+    if (!rollNo || !hasPyqAccess) return;
 
     // Realtime listener so materials auto-unlocks as soon as Admin approves fee
     const channel = supabase
@@ -125,7 +146,7 @@ export default function MaterialsScreen() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [rollNo, isClass12Student, loadFeeStatus]);
+  }, [rollNo, hasPyqAccess, loadFeeStatus]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -143,23 +164,50 @@ export default function MaterialsScreen() {
     return fees?.status === 'pending_verification';
   }, [fees]);
 
-  // Default subject for Class 12
+  // Default subject for student
   const defaultSubjectKey = useMemo(() => {
     const rawSubs = student?.subjects;
     const studentSubs = (Array.isArray(rawSubs) ? rawSubs.join(' ') : String(rawSubs || '')).toLowerCase();
-    if (studentSubs.includes('phys')) return 'physics';
-    if (studentSubs.includes('math')) return 'maths';
-    if (studentSubs.includes('chem')) return 'chemistry';
-    if (studentSubs.includes('bio')) return 'biology';
-    if (studentSubs.includes('comp')) return 'computer';
-    return 'physics';
-  }, [student?.subjects]);
+    if (isClass10Student) {
+      if (studentSubs.includes('math')) return 'maths';
+      if (studentSubs.includes('phys')) return 'physics';
+      if (studentSubs.includes('chem')) return 'chemistry';
+      if (studentSubs.includes('bio')) return 'biology';
+      if (studentSubs.includes('soc')) return 'social';
+      if (studentSubs.includes('eng')) return 'english';
+      if (studentSubs.includes('mal')) return 'malayalam1';
+      if (studentSubs.includes('hin')) return 'hindi';
+      if (studentSubs.includes('arab')) return 'arabic';
+      return 'maths';
+    }
+    if (isClass12Student) {
+      if (studentSubs.includes('phys')) return 'physics';
+      if (studentSubs.includes('math')) return 'maths';
+      if (studentSubs.includes('chem')) return 'chemistry';
+      if (studentSubs.includes('bio')) return 'biology';
+      if (studentSubs.includes('comp')) return 'computer';
+      return 'physics';
+    }
+    return 'maths';
+  }, [student?.subjects, isClass10Student, isClass12Student]);
 
   const [selectedSubjectKey, setSelectedSubjectKey] = useState<string>(defaultSubjectKey);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const currentSubject: PyqSubject = CLASS_12_PYQ_DATA[selectedSubjectKey] || CLASS_12_PYQ_DATA['physics'];
+  useEffect(() => {
+    setSelectedSubjectKey(defaultSubjectKey);
+  }, [defaultSubjectKey]);
+
+  const currentSubject: PyqSubject =
+    pyqData[selectedSubjectKey] || Object.values(pyqData)[0] || {
+      subjectKey: 'maths',
+      subjectName: 'Mathematics',
+      icon: 'calculator',
+      color: '#2563EB',
+      bg: '#EFF6FF',
+      sections: [],
+    };
 
   // Filter cards by category and search query
   const filteredSections = useMemo(() => {
@@ -262,8 +310,8 @@ export default function MaterialsScreen() {
           />
         }
       >
-        {/* CASE 1: Student is NOT in Class 12 -> Show Non-Class-12 In Preparation Screen */}
-        {!isClass12Student && (
+        {/* CASE 1: Student is NOT in Class 10 or Class 12 -> Show Non-PYQ In Preparation Screen */}
+        {!hasPyqAccess && (
           <View>
             <View style={styles.nonClass12Banner}>
               <View style={styles.prepBadgeRow}>
@@ -359,16 +407,16 @@ export default function MaterialsScreen() {
           </View>
         )}
 
-        {/* CASE 2: Student is Class 12, but Fee is Loading */}
-        {isClass12Student && feesLoading && (
+        {/* CASE 2: Student has access, but Fee is Loading */}
+        {hasPyqAccess && feesLoading && (
           <View style={styles.loaderWrap}>
             <ActivityIndicator size="large" color={Colors.primary} />
             <Text style={styles.loaderText}>Verifying enrollment & fee status...</Text>
           </View>
         )}
 
-        {/* CASE 3: Student is Class 12, but Payment is Pending Verification */}
-        {isClass12Student && !feesLoading && isFeePending && (
+        {/* CASE 3: Student has access, but Payment is Pending Verification */}
+        {hasPyqAccess && !feesLoading && isFeePending && (
           <View style={styles.pendingVerificationCard}>
             <View style={styles.pendingIconCircle}>
               <Ionicons name="hourglass-outline" size={32} color="#D97706" />
@@ -398,8 +446,8 @@ export default function MaterialsScreen() {
           </View>
         )}
 
-        {/* CASE 4: Student is Class 12, but Fees are UNPAID / DUE -> Show Locked Screen */}
-        {isClass12Student && !feesLoading && !isFeePaid && !isFeePending && (
+        {/* CASE 4: Student has access, but Fees are UNPAID / DUE -> Show Locked Screen */}
+        {hasPyqAccess && !feesLoading && !isFeePaid && !isFeePending && (
           <View style={styles.feeLockedCard}>
             <View style={styles.lockIconCircleBig}>
               <Ionicons name="lock-closed" size={34} color="#DC2626" />
@@ -410,7 +458,7 @@ export default function MaterialsScreen() {
 
             <Text style={styles.feeLockedTitle}>Access Restricted: Fee Pending</Text>
             <Text style={styles.feeLockedSub}>
-              Access to the Class 12 Previous Year Question Papers & Answer Keys bank is reserved for active enrolled students with cleared tuition fees.
+              Access to the {isClass10Student ? 'Class 10 (SSLC)' : 'Class 12'} Previous Year Question Papers & Answer Keys bank is reserved for active enrolled students with cleared tuition fees.
             </Text>
 
             {/* Fee Due Highlight Box */}
@@ -456,8 +504,8 @@ export default function MaterialsScreen() {
           </View>
         )}
 
-        {/* CASE 5: Student is Class 12 AND Fees are PAID -> Full Unlocked PYQ Browser */}
-        {isClass12Student && !feesLoading && isFeePaid && (
+        {/* CASE 5: Student has access AND Fees are PAID -> Full Unlocked PYQ Browser */}
+        {hasPyqAccess && !feesLoading && isFeePaid && (
           <View>
             {/* Hero Banner */}
             <View style={styles.heroBanner}>
@@ -472,16 +520,20 @@ export default function MaterialsScreen() {
                 </View>
               </View>
 
-              <Text style={styles.heroTitle}>Class 12 Question Bank</Text>
+              <Text style={styles.heroTitle}>
+                {isClass10Student ? 'Class 10 (SSLC) Question Bank' : 'Class 12 Question Bank'}
+              </Text>
               <Text style={styles.heroSub}>
-                DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.
+                {isClass10Student
+                  ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'
+                  : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
               </Text>
             </View>
 
             {/* Subject Selector Bar */}
             <View style={styles.sectionTitleRow}>
               <Text style={styles.sectionTitle}>1. Select Subject</Text>
-              <Text style={styles.subjectCountHint}>{CLASS_12_SUBJECTS_LIST.length} Subjects</Text>
+              <Text style={styles.subjectCountHint}>{subjectsList.length} Subjects</Text>
             </View>
 
             <ScrollView
@@ -489,7 +541,7 @@ export default function MaterialsScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.subjectScroll}
             >
-              {CLASS_12_SUBJECTS_LIST.map((sub) => {
+              {subjectsList.map((sub) => {
                 const isSelected = selectedSubjectKey === sub.key;
                 return (
                   <TouchableOpacity
