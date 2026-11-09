@@ -3,765 +3,912 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 10 (SSLC) - All Subjects (Model & Revision Pools) Papers</title>
-    <meta name="description" content="Kerala State Board Class 10 (SSLC) All Subjects (Model & Revision Pools) Question Papers and Keys.">
+    <title>All Subjects (Model & Revision Pools) - Class 10 (SSLC) Question Papers & Keys | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 10 (SSLC) All Subjects (Model & Revision Pools) Previous Year Board Question Papers, Model Exams, and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --badge-math: #0284c7;
+        --badge-sci: #16a34a;
+        --badge-soc: #d97706;
+        --badge-lang: #7c3aed;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.92rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 20px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-term { background: #ede9fe; color: #6d28d9; }
+    .badge-med { background: #fef3c7; color: #b45309; }
+
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn.disabled {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        pointer-events: none;
+    }
+
+    .practice-sets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+    }
+
+    .practice-set-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 14px;
+        text-decoration: none;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+
+    .practice-set-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        border-color: var(--secondary-blue);
+        color: var(--secondary-blue);
+    }
+
+    .practice-set-card i {
+        font-size: 1.4rem;
+        color: #dc2626;
+        flex-shrink: 0;
+    }
+
+    .practice-set-card .set-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .cards-grid { grid-template-columns: 1fr; }
+        .subject-header h1 { font-size: 1.7rem; }
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>All Subjects (Model & Revision Pools) - Class 10 (SSLC)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-folder-open"></i> All Subjects (Model & Revision Pools)</h1>
+        <p>Class 10 (SSLC) Previous Year Question Papers & Official Solutions</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; All Subjects (Model & Revision Pools)
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class10.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62945" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC SANSKRIT Study Material and Question Pool EQUIP 2024- DIET Kasargod.pdf</span>
-                            <span class="attachment-source">EQUIP Question Pool by DIET Kasaragode</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62946" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC URDU Study Material and Question Pool EQUIP 2024- DIET Kasargod.pdf</span>
-                            <span class="attachment-source">EQUIP Question Pool by DIET Kasaragode</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62936" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2024 premodel exam question paper Adisthanapadavali.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Premodel exam  Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62962" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC SANSKRIT Study Material and Question Pool SMILE 2024- DIET Kannur.pdf</span>
-                            <span class="attachment-source">SMILE- SSLC Model papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62963" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC URDU Study Material and Question Pool SMILE 2024- DIET Kannur.pdf</span>
-                            <span class="attachment-source">SMILE- SSLC Model papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64345" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC exam 2024 SANSKRIT question paper 04.03.2024.pdf</span>
-                            <span class="attachment-source">Sanskrit Question paper and Answer key of Kerala SSLC exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64346" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">educationobserver.com SSLC Exam March 2024 SANSKRIT Answer key by Vidyalakshmi Teacher.pdf</span>
-                            <span class="attachment-source">Sanskrit Question paper and Answer key of Kerala SSLC exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64032" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination, February 2024 - Model Answers Urdu by Faisal Wafa sir.pdf</span>
-                            <span class="attachment-source">URDU Question paper and Answer key of SSLC Model exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64033" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Urdu Model exam 2024 Question paper.pdf</span>
-                            <span class="attachment-source">URDU Question paper and Answer key of SSLC Model exam 2024</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2023 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59448" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Sanskrit Question Paper.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Final Exam 2023- Sanskrit question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59449" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Sanskrit Answer Key by Smt Vidyakakshmi and Sri Narayanan Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Final Exam 2023- Sanskrit question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59447" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Urdu Question Paper and Answer Key by Faisal Wafa Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Final Exam 2023- Urdu question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59086" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2023 Sanskrit Answer key by Smt.Vidyalakshmi.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Sanskrit question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59085" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2023 URDU Answer key by Faisal Wafa Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Urdu question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57860" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC VIJAYAPADHAM Sanskrit Premodel Question paper 2023.pdf</span>
-                            <span class="attachment-source">VIJAYAPADHAM- Model Papers by Kottarakkara Edl Dist</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53464" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">educationobserver.com SSLC 2022 SS Answer Key Final.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- SS Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53467" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">sslc_ss_MM_answerkey_2022_by_Bijeshkumar.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- SS Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53466" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">sslc_ss_EM_answerkey_2022_by_Bijeshkumar.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- SS Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53433" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2022 Question Paper- URDU.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- URDU Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53434" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2022 URDU- Answer Key by Faisal Vafa Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- URDU Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58891" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model Exam 2022 Question Paper- Sanskrit.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Sanskrit question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58892" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model Exam 2022 Question Paper- Urdu.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Urdu question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53338" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022 SS Answer Key MM by Colin Jose Sir and Biju Sir.pdf</span>
-                            <span class="attachment-source">Model Exam 2022- Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53340" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022 SS Answer Key EM by Binoy Jospeh Sir Silver Hills.pdf</span>
-                            <span class="attachment-source">Model Exam 2022- Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53341" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022 SS Answer Key EM by Biju Sir GHSS Tuvvur.pdf</span>
-                            <span class="attachment-source">Model Exam 2022- Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48098" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2021 Question Paper- SANSKRIT.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48107" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC April 2021 Sanskrit Answer Key.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48099" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2021 Question Paper- URDU.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48126" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam 2021 Question Paper and Key by Ravi Sir, GHSS Kadannapply, Kannur.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47339" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 Question Paper-Sanskrit.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47380" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 Question Paper - Urdu.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47351" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 kerala padavali-answer key by Suresh Areekode Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47381" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ANSWER KEY Urdu SSLC MODEL EXAM â€“ 2021 by Faisal Vafa Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47385" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ANSWER KEY Sanskrit SSLC MODEL EXAM 2021.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47400" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 SS EM Answer Key by Biju Sir GHS Thuvvur.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=38458" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Urdu Kerala Mukulam SSLC Model Exam Paper 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Model question papers- Mukulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39791" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SANSKRIT Question Paper - Kerala SSLC Exam March 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39792" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SANSKRIT Answer Key - Kerala SSLC Exam March 2020 by Dr. Koramangalam Krishnakumar.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39857" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SS Question Paper (EM) SSLC Exam March 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39858" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SS Question Paper (MM) SSLC Exam March 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39879" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">URDU Question Paper Kerala SSLC Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39880" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">URDU Answer Key Kerala SSLC Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39532" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2020 SS EM Answer Key By Biju Sir Thuvvur.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39533" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2020 SS MM Answer Key By Bijesh Kumar Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39586" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Urdu Question Paper SSLC Model exam 2020.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39587" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Urdu Answer key SSLC Model Exam 2020 by Faisal Vafa Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=29625" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC 2019 Model Question Paper- Mukulam- URDU.pdf</span>
-                            <span class="attachment-source">Mukulam Model Papers for SSLC Exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=29626" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC 2019 Model Question Paper- Mukulam- SANSKRIT.pdf</span>
-                            <span class="attachment-source">Mukulam Model Papers for SSLC Exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30349" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">URDU Answer Key SSLC Exam March 2019 by Faisal Vafa Sir.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2019 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30264" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2019 February Answer Key-SS (EM) by Pradeep Sir GHSS Puthoor.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam Feb 2019 Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30341" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">URDU Question Paper and Answer key of SSLC Model Exam 2019 by Faisal Vafa Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam Feb 2019 Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25297" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC March 2018 Question paper-Urdu.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2018 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=24682" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam March 2018 Urudu Answer Key.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2018 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22892" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2018 Question Paper- Urdu.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2018 Question papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22893" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2018 Answer Key- Urdu.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2018 Question papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=23355" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2018 IT Theory Questions.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2018 Question papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=23356" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2018 IT Practical Questions.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2018 Question papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=24681" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">https://www.educationobserver.com/forum/...?aid=24681</span>
-                            <span class="attachment-source">SSLC Model Exam 2018 Question papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=21624" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model exam 2018 Sample Question Paper- Sanskrit.pdf</span>
-                            <span class="attachment-source">Sample question papers for SSLC Examination, 2018</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=16332" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Orukkam 2017 Probable Questions for Kerala SSLC Exam - Urdu.pdf</span>
-                            <span class="attachment-source">Probable/ Important questions for SSLC Exam-All subjects</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20658" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SCERT Question Pool 2017 Urdu.pdf</span>
-                            <span class="attachment-source">SCERT Question pool for all subjects</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20660" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SCERT Question Pool 2017 Sanskrit.pdf</span>
-                            <span class="attachment-source">SCERT Question pool for all subjects</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20664" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SCERT Question Pool 2017 SS.pdf</span>
-                            <span class="attachment-source">SCERT Question pool for all subjects</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=16147" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC March 2016 Bilogy Question paper.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2016- Solved previous year question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=16148" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC March 2016 SS Question paper.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2016- Solved previous year question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=14884" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC  March 2015 SS Answer key and Solutions.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2015- Solved previous papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">Other / General Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28513" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 1- Vanka- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28514" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 2- The Snake and the Mirror- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28515" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 4- Mother to Son- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28516" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 5-Project Tiger- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28517" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 8 - The Two Brothers- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28518" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 9- The Best Investment I Ever Made- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28519" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 10 - The Ballad of Father Gilligan- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28520" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 11- The Danger of a Single Story- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28521" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 12- The Scholarship Jacket  Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28522" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 13 - Poetry - Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28523" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 14 The Book that Saved the Earth- Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28524" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 15- Adolf - Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28525" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 16- The School Boy - Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=28526" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Chapter 17- My Childhood Days - Complete Study notes with Questions and Answers.pdf</span>
-                            <span class="attachment-source">Chapterwise</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46567" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Sanskrit Question Paper by DIET Kannur.pdf</span>
-                            <span class="attachment-source">Model Question papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46568" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Urdu Question Paper by DIET Kannur.pdf</span>
-                            <span class="attachment-source">Model Question papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46447" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Sanskrit Sample Question Paper- New Pattern.pdf</span>
-                            <span class="attachment-source">New Pattern Question Pool by Trivandrum Edl District</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46448" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Malyalam I Sample Question Paper- New Pattern.pdf</span>
-                            <span class="attachment-source">New Pattern Question Pool by Trivandrum Edl District</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46449" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Malyalam II Sample Question Paper- New Pattern.pdf</span>
-                            <span class="attachment-source">New Pattern Question Pool by Trivandrum Edl District</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46581" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Sanskrit Revision Test Question Paper with Answer Key By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46582" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Urdu Revision Test Question Paper By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46741" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Urdu Revision Test Question Paper (2) By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46742" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Sanskrit Revision Test Question Paper (2) By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46743" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Sanskrit Revision Test Question Paper (2) - Answer Key By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47078" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Urdu Unit Test Question Paper (T 22) (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47079" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Urdu Unit Test Answer Key (T 22) (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47213" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Adisthana Padavali Unit Test Answer Key (T 28) (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=44210" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Appreciation Notes of Poems - Simplified.pdf</span>
-                            <span class="attachment-source">for</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=43706" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 10th std Grammar Class in precise based on Victer Online Classes by Inter Bell.pdf</span>
-                            <span class="attachment-source">materials</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; All Subjects (Model & Revision Pools)
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class10.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills">
+            <a href="#board-exams" class="section-nav-pill"><i class="fa-solid fa-graduation-cap"></i> Board Exams</a><a href="#model-exams" class="section-nav-pill"><i class="fa-solid fa-file-signature"></i> Model Exams</a><a href="#terminal-exams" class="section-nav-pill"><i class="fa-solid fa-calendar-check"></i> Terminal Exams</a><a href="#practice-sets" class="section-nav-pill"><i class="fa-solid fa-layer-group"></i> Practice Sets</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2024), medium (EM/MM), or exam type..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="board-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-graduation-cap fa-lg" style="color: #005a87;"></i>
+                        <h2>Board & Annual Examinations</h2>
+                    </div>
+                    <span class="badge-count">4 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span></div>
+                <h3 class="card-title">2021 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/13-Doar7ZrTwAa3Bae0JSp44cpOwbuxeY/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2021 Question Paper- SANSKRIT - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/15DXAEDYJfIcsN15AIeEEIm2HsnAGxo_c/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2021 Question Paper- URDU - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1BV7chOZeocZ2Y7lLhHjB4iPSWlYxA6kB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Exam 2021 Question Paper and Key by Ravi Sir, GHSS Kadannapply, Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1HzB8w6Coeo2HbXhCxvXxvpqOV_WspTMc/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC April 2021 Sanskrit Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2020</span></div>
+                <h3 class="card-title">2020 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/18PwfUrCJKZFG8u7A539n9pbKG7m9DO-d/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SANSKRIT Question Paper - Kerala SSLC Exam March 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1ZVtkgfFQUZdD23SjR1Yj2V-t13bweXAk/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="URDU Question Paper Kerala SSLC Annual Exam March 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1ZPznGEImoO_tEj6bLtGogKz33CSBCVkM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SANSKRIT Answer Key - Kerala SSLC Exam March 2020 by Dr. Koramangalam Krishnakumar - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Dr)</a>
+                    <a href="https://drive.google.com/file/d/1E2Rujx45UNNJm7etU7XJuyhTkodHNWtf/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="URDU Answer Key Kerala SSLC Annual Exam March 2020 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 2</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span></div>
+                <h3 class="card-title">2019 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1OFXKBV10EIvPDkcDiWDsZwk72-_jG4EK/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="URDU Answer Key SSLC Exam March 2019 by Faisal Vafa Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span></div>
+                <h3 class="card-title">2018 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/18JFGB_S_3YN_u2UGK3MVbdMOThFNHTCa/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC March 2018 Question paper-Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1CnVecHGFDRibhGsO-PZNyUJNShH8EIuB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam March 2018 Urudu Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="model-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-file-signature fa-lg" style="color: #005a87;"></i>
+                        <h2>Model Examinations</h2>
+                    </div>
+                    <span class="badge-count">12 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span><span class="badge badge-med">English Medium</span></div>
+                <h3 class="card-title">2023 Model Exam (English Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1il49nuvmVjWtUqP0x9yrW9TJJVOGVCmE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC VIJAYAPADHAM Sanskrit Premodel Question paper 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/11Ra8Wyc7mBC2DiWPzGZGipVqnOSzQdgJ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC EQIP Sanskrit Question Pool 2023 with answer key by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (DIET Kasargo)</a>
+                    <a href="https://drive.google.com/file/d/1n-3cyVA60vp440_8qhWi_he-mooksM-J/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC EQIP Urdu Question Pool 2023 with answer key by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (DIET Kasargo)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span></div>
+                <h3 class="card-title">2023 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1nA3z_lK8u5at8D05YZumHCePKscwUw6a/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Interbell 2023 Sanskrit Premodel Question Paper by DIET Palakkad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1ChLKYewMMCpo_NywUUgJ13vGYWspMsWr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC SMILE 2023 Sanskrit Pre Model Question Paper by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1s6FQ7fY3ZwTmZfYyjX__rHH3_U2N4yKE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC SMILE 2023 Urdu Pre Model Question Paper by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-med">English Medium</span></div>
+                <h3 class="card-title">2022 Model Exam (English Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1DCBrvIt0iBuuZKfUj0FM9Y0LqU7h--0U/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2022 New Pattern Model Question papers - All Subjects (Eng Med)- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Eng Med)</a>
+                    <a href="https://drive.google.com/file/d/1HGE7vtpGgSiLnLk23FYgyBHfVlHhCUDC/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2022 New Pattern Model Question papers - All Subjects (Eng Med)- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Eng Med)</a>
+                    <a href="https://drive.google.com/file/d/1Y_ByGQ6YS4Brynb0kZO2u08gLxaCDFJw/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Pre Model Exam Question papers with Answers (EQUIP 2022) by DIET Kasargod- All Subjects (Eng Med) - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Eng Med)</a>
+                    <a href="https://drive.google.com/file/d/1fUTzz_e3VGRxluvhAXUN9arpTM9D_gsb/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Model Exam Question Paper by Vijayabheri 2022- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 1)</a>
+                    <a href="https://drive.google.com/file/d/1taks3j8WHtmlnQ4ZiZkQX4H_wWK-TxhH/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Model Exam Question Paper by Vijayabheri 2022- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 2)</a>
+                    <a href="https://drive.google.com/file/d/1IJgIBuhinZwrJ166e9lVgq_eiFgSx65o/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Model Exam Question Paper by Vijayabheri 2022- Set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 3)</a>
+                    <a href="https://drive.google.com/file/d/1Xn5F7SpsSVQim1hGdNOK3OEbJ5KRTRPR/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Pre Model Exam 2022 Question Paper DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 7</a>
+                    <a href="https://drive.google.com/file/d/1MqEJgrK5CKt3kHLl-olKibl0ktmSa-vw/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Pre Model Exam Question paper (MUKULAM 2022) by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 8</a>
+                    <a href="https://drive.google.com/file/d/1MRWVghLvfO37eEz1OISHFwsPSIn-00G8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Urdu Model Exam Question Paper by Vijayabheri 2022- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 1)</a>
+                    <a href="https://drive.google.com/file/d/1P_uyJid9yk7jPAhNxU-T6BLy6a1t1J4K/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Urdu Model Exam Question Paper by Vijayabheri 2022- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 2)</a>
+                    <a href="https://drive.google.com/file/d/1PfxEJ78GNxbUaWz0nip6Qpr4p4FTBQ8b/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Urdu Model Exam Question Paper by Vijayabheri 2022- Set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 3)</a>
+                    <a href="https://drive.google.com/file/d/177VXenTMRJO1Na5I16kmpD4HL6wCbPIp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Urdu Pre Model Exam 2022 Question Paper DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 12</a>
+                    <a href="https://drive.google.com/file/d/1UFxT-bapjLhOMbAy_8p5w1WfTaKpxVWh/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Urdu Pre Model Exam Question paper (MUKULAM 2022) by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 13</a>
+                    <a href="https://drive.google.com/file/d/1jUmEaOBL1Kj2RsF9xQDw2s_4Zl_tVXHn/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Sanskrit Pre Model Exam 2022 Answer Key DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-med">Malayalam Medium</span></div>
+                <h3 class="card-title">2022 Model Exam (Malayalam Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1a4U_6M43Z_dLTUGh8lXLnACAhAdqzqtS/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2022 New Pattern Model Question papers - All Subjects (Mal Med)- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1NZA7DXniq54PqQFyC8fF5jcF3N4eVhef/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2022 New Pattern Model Question papers - All Subjects (Mal Med)- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1nHl3NUE3OJhDg6z-9Px0pfHREKE9Rwjr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Pre Model Exam Question papers with Answers (EQUIP 2022) by DIET Kasargod- All Subjects (Mal Med) - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span></div>
+                <h3 class="card-title">2022 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1noimk-agjRww026C-lLEK_ieTuA_zUed/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Sanskrit Pre Model Question Paper 2022 (Vijayapadham) By DIET Kottarakkara - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1eLZNFoYBln0OmkKVcTZw5cn8GKRuqQ0q/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2022 Premodel exam question papers -SS Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 1)</a>
+                    <a href="https://drive.google.com/file/d/1IhO33UTTcZ6C0FvdJ_tKjO6ylG01KDmN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2022 SS Answer Key EM by Biju Sir GHSS Tuvvur - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span></div>
+                <h3 class="card-title">2021 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1Ope91ySeMinrlzhDun_HavC3aMuls5eE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2021 Question Paper - Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1Yn6VRSIRLaE7JeS_TMSzoK0QRzoknTY1/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2021 Question Paper-Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1Zs5cfQ2DE5EAsoPixZlgjCLCMWyXzxOM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="ANSWER KEY Sanskrit SSLC MODEL EXAM 2021 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/1mJoWswOY81ZUNqxKnL-gGLnaygPfWXJf/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="ANSWER KEY Urdu SSLC MODEL EXAM â€“ 2021 by Faisal Vafa Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Faisal Vafa)</a>
+                    <a href="https://drive.google.com/file/d/1Xa4El3WIuMsxJJ2z79aa-SZ3jGV78i8t/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2021 SS EM Answer Key by Biju Sir GHS Thuvvur - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Biju)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2020</span></div>
+                <h3 class="card-title">2020 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1JtewGdCECi-5uzW51i4QvOO-xv4hGHso/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Urdu Kerala Mukulam SSLC Model Exam Paper 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1Tm94Lcw6sUrn_Hl6Uf2BG61LeBBjkpP9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Urdu Question Paper SSLC Model exam 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1dNlWF9PM5tKzAihzVHWgH2W-kpMuToLu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="kerala_sslc_model_exam_2020_timetable_revised - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1mPxZuI4fDTMd6WiBZi2JXCrWRps-Ci1m/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Urdu Answer key SSLC Model Exam 2020 by Faisal Vafa Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span></div>
+                <h3 class="card-title">2019 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1hwtAPXLCjGUZzArCjqa4_xDrjOtYXsR0/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2019 Model Question Paper- Mukulam- SANSKRIT - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1Mu4b1q9CCvI5VTu4-aWZUr25tGBrIidt/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2019 Model Question Paper- Mukulam- URDU - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/16tKjlmpmGTyVVYp3Hg-fiHX3UeBNyaPv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="URDU Question Paper and Answer key of SSLC Model Exam 2019 by Faisal Vafa Sir - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span></div>
+                <h3 class="card-title">2018 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1YlA8D3JQR2AEAd2jNG1_woUZHT0zp6V2/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2018 IT Practical Questions - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1wdjEeknWVflz0zcnYVk-rG23LrRJ-aRc/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2018 IT Theory Questions - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1sLdZNCJopR5vFZnMKTj-Ucr7B4IdqxZk/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2018 Question Paper- Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1tqs1mb6zxp2zd7HVatjyDKj9ouzxQhZW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model exam 2018 Sample Question Paper- Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1fEA8fsDj6qrEkD2v_SInVxZ1aWNcF4dw/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2018 Answer Key- Urdu - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2016</span></div>
+                <h3 class="card-title">2016 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1hGKxR7Iw0adRJosbELHuqsoC6yWfyt61/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2016 Question Bank Orukkam- Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2014</span></div>
+                <h3 class="card-title">2014 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1IpPKaGY3b7QzabBAg05fAsYd3AHXlYMv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="10 Kerala SSLC Model question paper Information Technology - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2013</span></div>
+                <h3 class="card-title">2013 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/13-TdoxvAgEJdoPXKCcOuSd4vHmKhnalg/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam IT Model question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1tbFlW3PkNOtNhop9M9Jgrwqf5lDUekoq/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam Sanskrit Model question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="terminal-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-check fa-lg" style="color: #005a87;"></i>
+                        <h2>Terminal Examinations (Onam & Christmas)</h2>
+                    </div>
+                    <span class="badge-count">10 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2026</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1TnEFouFjcBj4VAe7jkaUM1Qx-RBDijNT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Urdu Question paper-Kerala SSLC First term exam 2026 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2025</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1Iug_TOsRhqYPZlhfHhNlxLJZepVyU0ky/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala 10th std First term Onam Exam 2025 Question Paper-Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span><span class="badge badge-term">Half Yearly / Mid Term</span><span class="badge badge-med">English Medium</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2023 (English Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1nwvJUxV7Q7LQTCpo_LN0M5bsRxRl2_yG/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="10th First Midterm exam 2023 Question Paper SS Eng Med. - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2023</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1BFrMmUrb1_iZdfiC5CgUKXdUn50LVodo/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="10th First Midterm exam 2023 Question Paper SS MalMed. - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1wo3k_rVcrS-Po25dNNx46MZke8Gllsfm/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Question Paper - SS new - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1q_EEuCiNBja00rm1E4_MegXYKlbRUKl5/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Question Paper - SS set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1vzQ__x40N06sg6_OLr7OgGUktURZaR3z/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Question Paper - SS - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/13D5KSAgDqBq8k2fyya_oZ0K55toSH-jM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Question Paper - SS EM - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 5</a>
+                    <a href="https://drive.google.com/file/d/1jsIb-K-b93_fAFFM2yI0R5O3WCA_o5s9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - SANSKRIT - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 6</a>
+                    <a href="https://drive.google.com/file/d/1QGI_zhdivWf8fDUnHjQylADv1aDSQNX7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - SS EM - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 7</a>
+                    <a href="https://drive.google.com/file/d/1i4P9xYRX8HWMWXtqfZZyW1vVLZ-9XADB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - SS MM - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 8</a>
+                    <a href="https://drive.google.com/file/d/1lpuJWnuGKd4Q_urCCcr4OjzYOpRi-Hod/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - URDU - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 9</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2022</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1kMWVqMuNjMAbkt1Tb5HvIIuc_keBvp-P/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2022 Sanskrit Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1W_dOocNNoMA8aMyC6CWwKYafWzoJR3Ru/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2022 Urdu Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1wI_XMmo0Ls9BNo_zLAL9dlk-sq6tMhZs/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second term exam 2022 Question paper - Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1uJkB5_T1et3hivZp82MCIWDQlNZJXQ1N/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second term exam 2022 Question paper - Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1oZqyNxcmgEhFJKqQMBeKPpLa0ic0Arwh/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Second Term Exam 2022 Dec SS Answer Key by Ajeesh Sir- EM - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Ajeesh)</a>
+                    <a href="https://drive.google.com/file/d/19I9xdwTMJZtzmomFNx4z0bkbuKpoqg5T/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Second Term Exam 2022 Dec SS Answer Key by Colin Jose Sir and Biju Sir- MM - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Colin Jose)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2019</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/103k7oDbOg-zeIkjyO2kIRRBjCMxRC-qI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 First Term Onam Exam Question Paper 2019- Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1I3fqDjgmn_q6uitS1lucQBAPAEBRS-Jj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 First Term Onam Exam Question Paper 2019- Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1pVO6yA4n11CeZaF12Yy1p8tIjs-f7BXJ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala Class 9 First Term Onam Exam Urdu Answer Key 2019 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2019</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/16Ko7aEIfB-mlteYA2YCh_x2r7A-wujRS/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class X SSLC Second Term Christmas Exam Model Question Paper Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1iLl1JNESG1ScxFHn-8xLpSb94XYYyzZB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SANSKRIT Question Paper Kerala Class 10 Second Term Exam Dec 2019 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1Px4u16xCQrEnlHtBU85AulU_yM-mGrXi/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Term II Christmas Exam Class 10 Model Question paper- Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1SiUas0zYPQZvAA3nNg7UVymPuHdKJsfI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Term II Christmas Exam Class 10 Model Question paper- Urdu - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1Tdub8JSxUdUhjgQibVqlcXmLcWtp1Eta/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="URDU Question Paper Kerala Class 10 Second Term Exam Dec 2019 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 5</a>
+                    <a href="https://drive.google.com/file/d/1MmYUuJwh9BiuksIl9Uqtr7LVcjVZkU4e/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala Class X SSLC Second Term Christmas Exam Answer Key- Urdu - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2018</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1EXAHaYnsASLlfQFebZMPq88g901_Mxdu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 Mid Term Question Paper December 2018 SANSKRIT - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1wPdW9qPJEZX72ihSvRivWjv1uvoqzoH-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class X Second Term Question Paper December 2018 URDU - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1LXJz2bvNQ_26oJwxeOkRuXaznywCUHg9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala Class 10 Mid Term Sanskrit Answer Key December 2018 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/1n-OOeXH4564NWaPt-zeP_eeP99yvsOIl/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala Class 10 Mid Term Urdu Answer Key December 2018 by Faisal Vafa, GHSS, Chalissery - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 2</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2018</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/15Yzx0bMfy3mcjnB6XSDzhQQxQ87B-fTg/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala X Vijayasree Second Mid term Exam 2018 Question Paper SANSKRIT - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2017</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2017</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1ddbgy4PGmozr4m4CEaPB31qPn2ALC1G9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Mid Term Exam 2017 Sanskrit - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="practice-sets" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-layer-group fa-lg" style="color: #005a87;"></i>
+                        <h2>Practice Sets & Question Banks</h2>
+                    </div>
+                    <span class="badge-count">21 Materials</span>
+                </div>
+                <div class="practice-sets-grid">
+                    
+            <a href="https://drive.google.com/file/d/1GjW_TNBO9TuznBuETEeP9ctoHWjyia3I/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Sanskrit Answer Key Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1U30rbGGNJaHAWThyKJIbX__TFon7N8M9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Sanskrit Answer Key Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/19sE7KfuW9gzV87wkwZ02lP6evTCqZY5i/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Sanskrit Question paper Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1WdJzCyXfkrNEEyPPzsupkNFwBwAJHrFO/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Sanskrit Question paper Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1dZ3X7qP_EA2-_2E3LOAj3kIoUWD3O2QU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Urdu Answer Key Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/118W4KL4tMiyOA_1DAyM1xKPcbnuU1AnH/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Urdu Answer Key Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1k9oPX_RXJ7B5fFz_Xu7-8wNzGxvc-WXC/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Urdu Question paper Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1AlfG1yXNy6EMQlTLIJTWbfTMmVL0KGOy/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Urdu Question paper Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1gFSEvxD7dhzlcbg0VL4FA_6JES7YYUCQ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material SS Mikav (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1EvXkT16BUHLRL_E5p6vfDTCmhTEk6D-p/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material SS Mikavu Kasargod (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1Cpc5DPMNpLhhfm8aKm8ecbI5NFtG9ZpI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material SS Vijaya Sopanam (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1CvKrzSlpF0C_4Bf6APAtmOxXR762UOhk/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material Sanskrit Mikav (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1klLj9_RL18v8ZJH6_nvpNWbvVcggm8Ly/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material Urdu Mikav (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1WBZr9yTm25S0fMlK0Z_mjggT4G9KDth-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">SSLC (HI) THSLC (HI) Timetable May 2020 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1rXgm1M7wwFjPdInoeCT3sHDmeXw_1uO9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">SSLC, Plus One, Plus Two Timetable May 2020 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1WAs2zsyDVuxgxBduqzgLE3pGaz_3Oysh/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">THSLC, AHSLC Plus One, Plus Two Timetable May 2020 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/150xtbupdtgy5Moih119S9feuu6saW3Ti/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">bio sslc1 (2018)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1zttdEqKpB9uKIuGeKZNRWg-GbZIRjcM1/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">bio sslc2 (2018)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1aHqOqx0uTAVoEoR45qec4MOLKotpuFJw/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SCERT Question Pool 2017 SS (2017)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1PVlZ0-dBDBYowHe96-z5d6OqbR6FNmNr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SCERT Question Pool 2017 Sanskrit (2017)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1GlZcA_8yfirXkApkW5nc85mRHp49rZmM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SCERT Question Pool 2017 Urdu (2017)</span>
+            </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 EduHome | Kerala State Board Class 10 Study Materials Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<script>
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card, .practice-set-card');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"]), .practice-set-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

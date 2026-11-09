@@ -3,531 +3,800 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 10 (SSLC) - Arabic Papers</title>
-    <meta name="description" content="Kerala State Board Class 10 (SSLC) Arabic Question Papers and Keys.">
+    <title>Arabic - Class 10 (SSLC) Question Papers & Keys | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 10 (SSLC) Arabic Previous Year Board Question Papers, Model Exams, and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --badge-math: #0284c7;
+        --badge-sci: #16a34a;
+        --badge-soc: #d97706;
+        --badge-lang: #7c3aed;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.92rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 20px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-term { background: #ede9fe; color: #6d28d9; }
+    .badge-med { background: #fef3c7; color: #b45309; }
+
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn.disabled {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        pointer-events: none;
+    }
+
+    .practice-sets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+    }
+
+    .practice-set-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 14px;
+        text-decoration: none;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+
+    .practice-set-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        border-color: var(--secondary-blue);
+        color: var(--secondary-blue);
+    }
+
+    .practice-set-card i {
+        font-size: 1.4rem;
+        color: #dc2626;
+        flex-shrink: 0;
+    }
+
+    .practice-set-card .set-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .cards-grid { grid-template-columns: 1fr; }
+        .subject-header h1 { font-size: 1.7rem; }
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Arabic - Class 10 (SSLC)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-moon"></i> Arabic</h1>
+        <p>Class 10 (SSLC) Previous Year Question Papers & Official Solutions</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; Arabic
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class10.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=67951" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC exam 2024 ARABIC question paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=67950" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam March 2024 ARABIC Answer key by Shihabudeen Master.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=67913" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Model exam 2024 question paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=67912" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Model exam 2024 Answer key by Shihabudeen Master.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=67911" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Model exam 2024 Answer key by Abdulla Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64348" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC exam 2024 ARABIC question paper 04.03.2024.pdf</span>
-                            <span class="attachment-source">Arabic Question paper and Answer key of Kerala SSLC exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64308" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">educationobserver.com SSLC Exam March 2024 ARABIC  Answer key by Shihabudeen Master.pdf</span>
-                            <span class="attachment-source">Arabic Question paper and Answer key of Kerala SSLC exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62940" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC ARABIC Study Material and Question Pool EQUIP 2024- DIET Kasargod.pdf</span>
-                            <span class="attachment-source">EQUIP Question Pool by DIET Kasaragode</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63962" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model exam 2024 Arabic question paper.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model exam 2024 Question paper and key ARABIC</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63961" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model exam 2024 Arabic Answer key by Shihabudeen Master.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model exam 2024 Question paper and key ARABIC</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63970" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model exam 2024 Arabic Answer key by Abdulla Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model exam 2024 Question paper and key ARABIC</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=62958" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC ARABIC Study Material and Question Pool SMILE 2024- DIET Kannur.pdf</span>
-                            <span class="attachment-source">SMILE- SSLC Model papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2023 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63392" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63391" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Arabic Answer Key by Abdulla Sir Tuvvur.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63731" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model Exam 2023 Question Paper- Arabic.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63389" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2023 ARABIC Answer key by Ahammedkutty Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59453" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Final Exam 2023- Arabic question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59454" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2023 Arabic Answer Key by Abdulla Sir Tuvvur.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Final Exam 2023- Arabic question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=63732" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model Exam 2023 Question Paper- Arabic.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Arabic question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=59087" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2023 ARABIC Answer key by Ahammedkutty Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Arabic question paper and key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57859" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC VIJAYAPADHAM Arabic Premodel Question paper 2023.pdf</span>
-                            <span class="attachment-source">VIJAYAPADHAM- Model Papers by Kottarakkara Edl Dist</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57162" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Annual Exam Arabic Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57163" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Annual Exam Arabic Answer Key 2022 by Shihabudeen Cheriyamundam Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57164" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022 Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57165" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022- Answer Key- ARABIC by Shihabudheen Cheriyamundam Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53431" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2022 Question Paper- ARABIC.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- ARABIC Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53432" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2022  ARABIC Answer Key by Shihabudeen Cheriyamundam Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Exam 2022- ARABIC Question paper and Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53326" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022- Question Paper- ARABIC Language I.pdf</span>
-                            <span class="attachment-source">Model Exam 2022- Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53327" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2022- Answer Key- ARABIC by Shihabudheen Cheriyamundam Sir.pdf</span>
-                            <span class="attachment-source">Model Exam 2022- Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57216" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2021 ARABIC Question Paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57217" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam 2021 Arabic Answer Key.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57218" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 Arabic Question paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57219" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ANSWER KEY ARABIC SSLC MODEL EXAM 2021 by Abdul Raoof Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48097" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam 2021 Question Paper- ARABIC.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48106" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam 2021 Arabic Answer Key.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=48124" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam 2021 Arabic Answer Key by Meeran Sir.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2021- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47349" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2021 Question paper- Arabic.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47379" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ANSWER KEY ARABIC SSLC MODEL EXAM â€“ 2021 by Abdul Raoof Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57283" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Arabic Question Paper SSLC Exam 2020.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57284" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC ARABIC EXAM 2020  Answer Key by Raoof Hudawi.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57285" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam March 2020 Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57286" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam March 2020 Arabic Answer Key by Kunhimohammed Sir Othukkungal.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39785" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Arabic Question Paper SSLC Exam 2020.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39786" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC ARABIC EXAM -2020 - Answer Key - by Raoof Hudawi.pdf</span>
-                            <span class="attachment-source">SSLC Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39423" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam March 2020- Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39424" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam March 2020- Arabic Answer Key by Kunhimohammed Sir Othukkungal.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2020 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57287" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ARABIC Answer Key SSLC Exam March 2019 by Abdul Raoof Hudawi Sir.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=29624" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC 2019 Model Question Paper- Mukulam- ARABIC.pdf</span>
-                            <span class="attachment-source">Mukulam Model Papers for SSLC Exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30344" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ARABIC Answer Key SSLC Exam March 2019 by Abdul Raoof Hudawi Sir.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2019 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57387" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC March 2018 Arabic Question Paper.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=57388" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam March 2018 Arabic Answer Key.pdf</span>
-                            <span class="attachment-source">Arabic Previous and Model Papers & Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25298" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC March 2018 Question paper-Arabic.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2018 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=24681" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Exam March 2018 Arabic Answer Key.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2018 Question Papers and Answer Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=16331" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Orukkam 2017 Probable Questions for Kerala SSLC Exam - Arabic .pdf</span>
-                            <span class="attachment-source">Probable/ Important questions for SSLC Exam-All subjects</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20659" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SCERT Question Pool 2017 Arabic.pdf</span>
-                            <span class="attachment-source">SCERT Question pool for all subjects</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">Other / General Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46563" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Question Paper by DIET Kannur.pdf</span>
-                            <span class="attachment-source">Model Question papers by DIET Kannur</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46444" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Sample Question Paper- New Pattern.pdf</span>
-                            <span class="attachment-source">New Pattern Question Pool by Trivandrum Edl District</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46569" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Revision Test Question Paper By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46570" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Revision Test Question Paper By DIET Ernakulam- Answer key.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46736" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Revision Test Question Paper (2) By DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=46991" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Unit Test Answer Key (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47060" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Unit Test Question Paper (T 22) (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47061" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Arabic Unit Test Answer Key (T 22) (Vaibhavam) DIET Ernakulam.pdf</span>
-                            <span class="attachment-source">Revision Test Papers by DIET Ernakulam</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; Arabic
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class10.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills">
+            <a href="#board-exams" class="section-nav-pill"><i class="fa-solid fa-graduation-cap"></i> Board Exams</a><a href="#model-exams" class="section-nav-pill"><i class="fa-solid fa-file-signature"></i> Model Exams</a><a href="#terminal-exams" class="section-nav-pill"><i class="fa-solid fa-calendar-check"></i> Terminal Exams</a><a href="#practice-sets" class="section-nav-pill"><i class="fa-solid fa-layer-group"></i> Practice Sets</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2024), medium (EM/MM), or exam type..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="board-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-graduation-cap fa-lg" style="color: #005a87;"></i>
+                        <h2>Board & Annual Examinations</h2>
+                    </div>
+                    <span class="badge-count">3 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span></div>
+                <h3 class="card-title">2023 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1E6cgozsk1eus13Aqm5XpUESeBDfvrXIT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam March 2023 Arabic Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1PAMO_EAaEU1vwg80winsWeXP1-jck8xk/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Exam March 2023 Arabic Answer Key by Abdulla Sir Tuvvur - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span></div>
+                <h3 class="card-title">2022 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/12Vb6xMay7aK6_AszKW2q6u6DkrVPkH-6/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2022 Question Paper- ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1uyc8pHbVzadnEXuCWDLws-QQR1smnWLu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Exam 2022 ARABIC Answer Key by Shihabudeen Cheriyamundam Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span></div>
+                <h3 class="card-title">2021 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/139r97FgtOm-FatCnyPZualQ3hFxSWDfd/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam 2021 Arabic Answer Key by Meeran Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="model-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-file-signature fa-lg" style="color: #005a87;"></i>
+                        <h2>Model Examinations</h2>
+                    </div>
+                    <span class="badge-count">9 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span></div>
+                <h3 class="card-title">2026 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1Sqh7cpFDKADZ5FUC1vZ7avJdXBzDGJTB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set A Answer key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set A)</a>
+                    <a href="https://drive.google.com/file/d/1Kv-nyXvK6ZLA_7C52OayISZ0XV1jvUqU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set A - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set A)</a>
+                    <a href="https://drive.google.com/file/d/1H4vHwOnCqtmKJ9OH3PWVLThPOWTmFgkj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set B Answer key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set B)</a>
+                    <a href="https://drive.google.com/file/d/1qXjfBhZhWMmosbSnkPdompD8mi2t4Vrv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set B - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set B)</a>
+                    <a href="https://drive.google.com/file/d/1f8OnuEKTjw3XRvDnMa2eVS87fzCm-dPx/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set C Answer key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set C)</a>
+                    <a href="https://drive.google.com/file/d/1NvJr4D80C0fTdrdH1I71bdWmeuvQ3f0a/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- ARABIC Set C - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set C)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span></div>
+                <h3 class="card-title">2023 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1hyTKCqPLQmDVIv7d80H9HWYldhMfD1hU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC March 2018 Arabic Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1CMz_s0dcfwwFQG7ogf0vpXZlpq41NHF8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Arabic Question Paper SSLC Exam 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1HFf0YvrnI99Vr-IEB_ZAMBbDZNxGWEII/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam March 2020 Arabic Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1MxGze0vjFrXYx5-KH5SSIwGrQK8XqY1S/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2021 ARABIC Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1zPIPxxoZjCbl5d2WtPhV2ctHqvD7whZl/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2022 Arabic Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 5</a>
+                    <a href="https://drive.google.com/file/d/1nGHFu-KlfpFszPY_epyFwkByeCRzeyZX/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC SMILE 2023 Arabic Pre Model Question Paper by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 6</a>
+                    <a href="https://drive.google.com/file/d/1x2b3WJdbpXP_BxLB1MN4rbAIWyyIHpMa/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC VIJAYAPADHAM Arabic Premodel Question paper 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 7</a>
+                    <a href="https://drive.google.com/file/d/1b8S2Pfqncr5gXiOPLBH0FLnS5FSR_mbN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Model exam 2024 question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 8</a>
+                    <a href="https://drive.google.com/file/d/1Yz8TTLkkI7HMXR8s8dQzz-k29H6Ul0KZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Exam 2023 Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 9</a>
+                    <a href="https://drive.google.com/file/d/1-N3YaGTPXw8wFo4j17RzW6M4NxpjwsoL/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Question paper Set A 2023 by DIET Malappuram - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1L01N6xJWOlk2LGz1ymju00A2th7KG3xg/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Question paper Set A 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set A)</a>
+                    <a href="https://drive.google.com/file/d/1xCYUAACzO6Kq4I1g1LqBwHYR9EYOQJZ-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Question paper Set B 2023 by DIET Malappuram - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1kPMTqHiyIEWaxguPIY8l6t1FLsDbzzDb/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Question paper Set B 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set B)</a>
+                    <a href="https://drive.google.com/file/d/1BGUrlgV9B9wh8cUlITINKTbc7WSFlLEA/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Model Exam 2023 Question Paper- Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 14</a>
+                    <a href="https://drive.google.com/file/d/1EvteeKVEhN82JIsM2XEE8wf4CM1YVesG/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2024 ARABIC question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 15</a>
+                    <a href="https://drive.google.com/file/d/1aIJzQnysUL_Aic2MKeRajWM3acGIJTbt/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam March 2018 Arabic Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/1mb8QmuAW0zEsM2IUMf1HO70PRZTw-UWM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC ARABIC EXAM 2020 Answer Key by Raoof Hudawi - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Raoof Hudawi)</a>
+                    <a href="https://drive.google.com/file/d/1xRZwJGuOi3u3nCT4BLYGWzrcx_gWDrnP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam March 2020 Arabic Answer Key by Kunhimohammed Sir Othukkungal - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Kunhimohamme)</a>
+                    <a href="https://drive.google.com/file/d/1MkKyvM1TJw6fsyjP4xmDKJg2UpAVIpJo/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam 2021 Arabic Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 4</a>
+                    <a href="https://drive.google.com/file/d/1V4ugKxHZrcfzOFrZW8LkVu2-_bHqT4ta/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2022- Answer Key- ARABIC by Shihabudheen Cheriyamundam Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Shihabudheen)</a>
+                    <a href="https://drive.google.com/file/d/1pPWIPqBLyyWpLtqpAODNNxwvCNCwuQPL/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC EQIP Arabic Question Pool 2023 with answer key by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (DIET Kasargo)</a>
+                    <a href="https://drive.google.com/file/d/1NGnRTOhaOxLkoqEjWwexwXC_dI5alx4P/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Arabic Model exam 2024 Answer key by Abdulla Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Abdulla)</a>
+                    <a href="https://drive.google.com/file/d/1BcRaGvR9Yc9hAm8bPoYPXUIwyUnhosAK/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Arabic Model exam 2024 Answer key by Shihabudeen Master - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Shihabudeen )</a>
+                    <a href="https://drive.google.com/file/d/12kkze2pcrZyY-dadBoJnAEMzuN_C_UND/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam March 2024 ARABIC Answer key by Shihabudeen Master - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Shihabudeen )</a>
+                    <a href="https://drive.google.com/file/d/1eNQDL8ufGZK_62_2cffmxmx2AbcQ14xc/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2023 ARABIC Answer key by Ahammedkutty Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Ahammedkutty)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span></div>
+                <h3 class="card-title">2022 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1kdsIZcF4164yPltUX0A6MLWruKDshY5C/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Model Exam Question Paper by Vijayabheri 2022- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 1)</a>
+                    <a href="https://drive.google.com/file/d/1unwArUSQAyUC5dG9jFPiSy-RGVrTgiDP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Model Exam Question Paper by Vijayabheri 2022- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 2)</a>
+                    <a href="https://drive.google.com/file/d/1_XdHU70Imqae19lzMuLvbajP6kA4TVid/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Model Exam Question Paper by Vijayabheri 2022- Set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set 3)</a>
+                    <a href="https://drive.google.com/file/d/1oqIgt-TJgeQytSnaUFOp4A7jRIStbUtv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Exam 2022 Question Paper DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/13TeQZR0opIBufbpXjMmT7lBL7pPaywYb/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Exam Question paper (MUKULAM 2022) by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 5</a>
+                    <a href="https://drive.google.com/file/d/1K-Tfd3fqOVn05VIkAKPaBm1_jqZKyQ-T/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Pre Model Question Paper 2022 (Vijayapadham) By DIET Kottarakkara - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 6</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span></div>
+                <h3 class="card-title">2021 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/12xMf4XJMVnGt7fS9RU3uK0PqmKvbOW3b/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2021 Question paper- Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1XKJIyfRe--NGdKS8f0vbgm-uZVOyN052/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Question Paper by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1ieGFRgcqCp_puQWCa2vRAVtW-eGOHg64/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Arabic Sample Question Paper- New Pattern - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1KNIqmXoiAzh1YYnscvRc-OwCXKTz68YT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC ARABIC Question Paper by KSTA - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1C6UIEiKBufzznB2GXFipdrAwUr0u0oET/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="ANSWER KEY ARABIC SSLC MODEL EXAM â€“ 2021 by Abdul Raoof Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Abdul Raoof)</a>
+                    <a href="https://drive.google.com/file/d/1hi5HHKUQQ59kRFEaZ7juVFd0tFl6YYpU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC ARABIC Answer Key by KSTA - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (KSTA)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2020</span></div>
+                <h3 class="card-title">2020 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1JknSUl6Q4bQKn6V-C2oDn-Cf-eV6mU-P/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Question -SSLC ARABIC MODEL EXAM -2017 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1RBpcXY5D3sEWiN4zkjQcnONTjG9RoW1G/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Question -SSLC ARABIC MODEL EXAM -2018 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1Fytvz3suDaEk1NAAcF-GFdqSnk8WR4dl/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Question -SSLC ARABIC MODEL EXAM -2019 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1lzSjAuu66KnPxYl5taz0Do0E9z5R76xA/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Question -SSLC ARABIC MODEL EXAM -2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/11dfweAe3HdtajxSjKdyJL4_Jhd3yvyWF/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Answer Key -SSLC ARABIC MODEL EXAM -2017 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/1N6P4nEYeB6KOGJ5limGjwU--LXXffxf4/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Answer Key -SSLC ARABIC MODEL EXAM -2018 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 2</a>
+                    <a href="https://drive.google.com/file/d/1v5mrYsnzLsR6q4mo22IoXjPtZXO4kzFW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Answer Key -SSLC ARABIC MODEL EXAM -2019 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 3</a>
+                    <a href="https://drive.google.com/file/d/1pUbTfybQw_MdPXwXiHixeyCGJuHE7KsZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Answer Key -SSLC ARABIC MODEL EXAM -2020 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 4</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span></div>
+                <h3 class="card-title">2019 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1AQ5xVAq-iWrMOJfI65F_TVn38dRXBCa1/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2019 Model Question Paper- Mukulam- ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span><span class="badge badge-med">Malayalam Medium</span></div>
+                <h3 class="card-title">2018 Model Exam (Malayalam Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1sDCu4V3oj3SAadEKcPD07Dy4iItyUaNY/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Model question Paper Mukulam 2018 Question Paper ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2016</span></div>
+                <h3 class="card-title">2016 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1KfXsoBXeHYqDtjD6V5Hh8f8s1_fvrxfM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2016 Question Bank Orukkam- Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2015</span><span class="badge badge-med">Malayalam Medium</span></div>
+                <h3 class="card-title">2015 Model Exam (Malayalam Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/11dV-71ZtAbo05w2MkKd4aOgyZowYm7Mw/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2015 Model question paper-ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="terminal-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-check fa-lg" style="color: #005a87;"></i>
+                        <h2>Terminal Examinations (Onam & Christmas)</h2>
+                    </div>
+                    <span class="badge-count">7 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2026</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1NgbYkctdo_wJxdstJTG43mrgUmKzsErg/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Arabic Question paper-Kerala SSLC First term exam 2026 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2025</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/10fCKrERoLW5b2fqJQQoaG2OKX3p7xaV0/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala 10th std First term Onam Exam 2025 Question Paper- Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2023</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1sF6gg5O4CCmaa5U0764Dh8MiYbkgrtD-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="10th First Midterm exam 2023 Question Paper Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1gc1hnxIju24TRHG6vSyZIqRNo2yTjf-Z/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Model Question Paper 2- ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1CO9xWvXNnFkpRx6tN2D0zAzW9lktPSok/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Model Question Paper- ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1lrdGNsq-csa6UAnNCJE3caf8Iaoju7Kl/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2022</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1F8GS0uKjR2NCTsFNGEUCUxZJRG3tuv8n/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second term exam 2022 Question paper - Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1a-L1XGMQD-0--Zqh3nnNQ3d341atfiaX/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Second Term Exam 2022 December Arabic answer key - by Asgar Ali Saquafi - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2021</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1-rSGNhaPLtTv1kQGoo3myyDPC-vOGX_V/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="STD X Second Term Exam 2017 Question Paper- Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1AM8Ks_pZjscMDHaafdBJhG3NR3CM-3WI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class X SSLC Second Term Christmas Exam Model Question Paper Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/1JQDHrxz2a2FMlHXLynWgohF4ouvrWJjM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2022 Arabic Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1RO4e0M_wJfp1w4OZe7ZalnYquVEcmp_F/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2023 Dec Question Paper ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1WhghTcMQrN0H9a08MEJAuY9nvJT9m3TT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="ARABIC Answer Key Kerala SSLC Christmas Exam Dec 2019 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/1W4jb8jxjmSaFs1Zv9keNVXJyq0v2J8-A/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Second Term Exam 2022 Arabic Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 2</a>
+                    <a href="https://drive.google.com/file/d/1jOuFq4nA9rnC1226Ci3LECeHXDCcmz5N/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala Second Term Exam 2023- ARABIC Answer key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 3</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2018</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2018</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/16DKTiNkFou8jZNyA8kl_ze1zzUo2WFZE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala X Vijayasree Second Mid term Exam 2018 Question Paper ARABIC - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2017</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2017</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1GEP80JznxfpYnYtA_RoNRmfSBpM0rWvQ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam model paper Arabic - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="practice-sets" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-layer-group fa-lg" style="color: #005a87;"></i>
+                        <h2>Practice Sets & Question Banks</h2>
+                    </div>
+                    <span class="badge-count">14 Materials</span>
+                </div>
+                <div class="practice-sets-grid">
+                    
+            <a href="https://drive.google.com/file/d/1pjnuhiC3zKEHt82zJGmxAlxg90f8ZXdh/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Arabic Answer Key Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1ZXN6-jdygujgNp0To5bzzt6Kf567Dlla/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Arabic Answer Key Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1Rkuquvt0RasqUHyk8PAvRH70fSLhLfsu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Arabic Question paper Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1NvYvOIOqQm4nnVA13wLjUs80s9j2Ex5Y/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Arabic Question paper Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1QNwU507Yta0bnu1L180RqcRAxfEEuMdj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC Aabic Self Evaluation Question Paper Feb 2022 by TVM Dist (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1MErh41hrXOjXCjvC93O0t1EzJMMZ4oVi/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC Arabic Self Evaluation Exam Answer Key Feb 2022 by TVM Dist (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1jCD4S6hLiQpXJ9hQoSGxcgTeJNtnVxH4/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC 10th STD Study Material Arabic_opt (2021)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1QqHaKF6qm7mo1NazE2BQFvP0XIpk4Wwv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Answer Key -SSLC ARABIC EXAM -2019 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1TWaHXN1Z85LUWiLY_n_uOsRf_atZkALM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Answer Key -SSLC ARABIC EXAM -2017 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1mwj8jt6mT_GzZq9TMaoW3T7mz9si9F8-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Answer Key -SSLC ARABIC EXAM -2018 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1WSW5eIq-J14ya-09PoT9NPMxO2JDFQ_-/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Question -SSLC ARABIC EXAM -2017 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1ugHcyRJXCiZcYT5ZQf6tPWZA8shdc749/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Question -SSLC ARABIC EXAM -2018 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1OFi5nN5MpPCcAlhMn0gSrHlMyYByuSu0/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Question -SSLC ARABIC EXAM -2019 (2020)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1uRcNutPVAYUTtv8tdn_Mc_ESm6tBE4dq/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SCERT Question Pool 2017 Arabic (2017)</span>
+            </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 EduHome | Kerala State Board Class 10 Study Materials Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<script>
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card, .practice-set-card');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"]), .practice-set-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

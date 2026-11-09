@@ -247,14 +247,19 @@ def generate_class_pages(json_path, output_dir, class_name, class_title, breadcr
             f.write(sub_html)
 
 if __name__ == '__main__':
-    # Class 10
-    generate_class_pages(
-        json_path='c:\\Users\\madhu\\code_test\\scraped_sslc.json',
-        output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs10',
-        class_name='class10',
-        class_title='Class 10 (SSLC)',
-        breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
-    )
+    # Class 10 (Restructured Student-Friendly Study Materials with Google Drive Links)
+    try:
+        from scripts.build_class10_pages import generate_all_class10_pages
+        generate_all_class10_pages()
+    except Exception as e:
+        print(f"Fallback to legacy generator for Class 10 due to: {e}")
+        generate_class_pages(
+            json_path='c:\\Users\\madhu\\code_test\\scraped_sslc.json',
+            output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs10',
+            class_name='class10',
+            class_title='Class 10 (SSLC)',
+            breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
+        )
     
     # Class 11
     generate_class_pages(

@@ -3,112 +3,922 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 10 (SSLC) - Malayalam II Papers</title>
-    <meta name="description" content="Kerala State Board Class 10 (SSLC) Malayalam II Question Papers and Keys.">
+    <title>Malayalam II - Class 10 (SSLC) Question Papers & Keys | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 10 (SSLC) Malayalam II Previous Year Board Question Papers, Model Exams, and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --badge-math: #0284c7;
+        --badge-sci: #16a34a;
+        --badge-soc: #d97706;
+        --badge-lang: #7c3aed;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 18px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.92rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 20px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-term { background: #ede9fe; color: #6d28d9; }
+    .badge-med { background: #fef3c7; color: #b45309; }
+
+    .card-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-top: 4px;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn.disabled {
+        background-color: #f1f5f9;
+        color: #94a3b8;
+        pointer-events: none;
+    }
+
+    .practice-sets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 12px;
+    }
+
+    .practice-set-card {
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 14px;
+        text-decoration: none;
+        color: var(--text-dark);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        transition: all 0.2s;
+    }
+
+    .practice-set-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+        border-color: var(--secondary-blue);
+        color: var(--secondary-blue);
+    }
+
+    .practice-set-card i {
+        font-size: 1.4rem;
+        color: #dc2626;
+        flex-shrink: 0;
+    }
+
+    .practice-set-card .set-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        line-height: 1.3;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .cards-grid { grid-template-columns: 1fr; }
+        .subject-header h1 { font-size: 1.7rem; }
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Malayalam II - Class 10 (SSLC)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-scroll"></i> Malayalam II</h1>
+        <p>Class 10 (SSLC) Previous Year Question Papers & Official Solutions</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; Malayalam II
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class10.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68617" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Exam March 2025- Malayalam II Question paper.pdf</span>
-                            <span class="attachment-source">SSLC Board Exam 2025- Malayalam 2 Question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68616" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Board Exam March 2025- Malayalam II Answer Key by Suresh Areekode sir.pdf</span>
-                            <span class="attachment-source">SSLC Board Exam 2025- Malayalam 2 Question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2023 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58894" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2023 Malayalam BT Adisthanapadavali Answer key by Suresh Areekode Sir.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Malayalam 2 question paper and key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58890" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC Model Exam 2022 Question Paper- Malayalam Paper II.pdf</span>
-                            <span class="attachment-source">Kerala SSLC Model Exam 2023- Malayalam 2 question paper and key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=47426" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Exam 2020 Malayalam 2 Question Paper.pdf</span>
-                            <span class="attachment-source">SSLC Model Exam 2021-Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=16142" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala SSLC March 2016 Malayalam 2 Question paper.pdf</span>
-                            <span class="attachment-source">SSLC Exam March 2016- Solved previous year question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class10.html">Class 10 (SSLC)</a> &gt; Malayalam II
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class10.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills">
+            <a href="#board-exams" class="section-nav-pill"><i class="fa-solid fa-graduation-cap"></i> Board Exams</a><a href="#model-exams" class="section-nav-pill"><i class="fa-solid fa-file-signature"></i> Model Exams</a><a href="#terminal-exams" class="section-nav-pill"><i class="fa-solid fa-calendar-check"></i> Terminal Exams</a><a href="#practice-sets" class="section-nav-pill"><i class="fa-solid fa-layer-group"></i> Practice Sets</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2024), medium (EM/MM), or exam type..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="board-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-graduation-cap fa-lg" style="color: #005a87;"></i>
+                        <h2>Board & Annual Examinations</h2>
+                    </div>
+                    <span class="badge-count">6 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span></div>
+                <h3 class="card-title">2026 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/15xdCpJNltHYlvqOfJe1hLx6_qmZ7zLbj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Annual Exam 2026 Malayalam Paper II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1tuMJW0HzOLf0Cc8PSfhG_HCSFGGIQ9Un/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Malayalam II Answer key SSLC March 2026 by Ajeesh Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span></div>
+                <h3 class="card-title">2025 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/12oAomiR-EgwZdWvZFbXxNVJNiK76J0nD/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam March 2025- Malayalam II Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1bU6h-sEttomhXFrgDb7VFVJrj7fq4C2M/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Board Exam March 2025- Malayalam II Answer Key by Suresh Areekode sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span></div>
+                <h3 class="card-title">2023 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1c3_Av8P0T5TZ6HNqylIrNSQsLbZj3-Hm/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2023 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1eKSgN2qhLgFC-NFcc1crSYBx7JC6aW9k/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC 2023 Malayalam II Answer Key by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span></div>
+                <h3 class="card-title">2022 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1kru1y_OVr4ljEVIhhBZDmBCO9a4kMA22/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2022 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1VHJYLqnc5DTx4itCcOiNgpSRIwvvabK7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Malayalam II Answer Key by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2014</span></div>
+                <h3 class="card-title">2014 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/15IOV8ADVPAZo_GP6ZoMXTlNzssYJp2Ql/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam March 2014 Malayalam II Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2012</span></div>
+                <h3 class="card-title">2012 Annual Board Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1iUnVmMuFoDOLArXT-zCnn00HKZi6s4I3/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Previous Year Question Papers 2012 March - Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="model-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-file-signature fa-lg" style="color: #005a87;"></i>
+                        <h2>Model Examinations</h2>
+                    </div>
+                    <span class="badge-count">9 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span></div>
+                <h3 class="card-title">2026 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1d34GfAHLUYWPeJiSjPjmxiSYkNWjE7KT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set A Answer Key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set A)</a>
+                    <a href="https://drive.google.com/file/d/1oyC8vQe9LQzIKhkMXAPnkg5dPfV9Cte8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set A - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set A)</a>
+                    <a href="https://drive.google.com/file/d/1dHUmQPAS8Tk4PJFStHDLKimvbRr-v93P/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set B Answer Key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set B)</a>
+                    <a href="https://drive.google.com/file/d/1LAeYE1EGAxe9sMOkc_X1Mb37j-LT8JMj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set B - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set B)</a>
+                    <a href="https://drive.google.com/file/d/14WrAElKf8VD9C3xZ8_wKKrOhvRU_KwFB/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set C Answer Key - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set C)</a>
+                    <a href="https://drive.google.com/file/d/1bzr4ZJmzpoQqIuS88HcSbz1NfEuO0qaH/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT Kerala SSLC New Pattern model question paper 2026- MALAYALAM II AdisthanaPadavali Set C - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Set C)</a>
+                    <a href="https://drive.google.com/file/d/1fFosRNgxM5wcCULM96Y3Zm4epKwuP1Mm/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Examination 2026 Question paper Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/15kbLQ1kppvybQFUBiqr8oDIQ3iasCorI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Examination 2026 Answer key Malayalam II - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span></div>
+                <h3 class="card-title">2025 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1-F__9OoDy429fkltTVVE1kr76OzSLc0X/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model exam 2025- Malayalam 2 Adisthana Padavali Answer key by Suresh Areekode sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2024</span></div>
+                <h3 class="card-title">2024 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1I9YSuHy7ttIyVjoVOnYdzD7t0gzF-GOx/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2024 premodel exam question paper Adisthanapadavali - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/12cpR4CWsJwd4H5QWmfJw9YLNrCt_2Id7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2024 premodel exam question paper Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1vcuk05vIf_2CvS7ml4Hbvbb3JE6nGj5h/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Exam 2024 premodel exam question paper Viijayabheri Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1Z3w8tMjF3AT4j-mofZ7daD3O9XBqu_QR/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Exam 2024 premodel exam Answer key Viijayabheri Malayalam II - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span></div>
+                <h3 class="card-title">2023 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1YVslY4DrQM1m99ZBVF8YOMXTAaONw9Cr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Sample questions - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1kwrDubqiCOmUsM3yx2X9rpjmJ-JDoYn8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC March 2015 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1xyO4xrYVIwmMVoJtGPdPrVe6P7X8pcah/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC March 2016 Malayalam 2 Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1vw221KfkjxUUgHNtX9fD61ncFHwAAVM8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC March 2017 Malayalam II Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1xXzjLKTlSb3f7jfWS1rREF-zat2rl9NI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Model Exam 2017 Malayalam II Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1xgpKTxdsyTO0zxJP5cmk3bt7qoWoOCwp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC March 2018 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1ZBrsfNKzim9eNevUHAQIX3iGlwYIyyru/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2018 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1bsPsgYYWdTqVRrV-Nw-OtasSq_Nyq4mA/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="MALAYALAM II Question Paper SSLC Exam March 2019 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 8</a>
+                    <a href="https://drive.google.com/file/d/1AF-SlPT7MP_ETMl_xdsWdk6SGzDmBb5j/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Malayalam II Question Paper Kerala SSLC Exam 2020 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1M_fd8BnAMJ92kuaG0ERzQExEm-vCLgmm/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2020 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1I4EcJXtNLOZzKInzLrCcBk-BkcVtguWa/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Exam 2021 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/11suiWmBnj4qiwZ1eSnK3lGPAdBoNqmwW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2022 Malayalam II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/13VLf1T8FeYlY9ihRysEbW_Fs3MNKSo9x/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Interbell 2023 Adisthana Padavali Premodel Question Paper by DIET Palakkad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 13</a>
+                    <a href="https://drive.google.com/file/d/13nxy10yEv5phAkCo3OIXwjOKdtXeAVAU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC SMILE 2023 Malayalam Paper II Pre Model Question Paper by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/16BNqI_10lMBZvdCxUlF85yOxFHl39g-3/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC VIJAYAPADHAM Malayalam Paper II Premodel Question paper 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/110L8zjQcDaQBEKPhkOqHiVcvsB6aRb-N/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam II Model exam 2024 question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1nTT1Nc0NZev_XSUTCbwYwelB8dpimtJi/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Evaluation Question Paper 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1BCDuYxJLMYCos909L9oz11rzgvolbtW5/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Evauation Question Paper (Set 1) 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1Jk-X7QFYcO7YtVbsgU2SaNzy1UATxnbo/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Evauation Question Paper (Set 2) 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1lamwHmJhVvz7nbxCUeLm4WFMHBwLwpKN/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Question paper Set A 2023 by DIET Malappuram - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1kbwTmYRtNaqPg8d8QEd8r1Tl6JcgPsB3/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Question paper Set A 2023 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1ree59uNH6jODRyjcEE2PRo5QMcNj3Zd5/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre Model Question paper Set B 2023 by DIET Malappuram - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1AS6J5K1k0BuoeR7r9UEijRXVXAX8Ol9W/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre model Exam Question Paper 2023 (Bethlehem Diera High School) - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1BAvrbR2EZYEu-ns3WkqZqkGcb0EouS0G/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Pre model Exam Question Paper 2023 (Sree Vivekananda High School) - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1mxpWefGCEVHANJU9QuugkRbmAOQvklh8/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Paper II Revision Test 2023 (Chap 1 to 3) - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1ZxqjYrd7sv1S2vcbzxbdzC4BgDVnyF6V/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Model Exam 2022 Question Paper- Malayalam Paper II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1GVbbWBkYLd-WdWlRZ9ZF-rHpfMjl41zo/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2024 Malayalam II question paper 13.03.2024 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1J_gV2PKMO4ztBSkhZLs5o6QPpda5NwVu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="MALAYALAM II Answer Key SSLC Exam March 2019 by A+ Educare - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key 1</a>
+                    <a href="https://drive.google.com/file/d/199gvGn3TBj1L1N8OhL0x3iYfgJyxwCKW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Malayalam II Answer Key SSLC Exam 2020 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/13xAL6KAQvgvPkXtYS6VlHaTM51d5Xiab/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2020 SS Malayalam II Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1biw5Ti4v51s5r1EoMhz6EhXxDfZNC_Sp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Exam 2021 Malayalam II Answer Key- by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1tlmWNT8z213pXjZ2vQeI_IBlGa-6A765/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model exam 2022 MALAYALAM II Answer Key by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Suresh Areek)</a>
+                    <a href="https://drive.google.com/file/d/1tt3abw-dtHskiucDeQJvhagmG9oOYvaV/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC EQIP Malayalam Paper II Question Pool 2023 with answer key by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1sdJGona5Yxc_LTMk1d0tEj8V0cvwsOk2/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Malayalam Paper II Pre Model Evauation Answer Key (Set 1) 2023 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/161yW_fjrksBN2fTXuOCvT-ctABMfplsY/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Malayalam Paper II Pre Model Evauation Answer Key (Set 2) 2023 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1MUkBk2EmpT9T7O5gvy00wO03IMcGVDQn/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC exam 2024 Malayalam II Answer key by Suresh Areekode sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1tRescp9Xgcb4gwxRZ-WpiXnGbjtevGS1/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2023 Malayalam BT Adisthanapadavali Answer key by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1f5SeBlgg-30Si-c-Y8IoBZY-S48H3x7Z/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model exam 2024- Malayalam II Answer key by Suresh Areekode sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span></div>
+                <h3 class="card-title">2022 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1KviGyBqUFgea5J0VO7zuTBh5v9tgp0YE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) New Evaluation Pattern Pre Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1dUE037XMfVTho32Kj4QdN7_g3fUgAmJC/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) Pre Model Exam 2022 Question Paper DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1yqNPBRIkOzjqELe96pUqkvHSg9R15y2I/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Kerala Padavali) Pre Model Exam 2022 Question Paper DIET Wayanad - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1f8AJtVMX1azmJ-fF2wNoEhhSrDNmFKrW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam I Model Exam Question Paper by Vijayabheri 2022- Set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1DDgHatP_zhkBBiCa1TfoDx9v8FAIGiDS/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam I Pre Model Question Paper 2022 (Vijayapadham) By DIET Kottarakkara - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1vCLxA1Ok2Oocq03LsbE3iTCTLipxqwOD/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam II Model Exam Question Paper by Vijayabheri 2022- Set 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1rr2CoH34zkgfPRJNgt7XUGorWKxtmFHs/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam II Pre Model Question Paper 2022 (Vijayapadham) By DIET Kottarakkara - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1Pg9u3uZXfLrVaGxwW3PbVQ09HurmZluU/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Model Exam Question Paper by Vijayabheri 2022- Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1WLv94bMxfQd4MIIFDhbQQyzeHUxyljA3/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam Model Exam Question Paper by Vijayabheri 2022- Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/11o4oe_P-McaHAPDRcJ0-VBCDgUZtcDYp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malyalam (Adisthana Padavali) Pre Model Exam Question paper (MUKULAM 2022) by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1IVRahaOe5NQJdHoh17OvybYd64Ui0kh2/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malyalam (Kerala Padavali) Pre Model Exam Question paper (EQUIP 2022) by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1ofGsN0ScVKcQphXqTk3HxgPiuwnQ4IUh/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malyalam (Kerala Padavali) Pre Model Exam Question paper (MUKULAM 2022) by DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1e2lYdZx4ApwSkaRNCJtXZksskkCPhT_E/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2022 Premodel exam question papers -Malayalam IInd Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1axEbTD2KYSzHufmbitH39lDLRw5GyP0C/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2022 Premodel exam question papers -Malayalam IInd - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1N4OjcJMkusHnKASml_8HrofOQX43jhiW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Adisthana Padavali (RESONANCE 2022 by DIET Kozhikode) Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 15</a>
+                    <a href="https://drive.google.com/file/d/14bImhqVOz7rBXh8GgMfOgWkg0IFrYHys/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Kerala Padavali (RESONANCE 2022 by DIET Kozhikode) Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 16</a>
+                    <a href="https://drive.google.com/file/d/1GueItCV9GPKr85VifDSDSwSLxT4iC55c/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Kerala Padavali Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 17</a>
+                    <a href="https://drive.google.com/file/d/1in2t4aTmOadVBXkxElYKKSL7Yae85-zZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) New Evaluation Pattern Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1UtGyUQzmizfp_vjRCnXjIvGFMS1PXBwT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) Pre Model Exam 2022 Question Paper DIET Palakkad - Set 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1GTKK-PUtAL-cElSKSTctDVnu-XaNDlFW/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) Pre Model Exam 2022 Question Paper DIET Palakkad - Set 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1Vg1IWkZyprfdWST3ytk0uucvZI8YbaqI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Adisthana Padavali) Sample Question Paper by Resonanace 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1tTFMhkJTeN6GgaGzQEIVvruiX3KsYx8z/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Kerala Padavali) New Evaluation Pattern Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/10k_XcFGXOGQ4pHMTtmEdrwTxwTNHsAhV/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam (Kerala Padavali) New Evaluation Pattern Pre Model Question Paper 2022 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1qD3gp1igt75hl2MhQW3Q7Nzn1lr9K1HT/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam I Self Evaluation Question Paper Feb 2022 by DIET TVM - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1IlKRlu5kwfUNNkj2KLt3VN6WKyh_7FPO/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala SSLC Malyalam (Kerala Padavali) Pre Model Exam Answer Key (EQUIP 2022) by DIET Kasargod - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1R__UiE-IsGnR08mIEqCaIlgBrPEKTq6C/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2022- Malayalam II Answer Key by Anil Kumar Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span></div>
+                <h3 class="card-title">2021 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/15NYSbbTK2QoIiXpcowzSftVnxiW9XtqO/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Model Exam 2020 Malayalam 2 Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1awIEpDQN43S_kmAwJF5t0fvhzg-gyHXa/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malyalam II Model Question Paper- New Pattern-DIET Kannur - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1HTlWIgZysRN-l0f0ZfDfVl34Y_M4QBfD/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malyalam II Sample Question Paper- New Pattern- DIET TVM - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1n4k91CVcEiVfVRFqWU81GjgAYembYQ5P/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Model Exam 2021- Malayalam II Adisthanapadavali Answer key- By Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span></div>
+                <h3 class="card-title">2019 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1J6WTWZ9qOn44Mpg49wV6B1GCk66G7b9k/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC 2019 Model Question Paper- Mukulam- MALAYALAM II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2015</span><span class="badge badge-med">English Medium</span></div>
+                <h3 class="card-title">2015 Model Exam (English Medium)</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1rJSlTBQIv7VPFCpFwlFccNJrvfwJxRsJ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC exam 2015 Model question paper- MALAYALAM II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2013</span></div>
+                <h3 class="card-title">2013 Model Exam</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/10C2rRABRFlk8hOY0k0nh5xibhpVYGZF7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 Malayalam 2 Model Question Paper 6 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1jF58DWaGHylorvQrIItX01rnGZQMi13E/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1vyVh6q16DuZl76d35YwEuO_N2pshIGB4/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1VJ6DnAM_ktkpAjlp1f72acrHzfPRVdBF/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 3 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1m2uy_XJ45IUSSTvxhUXucSHAK80jaR2m/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 4 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1z0pF8HFka6eur0gmmFYU4Ps5Q9Mw5hAZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 5 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1Tw1q68bsZx80UYiGz_7ip8iqqHDDUK91/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Malayalam 2 Model Question Paper 7 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="terminal-exams" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-check fa-lg" style="color: #005a87;"></i>
+                        <h2>Terminal Examinations (Onam & Christmas)</h2>
+                    </div>
+                    <span class="badge-count">11 Exams</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2026</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2026</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1OQcBvF4GEfW-CEOYiG1GEmzicqhqKFAZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Malayalam II paper-Kerala SSLC First term exam 2026 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/11Dse6xAiU-FvtYCHuBiotgLbvBVkBOgr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala 10th First Term Onam Exam 2025 Malayalam Paper II Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1gqiHRGDyqniM5uMi1xZQr8o7C245wodx/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Malayalam II Answer key- First Term exam 2026 - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1wJREEh-Wci2O9njJwVsVpi_rQaCR3Ced/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala 10th First Term Onam Exam 2025 Malayalam Paper II Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Key (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2025</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1RAngtnb4OC6r5fMYepQuGKBx1jereG9U/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala 10th std First term Onam Exam 2025 Question Paper- Adisthana Padavali 1 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 1</a>
+                    <a href="https://drive.google.com/file/d/1ulBBLgYAy75eBrBaufDJVSQ5GJ55ZZKM/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SCERT latest textbook based first term model question paper for STD 10- Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/10i3q3-AkhkR-zDdMtaG7tPu9olDrz9P7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala 10th std First term Onam Exam 2025 Answer key- Adisthana Padavali by Suresh Areekide sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2025</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2025</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1gOg8rf4tP1mSgCb26dmr8j9vq_n2aegY/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="Kerala class 10 Second term exam 2025- Malayalam II Answer key by Suresh Areekode sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2023</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2023</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1CX6vDrKlesE1SSXVm9hqPeMA5Y9g_Cas/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="10th First Midterm exam 2023 Question Paper Malayalam II . - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1JAHPs4VvsU0Eki16PDL3tSXbRDkYd2Q2/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC First Mid Term Examination Model question paper- Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1FYIXISKCixubVVZf2kU3vSmnX8HkZZvX/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second MidTerm November Exam Model Question Paper- MALAYALAM II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 3</a>
+                    <a href="https://drive.google.com/file/d/1pFijAmc1ACggMJMJVeZz_v4eeif_xlZr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC First Midterm exam 2023 Question paper - Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2022</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1vKsMc2f0-Q92fuiV7yge6NHrJdMVnJ5E/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 First Term Onam Exam Question Paper 2022- Malayalam Paper II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/14eeJNibbeR5fZ_rYonpbWOofrHQ9sQfI/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 First Term Onam Exam Question Paper 2016- Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1bps9521bCLnkca1YuhtuQdMppvB3Ian_/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class 10 First Term Onam Exam Question Paper 2019- Malayalam Paper II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1J8Uk7UX271IQIMXzE8lmdtn1CYJbNhRC/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="STD 10 Onam First Term Exam 2018 Question Paper- Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1BNR0oi1FdvuWyegL_S43cO_g7TuR5bch/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Standard 10 Onam Exam First Term Question paper 2017 Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1AUTjpnJisXMmk1SXteHW1tD2rLnu4uql/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Std 10 Malayalam II Question Paper for First Term Onam Exam 2015 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2022</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2022</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1LMZUmfskpUzzwfQZTuBK0vjnaKC0FJDZ/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Christmas exam 2022 Malayalam II BT Adisthana Padavali Question Paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                    <a href="https://drive.google.com/file/d/1D038GsNfhI3UQj_7CxCMClMGv3IqZlRj/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Christmas exam 2022 Malayalam II Adisthana Padavali Answer Key by Suresh Areekode Sir - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2021</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2021</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1FsGNCff-NgTRbeVvvCtD-J3VSmhztkFp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="STD X Second Term Exam 2017 Question Paper- Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1dgMvovgkrhkIr-Fc6HzXXxTC_tUxmAD9/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Question Paper December 2018 MALAYALAM Paper II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 2</a>
+                    <a href="https://drive.google.com/file/d/18EY6T9vj1wdv-yqo4Ja7X19gHzEjq6er/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala Class X SSLC Second Term Christmas Exam Model Question Paper Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1jlJZAhajEdo0lR0GfuvMRPtL4WdFOK72/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="MALAYALAM (Adisthana Padavali) Question Paper Kerala Class 9 Second Term Christmas Exam Dec 2019 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP 4</a>
+                    <a href="https://drive.google.com/file/d/1jf6gx-JgrtYPD-RvUdJqVDAeRgwR_Hvi/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Term II Christmas Exam Class 10 Model Question paper- Malayalam 2 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/105j8QD0Wx7D07-8DPrpvrI8JrwJ3fTUp/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2022 Malayalam (Adisthana Padavali) Adisthana Padavali - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1JueJMHpnNAFzyAhkiZwMPnKdZ1Ob6MWL/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam 2022 Malayalam (Adisthana Padavali) Question paper - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1wuXd1dwobakgaBRVdCqCZ2gNp6L-2Dll/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Second Term exam 2023 Question paper Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> QP (Mal Med)</a>
+                    <a href="https://drive.google.com/file/d/1qgtAE-Z472QZAGVoxwiuO94GfrTtdiLf/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-key" title="SSLC Second Term exam 2023 Malayalam II Answer Key - Open in Google Drive"><i class="fa-solid fa-circle-check"></i> Answer Key</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2019</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2019</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1xk0cgzavlvOCPLDnqPEhtKUm6PhDCQ_O/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Onam First Term Exam Model Question paper Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2017</span><span class="badge badge-term">Second Term (Christmas)</span></div>
+                <h3 class="card-title">Second Term (Christmas) Exam 2017</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1wJItGESo3mQWTxwQ4hSoYaLxRPBp1aL5/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC Second Term Exam Adisthana Paadaavali - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2017</span><span class="badge badge-term">Half Yearly / Mid Term</span></div>
+                <h3 class="card-title">Half Yearly / Mid Term Exam 2017</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1Drstk4bpJdSkNxbTz3sRpwjwdiDRE3is/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="SSLC Mid Term Exam 2017 Malayalam II - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges"><span class="badge badge-year">2016</span><span class="badge badge-term">First Term (Onam)</span></div>
+                <h3 class="card-title">First Term (Onam) Exam 2016</h3>
+            </div>
+            <div class="card-actions">
+                <div class="action-group">
+                    <a href="https://drive.google.com/file/d/1LxwmSBwgEnKWQsZn_lrGmVSJadtg2jhs/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="btn btn-qp" title="Kerala SSLC First Mid Term Malayalam II Question Paper 2016 - Open in Google Drive"><i class="fa-solid fa-file-pdf"></i> Question Paper</a>
+                </div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="practice-sets" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-layer-group fa-lg" style="color: #005a87;"></i>
+                        <h2>Practice Sets & Question Banks</h2>
+                    </div>
+                    <span class="badge-count">13 Materials</span>
+                </div>
+                <div class="practice-sets-grid">
+                    
+            <a href="https://drive.google.com/file/d/1scHMFRycwJBHdEc1jeF7zk5SRTsUiZ-0/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Adisthana Padavali) Answer Key Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1VOKYMC7EYqyq0F4TCecqdbEiPx89oqAg/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Adisthana Padavali) Question paper Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1utEJ6CJf_hVNnwdZQOKItsTvT1N_mInf/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Adisthana Padavali) Question paper Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1Y7kSrhiMj7Ujcb9oW278yUO6bRvm9ZAP/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Kerala Padavali) Answer Key Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1BbdF2IxyNWqhJMQ7c9KTdzb_dNcuuB-i/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Kerala Padavali) Answer Key Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1R5e52dgWSGP_EG8ipTArUeqcvGo4s3S7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Kerala Padavali) Question paper Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1098Z2HfgQZlZd40AWK9wkRfynYiPw1uv/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC DISA 2022 Malayalam (Kerala Padavali) Question paper Set B (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1QzoLT11WEq8gk9sKGWVz_Oj8PJHykwpE/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC DISHA 2022 Malayalam (Adisthana Padavali) Answer Key Set A (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1AWxQN75W5iXBOvoOrdkAnLS5zWleIBfu/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC Malayalam (Adisthana Padavali) Question Bank 2022- All Chapters (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1okfKFmUPjlgBuSVQUFLwRftwZv4XcDlr/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-circle-check"></i>
+                <span class="set-label">Kerala SSLC Malayalam (Adisthana Padavali) Self Evaluation Answer Key Feb 2022 by TVM Dist (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1gpvvzMW-0s3pifieb_hPWpQ0V8UzZhN7/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC Malayalam (Adisthana Papdavali) Self Evaluation Question Paper Feb 2022 by TVM Dist (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1YI_GwlCzeu32OYOhfuLiw0ewM8Nr0iMm/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC Malayalam (Kerala Padavali) Question Bank 2022- All Chapters (2022)</span>
+            </a>
+            <a href="https://drive.google.com/file/d/1kR9LuYvE3z9a0SbbY6yiQmDblHCDrAHc/view?usp=sharing" target="_blank" rel="noopener noreferrer" class="practice-set-card" title="Open in Google Drive">
+                <i class="fa-solid fa-file-pdf"></i>
+                <span class="set-label">Kerala SSLC Malayalam (Kerala Padavali) Question Paper Pattern by TVM Edtnl Dist (2022)</span>
+            </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>© 2026 EduHome | Kerala State Board Class 10 Study Materials Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<script>
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card, .practice-set-card');
+    
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"]), .practice-set-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>
