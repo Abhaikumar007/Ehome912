@@ -1,8 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
   View,
   Text,
   ScrollView,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   Image,
@@ -76,6 +77,103 @@ const CATEGORIES = [
   { id: 'terminal-exams', label: 'Terminal Exams' },
   { id: 'practice-sets', label: 'Practice Sets' },
 ];
+
+type MaterialListItem =
+  | { type: 'section'; id: string; title: string; count: number }
+  | { type: 'card'; id: string; card: PyqCard }
+  | { type: 'practice'; id: string; practiceSets: { url: string; label: string }[] };
+
+const SectionHeaderRow = React.memo(function SectionHeaderRow({
+  title,
+  count,
+}: {
+  title: string;
+  count: number;
+}) {
+  return (
+    <View style={styles.sectionBar}>
+      <Text style={styles.sectionBarTitle}>{title}</Text>
+      <View style={styles.sectionBarBadge}>
+        <Text style={styles.sectionBarBadgeText}>{count}</Text>
+      </View>
+    </View>
+  );
+});
+
+const PaperCardRow = React.memo(function PaperCardRow({
+  card,
+  onOpenLink,
+}: {
+  card: PyqCard;
+  onOpenLink: (link: PyqLink) => void;
+}) {
+  return (
+    <View style={styles.paperCard}>
+      <View style={styles.cardTop}>
+        <View style={styles.yearPill}>
+          <Text style={styles.yearPillText}>{card.year || 'Exam'}</Text>
+        </View>
+        <Text style={styles.cardTitle} numberOfLines={2}>
+          {card.title}
+        </Text>
+      </View>
+
+      <View style={styles.cardActions}>
+        {card.links.map((link, idx) => {
+          const isQp = link.type === 'qp';
+          return (
+            <TouchableOpacity
+              key={idx}
+              style={[styles.linkBtn, isQp ? styles.linkBtnQp : styles.linkBtnKey]}
+              onPress={() => onOpenLink(link)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={isQp ? 'document-text' : 'checkmark-circle'}
+                size={15}
+                color="#fff"
+              />
+              <Text style={styles.linkBtnText} numberOfLines={1}>
+                {link.label}
+              </Text>
+              <Ionicons name="open-outline" size={13} color="rgba(255,255,255,0.7)" />
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+});
+
+const PracticeGridRow = React.memo(function PracticeGridRow({
+  practiceSets,
+  onOpenLink,
+}: {
+  practiceSets: { url: string; label: string }[];
+  onOpenLink: (link: { url: string; label: string }) => void;
+}) {
+  return (
+    <View style={styles.practiceGrid}>
+      {practiceSets.map((pset, idx) => (
+        <TouchableOpacity
+          key={idx}
+          style={styles.practiceSetCard}
+          onPress={() => onOpenLink(pset)}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="document-attach" size={20} color="#DC2626" />
+          <Text style={styles.practiceSetText} numberOfLines={2}>
+            {pset.label}
+          </Text>
+          <View style={styles.openPill}>
+            <Text style={styles.openPillText}>PDF</Text>
+            <Ionicons name="open-outline" size={11} color={Colors.primary} />
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+});
 
 export default function MaterialsScreen() {
   const router = useRouter();
@@ -223,6 +321,7 @@ export default function MaterialsScreen() {
   const [selectedSubjectKey, setSelectedSubjectKey] = useState<string>(defaultSubjectKey);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
     setSelectedSubjectKey(defaultSubjectKey);
@@ -255,7 +354,7 @@ export default function MaterialsScreen() {
 
   // Filter cards by category and search query
   const filteredSections = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = deferredSearchQuery.trim().toLowerCase();
 
     return currentSubject.sections
       .filter((sec) => {
@@ -284,7 +383,7 @@ export default function MaterialsScreen() {
         };
       })
       .filter((sec) => sec.cards.length > 0 || sec.practiceSets.length > 0);
-  }, [currentSubject, selectedCategory, searchQuery]);
+  }, [currentSubject, selectedCategory, deferredSearchQuery]);
 
   const totalMatchingPapers = useMemo(() => {
     return filteredSections.reduce(
@@ -293,7 +392,34 @@ export default function MaterialsScreen() {
     );
   }, [filteredSections]);
 
-  const handleOpenLink = async (link: PyqLink | { url: string; label: string }) => {
+  const flatListData = useMemo<MaterialListItem[]>(() => {
+    const items: MaterialListItem[] = [];
+    for (const sec of filteredSections) {
+      items.push({
+        type: 'section',
+        id: `sec-${sec.id}`,
+        title: sec.title,
+        count: sec.cards.length + sec.practiceSets.length,
+      });
+      for (const card of sec.cards) {
+        items.push({
+          type: 'card',
+          id: `card-${sec.id}-${card.id}`,
+          card,
+        });
+      }
+      if (sec.practiceSets.length > 0) {
+        items.push({
+          type: 'practice',
+          id: `prac-${sec.id}`,
+          practiceSets: sec.practiceSets,
+        });
+      }
+    }
+    return items;
+  }, [filteredSections]);
+
+  const handleOpenLink = useCallback(async (link: PyqLink | { url: string; label: string }) => {
     try {
       const supported = await Linking.canOpenURL(link.url);
       if (supported) {
@@ -307,7 +433,22 @@ export default function MaterialsScreen() {
         'Unable to open this Google Drive link. Please make sure you have internet access or Google Drive installed.'
       );
     }
-  };
+  }, []);
+
+  const renderMaterialItem = useCallback(
+    ({ item }: { item: MaterialListItem }) => {
+      if (item.type === 'section') {
+        return <SectionHeaderRow title={item.title} count={item.count} />;
+      }
+      if (item.type === 'practice') {
+        return <PracticeGridRow practiceSets={item.practiceSets} onOpenLink={handleOpenLink} />;
+      }
+      return <PaperCardRow card={item.card} onOpenLink={handleOpenLink} />;
+    },
+    [handleOpenLink]
+  );
+
+  const keyExtractor = useCallback((item: MaterialListItem) => item.id, []);
 
   const studentDisplayClass = student?.class || 'Class 12';
 
@@ -342,18 +483,308 @@ export default function MaterialsScreen() {
         </View>
       </View>
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: 32 + insets.bottom }]}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
-          />
-        }
-      >
+      {hasPyqAccess && !feesLoading && isFeePaid ? (
+        <FlatList
+          data={flatListData}
+          renderItem={renderMaterialItem}
+          keyExtractor={keyExtractor}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scroll, { paddingBottom: 32 + insets.bottom }]}
+          initialNumToRender={8}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={Platform.OS === 'android'}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
+          ListHeaderComponent={
+            <View>
+              {/* Hero Banner */}
+              <View style={styles.heroBanner}>
+                <View style={styles.heroBadgeRow}>
+                  <View style={styles.betaBadge}>
+                    <Ionicons name="sparkles" size={12} color="#fff" />
+                    <Text style={styles.betaBadgeText}>BETA RELEASE</Text>
+                  </View>
+                  <View style={styles.feeClearedPill}>
+                    <Ionicons name="checkmark-circle" size={12} color="#10B981" />
+                    <Text style={styles.feeClearedPillText}>Tuition Cleared</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.heroTitle}>
+                  {isClass10Cbse
+                    ? 'Class 10 (CBSE) Question Bank'
+                    : isClass10Student
+                    ? 'Class 10 (SSLC) Question Bank'
+                    : 'Class 12 Question Bank'}
+                </Text>
+                <Text style={styles.heroSub}>
+                  {isClass10Cbse
+                    ? 'CBSE Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
+                    : isClass10Student
+                    ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers with Verified Keys.'
+                    : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
+                </Text>
+              </View>
+
+              {/* Board / Syllabus Selector for Class 10 (SSLC vs CBSE) */}
+              {isClass10Student && (
+                <View style={styles.boardSwitchWrap}>
+                  <Text style={styles.boardSwitchTitle}>Select Syllabus / Board</Text>
+                  <View style={styles.boardSwitchRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.boardSwitchBtn,
+                        selectedClass10Board === 'sslc' && styles.boardSwitchBtnActive,
+                      ]}
+                      onPress={() => setSelectedClass10Board('sslc')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name="school-outline"
+                        size={18}
+                        color={selectedClass10Board === 'sslc' ? '#fff' : '#334155'}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.boardSwitchLabel,
+                            selectedClass10Board === 'sslc' && styles.boardSwitchLabelActive,
+                          ]}
+                        >
+                          Kerala SSLC
+                        </Text>
+                        <Text
+                          style={[
+                            styles.boardSwitchSub,
+                            selectedClass10Board === 'sslc' && styles.boardSwitchSubActive,
+                          ]}
+                        >
+                          State Syllabus
+                        </Text>
+                      </View>
+                      {selectedClass10Board === 'sslc' && (
+                        <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.boardSwitchBtn,
+                        selectedClass10Board === 'cbse' && styles.boardSwitchBtnActive,
+                      ]}
+                      onPress={() => setSelectedClass10Board('cbse')}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons
+                        name="library-outline"
+                        size={18}
+                        color={selectedClass10Board === 'cbse' ? '#fff' : '#334155'}
+                      />
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={[
+                            styles.boardSwitchLabel,
+                            selectedClass10Board === 'cbse' && styles.boardSwitchLabelActive,
+                          ]}
+                        >
+                          CBSE Board
+                        </Text>
+                        <Text
+                          style={[
+                            styles.boardSwitchSub,
+                            selectedClass10Board === 'cbse' && styles.boardSwitchSubActive,
+                          ]}
+                        >
+                          2013–2026 Sets
+                        </Text>
+                      </View>
+                      {selectedClass10Board === 'cbse' && (
+                        <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Subject Selector Bar */}
+              <View style={styles.sectionTitleRow}>
+                <Text style={styles.sectionTitle}>1. Select Subject</Text>
+                <Text style={styles.subjectCountHint}>{subjectsList.length} Subjects</Text>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.subjectScroll}
+              >
+                {subjectsList.map((sub) => {
+                  const isSelected = selectedSubjectKey === sub.key;
+                  return (
+                    <TouchableOpacity
+                      key={sub.key}
+                      style={[
+                        styles.subjectChip,
+                        isSelected && { borderColor: sub.color, backgroundColor: sub.color },
+                      ]}
+                      onPress={() => setSelectedSubjectKey(sub.key)}
+                      activeOpacity={0.75}
+                    >
+                      <View
+                        style={[
+                          styles.subjectIconCircle,
+                          { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : sub.bg },
+                        ]}
+                      >
+                        <Ionicons
+                          name={getSubjectIonIcon(sub.icon)}
+                          size={16}
+                          color={isSelected ? '#fff' : sub.color}
+                        />
+                      </View>
+                      <Text
+                        style={[
+                          styles.subjectChipText,
+                          isSelected && { color: '#fff', fontFamily: 'Inter_700Bold' },
+                        ]}
+                      >
+                        {sub.name}
+                      </Text>
+                      <View
+                        style={[
+                          styles.paperCountBadge,
+                          isSelected ? { backgroundColor: 'rgba(255,255,255,0.3)' } : { backgroundColor: '#E2E8F0' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.paperCountText,
+                            isSelected ? { color: '#fff' } : { color: Colors.textSecondary },
+                          ]}
+                        >
+                          {sub.papersCount}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Search & Category Filter Section */}
+              <View style={styles.filterSection}>
+                <View style={styles.searchBar}>
+                  <Ionicons name="search" size={18} color="#94A3B8" />
+                  <TextInput
+                    style={styles.searchInput}
+                    placeholder={
+                      isClass10Cbse
+                        ? 'Search set code (e.g. 30-1-1), 2023, Supplementary...'
+                        : 'Search year (e.g. 2026), Malayalam, Model...'
+                    }
+                    placeholderTextColor="#94A3B8"
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    clearButtonMode="while-editing"
+                  />
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')}>
+                      <Ionicons name="close-circle" size={18} color="#94A3B8" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                {/* Category Chips */}
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryScroll}
+                >
+                  {activeCategories.map((cat) => {
+                    const isActive = selectedCategory === cat.id;
+                    return (
+                      <TouchableOpacity
+                        key={cat.id}
+                        style={[styles.categoryChip, isActive && styles.categoryChipActive]}
+                        onPress={() => setSelectedCategory(cat.id)}
+                      >
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            isActive && styles.categoryChipTextActive,
+                          ]}
+                        >
+                          {cat.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+
+              {/* Papers Listing Header */}
+              <View style={styles.listHeaderRow}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons
+                    name={getSubjectIonIcon(currentSubject.icon)}
+                    size={18}
+                    color={currentSubject.color}
+                  />
+                  <Text style={styles.listHeaderTitle}>{currentSubject.subjectName}</Text>
+                </View>
+                <Text style={styles.listHeaderCount}>
+                  {totalMatchingPapers} {totalMatchingPapers === 1 ? 'Paper' : 'Papers'}
+                </Text>
+              </View>
+            </View>
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyCard}>
+              <Ionicons name="document-text-outline" size={44} color="#CBD5E1" />
+              <Text style={styles.emptyTitle}>No Papers Found</Text>
+              <Text style={styles.emptySub}>
+                No question papers match &ldquo;{searchQuery}&rdquo; in this category. Try searching another year or clear the search.
+              </Text>
+              <TouchableOpacity
+                style={styles.clearSearchBtn}
+                onPress={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+              >
+                <Text style={styles.clearSearchBtnText}>Show All {currentSubject.subjectName} Papers</Text>
+              </TouchableOpacity>
+            </View>
+          }
+          ListFooterComponent={
+            <View style={styles.tipCard}>
+              <Ionicons name="bulb-outline" size={20} color="#0284C7" />
+              <Text style={styles.tipText}>
+                <Text style={{ fontFamily: 'Inter_700Bold' }}>Study Tip: </Text>
+                Practicing at least 5 years of previous board exams with the official answer keys boosts exam score by over 25%. Tap any button to view and practice offline.
+              </Text>
+            </View>
+          }
+        />
+      ) : (
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.scroll, { paddingBottom: 32 + insets.bottom }]}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
+        >
         {/* CASE 1: Student is NOT in Class 10 or Class 12 -> Show Non-PYQ In Preparation Screen */}
         {!hasPyqAccess && (
           <View>
@@ -548,354 +979,8 @@ export default function MaterialsScreen() {
           </View>
         )}
 
-        {/* CASE 5: Student has access AND Fees are PAID -> Full Unlocked PYQ Browser */}
-        {hasPyqAccess && !feesLoading && isFeePaid && (
-          <View>
-            {/* Hero Banner */}
-            <View style={styles.heroBanner}>
-              <View style={styles.heroBadgeRow}>
-                <View style={styles.betaBadge}>
-                  <Ionicons name="sparkles" size={12} color="#fff" />
-                  <Text style={styles.betaBadgeText}>BETA RELEASE</Text>
-                </View>
-                <View style={styles.feeClearedPill}>
-                  <Ionicons name="checkmark-circle" size={12} color="#10B981" />
-                  <Text style={styles.feeClearedPillText}>Tuition Cleared</Text>
-                </View>
-              </View>
-
-              <Text style={styles.heroTitle}>
-                {isClass10Cbse
-                  ? 'Class 10 (CBSE) Question Bank'
-                  : isClass10Student
-                  ? 'Class 10 (SSLC) Question Bank'
-                  : 'Class 12 Question Bank'}
-              </Text>
-              <Text style={styles.heroSub}>
-                {isClass10Cbse
-                  ? 'CBSE Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
-                  : isClass10Student
-                  ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers with Verified Keys.'
-                  : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
-              </Text>
-            </View>
-
-            {/* Board / Syllabus Selector for Class 10 (SSLC vs CBSE) */}
-            {isClass10Student && (
-              <View style={styles.boardSwitchWrap}>
-                <Text style={styles.boardSwitchTitle}>Select Syllabus / Board</Text>
-                <View style={styles.boardSwitchRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.boardSwitchBtn,
-                      selectedClass10Board === 'sslc' && styles.boardSwitchBtnActive,
-                    ]}
-                    onPress={() => setSelectedClass10Board('sslc')}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name="school-outline"
-                      size={18}
-                      color={selectedClass10Board === 'sslc' ? '#fff' : '#334155'}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
-                          styles.boardSwitchLabel,
-                          selectedClass10Board === 'sslc' && styles.boardSwitchLabelActive,
-                        ]}
-                      >
-                        Kerala SSLC
-                      </Text>
-                      <Text
-                        style={[
-                          styles.boardSwitchSub,
-                          selectedClass10Board === 'sslc' && styles.boardSwitchSubActive,
-                        ]}
-                      >
-                        State Syllabus
-                      </Text>
-                    </View>
-                    {selectedClass10Board === 'sslc' && (
-                      <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[
-                      styles.boardSwitchBtn,
-                      selectedClass10Board === 'cbse' && styles.boardSwitchBtnActive,
-                    ]}
-                    onPress={() => setSelectedClass10Board('cbse')}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons
-                      name="library-outline"
-                      size={18}
-                      color={selectedClass10Board === 'cbse' ? '#fff' : '#334155'}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[
-                          styles.boardSwitchLabel,
-                          selectedClass10Board === 'cbse' && styles.boardSwitchLabelActive,
-                        ]}
-                      >
-                        CBSE Board
-                      </Text>
-                      <Text
-                        style={[
-                          styles.boardSwitchSub,
-                          selectedClass10Board === 'cbse' && styles.boardSwitchSubActive,
-                        ]}
-                      >
-                        2013–2026 Sets
-                      </Text>
-                    </View>
-                    {selectedClass10Board === 'cbse' && (
-                      <Ionicons name="checkmark-circle" size={16} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-
-            {/* Subject Selector Bar */}
-            <View style={styles.sectionTitleRow}>
-              <Text style={styles.sectionTitle}>1. Select Subject</Text>
-              <Text style={styles.subjectCountHint}>{subjectsList.length} Subjects</Text>
-            </View>
-
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.subjectScroll}
-            >
-              {subjectsList.map((sub) => {
-                const isSelected = selectedSubjectKey === sub.key;
-                return (
-                  <TouchableOpacity
-                    key={sub.key}
-                    style={[
-                      styles.subjectChip,
-                      isSelected && { borderColor: sub.color, backgroundColor: sub.color },
-                    ]}
-                    onPress={() => setSelectedSubjectKey(sub.key)}
-                    activeOpacity={0.75}
-                  >
-                    <View
-                      style={[
-                        styles.subjectIconCircle,
-                        { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : sub.bg },
-                      ]}
-                    >
-                      <Ionicons
-                        name={getSubjectIonIcon(sub.icon)}
-                        size={16}
-                        color={isSelected ? '#fff' : sub.color}
-                      />
-                    </View>
-                    <Text
-                      style={[
-                        styles.subjectChipText,
-                        isSelected && { color: '#fff', fontFamily: 'Inter_700Bold' },
-                      ]}
-                    >
-                      {sub.name}
-                    </Text>
-                    <View
-                      style={[
-                        styles.paperCountBadge,
-                        isSelected ? { backgroundColor: 'rgba(255,255,255,0.3)' } : { backgroundColor: '#E2E8F0' },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.paperCountText,
-                          isSelected ? { color: '#fff' } : { color: Colors.textSecondary },
-                        ]}
-                      >
-                        {sub.papersCount}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-
-            {/* Search & Category Filter Section */}
-            <View style={styles.filterSection}>
-              <View style={styles.searchBar}>
-                <Ionicons name="search" size={18} color="#94A3B8" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder={
-                    isClass10Cbse
-                      ? 'Search set code (e.g. 30-1-1), 2023, Supplementary...'
-                      : 'Search year (e.g. 2026), Malayalam, Model...'
-                  }
-                  placeholderTextColor="#94A3B8"
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  clearButtonMode="while-editing"
-                />
-                {searchQuery.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={18} color="#94A3B8" />
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {/* Category Chips */}
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.categoryScroll}
-              >
-                {activeCategories.map((cat) => {
-                  const isActive = selectedCategory === cat.id;
-                  return (
-                    <TouchableOpacity
-                      key={cat.id}
-                      style={[styles.categoryChip, isActive && styles.categoryChipActive]}
-                      onPress={() => setSelectedCategory(cat.id)}
-                    >
-                      <Text
-                        style={[
-                          styles.categoryChipText,
-                          isActive && styles.categoryChipTextActive,
-                        ]}
-                      >
-                        {cat.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            </View>
-
-            {/* Papers Listing Header */}
-            <View style={styles.listHeaderRow}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons
-                  name={getSubjectIonIcon(currentSubject.icon)}
-                  size={18}
-                  color={currentSubject.color}
-                />
-                <Text style={styles.listHeaderTitle}>{currentSubject.subjectName}</Text>
-              </View>
-              <Text style={styles.listHeaderCount}>
-                {totalMatchingPapers} {totalMatchingPapers === 1 ? 'Paper' : 'Papers'}
-              </Text>
-            </View>
-
-            {/* Empty Search State */}
-            {filteredSections.length === 0 && (
-              <View style={styles.emptyCard}>
-                <Ionicons name="document-text-outline" size={44} color="#CBD5E1" />
-                <Text style={styles.emptyTitle}>No Papers Found</Text>
-                <Text style={styles.emptySub}>
-                  No question papers match &ldquo;{searchQuery}&rdquo; in this category. Try searching another year or clear the search.
-                </Text>
-                <TouchableOpacity
-                  style={styles.clearSearchBtn}
-                  onPress={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                  }}
-                >
-                  <Text style={styles.clearSearchBtnText}>Show All {currentSubject.subjectName} Papers</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            {/* Section Groups */}
-            {filteredSections.map((sec) => (
-              <View key={sec.id} style={styles.sectionWrap}>
-                <View style={styles.sectionBar}>
-                  <Text style={styles.sectionBarTitle}>{sec.title}</Text>
-                  <View style={styles.sectionBarBadge}>
-                    <Text style={styles.sectionBarBadgeText}>
-                      {sec.cards.length + sec.practiceSets.length}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Exam Cards */}
-                {sec.cards.map((card: PyqCard) => (
-                  <View key={card.id} style={styles.paperCard}>
-                    <View style={styles.cardTop}>
-                      <View style={styles.yearPill}>
-                        <Text style={styles.yearPillText}>{card.year || 'Exam'}</Text>
-                      </View>
-                      <Text style={styles.cardTitle} numberOfLines={2}>
-                        {card.title}
-                      </Text>
-                    </View>
-
-                    {/* Buttons Row */}
-                    <View style={styles.cardActions}>
-                      {card.links.map((link, idx) => {
-                        const isQp = link.type === 'qp';
-                        return (
-                          <TouchableOpacity
-                            key={idx}
-                            style={[styles.linkBtn, isQp ? styles.linkBtnQp : styles.linkBtnKey]}
-                            onPress={() => handleOpenLink(link)}
-                            activeOpacity={0.7}
-                          >
-                            <Ionicons
-                              name={isQp ? 'document-text' : 'checkmark-circle'}
-                              size={15}
-                              color="#fff"
-                            />
-                            <Text style={styles.linkBtnText} numberOfLines={1}>
-                              {link.label}
-                            </Text>
-                            <Ionicons name="open-outline" size={13} color="rgba(255,255,255,0.7)" />
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-                ))}
-
-                {/* Practice Sets Grid (if any) */}
-                {sec.practiceSets.length > 0 && (
-                  <View style={styles.practiceGrid}>
-                    {sec.practiceSets.map((pset, idx) => (
-                      <TouchableOpacity
-                        key={idx}
-                        style={styles.practiceSetCard}
-                        onPress={() => handleOpenLink(pset)}
-                        activeOpacity={0.7}
-                      >
-                        <Ionicons name="document-attach" size={20} color="#DC2626" />
-                        <Text style={styles.practiceSetText} numberOfLines={2}>
-                          {pset.label}
-                        </Text>
-                        <View style={styles.openPill}>
-                          <Text style={styles.openPillText}>PDF</Text>
-                          <Ionicons name="open-outline" size={11} color={Colors.primary} />
-                        </View>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-
-            {/* Footer Tip */}
-            <View style={styles.tipCard}>
-              <Ionicons name="bulb-outline" size={20} color="#0284C7" />
-              <Text style={styles.tipText}>
-                <Text style={{ fontFamily: 'Inter_700Bold' }}>Study Tip: </Text>
-                Practicing at least 5 years of previous board exams with the official answer keys boosts exam score by over 25%. Tap any button to view and practice offline.
-              </Text>
-            </View>
-          </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
