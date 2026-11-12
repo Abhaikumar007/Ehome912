@@ -31,6 +31,10 @@ import {
   CLASS_10_PYQ_DATA,
   CLASS_10_SUBJECTS_LIST,
 } from '../../constants/class10PyqData';
+import {
+  CLASS_10_CBSE_PYQ_DATA,
+  CLASS_10_CBSE_SUBJECTS_LIST,
+} from '../../constants/class10CbsePyqData';
 
 // Map icon names to valid Ionicons
 const getSubjectIonIcon = (iconName: string): any => {
@@ -95,13 +99,27 @@ export default function MaterialsScreen() {
 
   const hasPyqAccess = isClass12Student || isClass10Student;
 
-  // Active dataset depending on student's class
+  // Class 10 board selector (Kerala State SSLC vs CBSE)
+  const defaultClass10Board = useMemo<'sslc' | 'cbse'>(() => {
+    const syl = String(student?.syllabus || student?.batch || '').toLowerCase();
+    return syl.includes('cbse') ? 'cbse' : 'sslc';
+  }, [student?.syllabus, student?.batch]);
+
+  const [selectedClass10Board, setSelectedClass10Board] = useState<'sslc' | 'cbse'>(defaultClass10Board);
+
+  useEffect(() => {
+    setSelectedClass10Board(defaultClass10Board);
+  }, [defaultClass10Board]);
+
+  const isClass10Cbse = isClass10Student && selectedClass10Board === 'cbse';
+
+  // Active dataset depending on student's class & selected board
   const pyqData: Record<string, PyqSubject> = isClass10Student
-    ? CLASS_10_PYQ_DATA
+    ? (isClass10Cbse ? CLASS_10_CBSE_PYQ_DATA : CLASS_10_PYQ_DATA)
     : CLASS_12_PYQ_DATA;
 
   const subjectsList = isClass10Student
-    ? CLASS_10_SUBJECTS_LIST
+    ? (isClass10Cbse ? CLASS_10_CBSE_SUBJECTS_LIST : CLASS_10_SUBJECTS_LIST)
     : CLASS_12_SUBJECTS_LIST;
 
   // Fee state for locking
@@ -169,6 +187,17 @@ export default function MaterialsScreen() {
     const rawSubs = student?.subjects;
     const studentSubs = (Array.isArray(rawSubs) ? rawSubs.join(' ') : String(rawSubs || '')).toLowerCase();
     if (isClass10Student) {
+      if (selectedClass10Board === 'cbse') {
+        if (studentSubs.includes('math')) return 'maths_standard';
+        if (studentSubs.includes('sci') || studentSubs.includes('phys') || studentSubs.includes('chem') || studentSubs.includes('bio')) return 'science';
+        if (studentSubs.includes('soc')) return 'social_science';
+        if (studentSubs.includes('eng')) return 'english_language_literature';
+        if (studentSubs.includes('hin')) return 'hindi_a';
+        if (studentSubs.includes('sans')) return 'sanskrit';
+        if (studentSubs.includes('comp')) return 'computer_applications';
+        if (studentSubs.includes('it') || studentSubs.includes('info')) return 'information_technology';
+        return 'maths_standard';
+      }
       if (studentSubs.includes('math')) return 'maths';
       if (studentSubs.includes('phys')) return 'physics';
       if (studentSubs.includes('chem')) return 'chemistry';
@@ -189,7 +218,7 @@ export default function MaterialsScreen() {
       return 'physics';
     }
     return 'maths';
-  }, [student?.subjects, isClass10Student, isClass12Student]);
+  }, [student?.subjects, isClass10Student, isClass12Student, selectedClass10Board]);
 
   const [selectedSubjectKey, setSelectedSubjectKey] = useState<string>(defaultSubjectKey);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -197,7 +226,9 @@ export default function MaterialsScreen() {
 
   useEffect(() => {
     setSelectedSubjectKey(defaultSubjectKey);
-  }, [defaultSubjectKey]);
+    setSelectedCategory('all');
+    setSearchQuery('');
+  }, [defaultSubjectKey, selectedClass10Board]);
 
   const currentSubject: PyqSubject =
     pyqData[selectedSubjectKey] || Object.values(pyqData)[0] || {
@@ -208,6 +239,19 @@ export default function MaterialsScreen() {
       bg: '#EFF6FF',
       sections: [],
     };
+
+  const activeCategories = useMemo(() => {
+    if (isClass10Cbse) {
+      return [
+        { id: 'all', label: 'All Years' },
+        ...currentSubject.sections.map((sec) => ({
+          id: sec.id,
+          label: sec.id.replace('year-', ''),
+        })),
+      ];
+    }
+    return CATEGORIES;
+  }, [isClass10Cbse, currentSubject]);
 
   // Filter cards by category and search query
   const filteredSections = useMemo(() => {
@@ -521,14 +565,100 @@ export default function MaterialsScreen() {
               </View>
 
               <Text style={styles.heroTitle}>
-                {isClass10Student ? 'Class 10 (SSLC) Question Bank' : 'Class 12 Question Bank'}
+                {isClass10Cbse
+                  ? 'Class 10 (CBSE) Question Bank'
+                  : isClass10Student
+                  ? 'Class 10 (SSLC) Question Bank'
+                  : 'Class 12 Question Bank'}
               </Text>
               <Text style={styles.heroSub}>
-                {isClass10Student
-                  ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'
+                {isClass10Cbse
+                  ? 'CBSE Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
+                  : isClass10Student
+                  ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers with Verified Keys.'
                   : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
               </Text>
             </View>
+
+            {/* Board / Syllabus Selector for Class 10 (SSLC vs CBSE) */}
+            {isClass10Student && (
+              <View style={styles.boardSwitchWrap}>
+                <Text style={styles.boardSwitchTitle}>Select Syllabus / Board</Text>
+                <View style={styles.boardSwitchRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.boardSwitchBtn,
+                      selectedClass10Board === 'sslc' && styles.boardSwitchBtnActive,
+                    ]}
+                    onPress={() => setSelectedClass10Board('sslc')}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name="school-outline"
+                      size={18}
+                      color={selectedClass10Board === 'sslc' ? '#fff' : '#334155'}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.boardSwitchLabel,
+                          selectedClass10Board === 'sslc' && styles.boardSwitchLabelActive,
+                        ]}
+                      >
+                        Kerala SSLC
+                      </Text>
+                      <Text
+                        style={[
+                          styles.boardSwitchSub,
+                          selectedClass10Board === 'sslc' && styles.boardSwitchSubActive,
+                        ]}
+                      >
+                        State Syllabus
+                      </Text>
+                    </View>
+                    {selectedClass10Board === 'sslc' && (
+                      <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[
+                      styles.boardSwitchBtn,
+                      selectedClass10Board === 'cbse' && styles.boardSwitchBtnActive,
+                    ]}
+                    onPress={() => setSelectedClass10Board('cbse')}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons
+                      name="library-outline"
+                      size={18}
+                      color={selectedClass10Board === 'cbse' ? '#fff' : '#334155'}
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[
+                          styles.boardSwitchLabel,
+                          selectedClass10Board === 'cbse' && styles.boardSwitchLabelActive,
+                        ]}
+                      >
+                        CBSE Board
+                      </Text>
+                      <Text
+                        style={[
+                          styles.boardSwitchSub,
+                          selectedClass10Board === 'cbse' && styles.boardSwitchSubActive,
+                        ]}
+                      >
+                        2013–2026 Sets
+                      </Text>
+                    </View>
+                    {selectedClass10Board === 'cbse' && (
+                      <Ionicons name="checkmark-circle" size={16} color="#fff" />
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
 
             {/* Subject Selector Bar */}
             <View style={styles.sectionTitleRow}>
@@ -599,7 +729,11 @@ export default function MaterialsScreen() {
                 <Ionicons name="search" size={18} color="#94A3B8" />
                 <TextInput
                   style={styles.searchInput}
-                  placeholder="Search year (e.g. 2026), Malayalam, Model..."
+                  placeholder={
+                    isClass10Cbse
+                      ? 'Search set code (e.g. 30-1-1), 2023, Supplementary...'
+                      : 'Search year (e.g. 2026), Malayalam, Model...'
+                  }
                   placeholderTextColor="#94A3B8"
                   value={searchQuery}
                   onChangeText={setSearchQuery}
@@ -618,7 +752,7 @@ export default function MaterialsScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.categoryScroll}
               >
-                {CATEGORIES.map((cat) => {
+                {activeCategories.map((cat) => {
                   const isActive = selectedCategory === cat.id;
                   return (
                     <TouchableOpacity
@@ -1062,6 +1196,35 @@ const styles = StyleSheet.create({
   feeClearedPillText: { color: '#34D399', fontSize: 10, fontFamily: 'Inter_700Bold' },
   heroTitle: { fontSize: 20, fontFamily: 'Inter_800ExtraBold', color: '#fff', marginBottom: 6 },
   heroSub: { fontSize: 12, fontFamily: 'Inter_400Regular', color: '#CBD5E1', lineHeight: 18 },
+
+  boardSwitchWrap: { marginBottom: 14 },
+  boardSwitchTitle: { fontSize: 13, fontFamily: 'Inter_700Bold', color: '#1E293B', marginBottom: 8 },
+  boardSwitchRow: { flexDirection: 'row', gap: 10 },
+  boardSwitchBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#E2E8F0',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+  boardSwitchBtnActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  boardSwitchLabel: { fontSize: 13, fontFamily: 'Inter_700Bold', color: '#1E293B' },
+  boardSwitchLabelActive: { color: '#fff' },
+  boardSwitchSub: { fontSize: 10, fontFamily: 'Inter_500Medium', color: '#64748B', marginTop: 1 },
+  boardSwitchSubActive: { color: 'rgba(255,255,255,0.85)' },
 
   sectionTitleRow: {
     flexDirection: 'row',
