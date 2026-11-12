@@ -283,3 +283,10 @@ if __name__ == '__main__':
             class_title='Class 12 (Plus Two)',
             breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
         )
+
+    # CBSE Class 10 (PYQs & Marking Schemes 2013-2026)
+    try:
+        from scripts.build_cbse_class10_pages import generate_all_cbse_class10_pages
+        generate_all_cbse_class10_pages()
+    except Exception as e:
+        print(f"Error generating CBSE Class 10 pages: {e}")
