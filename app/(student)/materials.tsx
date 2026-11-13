@@ -36,6 +36,10 @@ import {
   CLASS_10_CBSE_PYQ_DATA,
   CLASS_10_CBSE_SUBJECTS_LIST,
 } from '../../constants/class10CbsePyqData';
+import {
+  CLASS_12_CBSE_PYQ_DATA,
+  CLASS_12_CBSE_SUBJECTS_LIST,
+} from '../../constants/class12CbsePyqData';
 
 // Map icon names to valid Ionicons
 const getSubjectIonIcon = (iconName: string): any => {
@@ -197,28 +201,30 @@ export default function MaterialsScreen() {
 
   const hasPyqAccess = isClass12Student || isClass10Student;
 
-  // Class 10 board selector (Kerala State SSLC vs CBSE)
-  const defaultClass10Board = useMemo<'sslc' | 'cbse'>(() => {
+  // Board selector (Kerala State Board vs CBSE) for Class 10 & Class 12
+  const defaultBoard = useMemo<'state' | 'cbse'>(() => {
     const syl = String(student?.syllabus || student?.batch || '').toLowerCase();
-    return syl.includes('cbse') ? 'cbse' : 'sslc';
+    return syl.includes('cbse') ? 'cbse' : 'state';
   }, [student?.syllabus, student?.batch]);
 
-  const [selectedClass10Board, setSelectedClass10Board] = useState<'sslc' | 'cbse'>(defaultClass10Board);
+  const [selectedBoard, setSelectedBoard] = useState<'state' | 'cbse'>(defaultBoard);
 
   useEffect(() => {
-    setSelectedClass10Board(defaultClass10Board);
-  }, [defaultClass10Board]);
+    setSelectedBoard(defaultBoard);
+  }, [defaultBoard]);
 
-  const isClass10Cbse = isClass10Student && selectedClass10Board === 'cbse';
+  const isCbseSelected = hasPyqAccess && selectedBoard === 'cbse';
+  const isClass10Cbse = isClass10Student && selectedBoard === 'cbse';
+  const isClass12Cbse = isClass12Student && selectedBoard === 'cbse';
 
   // Active dataset depending on student's class & selected board
   const pyqData: Record<string, PyqSubject> = isClass10Student
     ? (isClass10Cbse ? CLASS_10_CBSE_PYQ_DATA : CLASS_10_PYQ_DATA)
-    : CLASS_12_PYQ_DATA;
+    : (isClass12Cbse ? CLASS_12_CBSE_PYQ_DATA : CLASS_12_PYQ_DATA);
 
   const subjectsList = isClass10Student
     ? (isClass10Cbse ? CLASS_10_CBSE_SUBJECTS_LIST : CLASS_10_SUBJECTS_LIST)
-    : CLASS_12_SUBJECTS_LIST;
+    : (isClass12Cbse ? CLASS_12_CBSE_SUBJECTS_LIST : CLASS_12_SUBJECTS_LIST);
 
   // Fee state for locking
   const [fees, setFees] = useState<any>(null);
@@ -285,7 +291,7 @@ export default function MaterialsScreen() {
     const rawSubs = student?.subjects;
     const studentSubs = (Array.isArray(rawSubs) ? rawSubs.join(' ') : String(rawSubs || '')).toLowerCase();
     if (isClass10Student) {
-      if (selectedClass10Board === 'cbse') {
+      if (selectedBoard === 'cbse') {
         if (studentSubs.includes('math')) return 'maths_standard';
         if (studentSubs.includes('sci') || studentSubs.includes('phys') || studentSubs.includes('chem') || studentSubs.includes('bio')) return 'science';
         if (studentSubs.includes('soc')) return 'social_science';
@@ -308,6 +314,23 @@ export default function MaterialsScreen() {
       return 'maths';
     }
     if (isClass12Student) {
+      if (selectedBoard === 'cbse') {
+        if (studentSubs.includes('applied')) return 'applied_maths';
+        if (studentSubs.includes('math')) return 'mathematics';
+        if (studentSubs.includes('phys')) return 'physics';
+        if (studentSubs.includes('chem')) return 'chemistry';
+        if (studentSubs.includes('bio')) return 'biology';
+        if (studentSubs.includes('eng')) return 'english_core';
+        if (studentSubs.includes('acc')) return 'accountancy';
+        if (studentSubs.includes('bus')) return 'business_studies';
+        if (studentSubs.includes('econ')) return 'economics';
+        if (studentSubs.includes('hin')) return 'hindi_core';
+        if (studentSubs.includes('psych')) return 'psychology';
+        if (studentSubs.includes('hist')) return 'history';
+        if (studentSubs.includes('geo')) return 'geography';
+        if (studentSubs.includes('pol')) return 'political_science';
+        return 'mathematics';
+      }
       if (studentSubs.includes('phys')) return 'physics';
       if (studentSubs.includes('math')) return 'maths';
       if (studentSubs.includes('chem')) return 'chemistry';
@@ -316,7 +339,7 @@ export default function MaterialsScreen() {
       return 'physics';
     }
     return 'maths';
-  }, [student?.subjects, isClass10Student, isClass12Student, selectedClass10Board]);
+  }, [student?.subjects, isClass10Student, isClass12Student, selectedBoard]);
 
   const [selectedSubjectKey, setSelectedSubjectKey] = useState<string>(defaultSubjectKey);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -327,7 +350,7 @@ export default function MaterialsScreen() {
     setSelectedSubjectKey(defaultSubjectKey);
     setSelectedCategory('all');
     setSearchQuery('');
-  }, [defaultSubjectKey, selectedClass10Board]);
+  }, [defaultSubjectKey, selectedBoard]);
 
   const currentSubject: PyqSubject =
     pyqData[selectedSubjectKey] || Object.values(pyqData)[0] || {
@@ -340,7 +363,7 @@ export default function MaterialsScreen() {
     };
 
   const activeCategories = useMemo(() => {
-    if (isClass10Cbse) {
+    if (isCbseSelected) {
       return [
         { id: 'all', label: 'All Years' },
         ...currentSubject.sections.map((sec) => ({
@@ -350,7 +373,7 @@ export default function MaterialsScreen() {
       ];
     }
     return CATEGORIES;
-  }, [isClass10Cbse, currentSubject]);
+  }, [isCbseSelected, currentSubject]);
 
   // Filter cards by category and search query
   const filteredSections = useMemo(() => {
@@ -523,54 +546,58 @@ export default function MaterialsScreen() {
                     ? 'Class 10 (CBSE) Question Bank'
                     : isClass10Student
                     ? 'Class 10 (SSLC) Question Bank'
-                    : 'Class 12 Question Bank'}
+                    : isClass12Cbse
+                    ? 'Class 12 (CBSE) Question Bank'
+                    : 'Class 12 (DHSE) Question Bank'}
                 </Text>
                 <Text style={styles.heroSub}>
                   {isClass10Cbse
                     ? 'CBSE Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
                     : isClass10Student
                     ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers with Verified Keys.'
+                    : isClass12Cbse
+                    ? 'CBSE Class 12 Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
                     : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
                 </Text>
               </View>
 
-              {/* Board / Syllabus Selector for Class 10 (SSLC vs CBSE) */}
-              {isClass10Student && (
+              {/* Board / Syllabus Selector for Class 10 & Class 12 (State Board vs CBSE) */}
+              {hasPyqAccess && (
                 <View style={styles.boardSwitchWrap}>
                   <Text style={styles.boardSwitchTitle}>Select Syllabus / Board</Text>
                   <View style={styles.boardSwitchRow}>
                     <TouchableOpacity
                       style={[
                         styles.boardSwitchBtn,
-                        selectedClass10Board === 'sslc' && styles.boardSwitchBtnActive,
+                        selectedBoard === 'state' && styles.boardSwitchBtnActive,
                       ]}
-                      onPress={() => setSelectedClass10Board('sslc')}
+                      onPress={() => setSelectedBoard('state')}
                       activeOpacity={0.8}
                     >
                       <Ionicons
                         name="school-outline"
                         size={18}
-                        color={selectedClass10Board === 'sslc' ? '#fff' : '#334155'}
+                        color={selectedBoard === 'state' ? '#fff' : '#334155'}
                       />
                       <View style={{ flex: 1 }}>
                         <Text
                           style={[
                             styles.boardSwitchLabel,
-                            selectedClass10Board === 'sslc' && styles.boardSwitchLabelActive,
+                            selectedBoard === 'state' && styles.boardSwitchLabelActive,
                           ]}
                         >
-                          Kerala SSLC
+                          {isClass10Student ? 'Kerala SSLC' : 'Kerala DHSE'}
                         </Text>
                         <Text
                           style={[
                             styles.boardSwitchSub,
-                            selectedClass10Board === 'sslc' && styles.boardSwitchSubActive,
+                            selectedBoard === 'state' && styles.boardSwitchSubActive,
                           ]}
                         >
                           State Syllabus
                         </Text>
                       </View>
-                      {selectedClass10Board === 'sslc' && (
+                      {selectedBoard === 'state' && (
                         <Ionicons name="checkmark-circle" size={16} color="#fff" />
                       )}
                     </TouchableOpacity>
@@ -578,21 +605,21 @@ export default function MaterialsScreen() {
                     <TouchableOpacity
                       style={[
                         styles.boardSwitchBtn,
-                        selectedClass10Board === 'cbse' && styles.boardSwitchBtnActive,
+                        selectedBoard === 'cbse' && styles.boardSwitchBtnActive,
                       ]}
-                      onPress={() => setSelectedClass10Board('cbse')}
+                      onPress={() => setSelectedBoard('cbse')}
                       activeOpacity={0.8}
                     >
                       <Ionicons
                         name="library-outline"
                         size={18}
-                        color={selectedClass10Board === 'cbse' ? '#fff' : '#334155'}
+                        color={selectedBoard === 'cbse' ? '#fff' : '#334155'}
                       />
                       <View style={{ flex: 1 }}>
                         <Text
                           style={[
                             styles.boardSwitchLabel,
-                            selectedClass10Board === 'cbse' && styles.boardSwitchLabelActive,
+                            selectedBoard === 'cbse' && styles.boardSwitchLabelActive,
                           ]}
                         >
                           CBSE Board
@@ -600,13 +627,13 @@ export default function MaterialsScreen() {
                         <Text
                           style={[
                             styles.boardSwitchSub,
-                            selectedClass10Board === 'cbse' && styles.boardSwitchSubActive,
+                            selectedBoard === 'cbse' && styles.boardSwitchSubActive,
                           ]}
                         >
                           2013–2026 Sets
                         </Text>
                       </View>
-                      {selectedClass10Board === 'cbse' && (
+                      {selectedBoard === 'cbse' && (
                         <Ionicons name="checkmark-circle" size={16} color="#fff" />
                       )}
                     </TouchableOpacity>
@@ -684,8 +711,8 @@ export default function MaterialsScreen() {
                   <TextInput
                     style={styles.searchInput}
                     placeholder={
-                      isClass10Cbse
-                        ? 'Search set code (e.g. 30-1-1), 2023, Supplementary...'
+                      isCbseSelected
+                        ? 'Search set code (e.g. 65-1, 30-1-1), 2023, Supplementary...'
                         : 'Search year (e.g. 2026), Malayalam, Model...'
                     }
                     placeholderTextColor="#94A3B8"
