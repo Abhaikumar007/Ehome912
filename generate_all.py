@@ -290,3 +290,10 @@ if __name__ == '__main__':
         generate_all_cbse_class10_pages()
     except Exception as e:
         print(f"Error generating CBSE Class 10 pages: {e}")
+
+    # CBSE Class 12 (PYQs & Marking Schemes 2013-2026)
+    try:
+        from scripts.build_cbse_class12_pages import generate_all_cbse_class12_pages
+        generate_all_cbse_class12_pages()
+    except Exception as e:
+        print(f"Error generating CBSE Class 12 pages: {e}")
