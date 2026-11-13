@@ -2,7 +2,7 @@ import html
 import json
 import os
 
-from scripts.build_cbse_class10_pages import CSS_TEMPLATE, JS_FILTER, esc, render_paper_card
+from scripts.build_cbse_class10_pages import CSS_TEMPLATE, JS_FILTER, esc, render_paper_card, render_subject_switcher
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_PATH = os.path.join(BASE_DIR, "study-materials", "cbse_class12_pyq_data.json")
@@ -281,8 +281,11 @@ def generate_all_cbse_class12_pages():
             <a href="../index.html">Home</a> &gt; <a href="../cbse.html">CBSE Board</a> &gt; <a href="cbse-class12.html">Class 12</a> &gt; {esc(subj_name)}
         </nav>
 
-        <div class="back-btn-box">
-            <a href="cbse-class12.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        <div class="top-nav-bar">
+            <div class="back-btn-box">
+                <a href="cbse-class12.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+            </div>
+            {render_subject_switcher(SUBJECT_CONFIG, subj_key)}
         </div>
 
         <nav class="section-nav-pills" aria-label="Filter by Year">
@@ -292,9 +295,15 @@ def generate_all_cbse_class12_pages():
         <div class="search-box-wrapper">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
             <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), paper code (e.g. 65-1-1), set, Delhi, Compartment..." onkeyup="filterPapers()">
+            <button type="button" id="searchClearBtn" class="search-clear-btn" aria-label="Clear search" onclick="clearPaperSearch()"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <main>
+            <div id="noResultsMsg" class="no-results-msg">
+                <i class="fa-solid fa-magnifying-glass fa-2x" style="margin-bottom: 10px; color: #94a3b8;"></i>
+                <p style="margin: 0; font-weight: 600;">No matching question papers found.</p>
+                <p style="margin: 6px 0 0 0; font-size: 0.9rem;">Try clearing your search or selecting a year above.</p>
+            </div>
             {"".join(year_sections)}
         </main>
 
@@ -302,6 +311,10 @@ def generate_all_cbse_class12_pages():
             <p>&copy; 2026 EduHome | CBSE Class 12 Study Materials Portal | Powered by Google Drive</p>
         </footer>
     </div>
+
+    <button type="button" id="backToTopBtn" class="back-to-top-btn" aria-label="Back to top" onclick="scrollToTopSmooth()">
+        <i class="fa-solid fa-arrow-up"></i>
+    </button>
 
     {JS_FILTER}
 
@@ -321,3 +334,4 @@ if __name__ == "__main__":
     if BASE_DIR not in sys.path:
         sys.path.insert(0, BASE_DIR)
     generate_all_cbse_class12_pages()
+
