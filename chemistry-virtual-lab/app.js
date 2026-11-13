@@ -56,6 +56,97 @@ const logCount = document.getElementById("logCount");
 const dragGhost = document.getElementById("dragGhost");
 const benchCanvas = document.getElementById("benchCanvas");
 
+class SaltSoundEngine {
+  constructor() { this.ctx = null; this.muted = false; }
+  ensure() {
+    if (this.muted) return null;
+    if (!this.ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC) this.ctx = new AC();
+    }
+    if (this.ctx && this.ctx.state === "suspended") this.ctx.resume();
+    return this.ctx;
+  }
+  playNoise(dur, freq, gainVal, rampFreq = null) {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const bufSize = Math.floor(ctx.sampleRate * dur);
+    const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    const flt = ctx.createBiquadFilter();
+    flt.type = "bandpass";
+    flt.frequency.setValueAtTime(freq, t);
+    if (rampFreq) flt.frequency.linearRampToValueAtTime(rampFreq, t + dur);
+    flt.Q.value = 1.5;
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.linearRampToValueAtTime(gainVal, t + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    src.connect(flt).connect(g).connect(ctx.destination);
+    src.start(t);
+    src.stop(t + dur);
+  }
+  playDrop() {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(580, t);
+    osc.frequency.exponentialRampToValueAtTime(1120, t + 0.06);
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.linearRampToValueAtTime(0.09, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    osc.connect(g).connect(ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.085);
+  }
+  playWash() { this.playNoise(0.55, 880, 0.12, 420); }
+  playSwirl() { this.playNoise(0.32, 460, 0.08, 300); }
+  playIgnite() { this.playNoise(0.5, 220, 0.16, 130); }
+  playFizz() { this.playNoise(0.7, 2400, 0.07, 3200); }
+  playChime() {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(f, t + idx * 0.08);
+      g.gain.setValueAtTime(0.001, t + idx * 0.08);
+      g.gain.linearRampToValueAtTime(0.08, t + idx * 0.08 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.08 + 0.3);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(t + idx * 0.08);
+      osc.stop(t + idx * 0.08 + 0.34);
+    });
+  }
+  playWarn() {
+    const ctx = this.ensure();
+    if (!ctx) return;
+    const t = ctx.currentTime;
+    [320, 240].forEach((f, idx) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(f, t + idx * 0.12);
+      g.gain.setValueAtTime(0.04, t + idx * 0.12);
+      g.gain.exponentialRampToValueAtTime(0.001, t + idx * 0.12 + 0.1);
+      osc.connect(g).connect(ctx.destination);
+      osc.start(t + idx * 0.12);
+      osc.stop(t + idx * 0.12 + 0.11);
+    });
+  }
+}
+
+const saltSound = new SaltSoundEngine();
+
 function init() {
   const og1 = document.createElement("optgroup");
   og1.label = "Inorganic Salts (23)";
@@ -82,6 +173,15 @@ function init() {
     clearBench(true);
     renderRecordBook();
   });
+
+  const soundBtn = document.getElementById("soundToggleBtn");
+  if (soundBtn) {
+    soundBtn.addEventListener("click", () => {
+      saltSound.muted = !saltSound.muted;
+      soundBtn.textContent = saltSound.muted ? "🔇 Muted" : "🔊 Sound On";
+      if (!saltSound.muted) saltSound.playDrop();
+    });
+  }
 
   const mysteryBtn = document.getElementById("mysteryBtn");
   mysteryBtn.addEventListener("click", () => {
@@ -263,6 +363,7 @@ function spawnTube(clientX, clientY) {
 }
 
 function washSingleTube(tubeObj) {
+  saltSound.playWash();
   const tt = tubeObj.el.querySelector(".test-tube");
   const rinse = document.createElement("div");
   rinse.className = "tube-rinse";
@@ -851,9 +952,11 @@ function verifyMystery() {
   if (ga === currentSalt.anion && gc === currentSalt.cation) {
     fb.style.color = "#16a34a";
     fb.textContent = `🎉 Correct! ${currentSalt.name} (${currentSalt.formula})`;
+    saltSound.playChime();
   } else {
     fb.style.color = "#dc2626";
     fb.textContent = `${ga === currentSalt.anion ? "Anion ✅" : "Anion ❌"} | ${gc === currentSalt.cation ? "Cation ✅" : "Cation ❌"}`;
+    saltSound.playWarn();
   }
 }
 
@@ -862,6 +965,7 @@ function verifyMystery() {
 // =========================================================================
 function toggleBurnerObj(bObj) {
   bObj.on = !bObj.on;
+  if (bObj.on) saltSound.playIgnite();
   bObj.el.querySelector(".burner-flame").classList.toggle("hidden", !bObj.on);
   const sw = bObj.el.querySelector(".burner-collar");
   sw.className = "burner-collar " + (bObj.on ? "on" : "off");
@@ -1122,6 +1226,7 @@ function performTubeAction(tubeObj, id, dropColor) {
 }
 
 function animateDropper(tubeObj, color) {
+  saltSound.playDrop();
   const d = tubeObj.el.querySelector(".pour-dropper");
   tubeObj.el.querySelector(".pd-drop").style.background = color;
   d.classList.remove("hidden");
@@ -1142,6 +1247,7 @@ function animateDropper(tubeObj, color) {
 }
 
 function shakeTubeEl(el) {
+  saltSound.playSwirl();
   el.classList.remove("shaking");
   void el.offsetWidth;
   el.classList.add("shaking");
@@ -1868,15 +1974,18 @@ function evaluateTube(tubeObj, isReset = false) {
     fx.temp = st.temp;
     fx.vapourType = vapourBg ? (vapourBg.includes("180, 83, 9") ? "brown" : "faint") : null;
     if (!isReset && hasLiquid) {
-      fx.plumes.push({
-        x: 72 + (Math.random() - 0.5) * 14,
-        y: 290 - (liquidHeight / 100) * 195 + 14,
-        vx: (Math.random() - 0.5) * 0.7,
-        vy: 0.7 + Math.random() * 0.5,
-        r: 6,
-        alpha: 0.65,
-        color: parseColor(liquidColor)
-      });
+      if (bubbles) saltSound.playFizz();
+      for (let k = 0; k < (pptColor ? 3 : 1); k++) {
+        fx.plumes.push({
+          x: 72 + (Math.random() - 0.5) * 18,
+          y: 290 - (liquidHeight / 100) * 195 + 14 + Math.random() * 14,
+          vx: (Math.random() - 0.5) * 0.9,
+          vy: 0.7 + Math.random() * 0.6,
+          r: pptColor ? 8 : 6,
+          alpha: 0.72,
+          color: parseColor(pptColor || liquidColor)
+        });
+      }
     }
   }
 
@@ -2591,8 +2700,11 @@ function renderBurnerFX(bObj) {
   ctx.fill();
 
   // Spectral sparks / embers
-  if (fx.sparkColor && fx.sparks.length < 18 && Math.random() < 0.35) {
-    fx.sparks.push({ x: 60 + (Math.random() - 0.5) * 14, y: 88, vx: (Math.random() - 0.5) * 0.7, vy: -(1.2 + Math.random() * 1.2), life: 0, max: 28 + Math.random() * 18 });
+  const emberCol = fx.sparkColor || "rgba(125, 211, 252, 0.75)";
+  const maxSparks = fx.sparkColor ? 22 : 6;
+  const spawnProb = fx.sparkColor ? 0.42 : 0.12;
+  if (fx.sparks.length < maxSparks && Math.random() < spawnProb) {
+    fx.sparks.push({ x: 60 + (Math.random() - 0.5) * 14, y: 88, vx: (Math.random() - 0.5) * 0.85, vy: -(1.2 + Math.random() * 1.4), life: 0, max: 28 + Math.random() * 18 });
   }
   for (let i = fx.sparks.length - 1; i >= 0; i--) {
     const sp = fx.sparks[i];
@@ -2601,9 +2713,9 @@ function renderBurnerFX(bObj) {
     sp.y += sp.vy;
     if (sp.life >= sp.max) { fx.sparks.splice(i, 1); continue; }
     ctx.globalAlpha = 1 - sp.life / sp.max;
-    ctx.fillStyle = fx.sparkColor || "#fbbf24";
+    ctx.fillStyle = emberCol;
     ctx.beginPath();
-    ctx.arc(sp.x, sp.y, 1.5, 0, Math.PI * 2);
+    ctx.arc(sp.x, sp.y, fx.sparkColor ? 2.1 : 1.3, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.globalAlpha = 1;
