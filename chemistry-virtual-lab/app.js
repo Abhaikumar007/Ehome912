@@ -267,9 +267,17 @@ function init() {
   const dw = document.getElementById("deviceWarning");
   const tryBtn = document.getElementById("tryAnywayBtn");
   if (dw && tryBtn) {
-    if (window.innerWidth <= 820 && !sessionStorage.getItem("eduhome_try_mobile")) {
-      dw.classList.remove("hidden");
-    }
+    const syncDeviceWarning = () => {
+      const isPortraitMobile = window.innerWidth <= 820 && window.innerHeight > window.innerWidth;
+      if (isPortraitMobile && !sessionStorage.getItem("eduhome_try_mobile")) {
+        dw.classList.remove("hidden");
+      } else {
+        dw.classList.add("hidden");
+      }
+    };
+    syncDeviceWarning();
+    window.addEventListener("resize", syncDeviceWarning);
+    window.addEventListener("orientationchange", syncDeviceWarning);
     tryBtn.addEventListener("click", () => {
       sessionStorage.setItem("eduhome_try_mobile", "1");
       dw.classList.add("hidden");
