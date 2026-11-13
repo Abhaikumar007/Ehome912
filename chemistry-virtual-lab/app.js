@@ -1215,13 +1215,15 @@ function performTubeAction(tubeObj, id, dropColor) {
     return;
   }
 
-  if (!st.hasDrySalt && !st.hasSolution) {
-    if (id === "conc_h2so4" || id === "dil_h2so4") st.hasDrySalt = true;
-    else { st.hasSolution = true; st.volume = 24; }
-  }
   st.reagents.push(id);
-  st.volume = Math.min(76, Math.max(32, st.volume + 11));
+  st.volume = Math.min(76, Math.max(24, st.volume + 11));
   animateDropper(tubeObj, dropColor || "#0284c7");
+  if (!st.hasDrySalt && !st.hasSolution) {
+    saltSound.playWarn();
+    showObs("⚠️ <strong>No salt in test tube!</strong> Add <strong>Dry Salt</strong> or <strong>Salt Solution</strong> first — pure reagent alone gives no reaction.");
+    evaluateTube(tubeObj, true);
+    return;
+  }
   evaluateTube(tubeObj);
 }
 
@@ -1528,13 +1530,17 @@ function evaluateTube(tubeObj, isReset = false) {
   const count = (id) => st.reagents.filter((x) => x === id).length;
 
   let liquidHeight = st.volume;
-  let liquidColor = s.cation === "Cu" ? "rgba(56, 189, 248, 0.55)" : "rgba(186, 230, 253, 0.42)";
+  let liquidColor = (s.cation === "Cu" && (st.hasDrySalt || st.hasSolution))
+    ? "rgba(56, 189, 248, 0.55)"
+    : "rgba(186, 230, 253, 0.42)";
   let pptColor = st.hasDrySalt && st.reagents.length === 0 ? "#ffffff" : null;
   let pptStyle = "";
   let bubbles = false, spangles = false, brownRing = false, silverMirror = false, vapourBg = null, rodFumes = false, limeMilky = false, smell = st.smelled;
   let exp = null, obs = null, inf = null;
 
-  if (s.kind === "organic") {
+  if (!st.hasDrySalt && !st.hasSolution) {
+    // Empty of salt/sample — reagents alone do not react
+  } else if (s.kind === "organic") {
     const orgRes = evaluateOrganicTube(s, st, rSet);
     liquidColor = orgRes.liquidColor;
     pptColor = orgRes.pptColor;
