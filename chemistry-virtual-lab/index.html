@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduHome Chemistry Virtual Lab - Salt Analysis (Beta Version)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- MINIMAL TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⚗️</span>
+      <h1>EduHome Chemistry Virtual Lab - Salt Analysis <span class="beta-badge">Beta Version</span></h1>
+    </div>
+
+    <div class="controls">
+      <select id="saltSelect" aria-label="Select Salt"></select>
+      <button id="mysteryBtn" class="btn btn-outline" type="button">🎯 Mystery</button>
+      <button id="washTubeBtn" class="btn btn-outline" type="button">🚰 Wash Tube</button>
+      <button id="washBtn" class="btn btn-danger" type="button">🗑️ Clear Bench</button>
+      <button id="notebookToggleBtn" class="btn btn-primary" type="button">📓 Record Book (<span id="logCount">0</span>)</button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace">
+    <!-- CLEAN REAGENT & TOOL SHELF -->
+    <aside class="shelf">
+      <div class="shelf-group">
+        <h3>Apparatus</h3>
+        <div class="grid-3">
+          <div class="item" data-id="spawn_tube" data-kind="apparatus"><span>🧪</span><span>Test Tube</span></div>
+          <div class="item" data-id="spawn_burner" data-kind="apparatus"><span>🔥</span><span>Burner</span></div>
+          <div class="item" data-id="spawn_bath" data-kind="apparatus"><span>🧊</span><span>Cold Bath</span></div>
+          <div class="item" data-id="spawn_watchglass" data-kind="apparatus">
+            <svg class="tool-svg" viewBox="0 0 36 28"><path d="M4 13c4 7 24 7 28 0" fill="rgba(186,230,253,0.45)" stroke="#64748b" stroke-width="2" stroke-linecap="round"/><ellipse cx="18" cy="13" rx="14" ry="2.6" fill="rgba(226,232,240,0.4)" stroke="#94a3b8" stroke-width="1"/></svg>
+            <span>Watch Glass</span>
+          </div>
+          <div class="item" data-id="spawn_rod" data-kind="apparatus">
+            <svg class="tool-svg" viewBox="0 0 36 28"><line x1="6" y1="22" x2="30" y2="6" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/><line x1="6" y1="22" x2="30" y2="6" stroke="#e0f2fe" stroke-width="2" stroke-linecap="round"/></svg>
+            <span>Glass Rod</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>Sample</h3>
+        <div class="grid-2">
+          <div class="item" data-id="dry_salt" data-color="#e2e8f0">
+            <div class="jar"><div class="jar-cap"></div><div class="jar-body">Solid</div></div>
+            <span>Dry Salt</span>
+          </div>
+          <div class="item" data-id="salt_sol" data-color="#bae6fd">
+            <div class="bottle"><div class="b-cap"></div><div class="b-body">Soln</div></div>
+            <span>Salt Soln</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>Acids &amp; Bases</h3>
+        <div class="grid-3">
+          <div class="item" data-id="dil_hcl" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">dil. HCl</div></div><span>dil. HCl</span></div>
+          <div class="item" data-id="conc_hcl" data-color="#94a3b8"><div class="bottle"><div class="b-cap"></div><div class="b-body">conc. HCl</div></div><span>conc. HCl</span></div>
+          <div class="item" data-id="dil_h2so4" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">dil. H₂SO₄</div></div><span>dil. H₂SO₄</span></div>
+          <div class="item" data-id="conc_h2so4" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">conc. H₂SO₄</div></div><span>conc. H₂SO₄</span></div>
+          <div class="item" data-id="dil_hno3" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">dil. HNO₃</div></div><span>dil. HNO₃</span></div>
+          <div class="item" data-id="conc_hno3" data-color="#fde047"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">conc. HNO₃</div></div><span>conc. HNO₃</span></div>
+          <div class="item" data-id="ch3cooh" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">CH₃COOH</div></div><span>Acetic Acid</span></div>
+          <div class="item" data-id="naoh" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NaOH</div></div><span>NaOH</span></div>
+          <div class="item" data-id="nh4oh" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NH₄OH</div></div><span>NH₄OH</span></div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>Reagents</h3>
+        <div class="grid-3">
+          <div class="item" data-id="bacl2" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">BaCl₂</div></div><span>BaCl₂</span></div>
+          <div class="item" data-id="fecl3" data-color="#eab308"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">FeCl₃</div></div><span>FeCl₃</span></div>
+          <div class="item" data-id="agno3" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">AgNO₃</div></div><span>AgNO₃</span></div>
+          <div class="item" data-id="feso4" data-color="#4ade80"><div class="bottle"><div class="b-cap"></div><div class="b-body green">FeSO₄</div></div><span>FeSO₄</span></div>
+          <div class="item" data-id="lead_acetate" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Pb(OAc)₂</div></div><span>Pb(OAc)₂</span></div>
+          <div class="item" data-id="amm_acetate" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NH₄OAc</div></div><span>NH₄OAc</span></div>
+          <div class="item" data-id="na2co3" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Na₂CO₃</div></div><span>Na₂CO₃</span></div>
+          <div class="item" data-id="nh4cl" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NH₄Cl</div></div><span>NH₄Cl</span></div>
+          <div class="item" data-id="amm_carbonate" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">(NH₄)₂CO₃</div></div><span>(NH₄)₂CO₃</span></div>
+          <div class="item" data-id="na2hpo4" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Na₂HPO₄</div></div><span>Na₂HPO₄</span></div>
+          <div class="item" data-id="nessler" data-color="#facc15"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">Nessler's</div></div><span>Nessler's</span></div>
+          <div class="item" data-id="ki" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">KI</div></div><span>KI</span></div>
+          <div class="item" data-id="k2cro4" data-color="#facc15"><div class="bottle"><div class="b-cap"></div><div class="b-body yellow">K₂CrO₄</div></div><span>K₂CrO₄</span></div>
+          <div class="item" data-id="amm_oxalate" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Oxalate</div></div><span>Oxalate</span></div>
+          <div class="item" data-id="magneson" data-color="#3b82f6"><div class="bottle"><div class="b-cap"></div><div class="b-body blue">Magneson</div></div><span>Magneson</span></div>
+          <div class="item" data-id="cobalt_nitrate" data-color="#f43f5e"><div class="bottle"><div class="b-cap"></div><div class="b-body pink">Co(NO₃)₂</div></div><span>Co(NO₃)₂</span></div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>Organic Reagents</h3>
+        <div class="grid-3">
+          <div class="item" data-id="nahco3" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NaHCO₃</div></div><span>NaHCO₃</span></div>
+          <div class="item" data-id="ethanol" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">C₂H₅OH</div></div><span>Ethanol</span></div>
+          <div class="item" data-id="bromine_water" data-color="#ea580c"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">Br₂ H₂O</div></div><span>Br₂ Water</span></div>
+          <div class="item" data-id="nano2" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">NaNO₂</div></div><span>NaNO₂</span></div>
+          <div class="item" data-id="aniline" data-color="#fde047"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">Aniline</div></div><span>Aniline</span></div>
+          <div class="item" data-id="beta_naphthol" data-color="#f59e0b"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">β-Naph</div></div><span>β-Naphthol</span></div>
+          <div class="item" data-id="chcl3" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">CHCl₃</div></div><span>CHCl₃</span></div>
+          <div class="item" data-id="alc_koh" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">alc. KOH</div></div><span>alc. KOH</span></div>
+          <div class="item" data-id="borsche" data-color="#f97316"><div class="bottle"><div class="b-cap"></div><div class="b-body amber">Borsche</div></div><span>Borsche's</span></div>
+          <div class="item" data-id="schiff" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Schiff's</div></div><span>Schiff's</span></div>
+          <div class="item" data-id="tollens" data-color="#cbd5e1"><div class="bottle"><div class="b-cap"></div><div class="b-body">Tollen's</div></div><span>Tollen's</span></div>
+          <div class="item" data-id="fehlings" data-color="#2563eb"><div class="bottle"><div class="b-cap"></div><div class="b-body blue">Fehling's</div></div><span>Fehling's</span></div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>Tools</h3>
+        <div class="grid-2">
+          <div class="item tool" data-id="h2s_gas">
+            <svg class="tool-svg" viewBox="0 0 36 28"><path d="M4 6h14a4 4 0 0 1 4 4v14" fill="none" stroke="#64748b" stroke-width="2.6" stroke-linecap="round"/><circle cx="22" cy="25" r="2" fill="#38bdf8"/><circle cx="18" cy="22" r="1.5" fill="#94a3b8"/><circle cx="26" cy="21" r="1.5" fill="#94a3b8"/></svg>
+            <span>H₂S Gas</span>
+          </div>
+          <div class="item tool" data-id="paper_ball">
+            <svg class="tool-svg" viewBox="0 0 36 28"><path d="M12 10c2-4 10-5 13 0 3 4 1 11-5 12-6 1-11-3-10-8 0-2 1-3 2-4z" fill="#e7e5e4" stroke="#78716c" stroke-width="1.6"/><path d="M13 13c3 1 6-1 8 2M15 18c2-1 4 0 5-2" fill="none" stroke="#a8a29e" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span>Paper Ball</span>
+          </div>
+          <div class="item tool" data-id="rod_nh4oh">
+            <svg class="tool-svg" viewBox="0 0 36 28"><line x1="6" y1="22" x2="29" y2="6" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/><line x1="6" y1="22" x2="29" y2="6" stroke="#e0f2fe" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="22" r="2.8" fill="#bae6fd" stroke="#0284c7" stroke-width="1"/></svg>
+            <span>NH₄OH Rod</span>
+          </div>
+          <div class="item tool" data-id="rod_hcl">
+            <svg class="tool-svg" viewBox="0 0 36 28"><line x1="6" y1="22" x2="29" y2="6" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/><line x1="6" y1="22" x2="29" y2="6" stroke="#fef9c3" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="22" r="2.8" fill="#fde047" stroke="#ca8a04" stroke-width="1"/></svg>
+            <span>HCl Rod</span>
+          </div>
+          <div class="item tool" data-id="lime_water">
+            <svg class="tool-svg" viewBox="0 0 36 28"><rect x="4" y="8" width="7" height="5" rx="1" fill="#475569"/><path d="M7 8V5h16v14" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 12v11a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V12" fill="#f8fafc" stroke="#64748b" stroke-width="1.6"/><rect x="18" y="17" width="10" height="7" rx="1" fill="#bae6fd"/></svg>
+            <span>Lime Water</span>
+          </div>
+          <div class="item tool" data-id="smell_waft">
+            <svg class="tool-svg" viewBox="0 0 36 28"><path d="M11 22c-2-3 2-5 0-8s2-5 0-8M18 22c-2-3 2-5 0-8s2-5 0-8M25 22c-2-3 2-5 0-8s2-5 0-8" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <span>Smell</span>
+          </div>
+          <div class="item tool" data-id="pt_wire" data-target="burner">
+            <svg class="tool-svg" viewBox="0 0 36 28"><line x1="6" y1="22" x2="18" y2="14" stroke="#334155" stroke-width="3.2" stroke-linecap="round"/><line x1="18" y1="14" x2="26" y2="9" stroke="#64748b" stroke-width="1.6"/><circle cx="28" cy="8" r="2.6" fill="none" stroke="#475569" stroke-width="1.6"/></svg>
+            <span>Flame Wire</span>
+          </div>
+          <div class="item tool" data-id="ash_paper" data-target="burner">
+            <svg class="tool-svg" viewBox="0 0 36 28"><path d="M9 5h12l5 5v13H9z" fill="#f8fafc" stroke="#64748b" stroke-width="1.6" stroke-linejoin="round"/><path d="M21 5v5h5" fill="none" stroke="#64748b" stroke-width="1.4"/><circle cx="17.5" cy="15.5" r="3.2" fill="#f472b6" opacity="0.65"/></svg>
+            <span>Ash Paper</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PURE WHITE FREEFORM LAB CANVAS -->
+    <main class="bench-wrap">
+      <div id="obsBar" class="obs-bar hidden"></div>
+
+      <!-- 2D Interactive Canvas (Starts Clean — Drag Apparatus & Reagents Here!) -->
+      <div class="bench-canvas" id="benchCanvas">
+        <div class="table-edge"></div>
+      </div>
+
+      <!-- COMPACT MYSTERY BAR (Only in Mystery Mode) -->
+      <div id="mysteryBar" class="mystery-bar hidden">
+        <select id="guessAnion">
+          <option value="">Anion...</option>
+          <option value="CO3">Carbonate (CO₃²⁻)</option>
+          <option value="CH3COO">Acetate (CH₃COO⁻)</option>
+          <option value="Cl">Chloride (Cl⁻)</option>
+          <option value="NO3">Nitrate (NO₃⁻)</option>
+          <option value="SO4">Sulphate (SO₄²⁻)</option>
+        </select>
+        <select id="guessCation">
+          <option value="">Cation...</option>
+          <option value="NH4">Ammonium (NH₄⁺)</option>
+          <option value="Pb">Lead (Pb²⁺)</option>
+          <option value="Cu">Copper (Cu²⁺)</option>
+          <option value="Al">Aluminium (Al³⁺)</option>
+          <option value="Zn">Zinc (Zn²⁺)</option>
+          <option value="Ba">Barium (Ba²⁺)</option>
+          <option value="Ca">Calcium (Ca²⁺)</option>
+          <option value="Mg">Magnesium (Mg²⁺)</option>
+        </select>
+        <button id="verifyBtn" class="btn btn-primary" type="button">Check</button>
+        <button id="revealBtn" class="btn btn-outline" type="button">Reveal</button>
+        <button id="newMysteryBtn" class="btn btn-outline" type="button">🎲 New</button>
+        <span id="mysteryFeedback" class="mystery-feedback"></span>
+      </div>
+    </main>
+  </div>
+
+  <!-- SLIDE-OVER LAB RECORD BOOK DRAWER -->
+  <div id="notebookDrawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h2>📓 Record Book</h2>
+      <div class="drawer-actions">
+        <button id="clearLogBtn" class="btn btn-outline" type="button">Clear</button>
+        <button id="closeDrawerBtn" class="btn btn-primary" type="button">Close</button>
+      </div>
+    </div>
+    <div class="drawer-tabs">
+      <button id="tabMyLog" class="drawer-tab active" type="button">My Observations</button>
+      <button id="tabRecordBook" class="drawer-tab" type="button">📖 Class 12 Record Book</button>
+    </div>
+    <div class="drawer-body">
+      <div id="panelMyLog">
+        <table>
+          <thead>
+            <tr>
+              <th>Experiment</th>
+              <th>Observation</th>
+              <th>Inference</th>
+            </tr>
+          </thead>
+          <tbody id="logBody">
+            <tr class="empty-row"><td colspan="3">No experiments recorded yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="panelRecordBook" class="hidden">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:38%">Experiment</th>
+              <th style="width:34%">Observation</th>
+              <th style="width:28%">Inference</th>
+            </tr>
+          </thead>
+          <tbody id="recordBookBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOATING DRAG GHOST -->
+  <div id="dragGhost" class="drag-ghost hidden"></div>
+
+  <!-- MOBILE / SMALL-SCREEN WARNING MODAL -->
+  <div id="deviceWarning" class="device-warning hidden" role="dialog" aria-modal="true" aria-labelledby="dwTitle">
+    <div class="dw-card">
+      <div class="dw-icon">💻</div>
+      <h2 id="dwTitle">Best Experienced on PC &amp; Laptop</h2>
+      <p>EduHome Chemistry Virtual Lab (Beta Version) is designed for PCs and laptops. Please switch to a PC or laptop for the best drag-and-drop experience.</p>
+      <button id="tryAnywayBtn" class="btn btn-primary" type="button">Try Anyway</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
