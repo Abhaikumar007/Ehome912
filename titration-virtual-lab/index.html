@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduHome Chemistry Virtual Lab - Volumetric Analysis (Beta Version)</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">⚗️</span>
+      <h1>EduHome Chemistry Virtual Lab - Volumetric Analysis <span class="beta-badge">Beta Version</span></h1>
+    </div>
+    <div class="controls">
+      <select id="expSelect" aria-label="Select Titration Experiment"></select>
+      <button id="soundToggleBtn" class="btn btn-outline" type="button" title="Toggle Sound Effects">🔊 Sound On</button>
+      <button id="newTrialBtn" class="btn btn-outline" type="button">🔄 Rinse Flask</button>
+      <button id="resetAllBtn" class="btn btn-danger" type="button">🗑️ Reset Lab</button>
+      <button id="recordBookBtn" class="btn btn-primary" type="button">📓 Observations (<span id="readingCount">0</span>)</button>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <!-- LEFT / BOTTOM REAGENT & ACTION SHELF -->
+    <aside class="shelf">
+      <div class="shelf-group">
+        <h3>1. Prepare Flask</h3>
+        <div class="grid-2">
+          <button id="pipetteBtn" class="item tool-btn" type="button"><span>🧪</span><span>Pipette 20 mL</span></button>
+          <button id="acidBtn" class="item tool-btn" type="button"><span>💧</span><span>+20 mL dil. H₂SO₄</span></button>
+          <button id="phenolBtn" class="item tool-btn" type="button"><span>🩷</span><span>Phenolphthalein</span></button>
+          <button id="methylBtn" class="item tool-btn" type="button"><span>🟠</span><span>Methyl Orange</span></button>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>2. Temperature &amp; Mixing</h3>
+        <div class="grid-2">
+          <button id="heatBtn" class="item tool-btn" type="button"><span>🔥</span><span>Warm (65°C)</span></button>
+          <button id="swirlBtn" class="item tool-btn" type="button"><span>🌀</span><span>Swirl Flask</span></button>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>3. Burette &amp; Stopcock Wheel</h3>
+        <div class="grid-2">
+          <button id="fillBuretteBtn" class="item tool-btn" type="button"><span>⬆️</span><span>Fill (0.0 mL)</span></button>
+          <button id="drop1Btn" class="item tool-btn" type="button"><span>💧</span><span>+1 Drop (0.1 mL)</span></button>
+        </div>
+
+        <div class="valve-box">
+          <div class="valve-header">
+            <span>Stopcock Valve</span>
+            <span id="valveFlowLabel" class="valve-badge">Closed (0°)</span>
+          </div>
+          <div class="valve-wheel-wrap">
+            <div id="stopcockWheel" class="valve-wheel" role="slider" aria-label="Stopcock Valve Wheel" aria-valuemin="0" aria-valuemax="180" aria-valuenow="0" tabindex="0">
+              <div class="valve-spokes"></div>
+              <div class="valve-hub"></div>
+              <div class="valve-pointer"></div>
+            </div>
+          </div>
+          <div class="valve-quick">
+            <button id="valveLessBtn" class="btn btn-outline btn-xs" type="button">− Turn</button>
+            <button id="valveCloseBtn" class="btn btn-danger btn-xs" type="button">Close (0°)</button>
+            <button id="valveMoreBtn" class="btn btn-outline btn-xs" type="button">+ Turn</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="shelf-group">
+        <h3>4. Record</h3>
+        <button id="logReadingBtn" class="btn btn-primary full-btn" type="button">📝 Record Burette Reading</button>
+      </div>
+    </aside>
+
+    <!-- MAIN WHITE LAB BENCH -->
+    <main class="bench-wrap">
+      <div id="obsBar" class="obs-bar">Select an experiment, pipette 20 mL into the conical flask, add indicator, and titrate!</div>
+
+      <div class="bench-canvas" id="benchCanvas">
+        <!-- Live Meniscus Zoom Card -->
+        <div class="meniscus-card">
+          <div class="mc-title">Burette Meniscus</div>
+          <canvas id="meniscusCanvas" width="140" height="140"></canvas>
+          <div class="mc-readout"><span id="buretteReadout">0.0</span> mL</div>
+        </div>
+
+        <!-- Burette + Stand + Conical Flask + Tile Canvas -->
+        <canvas id="labCanvas" width="900" height="720"></canvas>
+
+        <!-- Flask Live Status Pill -->
+        <div class="flask-status" id="flaskStatus">Flask: Empty · 25°C</div>
+        <div class="table-edge"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- SLIDE-OVER OBSERVATIONS & CALCULATIONS DRAWER -->
+  <div id="obsDrawer" class="drawer hidden">
+    <div class="drawer-header">
+      <h2>📓 Volumetric Observations &amp; Calculations</h2>
+      <div class="drawer-actions">
+        <button id="clearReadingsBtn" class="btn btn-outline" type="button">Clear</button>
+        <button id="closeDrawerBtn" class="btn btn-primary" type="button">Close</button>
+      </div>
+    </div>
+    <div class="drawer-body">
+      <div id="expSummaryCard" class="summary-card"></div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Sl.</th>
+            <th>V₁ (mL)</th>
+            <th>Initial (mL)</th>
+            <th>Final (mL)</th>
+            <th>Used (mL)</th>
+          </tr>
+        </thead>
+        <tbody id="readingsBody">
+          <tr class="empty-row"><td colspan="5">No burette readings recorded yet.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="calc-card">
+        <h3>Calculations (<span id="concordantBadge">Need concordant reading</span>)</h3>
+        <div id="calcFormulaText" class="calc-steps"></div>
+        <div class="calc-inputs">
+          <label>Your Normality (N): <input id="userNormality" type="number" step="0.0001" placeholder="e.g. 0.1000" /></label>
+          <label>Mass in 100 mL (g): <input id="userMass" type="number" step="0.001" placeholder="e.g. 0.400" /></label>
+          <button id="checkCalcBtn" class="btn btn-primary" type="button">Check Answer</button>
+          <div id="calcFeedback" class="calc-feedback"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MOBILE / SMALL-SCREEN WARNING MODAL -->
+  <div id="deviceWarning" class="device-warning hidden" role="dialog" aria-modal="true" aria-labelledby="dwTitle">
+    <div class="dw-card">
+      <div class="dw-icon">💻</div>
+      <h2 id="dwTitle">Best Experienced on PC &amp; Laptop</h2>
+      <p>EduHome Chemistry Virtual Lab (Beta Version) is designed for PCs and laptops. Please switch to a PC or laptop for the best experience.</p>
+      <button id="tryAnywayBtn" class="btn btn-primary" type="button">Try Anyway</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
