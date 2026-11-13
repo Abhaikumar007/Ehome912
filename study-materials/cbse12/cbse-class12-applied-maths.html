@@ -24,13 +24,23 @@
         --btn-folder-hover: #6d28d9;
     }
 
+    *, *::before, *::after {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+    }
+
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f8fafc;
         color: var(--text-dark);
         margin: 0;
-        padding-bottom: 50px;
+        padding-bottom: 60px;
         line-height: 1.5;
+        overflow-x: hidden;
     }
 
     .subject-header {
@@ -63,84 +73,37 @@
         margin: -5px auto 15px auto;
         font-size: 0.9rem;
         color: var(--text-muted);
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        gap: 5px;
     }
 
     .breadcrumbs a {
         color: var(--primary-blue);
         text-decoration: none;
-        padding: 2px 0;
     }
 
     .breadcrumbs a:hover {
         text-decoration: underline;
     }
 
-    .top-nav-bar {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        margin-bottom: 18px;
-    }
-
     .back-btn-box {
-        margin-bottom: 0;
+        margin-bottom: 20px;
     }
 
     .back-btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        min-height: 42px;
-        padding: 8px 14px;
+        padding: 7px 14px;
         background-color: #e2e8f0;
         color: #1e293b;
-        border-radius: 8px;
+        border-radius: 6px;
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 500;
         font-size: 0.9rem;
         transition: background 0.2s ease;
     }
 
     .back-btn:hover {
         background-color: #cbd5e1;
-    }
-
-    .subject-switcher-wrap {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .subject-switcher-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        white-space: nowrap;
-    }
-
-    .subject-switcher {
-        min-height: 42px;
-        padding: 8px 32px 8px 12px;
-        font-size: 0.92rem;
-        font-weight: 600;
-        color: var(--text-dark);
-        background-color: #ffffff;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        cursor: pointer;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-
-    .subject-switcher:focus {
-        outline: none;
-        border-color: var(--secondary-blue);
-        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
     }
 
     .section-nav-pills {
@@ -153,7 +116,6 @@
     .section-nav-pill {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
         gap: 6px;
         padding: 7px 15px;
         background: #ffffff;
@@ -167,8 +129,7 @@
         transition: all 0.2s ease;
     }
 
-    .section-nav-pill:hover,
-    .section-nav-pill.active {
+    .section-nav-pill:hover {
         background: var(--primary-blue);
         color: #ffffff;
         border-color: var(--primary-blue);
@@ -176,77 +137,18 @@
 
     .search-box-wrapper {
         position: relative;
-        margin-bottom: 28px;
+        margin-bottom: 30px;
     }
 
     .search-input {
         width: 100%;
-        padding: 14px 44px 14px 45px;
+        padding: 14px 20px 14px 45px;
         font-size: 1rem;
         border: 1px solid var(--border-color);
         border-radius: 10px;
         background: #ffffff;
         box-shadow: 0 2px 6px rgba(0,0,0,0.04);
         box-sizing: border-box;
-    }
-
-    .search-clear-btn {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 32px;
-        height: 32px;
-        border: none;
-        background: #e2e8f0;
-        color: #475569;
-        border-radius: 50%;
-        cursor: pointer;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.95rem;
-    }
-
-    .search-clear-btn:hover {
-        background: #cbd5e1;
-        color: #1e293b;
-    }
-
-    .no-results-msg {
-        display: none;
-        text-align: center;
-        padding: 36px 20px;
-        background: #ffffff;
-        border: 1px dashed #cbd5e1;
-        border-radius: 12px;
-        color: var(--text-muted);
-        margin-bottom: 30px;
-    }
-
-    .back-to-top-btn {
-        position: fixed;
-        right: 18px;
-        bottom: 22px;
-        width: 48px;
-        height: 48px;
-        border-radius: 50%;
-        border: none;
-        background: var(--primary-blue);
-        color: #ffffff;
-        font-size: 1.15rem;
-        box-shadow: 0 4px 14px rgba(0, 90, 135, 0.35);
-        cursor: pointer;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        z-index: 120;
-        transition: transform 0.2s ease, background 0.2s ease;
-    }
-
-    .back-to-top-btn:hover {
-        background: #004466;
-        transform: translateY(-2px);
     }
 
     .search-input:focus {
@@ -366,6 +268,7 @@
         line-height: 1.35;
         color: var(--text-dark);
         margin: 0;
+        word-break: break-word;
     }
 
     .card-actions {
@@ -441,99 +344,65 @@
         text-decoration: none;
     }
 
-    @media (hover: none) {
-        .exam-card:hover {
-            transform: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-        }
+    .back-top-btn {
+        position: fixed;
+        right: 16px;
+        bottom: 20px;
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        cursor: pointer;
+        z-index: 999;
+        transition: transform 0.2s, background 0.2s;
+    }
+
+    .back-top-btn:hover {
+        background: #003b59;
+        transform: translateY(-2px);
     }
 
     @media (max-width: 768px) {
-        .subject-header {
-            padding: 1.5rem 1rem 1.35rem 1rem;
-            margin-bottom: 16px;
-        }
-        .subject-header h1 {
-            font-size: 1.55rem;
-        }
-        .subject-header p {
-            font-size: 0.92rem;
-        }
-        .top-nav-bar {
-            flex-direction: column;
-            align-items: stretch;
-        }
-        .back-btn {
-            width: 100%;
-            justify-content: center;
-            box-sizing: border-box;
-        }
-        .subject-switcher-wrap {
-            width: 100%;
-        }
-        .subject-switcher {
-            flex: 1 1 auto;
-            width: 100%;
-            font-size: 16px;
-        }
+        .subject-header { padding: 1.5rem 1rem 1.3rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.55rem; line-height: 1.25; }
+        .subject-header p { font-size: 0.95rem; }
+        .container { padding: 0 12px; }
+        .breadcrumbs { font-size: 0.84rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; font-size: 0.92rem; }
         .section-nav-pills {
-            position: sticky;
-            top: 0;
-            z-index: 95;
-            background: rgba(248, 250, 252, 0.96);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            padding: 10px 15px;
-            margin: 0 -15px 18px -15px;
-            border-bottom: 1px solid var(--border-color);
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
             scrollbar-width: none;
         }
-        .section-nav-pills::-webkit-scrollbar {
-            display: none;
-        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
         .section-nav-pill {
             flex: 0 0 auto;
-            min-height: 38px;
-            padding: 7px 14px;
+            min-height: 40px;
+            padding: 8px 16px;
             font-size: 0.9rem;
         }
-        .exam-section {
-            scroll-margin-top: 68px;
-            margin-bottom: 32px;
-        }
-        .search-input {
-            font-size: 16px;
-            padding: 13px 44px 13px 42px;
-        }
-        .section-title-bar {
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .section-title-bar h2 {
-            font-size: 1.18rem;
-        }
-        .cards-grid {
-            grid-template-columns: 1fr;
-            gap: 14px;
-        }
-        .exam-card {
-            padding: 15px;
-        }
-        .btn {
-            min-height: 44px;
-            padding: 10px 12px;
-            font-size: 0.88rem;
-            flex: 1 1 135px;
-        }
-        .back-to-top-btn {
-            right: 14px;
-            bottom: 16px;
-            width: 46px;
-            height: 46px;
-        }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { min-height: 46px; font-size: 16px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.25rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.88rem; }
+    }
+
+    @media (max-width: 480px) {
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
     }
 </style>
 
@@ -550,16 +419,8 @@
             <a href="../index.html">Home</a> &gt; <a href="../cbse.html">CBSE Board</a> &gt; <a href="cbse-class12.html">Class 12</a> &gt; Applied Mathematics
         </nav>
 
-        <div class="top-nav-bar">
-            <div class="back-btn-box">
-                <a href="cbse-class12.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-            </div>
-            <div class="subject-switcher-wrap">
-                <label for="subjectSwitcher" class="subject-switcher-label"><i class="fa-solid fa-layer-group"></i> Subject:</label>
-                <select id="subjectSwitcher" class="subject-switcher" aria-label="Switch Subject" onchange="if(this.value) window.location.href=this.value;">
-                    <option value="cbse-class12-english-core.html">English Core</option><option value="cbse-class12-mathematics.html">Mathematics</option><option value="cbse-class12-applied-maths.html" selected>Applied Mathematics</option><option value="cbse-class12-physics.html">Physics</option><option value="cbse-class12-chemistry.html">Chemistry</option><option value="cbse-class12-biology.html">Biology</option><option value="cbse-class12-accountancy.html">Accountancy</option><option value="cbse-class12-business-studies.html">Business Studies</option><option value="cbse-class12-economics.html">Economics</option><option value="cbse-class12-hindi-core.html">Hindi Core</option><option value="cbse-class12-psychology.html">Psychology</option><option value="cbse-class12-physical-education.html">Physical Education</option><option value="cbse-class12-history.html">History</option><option value="cbse-class12-geography.html">Geography</option><option value="cbse-class12-political-science.html">Political Science</option>
-                </select>
-            </div>
+        <div class="back-btn-box">
+            <a href="cbse-class12.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
         </div>
 
         <nav class="section-nav-pills" aria-label="Filter by Year">
@@ -569,15 +430,9 @@
         <div class="search-box-wrapper">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
             <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), paper code (e.g. 65-1-1), set, Delhi, Compartment..." onkeyup="filterPapers()">
-            <button type="button" id="searchClearBtn" class="search-clear-btn" aria-label="Clear search" onclick="clearPaperSearch()"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
         <main>
-            <div id="noResultsMsg" class="no-results-msg">
-                <i class="fa-solid fa-magnifying-glass fa-2x" style="margin-bottom: 10px; color: #94a3b8;"></i>
-                <p style="margin: 0; font-weight: 600;">No matching question papers found.</p>
-                <p style="margin: 6px 0 0 0; font-size: 0.9rem;">Try clearing your search or selecting a year above.</p>
-            </div>
             
             <section id="year-2026" class="exam-section">
                 <div class="section-title-bar">
@@ -787,29 +642,25 @@
         </footer>
     </div>
 
-    <button type="button" id="backToTopBtn" class="back-to-top-btn" aria-label="Back to top" onclick="scrollToTopSmooth()">
-        <i class="fa-solid fa-arrow-up"></i>
-    </button>
-
     
+<button id="backToTopBtn" class="back-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top" title="Back to top">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
 <script>
-function filterPapers() {
-    const input = document.getElementById('paperSearch');
-    const clearBtn = document.getElementById('searchClearBtn');
-    const noResults = document.getElementById('noResultsMsg');
-    const query = input.value.toLowerCase().trim();
-    if (clearBtn) {
-        clearBtn.style.display = query.length > 0 ? 'inline-flex' : 'none';
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 350 ? 'flex' : 'none';
     }
+});
 
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
     const cards = document.querySelectorAll('.exam-card');
-    let totalVisible = 0;
 
     cards.forEach(card => {
         const text = card.textContent.toLowerCase();
-        const match = text.includes(query);
-        card.style.display = match ? '' : 'none';
-        if (match) totalVisible++;
+        card.style.display = text.includes(query) ? '' : 'none';
     });
 
     document.querySelectorAll('.subsection-group').forEach(sub => {
@@ -821,60 +672,7 @@ function filterPapers() {
         const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
         sec.style.display = visibleCards.length > 0 ? '' : 'none';
     });
-
-    if (noResults) {
-        noResults.style.display = totalVisible === 0 ? 'block' : 'none';
-    }
 }
-
-function clearPaperSearch() {
-    const input = document.getElementById('paperSearch');
-    if (!input) return;
-    input.value = '';
-    filterPapers();
-    input.focus();
-}
-
-function scrollToTopSmooth() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const pills = Array.from(document.querySelectorAll('.section-nav-pill'));
-    const sections = Array.from(document.querySelectorAll('.exam-section'));
-    const topBtn = document.getElementById('backToTopBtn');
-
-    pills.forEach(pill => {
-        pill.addEventListener('click', () => {
-            pills.forEach(p => p.classList.remove('active'));
-            pill.classList.add('active');
-        });
-    });
-
-    if ('IntersectionObserver' in window && sections.length > 0 && pills.length > 0) {
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.id;
-                    pills.forEach(p => {
-                        const isMatch = p.getAttribute('href') === '#' + id;
-                        p.classList.toggle('active', isMatch);
-                        if (isMatch && window.innerWidth <= 768) {
-                            p.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                        }
-                    });
-                }
-            });
-        }, { rootMargin: '-80px 0px -65% 0px', threshold: 0.01 });
-        sections.forEach(sec => observer.observe(sec));
-    }
-
-    if (topBtn) {
-        window.addEventListener('scroll', () => {
-            topBtn.style.display = window.scrollY > 320 ? 'inline-flex' : 'none';
-        }, { passive: true });
-    }
-});
 </script>
 
 

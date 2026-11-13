@@ -14,16 +14,13 @@
 }
 
 .back-link {
-    display: inline-flex;
-    align-items: center;
-    min-height: 42px;
-    padding: 8px 14px;
+    display: inline-block; /* Allow padding/margin */
+    padding: 5px 10px;
     background-color: #e9ecef; /* Light background */
     color: #005a87;
     text-decoration: none;
-    border-radius: 6px;
-    font-size: 0.92rem;
-    font-weight: 500;
+    border-radius: 5px;
+    font-size: 0.9rem;
     transition: background-color 0.2s ease;
 }
 
@@ -40,17 +37,12 @@
 .breadcrumbs {
     margin: -10px auto 10px auto; /* Reduced bottom margin */
 }
-html {
-    scroll-behavior: smooth;
-}
-
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     background-color: #f4f4f4;
     color: #333;
     padding-bottom: 60px; /* Ensure footer doesn't overlap content */
-    overflow-x: hidden;
 }
 
 header {
@@ -196,66 +188,43 @@ footer a:hover {
 
 /* Responsive Adjustments */
 @media (max-width: 768px) {
-    header {
-        padding: 1.5rem 1rem;
-    }
     header h1 {
-        font-size: 1.8rem;
-    }
-    #searchBar {
-        width: 100%;
-        font-size: 16px;
-        padding: 12px 16px;
+        font-size: 2rem;
     }
     .subject-grid {
-        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 15px;
     }
     .subject-card {
-        padding: 18px 10px;
-        min-height: 120px;
+        padding: 20px 10px;
+        min-height: 130px;
     }
     .subject-card i {
-       font-size: 2.3rem; /* Slightly smaller icons on mobile */
+       font-size: 2.5rem; /* Slightly smaller icons on mobile */
     }
      .subject-card .subject-name {
-        font-size: 0.98rem;
+        font-size: 1rem;
     }
 }
 
 @media (max-width: 480px) {
     .subject-grid {
         grid-template-columns: repeat(2, 1fr); /* Force 2 columns on very small screens */
-        gap: 12px;
-    }
-    .subject-card {
-        padding: 16px 8px;
-        min-height: 110px;
-    }
-    .subject-card .subject-name {
-        font-size: 0.92rem;
-    }
-    .subject-card .subject-detail {
-        font-size: 0.78rem;
     }
      header h1 {
-        font-size: 1.55rem;
+        font-size: 1.8rem;
     }
      header p {
-        font-size: 0.95rem;
+        font-size: 1rem;
     }
 }
 /* Breadcrumbs */
 .breadcrumbs {
     max-width: 1200px;
-    margin: -10px auto 15px auto; /* Position below header */
+    margin: -10px auto 20px auto; /* Position below header */
     padding: 0 15px;
     font-size: 0.9rem;
     color: #555;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 5px;
 }
 
 .breadcrumbs a {
@@ -472,7 +441,20 @@ footer {
 @media (max-width: 768px) {
     .board-grid, .class-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 20px;
+        gap: 16px;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: 10px 16px;
+    }
+    #searchBar {
+        font-size: 16px;
+        min-height: 46px;
+    }
+    .subject-card .subject-name {
+        word-break: break-word;
     }
     .subject-header h1 { font-size: 1.8rem; }
     .year-section summary h3, .year-section summary { font-size: 1.1rem; }
