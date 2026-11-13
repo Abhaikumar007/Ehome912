@@ -743,7 +743,7 @@ function setupShelfDrag() {
         moved: false,
         el
       };
-      if (e.pointerType === "mouse" || window.innerWidth > 820) {
+      if (e.pointerType === "mouse") {
         el.setPointerCapture(e.pointerId);
       }
     });
@@ -752,13 +752,23 @@ function setupShelfDrag() {
       if (!drag || drag.el !== el) return;
       const dx = e.clientX - drag.sx;
       const dy = e.clientY - drag.sy;
-      if (!drag.moved && window.innerWidth <= 820 && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
-        drag = null;
-        return;
+      if (!drag.moved && e.pointerType !== "mouse") {
+        const isPortraitDock = window.innerWidth <= 820 && window.innerHeight >= window.innerWidth;
+        if (isPortraitDock) {
+          // Horizontal bottom shelf: horizontal swipe scrolls, upward swipe drags
+          if (Math.abs(dx) > 8 && Math.abs(dx) >= Math.abs(dy)) { drag = null; return; }
+          if (dy > -10 || Math.abs(dy) <= Math.abs(dx)) return;
+        } else {
+          // Vertical left shelf (landscape mobile / tablet): vertical swipe scrolls, rightward swipe drags
+          if (Math.abs(dy) > 8 && Math.abs(dy) >= Math.abs(dx)) { drag = null; return; }
+          if (dx < 10 || Math.abs(dx) <= Math.abs(dy)) return;
+        }
       }
       if (!drag.moved && Math.hypot(dx, dy) > 6) {
         drag.moved = true;
-        try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        if (e.pointerType === "mouse") {
+          try { el.setPointerCapture(e.pointerId); } catch (_) {}
+        }
         dragGhost.innerHTML = el.innerHTML;
         dragGhost.classList.remove("hidden");
       }
@@ -834,6 +844,12 @@ function setupShelfDrag() {
         }
       }
       drag = null;
+    });
+
+    el.addEventListener("pointercancel", () => {
+      drag = null;
+      dragGhost.classList.add("hidden");
+      clearAllGlows();
     });
   });
 }
