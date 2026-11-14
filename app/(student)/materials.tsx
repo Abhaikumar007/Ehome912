@@ -40,6 +40,10 @@ import {
   CLASS_12_CBSE_PYQ_DATA,
   CLASS_12_CBSE_SUBJECTS_LIST,
 } from '../../constants/class12CbsePyqData';
+import {
+  CLASS_11_PYQ_DATA,
+  CLASS_11_SUBJECTS_LIST,
+} from '../../constants/class11PyqData';
 
 // Map icon names to valid Ionicons
 const getSubjectIonIcon = (iconName: string): any => {
@@ -186,11 +190,17 @@ export default function MaterialsScreen() {
 
   const rollNo = student?.rollNo || '';
 
-  // Determine if the student is strictly in Class 12 or Class 10
+  // Determine if the student is strictly in Class 12, Class 11, or Class 10
   const isClass12Student = useMemo(() => {
     if (!student?.class) return false;
     const cls = String(student.class).toLowerCase();
     return /\b12\b/.test(cls) || cls.includes('plus two');
+  }, [student?.class]);
+
+  const isClass11Student = useMemo(() => {
+    if (!student?.class) return false;
+    const cls = String(student.class).toLowerCase();
+    return /\b11\b/.test(cls) || cls.includes('plus one');
   }, [student?.class]);
 
   const isClass10Student = useMemo(() => {
@@ -199,7 +209,7 @@ export default function MaterialsScreen() {
     return /\b10\b/.test(cls) || cls.includes('sslc') || cls.includes('tenth');
   }, [student?.class]);
 
-  const hasPyqAccess = isClass12Student || isClass10Student;
+  const hasPyqAccess = isClass12Student || isClass11Student || isClass10Student;
 
   // Board selector (Kerala State Board vs CBSE) for Class 10 & Class 12
   const defaultBoard = useMemo<'state' | 'cbse'>(() => {
@@ -213,17 +223,21 @@ export default function MaterialsScreen() {
     setSelectedBoard(defaultBoard);
   }, [defaultBoard]);
 
-  const isCbseSelected = hasPyqAccess && selectedBoard === 'cbse';
+  const isCbseSelected = (isClass10Student || isClass12Student) && selectedBoard === 'cbse';
   const isClass10Cbse = isClass10Student && selectedBoard === 'cbse';
   const isClass12Cbse = isClass12Student && selectedBoard === 'cbse';
 
   // Active dataset depending on student's class & selected board
   const pyqData: Record<string, PyqSubject> = isClass10Student
     ? (isClass10Cbse ? CLASS_10_CBSE_PYQ_DATA : CLASS_10_PYQ_DATA)
+    : isClass11Student
+    ? CLASS_11_PYQ_DATA
     : (isClass12Cbse ? CLASS_12_CBSE_PYQ_DATA : CLASS_12_PYQ_DATA);
 
   const subjectsList = isClass10Student
     ? (isClass10Cbse ? CLASS_10_CBSE_SUBJECTS_LIST : CLASS_10_SUBJECTS_LIST)
+    : isClass11Student
+    ? CLASS_11_SUBJECTS_LIST
     : (isClass12Cbse ? CLASS_12_CBSE_SUBJECTS_LIST : CLASS_12_SUBJECTS_LIST);
 
   // Fee state for locking
@@ -313,6 +327,20 @@ export default function MaterialsScreen() {
       if (studentSubs.includes('arab')) return 'arabic';
       return 'maths';
     }
+    if (isClass11Student) {
+      if (studentSubs.includes('math')) return 'maths';
+      if (studentSubs.includes('phys')) return 'physics';
+      if (studentSubs.includes('chem')) return 'chemistry';
+      if (studentSubs.includes('bio')) return 'biology';
+      if (studentSubs.includes('comp')) return 'computer';
+      if (studentSubs.includes('comm') || studentSubs.includes('acc') || studentSubs.includes('bus') || studentSubs.includes('econ')) return 'commerce';
+      if (studentSubs.includes('hum') || studentSubs.includes('hist') || studentSubs.includes('pol')) return 'humanities';
+      if (studentSubs.includes('eng')) return 'english';
+      if (studentSubs.includes('mal')) return 'malayalam1';
+      if (studentSubs.includes('hin')) return 'hindi';
+      if (studentSubs.includes('arab')) return 'arabic';
+      return 'maths';
+    }
     if (isClass12Student) {
       if (selectedBoard === 'cbse') {
         if (studentSubs.includes('applied')) return 'applied_maths';
@@ -339,7 +367,7 @@ export default function MaterialsScreen() {
       return 'physics';
     }
     return 'maths';
-  }, [student?.subjects, isClass10Student, isClass12Student, selectedBoard]);
+  }, [student?.subjects, isClass10Student, isClass11Student, isClass12Student, selectedBoard]);
 
   const [selectedSubjectKey, setSelectedSubjectKey] = useState<string>(defaultSubjectKey);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -546,6 +574,8 @@ export default function MaterialsScreen() {
                     ? 'Class 10 (CBSE) Question Bank'
                     : isClass10Student
                     ? 'Class 10 (SSLC) Question Bank'
+                    : isClass11Student
+                    ? 'Class 11 (Plus One) Question Bank'
                     : isClass12Cbse
                     ? 'Class 12 (CBSE) Question Bank'
                     : 'Class 12 (DHSE) Question Bank'}
@@ -555,6 +585,8 @@ export default function MaterialsScreen() {
                     ? 'CBSE Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
                     : isClass10Student
                     ? 'Kerala State Board (SSLC) • Past Board Exams, Model Tests, and Terminal Papers with Verified Keys.'
+                    : isClass11Student
+                    ? 'Kerala State Board (DHSE Plus One) • Annual Exams, Model Tests, Terminal Papers & Notes.'
                     : isClass12Cbse
                     ? 'CBSE Class 12 Board Examinations (2013–2026) • Set-wise Official Question Papers & Marking Scheme Solutions.'
                     : 'DHSE Kerala State Board • Past Board Exams, Model Tests, and Terminal Papers from 2020 to 2026 with Verified Keys.'}
@@ -562,7 +594,7 @@ export default function MaterialsScreen() {
               </View>
 
               {/* Board / Syllabus Selector for Class 10 & Class 12 (State Board vs CBSE) */}
-              {hasPyqAccess && (
+              {(isClass10Student || isClass12Student) && (
                 <View style={styles.boardSwitchWrap}>
                   <Text style={styles.boardSwitchTitle}>Select Syllabus / Board</Text>
                   <View style={styles.boardSwitchRow}>
@@ -960,7 +992,7 @@ export default function MaterialsScreen() {
 
             <Text style={styles.feeLockedTitle}>Access Restricted: Fee Pending</Text>
             <Text style={styles.feeLockedSub}>
-              Access to the {isClass10Student ? 'Class 10 (SSLC)' : 'Class 12'} Previous Year Question Papers & Answer Keys bank is reserved for active enrolled students with cleared tuition fees.
+              Access to the {isClass10Student ? 'Class 10 (SSLC)' : isClass11Student ? 'Class 11 (Plus One)' : 'Class 12'} Previous Year Question Papers & Answer Keys bank is reserved for active enrolled students with cleared tuition fees.
             </Text>
 
             {/* Fee Due Highlight Box */}
