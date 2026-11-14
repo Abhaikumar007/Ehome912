@@ -3,408 +3,795 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - English Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) English Question Papers and Keys.">
+    <title>English - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) English Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>English - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-book-open"></i> English</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (76 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; English
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71151" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Question paper English .pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- English question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71150" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 English Answer key.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- English question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68436" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 ENGLISH.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 English Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68420" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Model Exam 2025 English Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 English Question Paper with answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64360" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam March 2024 English Question paper.pdf</span>
-                            <span class="attachment-source">English Question paper and Answer key of Kerala Plus one exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64907" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 English (FY-401) Official Answer Key.pdf</span>
-                            <span class="attachment-source">English Question paper and Answer key of Kerala Plus one exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64361" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam March 2024 English Answer key by Sunil and Sunny sir.pdf</span>
-                            <span class="attachment-source">English Question paper and Answer key of Kerala Plus one exam 2024</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58662" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one English Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One English Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58663" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one English Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One English Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52259" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- English Question Paper.pdf</span>
-                            <span class="attachment-source">Part 1- English</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52260" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- English Answer key by Sri Sunil J and Joseph Sunny.pdf</span>
-                            <span class="attachment-source">Part 1- English</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54083" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala PLus One Board Exam June 2022- ENGLISH Question paper.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  ENGLISH Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54084" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala PLus One Board Exam June 2022- ENGLISH Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  ENGLISH Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56512" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- English.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  ENGLISH Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54230" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Question Paper - COMMUNICATIVE ENGLISH.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- COMMUNICATIVE ENGLISH Question paper with Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54231" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Communicative English.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- COMMUNICATIVE ENGLISH Question paper with Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53610" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Question Paper-Communicative English.pdf</span>
-                            <span class="attachment-source">Communicative English</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53611" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Answer Key-Communicative English.pdf</span>
-                            <span class="attachment-source">Communicative English</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50591" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- English  Question Paper FY201.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  English Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50592" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- English Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  English Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50546" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One Annual Exam English Answer Key by Sunil J, HSST English, GHSS Mylachal.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  English Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39875" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ENGLISH Kerala +1 Annual Exam Question paper March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39953" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ENGLISH Answer Key Kerala Plus One Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39628" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 ENGLISH Model Exam Question Paper February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39629" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI ENGLISH Model Exam Answer Key February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30380" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- ENGLISH.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30742" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- ENGLISH Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35323" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- English.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35364" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- ENGLISH.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25299" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- ENGLISH.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25350" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- English.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20495" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 English Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20496" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 English Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22549" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th English question paper SAY exam July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22550" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement exam July 2017 English answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15445" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper english.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15452" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper english literature.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22671" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 English question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22689" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Communicative English answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22705" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One English answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22627" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam English question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22628" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam English answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22665" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement English question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22648" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala+1 SAY English question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; English
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2026" class="section-nav-pill">2026</a><a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2013" class="section-nav-pill">2013</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2026" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2026 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2026</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2026 English question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1kBM2MqUx4x7xDqyGhT3t_QP2bE84jDUo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Examination 2026- English Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Examination 2026- English Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1MOrO6O_3u0ShVozM2oNGLo5SXgoNXWeP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Higher Secondary First Year Examination 2026 English Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Higher Secondary First Year Examination 2026 Engl...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 English question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1xQRmGec8YEt6UYj5p5VNmRsvbdNLt0G2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Annual Exam 2025 Question Paper English.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Annual Exam 2025 Question Paper E...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1g4L88m2z9D8CfWU0VOB3o9lE4QsS_hGu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Annual Exam 2025 English Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Annual Exam 2025 English Answer K...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 English Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Zqltao0Zyj9YFjIUshxbfCz1253G2Ntq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 ENGLISH.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam Questionn Paper 2025 ENGLISH.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Y3RpUn3FKlSE96GlsXEuP2mIvh1TW5Bm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2025 English Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2025 English Answer Ke...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">English Question paper and Answer key of Kerala Plus one exam 2024</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/11hYOhPzA5v3flQymmjuSSMr58bFag4Kq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam March 2024 English Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam March 2024 English Question p...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1kAo9zHx3C8tpx3AAx8s9Nfgc3oe4VtfP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 English (FY-401) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 English (FY-401)...</a><a href="https://drive.google.com/file/d/18m7K6NAQRlXp5sQS-g72cx7INPPrRLt3/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam March 2024 English Answer key by Sunil and Sunny sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam March 2024 English Answer key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 English Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1tk_t00FpUkSTQ-e_lO1BimmgUeUsPS7Q/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 English Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Model Exam 2024 English Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1B9MWeVTuRlvvPYkCZF_X5X6hAJXSmPiF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 English Answer Key by Sunil Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 English Answer Key by S...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 English literature Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1LdLAv0WEbY676ShHZm2mH2AOkcIVViEi/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 English Literature Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final Exam March 2023 English Lit...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1462SV2ucldtac2PaoqYRVwbTggFCvZD0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Final Exam March 2023 English Literature Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Final Exam March 2023 English Lit...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Communicative English Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1UlIhexte7WKiz43LIo47zsTjE1K6suyW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Communicative English Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final Exam March 2023 Communicati...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1GE0RxZn6BNsEpYzbw46jfhy2xMv1oV_T/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Final Exam March 2023 Communicative English Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Final Exam March 2023 Communicati...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One English Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1JP-KM9M1xwmyshfjEPZ4oomFUY24CYfj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1c8_skJIyaJiaHp-442CO6MvsGdkU07bI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1pdlnToidSI_2pTwS9shn4lAN3ewxexZ3/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1qmbUyuhb8ajPtTxM9ZJjhqh1G0H2vjty/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1Kzk6WCFaWWFWhLHa8ozR5EUmM4FimelX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/1xjZyGNUXRSLJv1HnT3_pS7GG31iOIZ5A/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/1uAuKSmK54KlcTmF72ud0WKzbRobWAWU5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 7.pdf</a><a href="https://drive.google.com/file/d/1BaGJ7N_oGcZDqNnY8aO0fUwa_XoWrWoT/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 8.pdf</a><a href="https://drive.google.com/file/d/14GcwjGxmwrdU9472QbWOCufAdtIVy43V/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 9.pdf</a><a href="https://drive.google.com/file/d/1IwSp4ACOVZuXmVJyriWwPdzlyazHoeqx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 10.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 10.pdf</a><a href="https://drive.google.com/file/d/1-r4OYOofKIMiZMhky03VDEkduzf2y4jf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 11.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 11.pdf</a><a href="https://drive.google.com/file/d/1WPK_SpAYKA-moVrfWo7pyzBjkGtoHmkh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 12.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 12.pdf</a><a href="https://drive.google.com/file/d/1pASIwQw98588yPzNNc8M8x8NhdBK2QjX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 13.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 13.pdf</a><a href="https://drive.google.com/file/d/1lPjvcpfM75eksdeF31xFY5lTWO_iWlL_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Question Paper 14.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Question Paper 14.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One English Model Exam Question Paper Feb 2023 with answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1G6AAFIA8r5K8WxHVEVySONHJIakuULl-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Model Exam Question Paper Feb 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Model Exam Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Ky1m8SxMjrM0hASb9MWBzgji3NsAQK11/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One English Model Exam Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One English Model Exam Feb 2023 Answe...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One English Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1X9kYkhoMCSXiB6xWm7JQ9MMrovNwceSU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One English Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One English Pre Model Exam 2023 by RR...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">9 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One English Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1hcmysuIhawodkk0jgs1e8dE2kcyN9M9x/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one English Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one English Model Exam Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/16wM6S3wT_B4B-zUfhN_8Lcy5e1GwfbiQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one English Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one English Model Exam 2022 Answer ke...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One English IInd Term Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/16LjsqCycJjWbP21tkYVjwdcyzzzyj9fW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 English Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Term Exam 2024 English Question P...</a><a href="https://drive.google.com/file/d/1Q0oSAOjX-jT9wMPv6smnocJ9Sf8qSXtQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 English Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Mid Term Exam 2023 English Question Pape...</a><a href="https://drive.google.com/file/d/1Wcpb0OCIyE0tbzqUbgsnR4mhNmdImC4L/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 English Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Half Yearly Exam 2022 English Question...</a><a href="https://drive.google.com/file/d/1oqlSyOnDmjQNRrh_nGKuYt6D_BhU_08y/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ENGLISH Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> ENGLISH Question Paper Kerala +1 Second Term Chri...</a><a href="https://drive.google.com/file/d/1IzKDz97Hc6psBX32982RWTbxPyxfyodC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ENGLISH Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> ENGLISH Question Paper Kerala Plus One Second Ter...</a><a href="https://drive.google.com/file/d/1quwmab-rPd0DJ22IFCe1n_kKK6TLytwS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Second Term English Question Paper December 2017.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Second Term English Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/17MrdDMmCx7nfxJRKU2I6ok9_BZAtGzGF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Term Exam 2024 English Answer Key .pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Term Exam 2024 English Answer Key...</a><a href="https://drive.google.com/file/d/18MFnjaJC5se-KPUu0rtJ7J9SffLCJ-NX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Mid Term Exam 2023 English Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Mid Term Exam 2023 English Answer Key.pdf</a><a href="https://drive.google.com/file/d/1xrH-c416LmjbgyxDCtmA8v7TxXzjesPA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 English Answer Key by Sunil Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly Exam 2022 English Answer Ke...</a><a href="https://drive.google.com/file/d/1A08VZELtO3J31_Ai8JlVYowlG35bMUGB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ENGLISH Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> ENGLISH Answer Key Kerala +1 Second Term Christma...</a><a href="https://drive.google.com/file/d/1WY1bmXGUVsuKnd9ur-Pfs88_SnQCVyZL/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Second Term English Answer Key December 2017.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Second Term English Answer Key December...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- English Literature Question paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1AIfy3t5B_j4ryPi3WBrUjBOH7xbaPUZ7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam June 2022 Question Paper- English Literature.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam June 2022 Question Paper- Eng...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Ju2fqLZpfsQ--bd6vzYYPfPhJJ4QoH1O/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- English Literature.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- COMMUNICATIVE ENGLISH Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1vhgf4A-Fil5b5LSqzN10jpcQcLmKr2c6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam June 2022 Question Paper - COMMUNICATIVE ENGLISH.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam June 2022 Question Paper - CO...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1vI-eUGHNMg7T1kq8JX81mjBMelZEfjl6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Communicative English.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- ENGLISH Question paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1qHzLNtDFuQkPvVpYAO4N-9PFHkMU3R5X/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala PLus One Board Exam June 2022- ENGLISH Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala PLus One Board Exam June 2022- ENGLISH Que...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1jD1cbBZxLsxUzhMxN60ENF465GquonN5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala PLus One Board Exam June 2022- ENGLISH Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala PLus One Board Exam June 2022- ENGLISH Ans...</a><a href="https://drive.google.com/file/d/1gGWwaZy5-NEATXgOMWX0fxtUE9maywzl/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- English.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- English Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1pbYMFL7TmzQPI7fKNvgx2YlzAB1h6l6C/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="PLus One Model Exam 2022-ENGLISH Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> PLus One Model Exam 2022-ENGLISH Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1TITlmJvkMby1lDGU2lR75IdAcT350HZ5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One English Model Exam Answer Key by Sunil Sir &amp; Joseph Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One English Model Exam Answer Key by Sunil S...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One English Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1NZPYQ1ewVT4Q3I74CoWY2nyaZDEBKr3I/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="FHET Plus one English Revision Test Series (1) 2022 Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> FHET Plus one English Revision Test Series (1) 20...</a><a href="https://drive.google.com/file/d/1oli9x9QoE5VEJj3wvVFtAKbvFrFZC827/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="FHET Plus one English Revision Test Series (2) 2022 Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> FHET Plus one English Revision Test Series (2) 20...</a><a href="https://drive.google.com/file/d/17s1kg4bgQ0hAnrVCaXwQakBdYdnuIYtu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="FHET Plus one English Revision Test Series (3) 2022 Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> FHET Plus one English Revision Test Series (3) 20...</a><a href="https://drive.google.com/file/d/1It_M4gqxfOf1z25J4VuUQmJv7f3gF_Es/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="FHET Plus one English Revision Test Series (4) 2022 Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> FHET Plus one English Revision Test Series (4) 20...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1DKhj6H9Sepe3VJZBHIrSvVM6CbToPn2i/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="FHET Plus One English Revision Test Series (1) 2022 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> FHET Plus One English Revision Test Series (1) 20...</a><a href="https://drive.google.com/file/d/1v0Wt2Hnd8V5bJLjS2R198CB4sicfumQf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="FHET Plus One English Revision Test Series (2) 2022 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> FHET Plus One English Revision Test Series (2) 20...</a><a href="https://drive.google.com/file/d/1pBsu91gBaV17NAwpVp02Th0WSD0dM_sg/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="FHET Plus One English Revision Test Series (3) 2022 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> FHET Plus One English Revision Test Series (3) 20...</a><a href="https://drive.google.com/file/d/1dmd1mM9wFyLRLDoeex_mM5SyyNaTSEnJ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="FHET Plus One English Revision Test Series (4) 2022 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> FHET Plus One English Revision Test Series (4) 20...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">Plus one Imporovement exam Jan 2022- Question paper and key- Communicative English</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1dShLh6fLxAwn0ZffOyOLIgKUUXISkkCe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2021-22 Question Paper-Communicative English.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2021-22 Question Paper-...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1esWjFXYeRkPEatqZx5RAwx15FelRmOdF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Answer Key-Communicative English.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Answer Key-Comm...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Improvement / SAY Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Improvement exam 2022- English Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1TJSSjBiaukbfygm_6mek0qtcXSdhQcEG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2022- English Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2022- English Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1g9PMuKDrwape3pZBQf3OD5T7gg8ffgey/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2022- English Answer key by Sri Sunil J and Joseph Sunny.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2022- English Answer ke...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- English Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Fay_IyfbhQ38f0MuNxFcUIKQoEXXeEHJ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- English  Question Paper FY201.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- English  Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/10eS1jZzFj2uEhMU5xunuVljevty2Xo3y/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- English Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- English Official Answer...</a><a href="https://drive.google.com/file/d/1M8DOokRWyPvI4rkMMDmWDWDWCMwzx-p5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala HSE Plus One Annual Exam English Answer Key by Sunil J, HSST English, GHSS Mylachal.pdf"><i class="fa-solid fa-circle-check"></i> Kerala HSE Plus One Annual Exam English Answer Ke...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Part I ENGLISH</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1YYohy4dMUM9eSQfBh3W5rGnEOHDB4qLQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2021 ENGLISH Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2021 ENGLISH Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1fkJjrGH-oddpDK8mgs9oX86V4FONcCOh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2021 ENGLISH Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2021 ENGLISH Answer Key.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2013" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2013 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2013</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE 11th English Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/15G1xJr_SB9Q1Ycl-b1wSe_NcyzbQ2drm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One English part one model question paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One English part one model questi...</a><a href="https://drive.google.com/file/d/1V8ra4NNvT9U2wF_f0N-JqSOeLBf2xSwf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One English part one model question paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One English part one model questi...</a><a href="https://drive.google.com/file/d/11qutf1BZR6CHD8g4RfASf5WvVvUIqQPO/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One English part one model question paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One English part one model questi...</a><a href="https://drive.google.com/file/d/16sk1a3AeQGYJowmJBs3LTmXhQ_fWWMBD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One English part one model question paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One English part one model questi...</a><a href="https://drive.google.com/file/d/1EUckL9dSuvAvcbJTkRU6z0IMxSN88J7C/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One English part one model question paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One English part one model questi...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

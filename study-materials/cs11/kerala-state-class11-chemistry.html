@@ -3,394 +3,751 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Chemistry Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Chemistry Question Papers and Keys.">
+    <title>Chemistry - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Chemistry Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Chemistry - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-flask"></i> Chemistry</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (76 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Chemistry
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71153" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC chemistry Model 2026 Answer key by Sreeraj Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Chemistry question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68428" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 CHEMISTRY (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Chemistry Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68429" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 CHEMISTRY (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Chemistry Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68418" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Model Exam 2025 Chemistry Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Chemistry Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68756" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam CHEMISTRY Question Paper 2025 (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025- Chemistry question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68757" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam CHEMISTRY Question Paper 2025 (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025- Chemistry question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68677" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board exam 2025 Chemistry Preliminary answer key.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025- Chemistry question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68744" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 CHEMISTRY Answer Key.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025- Chemistry question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64385" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board exam 2024 Chemistry Question paper.pdf</span>
-                            <span class="attachment-source">CHEMISTRY Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64908" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Chemistry (FY-425) Official Answer Key.pdf</span>
-                            <span class="attachment-source">CHEMISTRY Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64384" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Chemistry Board exam 2024 Answer key by Anilkumar Sir.pdf</span>
-                            <span class="attachment-source">CHEMISTRY Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52247" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Chemistry Question Paper.pdf</span>
-                            <span class="attachment-source">Chemistry</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52248" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Chemistry Answer Key.pdf</span>
-                            <span class="attachment-source">Chemistry</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58652" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Chemistry Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Chemistry Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58653" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Chemistry Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Chemistry Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54001" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- CHEMISTRY Question Paper- EM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54002" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- CHEMISTRY Question Paper- MM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54008" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- CHEMISTRY Answer Key by Anilkumar Sir.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56514" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Chemistry.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53613" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Official Answer Key-CHEMISTRY.pdf</span>
-                            <span class="attachment-source">Chemistry</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50595" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Chemistry Question Paper FY225.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50596" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Chemistry Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50334" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021- CHEMISTRY Answer Key by ANIL KUMAR Sir.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- CHEMISTRY Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39568" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">CHEMISTRY Question Paper Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39569" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">CHEMISTRY Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30383" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- CHEMISTRY.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30679" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019 Question Paper- CHEMISTRY.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30681" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- Chemistry Answer Key by Anoop Chandran Sir.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30682" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- CHEMISTRY Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35321" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Chemistry.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35359" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- CHEMISTRY.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25305" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- CHEMISTRY.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25354" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Chemistry.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20531" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Chemistry Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20532" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE 11th Chemistry Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15454" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper chemistry.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22677" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Chemistry question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22688" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Chemistry answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22625" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam Chemistry question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22626" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam Chemistry answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22653" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Improvement Chemistry question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22638" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Improvement Chemistry question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Chemistry
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2026" class="section-nav-pill">2026</a><a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2015" class="section-nav-pill">2015</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2026" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2026 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2026</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board exam 2026 Chemistry question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1b7j_OL6EgZr5mR0-O88HlbNQbfubS9QD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annaul Exam 2026 Chemistry Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annaul Exam 2026 Chemistry Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1fCWJZoMQzolNi45OnCeoMD-7kKtCz1sm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PLUS ONE BOARD EXAM 2026- Chemistry Answer key.pdf"><i class="fa-solid fa-circle-check"></i> PLUS ONE BOARD EXAM 2026- Chemistry Answer key.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025- Chemistry question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/17saN4KQyc1AbnJWScWGGRlLztluFejef/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam CHEMISTRY Question Paper 2025 (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Annual Exam CHEMISTRY Question Paper 202...</a><a href="https://drive.google.com/file/d/14jZbJjZ555tKnPtSVV3mn-3KI4uciFPN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam CHEMISTRY Question Paper 2025 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam CHEMISTRY Question Paper 202...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1-15gtH8eA_tds3jxBapP8a5H5elqlh9e/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board exam 2025 Chemistry Preliminary answer key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board exam 2025 Chemistry Preliminary an...</a><a href="https://drive.google.com/file/d/1RzIbuBTuWsC9zFnD5T1gXj1nZigZvvvc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 CHEMISTRY Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 CHEMISTRY Answer Key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Chemistry Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1cC9zVAIAilqG4MNRSKTbZ1V3xXCSLDJI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 CHEMISTRY (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Questionn Paper 2025 CHEMISTR...</a><a href="https://drive.google.com/file/d/10AQASQJbaq3fUY-GwAGim_e1jigWLvh_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 CHEMISTRY (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Questionn Paper 2025 CHEMISTR...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1NzsDlJkLMR9PZ2_2n861bP_A-B5yeXpH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2025 Chemistry Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2025 Chemistry Answer...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">CHEMISTRY Question paper and Answer key of Plus one Board exam 2024</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1mHznAy2LH_Y3wrY3C9brix6hCxA7NIpw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board exam 2024 Chemistry Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board exam 2024 Chemistry Question paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1eGUZnj54jkUEdtHPcglg6VF3SVqUiooV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Chemistry (FY-425) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Chemistry (FY-425...</a><a href="https://drive.google.com/file/d/1o_q1hpbCe-mSxPs6rPOk1wNiJ8Y8s6wr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Chemistry Board exam 2024 Answer key by Anilkumar Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Chemistry Board exam 2024 Answer key by...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Chemistry Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1R3r7Z9F7Q_DSpb5QzyUzqwQ9Wq1AApVF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Chemistry Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Chemistry Questio...</a><a href="https://drive.google.com/file/d/1i7KWx4YXBQgL1KMTf7-PQyKsHGhS2sMC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Chemistry Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Chemistry Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1csnTXgJtMAYKKnAtVWpemGnLhIQ47kI0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 Chemistry Answer Key by Anil Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 Chemistry Answer Key by...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 CHEMISTRY Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1sEWNjUeB-R1YL8ZH2lvxeZhiXHWsM6im/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus Two Exam March 2023- Chemistry Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus Two Exam March 2023- Chemistry Questi...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1U3UhzBQNZ-pAqDHQZhQjBfrXdW9fYXnS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PLUS ONE BOARD EXAM 2023 Chemistry Answer Key Part 1.pdf"><i class="fa-solid fa-circle-check"></i> PLUS ONE BOARD EXAM 2023 Chemistry Answer Key Par...</a><a href="https://drive.google.com/file/d/1SKEKQuCPuAdgIqAXM4E1Q3w5maRJS5Em/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PLUS ONE BOARD EXAM 2023 Chemistry Answer Key Part 2.pdf"><i class="fa-solid fa-circle-check"></i> PLUS ONE BOARD EXAM 2023 Chemistry Answer Key Par...</a><a href="https://drive.google.com/file/d/1zkKW1YCKc9MQxAdSdQUBi8NE58zenv2W/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Chemistry answer key 2023 by Anil Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Chemistry answer key 2023 by Anil Sir.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Chemistry Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1B7UWePfhNt6atFIJJbBB_QWH2K94XxKf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1KRax0GoZJr_bwM4nZlLFNXZgwbLyN1Ki/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/15lFyqWbc02Pm0wI_qh6iat9R4g8o074t/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1TI_XgT7iJnSUprAIVYJLmAJO8G9oKrhQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1UpS4xHLwma3lASJQnAa8hi-JL_nzpeT9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/17SqfbO3U9mkQdzHbEDlNBkHckzM2weCC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/1vq3qNfMZxGTp9-UPANHJFFTOABT7mpf6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 7.pdf</a><a href="https://drive.google.com/file/d/1c9j-wkfo2u2c9SnVSbarmDOV8FiEXSQS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 8.pdf</a><a href="https://drive.google.com/file/d/1UQIr6pbMXoxFPtH4gB-fHPSpJEHpfYpF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 9.pdf</a><a href="https://drive.google.com/file/d/1w1wivs1hVimdAfWvXfuE6TYt9Um2v6tH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 10.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 10...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Chemistry Model Exam Question Paper 2023 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1GrUBBdlOchYoYKOkvveJGJw2C_Dx1yzW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Exam Question Paper Feb 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Exam Question Pap...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/11BLKF0uN2Ry-VupvCJuarmE9pbY0L8aH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Chemistry Model Exam Feb 2023 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Chemistry Model Exam Feb 2023 Ans...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Chemistry Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1nldyIISgY-1rJHputCY8TcjtWKHBBvAG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Pre Model Exam 2023 by...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Chemistry Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1k-5r6pQxn-HgJV2ltuQUNe1sjfNBotmJ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Chemistry Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Chemistry Model Exam Question Pap...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1m0WMaA-PJlOr3ccASJ7KMSVgxZm9oL5T/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Chemistry Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Chemistry Model Exam 2022 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam June 2022- CHEMISTRY Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1mYIPwhag9jGHoTl9bm1E80J_gGIKwmRV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- CHEMISTRY Question Paper- EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Board Exam 2022- CHEMISTRY Question Pape...</a><a href="https://drive.google.com/file/d/1uIgTFQcDkMdpjdXPxfoEbMALmQvCCW5U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- CHEMISTRY Question Paper- MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Board Exam 2022- CHEMISTRY Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/11HBEpJ4g6vaRjkT9Gc25NzSQbW78kGRA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam 2022- CHEMISTRY Answer Key by Anilkumar Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam 2022- CHEMISTRY Answer Key by...</a><a href="https://drive.google.com/file/d/1g5UsXphDXodaWY8EQQd5pQ1pHAs8k1Sc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Chemistry.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Chemistry Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/13UKDznl6zTTi1LOx_kZZW-TqTKtNAV9A/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Exam 1-Question paper (Malappuram).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Exam 1-Question p...</a><a href="https://drive.google.com/file/d/1t_wRJCi1FFbfdflr8RaantreW3yHPNX9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 1 (Malappuram).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 1...</a><a href="https://drive.google.com/file/d/1OLoZHDCc2t_G30UeCAdB-Mx8mMVS_8g6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper 2 (Malappuram).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper 2...</a><a href="https://drive.google.com/file/d/10d4ycDQSHN0lonxtndYI-nYh1tCargOa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Chemistry Model Question Paper (Malappuram)- Final.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Chemistry Model Question Paper (M...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1cqCyuB_Tj9Jo6lr1yPcO46RedNO8uR_6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Chemistry Model Exam 1-Answer Key (Malappuram).pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Chemistry Model Exam 1-Answer Key...</a><a href="https://drive.google.com/file/d/1S2U88BDjFEB_IDOoE5tudoEqmpLFoOSk/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Chemistry Model Question Paper 1 (Malappuram)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Chemistry Model Question Paper 1...</a><a href="https://drive.google.com/file/d/173fCu35x28uNC9qTFtRtuHD5xUDFv3Ha/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Chemistry Model Question Paper Answer key (Malappuram)- Final.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Chemistry Model Question Paper An...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- Chemistry Question Paper and Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1zl6-yeHXPTIA1WjBy6PLWnxq76Hz-5xV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2022- CHEMISTRY Question Paper- EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2022- CHEMISTRY Questi...</a><a href="https://drive.google.com/file/d/1AjoGdxvXlnKblGbTsOb-63-Jj4Uy2nJ2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2022- CHEMISTRY Question Paper- MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2022- CHEMISTRY Questi...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1dG4W796J0NlcOlBIysTEptYQJYEDpZ7l/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Chemistry Answer Key by ACT Thrissur.pdf"><i class="fa-solid fa-circle-check"></i> +1 Chemistry Answer Key by ACT Thrissur.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Improvement / SAY Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Improvement exam 2022- Chemistry Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1I8JAat8gIPChWu5Jj_HTIo7sdprML0aG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2022- Chemistry Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2022- Chemistry Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1GVFwM_uQ9Ea-0ArOUOETsuse9Yl55vvy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Official Answer Key-CHEMISTRY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Official Answer...</a><a href="https://drive.google.com/file/d/1MQaW3T_gbMEWD-5hJ_Vo-xEa0BYDLxOq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2022- Chemistry Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2022- Chemistry Answer...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">3 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Chemistry</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1DEVKmtd7u-2awKyZ7tqm6Rxo8s_cKztr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model exam 2021 Question Paper 2021- Chemistry.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model exam 2021 Question Paper 2021- Che...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1gHHhvXnqeBY2kyxfMVbyuonEFBAlYWew/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model exam 2021 2021- Chemistry- ANSWER KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model exam 2021 2021- Chemistry- ANSWER...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Chemistry Second Term Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1-dB2O_x8Rc3T5HtqZq8R6D8CrGb2qJip/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Chemistry Question Paper (MM).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Second Term Exam 2024 Chemistry Question...</a><a href="https://drive.google.com/file/d/14d0X5PHXKdtRl_svsCIxoOQGAfpgKKnt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Chemistry Question Paper (EM).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Second Term Exam 2024 Chemistry Question...</a><a href="https://drive.google.com/file/d/1yIUmoW-sXdzv_rXIN62NFU24tc46A6oZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Xmas Exam 2023 Chemistry Question Paper Mal Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Mid Term Xmas Exam 2023 Chemistry Questi...</a><a href="https://drive.google.com/file/d/1SdyzDbfx4bihFhoLKdTN6tBd9cTxjUKv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Mid Term Exam 2023 Chemistry Question Paper Eng Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Second Mid Term Exam 2023 Chemistry Ques...</a><a href="https://drive.google.com/file/d/1-748ToPYH3wDmVvG19XzTtysllHDDs5D/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Chemistry Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala +1 Half Yearly Exam 2022 Chemistry Questio...</a><a href="https://drive.google.com/file/d/1uqQATP97J0eFNPEr9K1a8sdK2IAjMNzS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Chemistry Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Chemistry Questio...</a><a href="https://drive.google.com/file/d/1fFCiKRr8L9Vua2q9qR9NM8hdqAD9mYdI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CHEMISTRY  Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> CHEMISTRY  Question Paper Kerala +1 Second Term C...</a><a href="https://drive.google.com/file/d/1lYOCZqP1zCH7A29XlrLv_PBZjMGdXkKu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CHEMISTRY Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> CHEMISTRY Question Paper Kerala Plus One Second T...</a><a href="https://drive.google.com/file/d/10yM9SWeEb9xAAbqj_V3T-vlWXCNmyq7m/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Half Yearly Chemistry Question Paper December 2017.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Half Yearly Chemistry Question Pa...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1RKgUgzaEDHKhndYc5T_Pp8URKf30LhJy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Term Exam 2024 Chemistry Answer Key .pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Term Exam 2024 Chemistry Answer K...</a><a href="https://drive.google.com/file/d/1TAVPz6QCntI6nZlY1FTzgIPA2gJkiuPQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Mid Term Exam 2023 Chemistry Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Mid Term Exam 2023 Chemistry Answer Key.pdf</a><a href="https://drive.google.com/file/d/1tD_0q7MKg6s9_TpGgFzu2nUUykt15GRW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Chemistry Answer Key EM by Anil Sir.pdf"><i class="fa-solid fa-circle-check"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Chemistry Answer...</a><a href="https://drive.google.com/file/d/1xTCaY8GHTDqmwnrtEoi82RTlZ63hpOTM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CHEMISTRY Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> CHEMISTRY Answer Key Kerala +1 Second Term Christ...</a><a href="https://drive.google.com/file/d/1J0NNFl-DyEwQfT-l08q3MDKh8eCSo4me/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CHEMISTRY Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> CHEMISTRY Answer Key Kerala Plus One Second Term...</a><a href="https://drive.google.com/file/d/1dqJWpDinc8Myq4KtZLIueI1hiiL99tul/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala XI Half Yearly Chemistry Answer Key December 2017.pdf"><i class="fa-solid fa-circle-check"></i> Kerala XI Half Yearly Chemistry Answer Key Decemb...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- CHEMISTRY Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Y6Ju5i5bjwN_oD3Yo4KXozeYniIu5lUR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- Chemistry Question Paper FY225.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- Chemistry Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1OkFOuRjiQbbzvc4h75dBULKWQX-JH9h8/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Chemistry Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Chemistry Official Answ...</a><a href="https://drive.google.com/file/d/1_SgUu0P_FKdCvh8EiOhP_HwtT_3-v1Mc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2021- CHEMISTRY Answer Key by ANIL KUMAR Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2021- CHEMISTRY Answer Key b...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2015" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2015 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2015</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE Plus One Chemistry Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1CN-ZIj9EEkeUpJyANtX3TBfMVhuePbQA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Chemistry Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Chemistry Model Question Pape...</a><a href="https://drive.google.com/file/d/16P5ivMWmWP0hE7GJAjNQOnbuZIxAEiXF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Chemistry Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Chemistry Model Question Pape...</a><a href="https://drive.google.com/file/d/1wYcFSQyO4CB25QhGY4np9y1Gjxgo31lL/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Chemistry Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Chemistry Model Question Pape...</a><a href="https://drive.google.com/file/d/1hnFZ-O-7xBqhZPtYoTIKg4bgiz4L4JW8/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Chemistry Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Chemistry Model Question Pape...</a><a href="https://drive.google.com/file/d/1sLcg5EySbvPBlHWR2vl9grmuNrtyKayH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Chemistry Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Chemistry Model Question Pape...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

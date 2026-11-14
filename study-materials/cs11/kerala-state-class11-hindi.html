@@ -3,340 +3,728 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Hindi Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Hindi Question Papers and Keys.">
+    <title>Hindi - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Hindi Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Hindi - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-language"></i> Hindi</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (49 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Hindi
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68614" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam HINDI Question Paper 2025.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam 2025 Hindi Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68615" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Hindi Answer Key by Shaji Sir.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam 2025 Hindi Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68448" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 HINDI.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Hindi Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68456" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam 2025 Hindi Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Hindi Question Paper with answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64352" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Board exam 2024 Question paper- Hindi.pdf</span>
-                            <span class="attachment-source">Kerala plus one final exam March 2024 Hindi question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64906" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Hindi (FY-405) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one final exam March 2024 Hindi question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64351" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Board exam 2024 Hindi Answer key by Shaji Sir.pdf</span>
-                            <span class="attachment-source">Kerala plus one final exam March 2024 Hindi question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58666" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Hindi Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Hindi Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58667" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Hindi Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Hindi Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54045" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam June 2022 Question Paper-Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Hindi Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56503" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Hindi Question paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53606" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Question Paper-HINDI.pdf</span>
-                            <span class="attachment-source">Hindi</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53607" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Answer Key-HINDI.pdf</span>
-                            <span class="attachment-source">Hindi</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50565" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Question Paper-Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  Hindi Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50566" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Answer Key- Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  Hindi Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39898" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HINDI Question Paper Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=41062" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Hindi Answer Key Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39638" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 HINDI Model Exam Question Paper February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30727" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- HINDI.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30728" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- HINDI Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35325" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35366" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- HINDI.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25300" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- HINDI.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25351" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Hindi.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20497" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Hindi Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20498" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Hindi Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22546" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Hindi question paper Improvement exam July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22547" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Hindi SAY exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15447" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper hindi.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22685" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Hindi question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22718" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Hindi answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22595" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Hindi Improvement exam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22596" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement exam Hindi answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22658" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th SAY Hindi question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22632" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement Hindi question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Hindi
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2013" class="section-nav-pill">2013</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Annual Exam 2025 Hindi Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1AWcX1YmY7To6j1N02vq-mIvokMKoNiBn/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam HINDI Question Paper 2025.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam HINDI Question Paper 2025.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1sogLtvWatBaQDG2aoMEVTomlgiVfNirH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 Hindi Answer Key by Shaji Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 Hindi Answer Key by Sha...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Hindi Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/14L88Bh8Vv0edUOpvVFPDZv3jTDPTKh0a/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 HINDI.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam Questionn Paper 2025 HINDI.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1u-V0vRoZz2nq8l1S-YcYFUhc_p4pjCi7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2025 Hindi Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2025 Hindi Answer Key.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one final exam March 2024 Hindi question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1TTuVPWQXZZBgfZdvx6caH2vx7ho0wO5U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Board exam 2024 Question paper- Hindi.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Board exam 2024 Question paper- Hindi.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1zXjz-hgNB43XvAQ8JvlNzQQQ7oAPIy0W/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Hindi (FY-405) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Hindi (FY-405) Of...</a><a href="https://drive.google.com/file/d/1HZneaMJJSoAOwBS0eF6Nj-BE86yOmfXu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Board exam 2024 Hindi Answer key by Shaji Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Board exam 2024 Hindi Answer key by Sha...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Hindi Question Paper</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1hizYkep1T5IEYERWAcSGByDpRuSNQw3M/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Hindi Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Model Exam 2024 Hindi Question Pa...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Hindi Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/10aWZkdACqSm3uM921o1uu-oOgd0ORV0l/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam March 2023 Question Paper-Hindi.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam March 2023 Question Paper-Hin...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/16_U8vO2Swr0-3ueX2s7GKwKFAyykUet-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam March 2023 Answer Key-Hindi.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam March 2023 Answer Key-Hindi.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Hindi Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1cJ8dETzJqlso0KYfnIOYPmxZnUXVOOwn/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1DfG_x5-5ZOTvjLVtH-f6pXMM3cEpa_lG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1fbnbLhy4nwK9DddmWQR5-pJKsPic2D_j/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1jeI6z3NMSl5zxGObUkOypFJl5yyaB6dq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1M10rGvIRPimvYUzbt3CSQsWxksYIKT3t/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/1F0p8dcuFq-hDE3ODNE1Dim_JwzQfGn5m/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/19cNIaWUB-QYCJt6YzXarqeooBAvufu-g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Question Paper 7.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Hindi Model Exam Question Paper Feb 2023 with answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1K3EayCGyk6j0lN9MOGkaF7N3_U7Jf6GK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Model Exam Question Paper Feb 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Model Exam Question Paper F...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/19iwvRPWZF-leuFBA48GNkD5774V_O4M1/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Hindi Model Exam Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Hindi Model Exam Feb 2023 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Hindi Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1E8k4Pj2zImnJTD8yhe98-lqxi-YU3Rpe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Hindi Pre Model Exam 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Hindi Pre Model Exam 2023.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Hindi Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1FP7TY-ehiXMmX_VxyIznu6S4p1qxlWIy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Hindi Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Hindi Model Exam Question Paper 2...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1xSv3RwJSORqzfwmgQJFWTeJTZIHeZAfa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Hindi Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Hindi Model Exam 2022 Answer key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- Hindi Question paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1iWr_B5pSlrjSwO9jeCr6odeYisEwPu3C/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam June 2022 Question Paper-Hindi.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam June 2022 Question Paper-Hind...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1wFEA0bTpf477QUKz2ScGjLhpZR6J9G6W/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Hindi.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus one model exam 2022.- Hindi Question paper and key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/14PuWhRhy_1-TVGmMOv9lJ26k5itjfTdM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 Model Exam 2022- HINDI Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> +1 Model Exam 2022- HINDI Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/19Kuon3ItS8mKjMo94FdxMi5h5Vx449ST/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Model exam 2022- Hindi Answer key by Shaji Sir.pdf"><i class="fa-solid fa-circle-check"></i> +1 Model exam 2022- Hindi Answer key by Shaji Sir...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">Plus one Imporovement exam Jan 2022- Question paper and key- HINDI</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1sB8i2AHjpCa6hjwmouxEUQOPHRMZNN4k/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2021-22 Question Paper-HINDI.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2021-22 Question Paper-...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1rqywV3yE77l5XuG9BmQMAv95Cz4rFDnM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Answer Key-HINDI.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Answer Key-HIND...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Hindi Second Term Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/16BpFcd0bkfc1J8LjYPb7ZMO7lQpKMTu2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Hindi Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Term Exam 2024 Hindi Question Pap...</a><a href="https://drive.google.com/file/d/1ZM0ejbyTMImdyvU7XZcgqMPz5qDVQDeW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Mid Term Exam 2023 Hindi Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Mid Term Exam 2023 Hindi Question...</a><a href="https://drive.google.com/file/d/1jXoYv-bh6z2DLw0pZY2ZsTscOTLFgpk7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Hindi Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Half Yearly Exam 2022 Hindi Question Pa...</a><a href="https://drive.google.com/file/d/18SsIhVBV4hTxS7bpZsaibpoUzvi_UTYk/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HINDI Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> HINDI Question Paper Kerala +1 Second Term Christ...</a><a href="https://drive.google.com/file/d/1rs83fPTKJUzbVQjRgj09IJR7PH99ZSYY/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HINDI Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> HINDI Question Paper Kerala Plus One Second Term...</a><a href="https://drive.google.com/file/d/1HYjWt4mWVvFuPQ39EFauuzN51YwIAygB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Second Term Hindi Question Paper December 2017.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Second Term Hindi Question Paper Decemb...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1UI-Q5TKlCHf4VkXNcfNkFsLFJVaWRXca/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Term Exam 2024 Hindi Answer Key .pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Term Exam 2024 Hindi Answer Key .pdf</a><a href="https://drive.google.com/file/d/1iEMneg1NZ2fjoglBbbVrykbYzqk7zzxu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Mid Term Exam 2023 Hindi Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Mid Term Exam 2023 Hindi Answer Key.pdf</a><a href="https://drive.google.com/file/d/1-jY9m0Kwt1114gPNDtZJxrtxQiyB-sAs/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Hindi Answer Key by Shaji Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly Exam 2022 Hindi Answer Key...</a><a href="https://drive.google.com/file/d/1gCAjF4IrilPYhHozoALrSeOJuS6TZNai/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Second Term Hindi Answer Key December 2017.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Second Term Hindi Answer Key December 2...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- Hindi Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1wTHUaxMHAM0RB7CnOSJcCxPa93N4m5-D/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2021 Question Paper-Hindi.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam 2021 Question Paper-Hindi.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1I3-2EgJAmsUjlblmAXQ4OWKaQFAwior6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2021 Answer Key- Hindi.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2021 Answer Key- Hindi.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Hindi</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1g9B9o50tUprtFEfRBIhvH2vUeb7isj_z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2021 Question Paper- Hindi.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2021 Question Paper- Hindi.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/15pozOj1XfKeFg98e3IV2BRDRvTXqBxaV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2021- Hindi Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2021- Hindi Answer Key.pdf</a><a href="https://drive.google.com/file/d/1ceQ6yMRcgGyhMRRvy0RNYHo8kqKovXvN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Hindi Model Exam 2021 Answer Key by Rahul Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Hindi Model Exam 2021 Answer Key by Rah...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Hindi Model question papers and Notes</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/19-rqqYAz1Gece7WUKEGXWxylJiUuCR58/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Language Hindi Notes and Model questions by  Malini.M.S.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Language Hindi Notes and Model qu...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2013" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2013 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2013</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE Plus One Hindi Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1CWhxsfm8w3bl5MGXCxeKx5PJlEq23k7s/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Hindi Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Hindi Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1hALH3wP-PRVReM348bKilXH29dWsz9OC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Hindi Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Hindi Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1dH61HnvnuSj1SNaJ7V4Dhtk3Zrqc7DRs/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Hindi Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Hindi Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1SM9MjSkLwbsmifr8jSUOjQ0MvvCDAdxI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Hindi Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Hindi Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1ReM1SjmhXuawcY2pUZL-ptY0jWsfbhbv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Hindi Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Hindi Model Question Paper 5.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

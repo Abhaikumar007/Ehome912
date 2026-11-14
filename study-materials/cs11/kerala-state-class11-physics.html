@@ -3,394 +3,739 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Physics Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Physics Question Papers and Keys.">
+    <title>Physics - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Physics Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Physics - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-magnet"></i> Physics</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (112 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Physics
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71152" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Physics Answer key of SSLC Model examination 2026.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Physics question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68466" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Question Paper 2025 Physics (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Physics Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68465" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Question Paper 2025 Physics (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Physics Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68457" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam 2025 Physics Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Physics Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68728" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Physics (Mal Med) Question Paper.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Physics question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68729" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Physics (Eng Med) Question Paper.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Physics question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68730" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Physics Answer Key.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Physics question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64962" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Physics Question paper MM.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Physics Question papers and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64963" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Physics Question paper EM.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Physics Question papers and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64964" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Physics (FY-424) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Physics Question papers and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58673" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Physics Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Physics Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58674" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Physics Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Physics Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52255" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Physics Question Paper.pdf</span>
-                            <span class="attachment-source">Physics</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52256" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Physics  Answer Key by HSPTA Kannur.pdf</span>
-                            <span class="attachment-source">Physics</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54120" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2022- Physics Question Paper EM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Physics Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54119" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2022- Physics Question Paper MM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Physics Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54121" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">+1 Physics Exam 2022- Answer key by HSPTA.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Physics Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56513" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Physics.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Physics Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53612" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Answer Key-PHYSICS.pdf</span>
-                            <span class="attachment-source">Physics</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50569" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Physics Question Paper.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- PHYSICS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50570" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Physics Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- PHYSICS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50369" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2021 Physics Answer Key by HSPTA Kannur.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- PHYSICS Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=41067" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Physics Answer Key Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39570" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">PHYSICS Question Paper Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39571" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">PHYSICS Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39611" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">PHYSICS Answer Key Kerala Plus One Model Exam February 2020 by Biny Baby Sir.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30735" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- PHYSICS.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30736" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- PHYSICS Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35333" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Physics.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35371" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- PHYSICS.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25304" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- PHYSICS.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25356" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Physics.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20535" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Physics Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20536" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Physics Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22553" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Physics question paper Improvement exam July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22554" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Physics SAY exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15453" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper physics.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22686" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala+1 Physics question paper March 2016.PDF</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22694" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Physics answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22604" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 SAY exam Physics question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22605" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam Physics answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22646" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement Physics question paper September 2015.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Physics
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2014" class="section-nav-pill">2014</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 Physics question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/14V7bWaSnKEwMdZQR2nM4hViwQayGzxN7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Physics (Mal Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Annual Exam 2025 Physics (Mal Med) Quest...</a><a href="https://drive.google.com/file/d/1XIUP0_CnE3i7WA6pHgC3CjToZkTIlnJ5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Physics (Eng Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam 2025 Physics (Eng Med) Quest...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1N4YwlE8_43wiBj8nHhXFiGFsvsw5VQPf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 Physics Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 Physics Answer Key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Physics Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1QlBOIIzPCwMZ6CzJRZXhskPK65o7S7NV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Question Paper 2025 Physics (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Question Paper 2025 Physics (...</a><a href="https://drive.google.com/file/d/1J9Qgxk4M1hF6oX_fTM9Z4_r5Zf0jeOgv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Question Paper 2025 Physics (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Question Paper 2025 Physics (...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1d0BgZkbuPuWzE6ukEDcNwE05a3ESQJff/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2025 Physics Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2025 Physics Answer Key.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 Physics Question papers and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1WTGPwF5dVGCgDqcd6DoGt4VVwb8Rm2-L/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Physics Question paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Final exam March 2024 Physics Que...</a><a href="https://drive.google.com/file/d/1KrAOqKMU8Qh0TYNVtXqz2xix8kxsgqle/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Physics Question paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Final exam March 2024 Physics Que...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1RrUpb69CFw_QylBzeXr_T5IYSVmiUV8N/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Physics (FY-424) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Physics (FY-424)...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Physics Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1TiCcFtRUtvh47hN-7qCRfmgH_AOy9BDo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Physics Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Physics Question...</a><a href="https://drive.google.com/file/d/1TNJEYeeUolXeoi9b1EGo5EQlQ3FcAiV5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Physics Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Physics Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Jdy5F4G2J1sTQ1h-k7WiK28uuqLwv-Hh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 Physics Answer Key by Lalan Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 Physics Answer Key by L...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 PHYSICS Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1-6I91lW8X5ltd1P4qG94fml65O_h1A5U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One FInal exam March 2023-Physics Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One FInal exam March 2023-Physics Question P...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1WAuJKhmYe8omXfdVN_3HbdX_edKScztN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One FInal exam March 2023-Physics Answer key bu HSPTA Kannur.pdf"><i class="fa-solid fa-circle-check"></i> Plus One FInal exam March 2023-Physics Answer key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Physics Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1G_l2r1yYWBl-RbnkUkckQqLkHuLruRAn/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/12pS5oZSV3BjZgnpVansIyOquKqjj4h_U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1vYl37BFHQlUqbxtRpUaFvEDy11wCxv7-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/12g2gr6iGQ3XHsXopdKGbMG52aZmGTgPF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/15GudBVYw7RffR8McRShwbCRGic4ebbO-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/13xHRWoU3vBIt-r_EX7jQRoyZaa80vQQ-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/1ebH2zr0UZoYRo9edzENQOsk48fLwpV5j/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 7.pdf</a><a href="https://drive.google.com/file/d/1h5KQfVFLdvVMuuOsY-FnAmPUcvLcQTik/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 8.pdf</a><a href="https://drive.google.com/file/d/1Rqs5d8gbrXJPK-_P4kyBKpZGStWzJspi/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 9.pdf</a><a href="https://drive.google.com/file/d/14Aul4Vba_F_GJNXqhjMfXNvuv7X6d0le/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 10.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 10.pdf</a><a href="https://drive.google.com/file/d/1QlQH0U7qtNpr_tkO9KDMuzeM374RCFnM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 11.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 11.pdf</a><a href="https://drive.google.com/file/d/1kQ3eLBBMx1KtUaHVUTYDweRV000v9uoa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Model Question Paper 12.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Model Question Paper 12.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Physics Model Exam Question Paper 2023 with answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1lTfghmJZSjecXtlafHfevBDtzvGk2rG2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2023 Physics Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Model Exam 2023 Physics Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/13fp2HOP1QQIAEhqo6oP2uL3Sc0Vgtx4u/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2023 Physics Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2023 Physics Answer Ke...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Physics Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/110UI736o1L7PMlHjAiDk1DDTMIG5gadB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Physics Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Physics Pre Model Exam 2023 by RR...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Physics Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ADVMk-byTvXUaS6VnddU9KHx4Wrv1PVM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Physics Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Physics Model Exam Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1vzLMLB-LMUOdoWEwcyQPVb1douvvr4uT/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Physics Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Physics Model Exam 2022 Answer ke...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- Physics Question Paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1fdRhdrNK2JR_doUhAFlyrqjwzVj6vQ1v/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2022- Physics Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Final Exam 2022- Physics Question Paper...</a><a href="https://drive.google.com/file/d/15hq_P3ugUrtBYtzDAECzv7e02SAuzoWo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2022- Physics Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Final Exam 2022- Physics Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1J2PGBPWnr5FNMLxYdQF1G312nF3Jil0z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Physics Exam 2022- Answer key by HSPTA.pdf"><i class="fa-solid fa-circle-check"></i> +1 Physics Exam 2022- Answer key by HSPTA.pdf</a><a href="https://drive.google.com/file/d/1UE6eFVh171OKSe29RFHAyvu7l46uLbXM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Physics.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- Physics Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1SE_caBtGesxWjwMeR0bl86oU7KSbRy-K/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="PLus One Model Exam 2022-PHYSICS Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] PLus One Model Exam 2022-PHYSICS Question Paper E...</a><a href="https://drive.google.com/file/d/1p3C_elxR-K8nH9_fds8WSUAQMotF0erI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="PLus One Model Exam 2022-PHYSICS Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] PLus One Model Exam 2022-PHYSICS Question Paper M...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1a6bVPokZyjgpEQjWKRWqsVjKrIsowXqz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Physics Model Exam Answer Key by Lalan Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Physics Model Exam Answer Key by Lalan S...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Physics Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/156J6MVbSJFrhnFSwWvwcnqZu2GYfg1BK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 1&amp;2-Physical World, Units &amp; Measurement.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 1&amp;2-Phy...</a><a href="https://drive.google.com/file/d/14ZMZk5aWcY_Pbs5Vt7DDuX2eeTvYIDhe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 3- Motion in a straight line.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 3- Moti...</a><a href="https://drive.google.com/file/d/1sIilMFXGZGyF4186JNeohzoi44C5ySK-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 4- Motion in a plane.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 4- Moti...</a><a href="https://drive.google.com/file/d/1Yy0S8nkmYkYa0V_VhGh_QMs8D1ZM5i1k/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 5- Laws of Motion.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 5- Laws...</a><a href="https://drive.google.com/file/d/1c5VUtW_0kFPugIEHREZpBDOURaERuInj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 6- Work Energy &amp; Power.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 6- Work...</a><a href="https://drive.google.com/file/d/1mWNzFWwEI6iQ46d6uwSW4hlOO-IaJ5C9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 7- Systems of Particles &amp; Rotational Motion.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 7- Syst...</a><a href="https://drive.google.com/file/d/1-zrPFKjGmU6wlWZvrZnurTPiVxLCHW80/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 8-Gravitation.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 8-Gravi...</a><a href="https://drive.google.com/file/d/1vMJKf57qk3d-ykU4MSN-6KPCKHj8ZG4g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 9- Mechanical Properties of Solids.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 9- Mech...</a><a href="https://drive.google.com/file/d/1_nrLRLqd4nG9NvlSDPot2_eXpaKrp4o4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 11- Thermal properties of Matter.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 11- The...</a><a href="https://drive.google.com/file/d/1zYOoSNt5g5SHecpLJMGu3i3ZEpg9-sPL/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 12.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 12.pdf</a><a href="https://drive.google.com/file/d/1auzEkFu0npJcYMC4F5Ql7pbCBfgeLQXE/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 13- Kinetic Theory.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 13- Kin...</a><a href="https://drive.google.com/file/d/1vYMICfYkkswOY6lVDTAOXlmQWPyqBmJ5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 14- Oscillations.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 14- Osc...</a><a href="https://drive.google.com/file/d/1SadgzgQo25bznwyyAuu5TTJZFeZj7Iys/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank Ch 15-Waves.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank Ch 15-Wave...</a><a href="https://drive.google.com/file/d/1j1CWgRwwsIgGdHK2jJti8QMm9zk-JN2h/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Question Bank- All Chapters.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Question Bank- All Chapt...</a><a href="https://drive.google.com/file/d/1nE58Npm7lkW-yp3Y51mTIA-olhSVmCDO/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Test Series 2022 Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Test Series 2022 Questio...</a><a href="https://drive.google.com/file/d/1RwDmVq5e9ySt41Jsa-6bPKMv-mZl47wI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Test Series 2022 Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Test Series 2022 Questio...</a><a href="https://drive.google.com/file/d/1ZsjsIl-s8SFyJV85B65w1S4tlZNpNwdr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Test Series 2022 Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Test Series 2022 Questio...</a><a href="https://drive.google.com/file/d/1w34ox83UDekmndYjdXJ74aCec3yCyjIF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Test Series 2022 Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Test Series 2022 Questio...</a><a href="https://drive.google.com/file/d/1GTziIscyqadm-yCz3CTIWMsGAbdEDcDL/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSPTA Malappuram Physics Model Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> HSPTA Malappuram Physics Model Question Paper 202...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/14tjCSMRJSuI2CQJfgqbAoW_zajkaKvcz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="HSPTA Malappuram Physics Test Series 2022 Answer key 1.pdf"><i class="fa-solid fa-circle-check"></i> HSPTA Malappuram Physics Test Series 2022 Answer...</a><a href="https://drive.google.com/file/d/1-mH8QufkBMM4oGi7bay3E44IaFKxOBUS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="HSPTA Malappuram Physics Test Series 2022 Answer key 2.pdf"><i class="fa-solid fa-circle-check"></i> HSPTA Malappuram Physics Test Series 2022 Answer...</a><a href="https://drive.google.com/file/d/1TcuuVe_wDwz_1im-jmXnLvdiVLU2rz3C/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="HSPTA Malappuram Physics Test Series 2022 Answer key 3.pdf"><i class="fa-solid fa-circle-check"></i> HSPTA Malappuram Physics Test Series 2022 Answer...</a><a href="https://drive.google.com/file/d/1_nQkNiBk0TtaueTy9arxJRfym11ixq3M/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="HSPTA Malappuram Physics Test Series 2022 Answer key 4.pdf"><i class="fa-solid fa-circle-check"></i> HSPTA Malappuram Physics Test Series 2022 Answer...</a><a href="https://drive.google.com/file/d/11EqViHEof4QHfyweePWBKllezJwnI5KL/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="HSPTA Malappuram Physics Model Question Paper 2022- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> HSPTA Malappuram Physics Model Question Paper 202...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Improvement / SAY Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Improvement exam 2022- Physics Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1k76q_ofNz8hO4b0ifK6MRCS2nPI27oH4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2022- Physics Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2022- Physics Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1tafBVv1K7NIFvYF4W8Lf7xTlsQzkjdTT/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Answer Key-PHYSICS.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Answer Key-PHYS...</a><a href="https://drive.google.com/file/d/11Lio9mCqkHKBuq6XaW0s5nnVs1B-l-gw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2022- Physics  Answer Key by HSPTA Kannur.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2022- Physics  Answer K...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Physics Half Yearly Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1EsKZ3myhdk0LUKgO7WhvEkbd_X3FInTt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Physics Question Paper (EM).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Second Term Exam 2024 Physics Question P...</a><a href="https://drive.google.com/file/d/1VEfa5AyMOBeawXfPFRV-qlvRiRvPoKbP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Physics Question Paper Mal Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Mid Term Exam 2023 Physics Question Pape...</a><a href="https://drive.google.com/file/d/1o3KDm3POb0OKlBS9c_eKdL5DiYqpUwZ1/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Physics Question Paper Eng Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Mid Term Exam 2023 Physics Question Pape...</a><a href="https://drive.google.com/file/d/1UdSQ9lr_r1rUIqcwiwGfY8q_NJ2GSYCM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Physics Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala +1 Half Yearly Exam 2022 Physics Question...</a><a href="https://drive.google.com/file/d/1McjkYd5P_XilbEg5Hl_1NHHhuxDyE1Ry/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Physics Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Physics Question...</a><a href="https://drive.google.com/file/d/1WMdQXiwC6YDVuDpKzBa8a6Z2fOqd05yh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="PHYSICS Question Paper Kerala +1 2nd Term Xmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> PHYSICS Question Paper Kerala +1 2nd Term Xmas Ex...</a><a href="https://drive.google.com/file/d/1uzNtmbUwmPnNDqr5xSy5_hm47oEVri27/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="PHYSICS Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> PHYSICS Question Paper Kerala Plus One Second Ter...</a><a href="https://drive.google.com/file/d/1Ms_5kJufBNlgBZXuWNunydR6QRHJsPd1/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Second Term Physics Question Paper December 2017.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Second Term Physics Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1BbFX7aMdwaVEktLkR-wwMLI3Ssz_qxZb/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Term Exam 2024 Physics Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Term Exam 2024 Physics Answer key...</a><a href="https://drive.google.com/file/d/1npPFLqN0sXivjCfYh6WT6W1c2nXd_G_-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Mid Term Exam 2023 Physics Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Mid Term Exam 2023 Physics Answer Key.pdf</a><a href="https://drive.google.com/file/d/1RtiesRqcJtoEliTAxSJAywgT9cxl09Im/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Physics Answer Key EM by Lalan Sir.pdf"><i class="fa-solid fa-circle-check"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Physics Answer Ke...</a><a href="https://drive.google.com/file/d/1MKLKjWdXSR5j7fPMFJalTN08PFMp03co/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PHYSICS Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> PHYSICS Answer Key Kerala +1 Second Term Christma...</a><a href="https://drive.google.com/file/d/17-b9Pm5ATMHNWmUswG-TBaH0C_RHNTWA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PHYSICS Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> PHYSICS Answer Key Kerala Plus One Second Term Ex...</a><a href="https://drive.google.com/file/d/13P9uS4uCrv2G1cSua0Y2hYzZJ5Dukb4q/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala XI Half Yearly Physics Answer Key December 2017.pdf"><i class="fa-solid fa-circle-check"></i> Kerala XI Half Yearly Physics Answer Key December...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- PHYSICS Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1lremCe-Oq0mBGJ7ky5SPPm6PZJiCtMt7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2021 Physics Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam 2021 Physics Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1t-Is9LLEZIM22zwK0W5Jj0R4a6-1momg/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2021 Physics Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2021 Physics Official Answer...</a><a href="https://drive.google.com/file/d/14q_QO032g-gMO559TrDln55XPXvFCUNI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam 2021 Physics Answer Key by HSPTA Kannur.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam 2021 Physics Answer Key by HS...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- PHYSICS</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1RzKNALDg0tnZOFAT0_z3d2vA1V3HV5ub/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model exam 2021 Question Paper-PHYSICS.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model exam 2021 Question Paper-PHYSICS.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1RqxMZ4L02kmVJE5LsSORkYjD1DpI_gQm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model exam 2021 PHYSICS- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model exam 2021 PHYSICS- Answer Key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Physics Model Question Papers and Answer Keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1tYR9pHULoGwEZcaZmdrKzPzYjMgpmAQQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper All Chapters  English &amp; Malayalam Medium HSPTA Kannur.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper All Chapters...</a><a href="https://drive.google.com/file/d/1NfRH0JwV48Sym_d4lGG7sZ-jdzzGWsRB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper Chapter 1-8  English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper Chapter 1-8  E...</a><a href="https://drive.google.com/file/d/16X1r2WzjxxxGxzcCL_ggXf9H2s7X7SbM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Physics Model Question Paper by Lalan Sir.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Physics Model Question Paper by Lalan Si...</a><a href="https://drive.google.com/file/d/1fE4YRNQzo9oqaW6Isv91ADgD3h4c48XB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 1- Physical World, Units and Measurement- English &amp; Malayalam  Medium.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam question paper 1- Physical Wo...</a><a href="https://drive.google.com/file/d/1jq9Y4A3JncNXjDyFzisaGYhzrThkaB13/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 3- MOTION IN A STRAIGHT LINE- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 3- MOTION IN A...</a><a href="https://drive.google.com/file/d/1ZEWYdmRq9fiWtKMMpYvtaOLC_z6LO0iU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 4- MOTION IN A PLANE- English Medium &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 4- MOTION IN A...</a><a href="https://drive.google.com/file/d/10mgcJkNZBoIqisnnLbfJSQyZQ2u7uBit/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 5-  Laws of Motion- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 5-  Laws of Mo...</a><a href="https://drive.google.com/file/d/1JnVx6Z6ovAbyAddh9xDwLvJAkvvAPe5s/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 6-  WORK ENERGY &amp; POWER- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 6-  WORK ENERG...</a><a href="https://drive.google.com/file/d/11RN2QZpLDCmewFyVqE8ZHtzsHv8MMPZ4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 7- SYSTEMS OF PARTICLES AND ROTATIONAL MOTION- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 7- SYSTEMS OF...</a><a href="https://drive.google.com/file/d/1jhj5eRQH04RbmP0bKmr7au-at9fRZtz9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 12 &amp; 13- Thermodynamics &amp; Kinetic Theory- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 12 &amp; 13- Therm...</a><a href="https://drive.google.com/file/d/15WfmiETMoo6Vs2DmDsUYkAqGyImXYHCa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 14 &amp; 15- Oscillations &amp; Waves- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 14 &amp; 15- Oscil...</a><a href="https://drive.google.com/file/d/1PIWykfg8IcTorEg0Plx7WUUNEaZ1_Iad/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam question paper 8 &amp; 9 - Gravitation &amp; Mechanical Properties of Solids- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam question paper 8 &amp; 9 - Gravit...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1smwFY-1oV1vHmzjcR15qf4kuMCS5jrf5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key- All Chapters HSPTA Kannur.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam Answer Key- All Chapters HSPT...</a><a href="https://drive.google.com/file/d/1TqkP-Bhfk7isy2tgrXA24TRBcLgSjcfH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key Chapter 1-8  English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key Chapter 1-8  Engli...</a><a href="https://drive.google.com/file/d/1scLW9HPZrbXWwv4ObRvERjtH8CBaSIz1/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 1- Physical World, Units and Measurement- English &amp; Malaalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam Answer Key 1- Physical World,...</a><a href="https://drive.google.com/file/d/1ascxVIdqDYwgmjgHoNRn8KTNalT9HJYy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 3- MOTION IN A STRAIGHT LINE- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 3- MOTION IN A STR...</a><a href="https://drive.google.com/file/d/1e9SApZWdpc6JmB2Q31230D2FFdrpAX_o/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 4- MOTION IN A PLANE- English Medium &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 4- MOTION IN A PLA...</a><a href="https://drive.google.com/file/d/1C_huXHT9seS_1QtyOp1SM2PUewBjIQxB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 5-  Laws of Motion- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 5-  Laws of Motion...</a><a href="https://drive.google.com/file/d/1vwJWritPFlFBhHvWFQYPdN2CMT7P53T2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 6-  WORK ENERGY &amp; POWER- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 6-  WORK ENERGY &amp;...</a><a href="https://drive.google.com/file/d/1l7rjgDjpeaiwHuf7Lh5TZiEFgKcrLMLO/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 7- SYSTEMS OF PARTICLES AND ROTATIONAL MOTION- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 7- SYSTEMS OF PART...</a><a href="https://drive.google.com/file/d/1OZrLRrjkrQtUK3x89TH2VTQr-OlKPgcd/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Aswer Key 8 &amp; 9 - Gravitation&amp; Mechanical Properties of Solids- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Aswer Key 8 &amp; 9 - Gravitation...</a><a href="https://drive.google.com/file/d/1CuTBUkAPbV0qrCZHFIRq7ikg_2uRBj0B/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 12 &amp; 13- Thermodynamics &amp; Kinetic Theory- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 12 &amp; 13- Thermodyn...</a><a href="https://drive.google.com/file/d/1YQZAkx0TkZAdqDjUPu0yrqhhmcqgtZU9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam Answer Key 14 &amp; 15- Oscillations &amp; Waves- English &amp; Malayalam Medium.pdf"><i class="fa-solid fa-circle-check"></i> [Mal Med] Plus One Model Exam Answer Key 14 &amp; 15- Oscillati...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2014" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2014 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2014</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE 11th Physics Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1HOLzFX69F2OBTTtdiVU7J7DlkSa1OIVs/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Physics Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Physics Model Question Paper...</a><a href="https://drive.google.com/file/d/15LU2cReimpY-OqyWY5Koyz58Bue4b1Vc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Physics Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Physics Model Question Paper...</a><a href="https://drive.google.com/file/d/15vh8ePtQEDq1DHubrMrWZeJ8ITe-8rku/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Physics Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Physics Model Question Paper...</a><a href="https://drive.google.com/file/d/13MdBIZNSM3Dr5BZXe2yUie-KuWAF9n4-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Physics Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Physics Model Question Paper...</a><a href="https://drive.google.com/file/d/1wE2RU-kjbNoG9diwzQaSlLDsrEi2kmtz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Physics Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Physics Model Question Paper...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

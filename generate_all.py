@@ -261,14 +261,20 @@ if __name__ == '__main__':
             breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
         )
     
-    # Class 11
-    generate_class_pages(
-        json_path='c:\\Users\\madhu\\code_test\\scraped_class11.json',
-        output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs11',
-        class_name='class11',
-        class_title='Class 11 (Plus One)',
-        breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
-    )
+    # Class 11 (Plus One - Google Drive Links)
+    try:
+        from scripts.build_class11_pages import generate_all_class11_pages
+        if not generate_all_class11_pages():
+            raise RuntimeError("Class 11 data/map missing")
+    except Exception as e:
+        print(f"Fallback to legacy generator for Class 11 due to: {e}")
+        generate_class_pages(
+            json_path='c:\\Users\\madhu\\code_test\\scraped_class11.json',
+            output_dir='c:\\Users\\madhu\\code_test\\study-materials\\cs11',
+            class_name='class11',
+            class_title='Class 11 (Plus One)',
+            breadcrumb_parent='<a href="../kerala-state.html">Kerala State Board</a>'
+        )
     
     # Class 12 (Restructured Student-Friendly Study Materials with Google Drive Links)
     try:

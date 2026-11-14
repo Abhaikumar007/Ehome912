@@ -24,23 +24,13 @@
         --btn-folder-hover: #6d28d9;
     }
 
-    *, *::before, *::after {
-        box-sizing: border-box;
-    }
-
-    html {
-        scroll-behavior: smooth;
-        overflow-x: hidden;
-    }
-
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f8fafc;
         color: var(--text-dark);
         margin: 0;
-        padding-bottom: 60px;
+        padding-bottom: 50px;
         line-height: 1.5;
-        overflow-x: hidden;
     }
 
     .subject-header {
@@ -268,7 +258,6 @@
         line-height: 1.35;
         color: var(--text-dark);
         margin: 0;
-        word-break: break-word;
     }
 
     .card-actions {
@@ -344,65 +333,68 @@
         text-decoration: none;
     }
 
-    .back-top-btn {
-        position: fixed;
-        right: 16px;
-        bottom: 20px;
-        width: 46px;
-        height: 46px;
-        border-radius: 50%;
-        background: var(--primary-blue);
-        color: #ffffff;
-        border: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
-        cursor: pointer;
-        z-index: 999;
-        transition: transform 0.2s, background 0.2s;
-    }
-
-    .back-top-btn:hover {
-        background: #003b59;
-        transform: translateY(-2px);
-    }
-
     @media (max-width: 768px) {
-        .subject-header { padding: 1.5rem 1rem 1.3rem 1rem; margin-bottom: 14px; }
-        .subject-header h1 { font-size: 1.55rem; line-height: 1.25; }
-        .subject-header p { font-size: 0.95rem; }
-        .container { padding: 0 12px; }
-        .breadcrumbs { font-size: 0.84rem; line-height: 1.6; margin-bottom: 12px; }
-        .back-btn { min-height: 44px; padding: 10px 16px; font-size: 0.92rem; }
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
         .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
             scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
         }
         .section-nav-pills::-webkit-scrollbar { display: none; }
-        .section-nav-pill {
-            flex: 0 0 auto;
-            min-height: 40px;
-            padding: 8px 16px;
-            font-size: 0.9rem;
-        }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
         .search-box-wrapper { margin-bottom: 20px; }
-        .search-input { min-height: 46px; font-size: 16px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
         .section-title-bar { flex-wrap: wrap; gap: 8px; }
-        .section-title-bar h2 { font-size: 1.25rem; }
+        .section-title-bar h2 { font-size: 1.2rem; }
         .cards-grid { grid-template-columns: 1fr; gap: 14px; }
         .exam-card { padding: 15px; }
-        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.88rem; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
     }
 
     @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
         .action-group { flex-direction: column; }
         .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
     }
 </style>
 
@@ -1235,14 +1227,14 @@
     </div>
 
     
-<button id="backToTopBtn" class="back-top-btn" onclick="window.scrollTo({top: 0, behavior: 'smooth'})" aria-label="Back to top" title="Back to top">
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
     <i class="fa-solid fa-arrow-up"></i>
 </button>
 <script>
 window.addEventListener('scroll', function() {
     const btn = document.getElementById('backToTopBtn');
     if (btn) {
-        btn.style.display = window.scrollY > 350 ? 'flex' : 'none';
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
     }
 });
 

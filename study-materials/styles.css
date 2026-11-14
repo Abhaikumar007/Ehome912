@@ -210,12 +210,38 @@ footer a:hover {
 @media (max-width: 480px) {
     .subject-grid {
         grid-template-columns: repeat(2, 1fr); /* Force 2 columns on very small screens */
+        gap: 12px;
+    }
+    .subject-card {
+        padding: 16px 8px;
+        min-height: 120px;
+        overflow-wrap: break-word;
+    }
+    .subject-card .subject-detail {
+        font-size: 0.75rem;
+        margin-top: 4px;
+        display: block;
+    }
+    .back-link-container {
+        padding: 0 15px;
+    }
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 44px;
+        padding: 8px 14px;
+    }
+    .breadcrumbs {
+        line-height: 1.6;
+        overflow-wrap: anywhere;
     }
      header h1 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
     }
      header p {
-        font-size: 1rem;
+        font-size: 0.95rem;
     }
 }
 /* Breadcrumbs */
@@ -441,20 +467,7 @@ footer {
 @media (max-width: 768px) {
     .board-grid, .class-grid {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-    }
-    .back-link {
-        display: inline-flex;
-        align-items: center;
-        min-height: 44px;
-        padding: 10px 16px;
-    }
-    #searchBar {
-        font-size: 16px;
-        min-height: 46px;
-    }
-    .subject-card .subject-name {
-        word-break: break-word;
+        gap: 20px;
     }
     .subject-header h1 { font-size: 1.8rem; }
     .year-section summary h3, .year-section summary { font-size: 1.1rem; }

@@ -3,366 +3,728 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Malayalam I Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Malayalam I Question Papers and Keys.">
+    <title>Malayalam I - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Malayalam I Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Malayalam I - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-feather-pointed"></i> Malayalam I</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (42 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Malayalam I
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71148" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Question paper Malayalam I .pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Malayalam 1 question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71149" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Answer key Malayalam I .pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Malayalam 1 question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71146" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Question paper Malayalam II.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Malayalam II question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71147" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Answer key Malayalam II.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Malayalam II question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68630" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam MALAYALAM Question Paper 2025.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam 2025 Malayalam Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68447" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 MALAYALAM.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Malayalam Question Paper with answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64491" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Annual Exam March 2024 Malayalam Question Ppaer.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Malayalam Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64912" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Malayalam (FY-408) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Malayalam Question papers and answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58670" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Malayalam Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Malayalam Model Exam Question Paper 2022</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54046" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam June 2022 Question Paper-Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  Malayalam Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54060" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala PLus One Board Exam June 2022- MALAYALAM  ANSWER KEY byHSS Mozhi.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  Malayalam Question paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54197" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022-  Malayalam Question paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53608" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Question Paper-MALAYALAM.pdf</span>
-                            <span class="attachment-source">Malayalam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53609" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Answer Key-MALAYALAM.pdf</span>
-                            <span class="attachment-source">Malayalam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50567" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Question Paper-Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  Malayalam Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50568" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2021 Answer Key- Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021-  Malayalam Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39876" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">MALAYALAM Kerala +1 Annual Exam Question paper March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=41061" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Malayalam Answer Key Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39637" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 MALAYALAM Model Exam Question Paper February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30729" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- MALAYALAM.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30730" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- MALAYALAM Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35331" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35368" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- MALAYALAM.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25302" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- MALAYALAM.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25352" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Malayalam.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20499" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Malayalam Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20500" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Malayalam Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22551" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Malayalam question paper SAY exam July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22552" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Malayalam Improvement exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15446" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper malayalam_second language.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15451" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper malayalam option.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22674" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Malayalam question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22692" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Malayalam answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22701" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Malayalam answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22608" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Improvement exam Malayalam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22609" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Improvement exam Malayalam answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22655" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Improvement Malayalam question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22642" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Improvement Malayalam question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Malayalam I
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2013" class="section-nav-pill">2013</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Annual Exam 2025 Malayalam Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1jYuXs0hFaUkZRdcknWY-PRh_5io3g7nX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam MALAYALAM Question Paper 2025.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam MALAYALAM Question Paper 202...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Malayalam Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1nbO58asevUrW7Ms4Vv4HMUo1R-DN9OM7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 MALAYALAM.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam Questionn Paper 2025 MALAYALA...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 Malayalam Question papers and answer keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1h3cwA8uDOocOnLRuyKJ7KgzAijAsjaVp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Annual Exam March 2024 Malayalam Question Ppaer.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Annual Exam March 2024 Malayalam...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1rY_em1XCSrnwZruHftcd1Jq4furkpgz-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Malayalam (FY-408) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Malayalam (FY-408...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Malayalam Question Paper</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1k-flW9GrOeEodYXhjO1__vLBa5PtyZZT/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Malayalam Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Model Exam 2024 Malayalam Questio...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Malayalam Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ptNwIgnMiinx49llv2_EPIFod1riLaUy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="HSC Plus One Board Exam 2023 Malayalam Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> HSC Plus One Board Exam 2023 Malayalam Question P...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Malayalam Model Exam Question Paper Feb 2023 with key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1D2kcnyf2WoYiyXZV2-d9kmO3HclbX101/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Exam Question Paper Feb 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Exam Question Pap...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Malayalam Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/18cAqIAbiNLuXsB1UIlmp8W_T02uQ1WpP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1dbRobDybMKezCY7OYOpJ9bCzs_LYsAqe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/11fuN9gnNq5AAXrIoR3ZdRrcDUO2yBKmj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/16XNvNap0R0WWY-hQ9tG7nvnpY59qZQ9a/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1WHyf9MEDftKty3pUF58cwJiEti8h-QAl/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/1_BPPrwqVdmQHDcE3gBif84ByLDfdcke6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/1yAZA4gydy-h5Hj3BEJRKmY8UwC6L4kxx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 7.pdf</a><a href="https://drive.google.com/file/d/19Xf4FYaZv81EFudXdlEXRBnw3X5bswO8/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 8.pdf</a><a href="https://drive.google.com/file/d/1XPdfRjP9wKWEMxXXsuCASpvdnTjMt6Ak/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Model Question Paper 9.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Malayalam Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1kVfDml-VqryahxY48JcF1GxoJleerJzQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Malayalam Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Malayalam Pre Model Exam 2023 by...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Malayalam Model Exam Question Paper 2022</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1nsmQ8AG3mcJL0sisei6AkaTvkB5y-MzN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Malayalam Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Malayalam Model Exam Question Pap...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- Malayalam Question paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/14j7SVzBoCg6WmwsiDKRq-SkHp_F3PTzq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam June 2022 Question Paper-Malayalam.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam June 2022 Question Paper-Mala...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1vCOQKiQoi8ARWPP3sgX74sCIMCNf75V7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala PLus One Board Exam June 2022- MALAYALAM  ANSWER KEY byHSS Mozhi.pdf"><i class="fa-solid fa-circle-check"></i> Kerala PLus One Board Exam June 2022- MALAYALAM...</a><a href="https://drive.google.com/file/d/1Pv_h1HKhqq0LQFDc_pX0fZKiTYhD-njQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Malayalam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- MALAYALAM Question Paper and Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1KkxJSF8ulDufh3EMi0KZpa3OW5T0m8Ef/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 Model Exam 2022- MALAYALAM Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> +1 Model Exam 2022- MALAYALAM Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1lKdA4qjjmUReRIIIFBarM1wH7zmryJBN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="PLus One Model Exam 2022- Malayalam Answer Key by HssMozhi.pdf"><i class="fa-solid fa-circle-check"></i> PLus One Model Exam 2022- Malayalam Answer Key by...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">Plus one Imporovement exam Jan 2022- Question paper and key- MALAYALAM</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1_t9gvcYHZmk11Atp9Trg4ly7rE7s0RTo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2021-22 Question Paper-MALAYALAM.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2021-22 Question Paper-...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Eow7bYBpkoBkoggmtplEfDaXCTDLsOIR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Answer Key-MALAYALAM.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Answer Key-MALA...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">4 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Malayalam Second Term Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1dqA-AJzyYwavMaCExdoFeUJIFyzLrds0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Malayalam Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Term Exam 2024 Malayalam Question...</a><a href="https://drive.google.com/file/d/1So200Hyf2T6r3qRz0lYYQK8WOwW3JYBc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Mid Term Exam 2023 Malayalam Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Mid Term Exam 2023 Malayalam Ques...</a><a href="https://drive.google.com/file/d/1m4-7m8ahjTWw41EJ-kvx-Q_jb9LPthq4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Malayalam Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Half Yearly Exam 2022 Malayalam Questio...</a><a href="https://drive.google.com/file/d/1retxTFdAeuh00e9OJzH2lIAC3-gwMFbW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="MALAYALAM Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> MALAYALAM Question Paper Kerala +1 Second Term Ch...</a><a href="https://drive.google.com/file/d/1Q5V8I4guazUw1i_y-1PIMbxhzaY0sdlX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="MALAYALAM Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> MALAYALAM Question Paper Kerala Plus One Second T...</a><a href="https://drive.google.com/file/d/1YqMkzusfe4M1Wzczw_4BPcnGAOdcj9nw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala XI Second Term Malayalam Question Paper December 2017.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala XI Second Term Malayalam Question Paper De...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1e6pqHtitg5iQVbuOSYqFb3tPbm-f_OOl/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Second Term Malayalam Answer Key December 2017.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Second Term Malayalam Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- Malayalam Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Tn4IZYBgLZqCJenFVeBPWoVOXx86af8u/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2021 Question Paper-Malayalam.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam 2021 Question Paper-Malayala...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1TcZhPE4SmBLS8wx9czlXdQNLYlXEKHae/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2021 Answer Key- Malayalam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2021 Answer Key- Malayalam.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Malayalam</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1kzuyRo1hcWrTHOCpavTOrP7p3vTX29ky/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2021 Question Paper- Malayalam.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2021 Question Paper- Malayala...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1mlsT7oFxDePR4NaiUWykWB8h7lyrBhxx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2021- Malayalam Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2021- Malayalam Answer Key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Malayalam model question papers- 6 sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1PpBIBsa4zviL00-1N7vorHTYsd3isTZs/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Malayalam 6 Sets of Model question papers.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Malayalam 6 Sets of Model question paper...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2013" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2013 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2013</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE 11th Malayalam Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1KGGwLPhwUieQ6xb15O2bl0EY8fFGi7ZQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus one Malayalam Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus one Malayalam Model Question Pape...</a><a href="https://drive.google.com/file/d/1amIjOpv3y2AghyFtDiWysuCPV0I7yOsR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus one Malayalam Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus one Malayalam Model Question Pape...</a><a href="https://drive.google.com/file/d/1T9QXgY2_qaPwDd1-pBKhzWt4LjxczUlC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus one Malayalam Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus one Malayalam Model Question Pape...</a><a href="https://drive.google.com/file/d/1AI12bDKbLLJNZM8-TTsBF4YtuYQuiv88/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus one Malayalam Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus one Malayalam Model Question Pape...</a><a href="https://drive.google.com/file/d/1cLM03jJenEh578m9UM9128FFsG1_mkQC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus one Malayalam Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus one Malayalam Model Question Pape...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

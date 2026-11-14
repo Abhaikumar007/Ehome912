@@ -3,513 +3,794 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Mathematics Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Mathematics Question Papers and Keys.">
+    <title>Mathematics - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Mathematics Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Mathematics - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-calculator"></i> Mathematics</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (82 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Mathematics
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71162" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model exam 2026- Maths Answer key by Raveendranath Sir EM.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Maths question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71163" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model exam 2026- Maths Answer key by Sarath Sir MM.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Maths question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71164" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model exam 2026- Maths Answer key by Sarath Sir EM.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Maths question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68548" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Question paper 2025 Maths (Science)  (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Maths (Science) Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68549" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Question paper 2025 Maths (Science)  (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Maths (Science) Question Paper with answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64910" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Maths (Science) Question paper MM.pdf</span>
-                            <span class="attachment-source">MATHS Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64911" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Maths (Science) Question paper EM.pdf</span>
-                            <span class="attachment-source">MATHS Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=69144" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Maths (Science) (FY-427) Official Answer Key.pdf</span>
-                            <span class="attachment-source">MATHS Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64422" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Maths Board exam 2024 Answer key by Ramesh Sir.pdf</span>
-                            <span class="attachment-source">MATHS Question paper and Answer key of Plus one Board exam 2024</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58671" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Maths (Science) Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Maths (Science) Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58672" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Maths Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Maths (Science) Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54212" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Question Paper - MATHS (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Maths (Commerce)  Question paper with Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54213" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Maths (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- Maths (Commerce)  Question paper with Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54032" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- MATHS (Science) Question Paper EM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Maths (Science) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54033" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- MATHS (Science) Question Paper MM.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Maths (Science) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54034" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- MATHS  Answer Key by Shiny GS 1.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Maths (Science) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56501" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Maths (Science).pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Maths (Science) Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53616" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Question Paper-Mathematics (Science).pdf</span>
-                            <span class="attachment-source">Maths (Science)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53617" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Official Answer Key-Maths (Science).pdf</span>
-                            <span class="attachment-source">Maths (Science)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50597" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Maths (Science) Question Paper FY227.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- MATHS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50598" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Maths (Sc.) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- MATHS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50346" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">+1 Mathematics(Science) Plus One Board Exam 2021- ANSWER KEY by MAK.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- MATHS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50347" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">+1 Mathematics(Science) Plus One Board Exam 2021- ANSWER KEY by Cherthala Cluster.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- MATHS Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50582" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2021 Maths (Commerce) Question Paper FY251.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- Maths (Commerce) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50583" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">2021 Maths (Commerce) Answer Key FY251.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- Maths (Commerce) Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39922" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">MATHS (SCIENCE) Question Paper Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39923" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">MATHS (SCIENCE)  Answer key Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39633" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">MATHS (SCIENCE) Question Paper Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39634" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI MATHS Model Exam Answer Key February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30731" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- MATHS (COMMERCE).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30732" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- MATHS (SCIENCE).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30733" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- MATHS (COMMERCE) Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30734" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- MATHS (SCIENCE) Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35326" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Question Paper- Maths (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35332" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Maths (Science).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35369" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- MATHS (COMMERCE).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35370" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- MATHS (SCIENCE).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25307" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- MATHS (Science).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25355" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Maths.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25366" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Maths (Science).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25376" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Maths (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20527" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Maths (Commerce) Question Paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20528" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Maths (Commerce) Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20529" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Maths (Science) Question Paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20530" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Maths (Science) Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22557" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Maths (Science) question paper SAY exam July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22558" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Maths (Science) SAY exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22559" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 SAY exam July 2017 Maths key answers.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15457" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper Maths.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22680" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Maths (Science) question paper March 2016.PDF</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22693" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Maths (Commerce) answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22719" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Maths answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22619" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam Maths (Commerce) answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22620" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI SAY exam Maths (Commerce) question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22621" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY exam Maths (Science) question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22622" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Maths (Science) Improvement exam answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22656" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Improvement Maths (Commerce) question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22664" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY Maths (Science) question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22643" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY Maths (Science) question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Mathematics
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2014" class="section-nav-pill">2014</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">3 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 Maths question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1zp5340ZbAmA5C5VzLcoQH_Hl6xKsl9tp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam MATHS Question Paper 2025 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam MATHS Question Paper 2025 (E...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 Maths (Science) question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/12kAmQqqtGqHtgv_3yT4lIrXg7G1S_Jku/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam Maths (Science)  Question Paper 2025 (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Annual Exam Maths (Science)  Question Pa...</a><a href="https://drive.google.com/file/d/1WLyTIQJ7lpaAEr9JNzblEpOPorECw8vV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam Maths (Science)  Question Paper 2025 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam Maths (Science)  Question Pa...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1CNtnvbZLa9-DwivXbDddUIrMiKucjg5L/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus Two Annual Exam 2025 Maths (Science) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus Two Annual Exam 2025 Maths (Science) Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Maths (Science) Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1LlkX2Ni8P4u7kP9vNMxn4YtgCmqB4irN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Question paper 2025 Maths (Science)  (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Question paper 2025 Maths (Sc...</a><a href="https://drive.google.com/file/d/1g6A70cuZoO-rgF6FGkV_op_XRF6BC3Ia/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Question paper 2025 Maths (Science)  (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Question paper 2025 Maths (Sc...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">MATHS Question paper and Answer key of Plus one Board exam 2024</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/17zzWONTLoN2tGojRNkWPfl2PMnOx7EZ4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Maths (Science) Question paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Final exam March 2024 Maths (Scie...</a><a href="https://drive.google.com/file/d/1NXi52zcU6CHV-d0Kl9lFf0XLmCzpvUgD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Maths (Science) Question paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Final exam March 2024 Maths (Scie...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1_NEXCPAsqmXScpXzjaDSCvMJF_diIZ6E/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Maths (Science) (FY-427) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Maths (Science) (...</a><a href="https://drive.google.com/file/d/1BenDRmXh2eyJh20nwqfXuinVi41q_7Gh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Maths Board exam 2024 Answer key by Ramesh Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Maths Board exam 2024 Answer key by Rame...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Maths (Science) Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1jsSdj9S5YN19rP-dn5ZeqNLipTqrkz5n/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Maths (Science) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Maths (Science) Q...</a><a href="https://drive.google.com/file/d/1b_Pa2PBveeGzxJ-NrwkOH3F2vIwPZEpa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Maths (Science) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Maths (Science) Q...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1IAsrfQB5CkwXs3A9zhjaaI7lCd13iaiq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 Maths (Science)  Answer Key by Anoop Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 Maths (Science)  Answer...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Maths Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1XaahKf_mjkxaAz60oAP8JZi74_k16nwX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus Two Maths Final Exam 2023- Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus Two Maths Final Exam 2023- Question Paper EM...</a><a href="https://drive.google.com/file/d/1HtY8M_m_RG-e9sEel2VzdP-sUd2e1U0v/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus Two Maths Final Exam 2023- Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus Two Maths Final Exam 2023- Question Paper MM...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1aRU7bR1ZjsrC2dVDxm23qnY1OTd7cntM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="educationobserver Plus One Final Exam March 2023 Maths Answer Key by Anons Academy for Maths.pdf"><i class="fa-solid fa-circle-check"></i> educationobserver Plus One Final Exam March 2023...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths (Science) Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/11nmGv8p7hotDHbEhFPN-2qEjZNfgRu1E/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1TISEFX5tAft1K9P8RjEPyndysc0bjmES/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1HekFsiIfhRa0f-KFUWngi5orGGBtPX8g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1LobRVsF3AsCSbrPh4fnNzH5Aq369lhJS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1Xjby6PvCldKTs8UykgSagc8aS-g3l59K/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1QmcXmHEyoe6QbGBeOdTUe0rmkgOGp0l3/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/18Xtgq3_iNQuwmJKIEMVIhNz3HmqZUYQV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/12wT_8b-76FPPIRwGeTOp0VyIfcgm6NJk/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a><a href="https://drive.google.com/file/d/1-vAv38Vp4yruTtNsmF6rvlE5vZWpWmBr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Question Pa...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths (Commerce) Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1uV9coJW4gxlBLatX0hOnNhnB-K0atCFA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a><a href="https://drive.google.com/file/d/1M02ZrbPKG4rvZHV3M8Sp-3Tl6i1p0bmj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a><a href="https://drive.google.com/file/d/1PhsvinqADIR0beQg88QTcjaaKum7GjEa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a><a href="https://drive.google.com/file/d/1QedV2I7tzVoXYcWa0bFdRyIiog07R8kR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a><a href="https://drive.google.com/file/d/1KiWODndquN3BznRCx80JMuEoknHRWa2V/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a><a href="https://drive.google.com/file/d/1JMZdIVsSQcquv3xf98lE2hjBTt0xn5DF/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Com) Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Com) Model Question Paper...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths (Science) Model Exam Question Paper Feb 2023 with answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1HYknW2uYsR76L5CfASrUFXYGkEEGqtBq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths (Science) Model Exam Question Paper Feb 2023.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths (Science) Model Exam Questi...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1HSyXMs9DGsd_OBOcUrTgieJ8MZCsuHBd/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Maths (Science) Model Exam Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Maths (Science) Model Exam Feb 20...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1YCD-L6D1ZDmteGsn9zMoYEUnjN21T2UR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Maths Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Maths Pre Model Exam 2023 by RRV...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">6 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths (Science) Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1d4sBk5fSfX3zDxBHyIHR6nRpN_E1v77P/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Maths (Science) Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Maths (Science) Model Exam Questi...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Tl5bfkUb8QARNYN8vnw_5WoLmVz4xZaZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Maths Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Maths Model Exam 2022 Answer key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- Maths (Commerce) Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1x9rAn5CqUdfX77QpxrefQpIL9Wlkeuuw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam June 2022 Question Paper - MATHS (Commerce).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam June 2022 Question Paper - MA...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1knyYvHKeE8N_N8DVJwRm2cia2ihWr90q/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Maths (Commerce).pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam June 2022- Maths (Science) Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1z_prlDXUdg3PMrPBDiHeRraBYlp_NxNp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- MATHS (Science) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Board Exam 2022- MATHS (Science) Questio...</a><a href="https://drive.google.com/file/d/1e6F0orOFqR7SNvzL1MiHib9N7fMNSUQt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- MATHS (Science) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Board Exam 2022- MATHS (Science) Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/18dBiFaKw6SRMu5Rmnq6SdrWFOa_c_2sY/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam 2022- MATHS  Answer Key by Shiny GS 1.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam 2022- MATHS  Answer Key by Sh...</a><a href="https://drive.google.com/file/d/1wEHz8fpZoCEJucewUguj5vsp6tI6u2--/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Maths (Science).pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Maths Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Yc1mWG5pKvWJI_4HqNQbylJMDczJQwnK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Maths Model Question paper Series I (MAM).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/10kMQ2mOUw4R-EF9DmR6MC7g6FPXBk53M/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Maths Model Question paper Series II (MAM).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/12YBGA2OGaImeY90uEgcWA657vWCTi3fa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Maths Model Question paper Series III (MAM).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/1d0k72iN16QmFN7jXTIPwIqMSR62oOKbD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Maths Model Question paper Series IV (MAM).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/1YdFuay40JG3P4qPeBSKs7vnkOfBwawts/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Maths Chapterwise Important Quetions.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Maths Chapterwise Important Quetions.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1dEk2IUEkhYpZDRc8WozFzVpL9Z5r0FJm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Maths Model Question paper Series I (MAM)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/1U3EBSHqAE5xcx0XMUSjOdfd-ZFGkEvWV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Maths Model Question paper Series II (MAM)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/1xPRy3_g6kZSGjfu69Wzoa-CZG1ZfIMMp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Maths Model Question paper Series III (MAM)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Maths Model Question paper Series...</a><a href="https://drive.google.com/file/d/1a2N-cTeooAq8X3sMYe7zYXHdpExz51a7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Maths Model Question paper Series IV (MAM)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Maths Model Question paper Series...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- Science (Maths) Question Paper and Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1oIiXAbjV5a33OPD37216AkqdOF3reUVh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 Model Exam 2022- Maths (Science) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] +1 Model Exam 2022- Maths (Science) Question Pape...</a><a href="https://drive.google.com/file/d/1mCDP-G8qBIxhEdg6BQ6iR3_o9UKWsyNu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 Model Exam 2022- Maths (Science) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] +1 Model Exam 2022- Maths (Science) Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1y-4MRlSitIvvJTjlT0pRFLHPgN6kMcyc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Model Exam 2022- Maths (Science) Answer Key by Ann Saby Jacob.pdf"><i class="fa-solid fa-circle-check"></i> +1 Model Exam 2022- Maths (Science) Answer Key by...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">Plus one Imporovement exam Jan 2022- Question paper and key- Maths (Science)</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/16gWLeR72FmOgBU0tJccWdiwmSIVLn8qa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2021-22 Question Paper-Mathematics (Science).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2021-22 Question Paper-...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1I_A9oETjPg64AgQcCdNwS8gJ54nM60Ij/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Official Answer Key-Maths (Science).pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Official Answer...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">6 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">XI Maths (Commerce) Half Yearly Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1RNHKz6p4Mvf3E4REk1xcdppJipEuvD-U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Second Term December 2017 Question Paper MATHEMATICS (COMMERCE).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Second Term December 2017 Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1FRwsEsaZKFKT5y8BGx1zZQE8iwKhKtlN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Half Yearly December 2017 Answer Key MATHS (Commerce).pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Half Yearly December 2017 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">+1 Maths (Science) IInd Term Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1tUC6Qq-poKtHnJnsAN4wdohK4Ti3Watd/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Term Exam 2024 Maths (Science) Question Paper .pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Second Term Exam 2024 Maths (Science) Qu...</a><a href="https://drive.google.com/file/d/1FB3lJ6aYiviG8E5tQMb0fekr288hRtxq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Maths (Science) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala +1 Half Yearly Exam 2022 Maths (Science) Q...</a><a href="https://drive.google.com/file/d/1DuAPus3OvpYpB7xZbSLl1VE5uyrY_3BG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Maths (Science) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Maths (Science) Q...</a><a href="https://drive.google.com/file/d/1DXt4WUlhtDPhhfwyrWgjXeByG3nx6WKx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="MATHS Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> MATHS Question Paper Kerala +1 Second Term Christ...</a><a href="https://drive.google.com/file/d/1FNfFxh7Z9oKLYi1lk8Iljp3yYMQuisf6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Second Term December 2017 Question Paper MATHEMATICS (SCIENCE).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Second Term December 2017 Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1sNnWHuVEX4eiKefVknlsWMft80GYNtJr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Term Exam 2024 Maths (Science) Answer Key .pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Term Exam 2024 Maths (Science) An...</a><a href="https://drive.google.com/file/d/104avo0DugaipotBl0uICXTSlVpr5CK9f/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Maths Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly Exam 2022 Maths Answer Key.pdf</a><a href="https://drive.google.com/file/d/1J2C3QY0WtQrh88pitP8idWkyV20ZhlKI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="MATHS (Science) Answer Key Kerala Plus One Second Term Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> MATHS (Science) Answer Key Kerala Plus One Second...</a><a href="https://drive.google.com/file/d/10sAPHocgE5-r4vwXSGu__pgdzw6AoABW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly December 2017 Answer Key MATHS (SCIENCE).pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly December 2017 Answer Key MA...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- Maths (Commerce) Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1L5WhNpAqW_-0krXAz-TB1QoQ5QCybFX0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2021 Maths (Commerce) Question Paper FY251.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam 2021 Maths (Commerce) Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1_lnyKViXanpQf00CgwWufq4q7guLob9b/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="2021 Maths (Commerce) Answer Key FY251.pdf"><i class="fa-solid fa-circle-check"></i> 2021 Maths (Commerce) Answer Key FY251.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- MATHS Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1dG53KRBFZVh72RqqXBBELUP3sH6SkGBf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- Maths (Science) Question Paper FY227.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- Maths (Science) Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/17ZabIpMGf_0ijS2F5tng_XPyMhDyz-kN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Maths (Sc.) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Maths (Sc.) Official An...</a><a href="https://drive.google.com/file/d/1Ja8cE7h9TeWZLH15vUrZbxT__pdImtor/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Mathematics(Science) Plus One Board Exam 2021- ANSWER KEY by MAK.pdf"><i class="fa-solid fa-circle-check"></i> +1 Mathematics(Science) Plus One Board Exam 2021-...</a><a href="https://drive.google.com/file/d/1Yt5K4KEcO00GUtWXXkhsbhcfDOono4X6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Mathematics(Science) Plus One Board Exam 2021- ANSWER KEY by Cherthala Cluster.pdf"><i class="fa-solid fa-circle-check"></i> +1 Mathematics(Science) Plus One Board Exam 2021-...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Maths for Commerce Stream</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1jPFoxDbcpSFAvGWr8rUGgQyGQBaIEXXW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model exam 2021 Question Pape- Maths (Commerce).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model exam 2021 Question Pape- Maths (Co...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/16-aUG4PBleE11duB2nAN3BQ8ldGxHV4g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model exam 2021  Maths (Commerce)- ANSWER KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model exam 2021  Maths (Commerce)- ANSWE...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Mathematics (Science)</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/16hbm2EG7-giifeV16QZgBm0Lj7slbhr_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model exam 2021 Question Paper Mathematics (Science).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model exam 2021 Question Paper Mathemati...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1iCBUSAUjbpkSCM9GDxDyhFBHHu9yFvuX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model exam 2021Mathematics (Science)- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model exam 2021Mathematics (Science)- An...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2014" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2014 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2014</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE 11th Maths Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Ed2TqYG47KRyTpPVBjV0HPxYe7lEoEpb/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Mathematics (Science) Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Mathematics (Science) Model Q...</a><a href="https://drive.google.com/file/d/1864uwD5JndDkcs23_Z-4w9prfkhFDp-z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Mathematics (Science) Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Mathematics (Science) Model Q...</a><a href="https://drive.google.com/file/d/1Jo247eulDW2PPiFCbhZELsMpzWS81foq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Mathematics (Science) Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Mathematics (Science) Model Q...</a><a href="https://drive.google.com/file/d/1wz3GWgqSSn0Dq4Ti42e50YR4w4lXDf9q/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Mathematics (Science) Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Mathematics (Science) Model Q...</a><a href="https://drive.google.com/file/d/1SelLN2UYXMssrn1O_QJBh59AgWs0DY8H/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Mathematics (Science) Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Mathematics (Science) Model Q...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

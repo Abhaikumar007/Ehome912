@@ -3,613 +3,992 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Computer Science / App Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Computer Science / App Question Papers and Keys.">
+    <title>Computer Science / App - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Computer Science / App Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Computer Science / App - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-laptop-code"></i> Computer Science / App</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (127 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Computer Science / App
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68654" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam Computer Science Question Paper 2025 (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam 2025 Computer Science (CS) Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68655" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 CS Answer Key by Menoup Sir.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam 2025 Computer Science (CS) Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68423" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Model Exam 2025 CA (Humanities) Question Paper with Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Application (Humanities) Question Paper and answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68438" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 CA (Commerce) (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Application Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68437" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 CA (Commerce) (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Application Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68421" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Model Exam 2025 Computer Application Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Application Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68484" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Question paper 2025 COMPUTER SCIENCE (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Science Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68485" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam CS Answer Key 2025.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Computer Science Question Paper with answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64953" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Computer Application (Humanities)  (FY-445) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 CA (Humanities) Question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64973" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Computer Science Question paper.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Computer Science Question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64974" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Computer Science (FY-430) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Computer Science Question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58658" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Computer Science Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Computer Science Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58659" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Computer Science Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Computer Science Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54140" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- Computer Applications (Hmanities) Question Paper.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- CA (Humanities) Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56518" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Computer Application (Humanities).pdf</span>
-                            <span class="attachment-source">Plus One Board Exam 2022- CA (Humanities) Question Paper with Answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54003" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam 2022- COMPUTER SCIENCE Question Paper & Key.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- CS Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53618" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Question Paper-Computer Science.pdf</span>
-                            <span class="attachment-source">Computer Science</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53619" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Official Answer Key-Computer Science.pdf</span>
-                            <span class="attachment-source">Computer Science</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50605" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Computer Application (Humanities) Question Paper FY 245.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- CA Humanities Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50606" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Computer Application (Humanities) Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- CA Humanities Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39872" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Computer Application (Commerce) Answer Key Annual Exam March 2020 by Irshad Sir.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39896" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">COMPUTER APPLICATION (COMMERCE) Question Paper Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39631" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 COMPUTER APPLICATION (COMMERCE) Model Exam Question Paper February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39593" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">COMPUTER SCIENCE Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39632" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">COMPUTER AAPPLICATION (Commerce) Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30717" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- COMPUTER SCIENCE.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30718" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- COMPUTER SCIENCE Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30719" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- COMPUTER APPLICATION (COMMERCE).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30720" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- COMPUTER APPLICATION (COMMERCE) Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30721" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- COMPUTER APPLICATION (HUMANITIES).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30722" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- COMPUTER APPLICATION (HUMANITIES) Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35327" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Question Paper- Computer Science.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35328" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Question Paper- Computer Application (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35329" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Question Paper- Computer Application (Humanities).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35360" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- COMPUTER APPLICATION (COMMERCE).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35361" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- COMPUTER APPLICATION (HUMANITIES).pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35362" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- COMPUTER SCIENCE.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25308" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- Computer Science.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25309" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- ACA-Accouting with Computer.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25311" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- Computer Application (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25320" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- Computer Application(Humanities).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25321" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- Computer Science and IT .pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25360" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Computer Application (Commerce).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25371" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Computer Application (Humanities).pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25388" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key-Computer Science and IT.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25391" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key-Computer Science and IT.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20521" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Computer Application (Commerce) Question Paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20522" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Class 11 Computer Application (Commerce) Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20523" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Computer Application (Humanities) Question Paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20524" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Class 11 Computer Application (Humanities) Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22544" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 SAY exam Computer Science question paper July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22545" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Science Improvement exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22565" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer application (Commerce) SAY exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22566" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY exam July 2017 Computer Application-Humanities answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15456" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper computer science.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15461" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper computer-commerce.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22670" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Computer Application (Commerce) question paper March 2016.PDF</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22673" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Application (Humanities) question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22684" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Computer Science question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22697" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Application (Commerce) answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22698" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Application (Humanities) answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22699" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Information Technology answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22700" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Computer Science answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22597" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Computer Application (Commerce) Improvement exam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22598" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement exam Computer application (Commerce) answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22599" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Computer application (Humanities) SAY exam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22600" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Computer Science Improvement exam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22601" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Improvement exam Computer Science answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22663" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY Computer Science question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22667" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI SAY Computer Application (Commerce) question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22668" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI SAY Computer Application (Humanities) question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22639" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Improvement Computer Application (Commerce) question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22640" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Improvement Computer Application (Humanities) question paper September 2015.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22645" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement Computer Science question paper September 2015.PDF</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Computer Science / App
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2014" class="section-nav-pill">2014</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">6 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 Computer Applications (Hum) question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1YnBWpLtpdGLBO-Y83kGLdF6I13gRjtsK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Annual Exam 2025 Question Paper Computer applications (Hum) (MM).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Annual Exam 2025 Question Paper C...</a><a href="https://drive.google.com/file/d/1gqKBtMYDvpT2_uQbUqYw4Tq76dyRfcIw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Annual Exam 2025 Question Paper Computer applications (Hum) (EM).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Annual Exam 2025 Question Paper C...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1nm7oZRxo7Qi3DpfLYl-UBOhRGnbnY2TD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Annual Exam 2025 Computer Applications (Hum) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Annual Exam 2025 Computer Applica...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 CA (Commerce) question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1-9gQjE1kr5SKhpJWMCzznJQy7FpsPk5v/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Computer Application Commerce  (Mal Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Annual Exam 2025 Computer Application Co...</a><a href="https://drive.google.com/file/d/1WL-YAGA66JPtQQxhtyyd2WOHpit6DtUe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Computer Application Commerce (Eng Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam 2025 Computer Application Co...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1lsq8Kuf-CTVsN-llesy-jVURqKdhnpCj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 Computer Application (Commerce) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 Computer Application (C...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Annual Exam 2025 Computer Science (CS) Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1dLp8zHSxThicwV8cZldyQ4XmQSTjasZ9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam Computer Science Question Paper 2025 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam Computer Science Question Pa...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Z6oggm43MPv6BEK_KREbyMe6BI4QicYP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 CS Answer Key by Menoup Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 CS Answer Key by Menoup...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Computer Science Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1sGh3qVh0uLnQ93FGxry4tx74o2mko9wj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Question paper 2025 COMPUTER SCIENCE (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Question paper 2025 COMPUTER...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Xdrqc83ox7T6r6vnNeeWUFkrdGrMxYxA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam CS Answer Key 2025.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam CS Answer Key 2025.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Computer Application (Humanities) Question Paper and answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1f7pp9olOOvMn6oVhNsHp1d1isM3cb5hr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2025 CA (Humanities) Question Paper with Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2025 CA (Humanities) Q...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Computer Application Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1huZKyklFdhvaPVRx40y2lNTd9JydYb6U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 CA (Commerce) (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Questionn Paper 2025 CA (Comm...</a><a href="https://drive.google.com/file/d/1eWGLTtblICaQlCMKDKskeaPxxfo6zsp6/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 CA (Commerce) (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Questionn Paper 2025 CA (Comm...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1LhxABXN0jhylInMxURxS_sStZba8JaP_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2025 Computer Application Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2025 Computer Applicat...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 Computer Science Question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1oZPz1OWNolDlUdD33MVZs_NS1Ue8VocJ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Computer Science Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final exam March 2024 Computer Sc...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1MpAnr2MGcxdPOIWnDMlkahWyw-1DOr_J/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Computer Science (FY-430) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Computer Science...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 CA (Commerce) Question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1fNzyZXQYYo-MGqJj67y3q8ixl88UbhIr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 CA (Commerce) Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final exam March 2024 CA (Commerc...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1kdJ8pfWw3OPMxJ8xbYzoT5jV6nncJAvU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Computer Application (Commerce))  (FY-454) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Computer Applicat...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 CA (Humanities) Question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Evh28U30Kr3bAHWJYkTUGDU2vcHqqnk4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 CA (Humanities) Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final exam March 2024 CA (Humanit...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1KkHPg3ndsZiTJt88ULLQQYqcrv-aNGNI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Computer Application (Humanities)  (FY-445) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Computer Applicat...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Computer Science Question Paper</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Ni7kuS_Ou9XnbVWs921Ho1vRSETzTwaj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Computer Science Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Computer Science...</a><a href="https://drive.google.com/file/d/151L45aCF-PkCNMwbIgN2A5ASIWm5w0U5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Computer Science Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Computer Science...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 CA (Commerce) Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1cz2NTdoPp4E-Syb59pyv0CnE97vyvN5z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Computer Application (Commerce) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Computer Applicat...</a><a href="https://drive.google.com/file/d/18ZtV3pKSlThOK-vwlAhGXVDYlyK2sHEa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Computer Application (Commerce) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Computer Applicat...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Zdjz1uOpsqQf9UHrGj6GUh6hg_VdzaOB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 Computer Applications (Commerce) Answer Key by Gafoor Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 Computer Applications (...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">11 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Computer Science Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1nIlyRqns2EpP6UdUNteiZ41NClR6vqJw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Computer Science Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final Exam March 2023 Computer Sc...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 CA (Humanities) Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ZDsiRnSMZpDcCYoV21mtAFyDp_zQHb5P/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Computer Application (Humanities) Question paper (EM).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Final Exam March 2023 Computer Ap...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1tcasgUyX2TG4xm2hkNNQ_-f8eXaSM4XU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Application (Humanities) answer key 2023 by Nisha Mam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Application (Humanities) answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 CA (Commerce) Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1OtFJQHRVu-0IChgWuLbsMu2AXQEgZ9F4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Computer Application (Commerce) Question paper (MM).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Final Exam March 2023 Computer Ap...</a><a href="https://drive.google.com/file/d/1gKChFAY3dvaXFZ-8fFckWk55h8unxbxp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Computer Application (Commerce) Question paper (EM).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Final Exam March 2023 Computer Ap...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Yx9JHC8wGWTDLljYekv_ev7Z1ymefX7T/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Application (Commerce) answer key 2023 by Gafoor Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Application (Commerce) answer k...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Application (Hum) Model Exam Question Paper Feb 2023 and key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1XOLS6yD3QsJiuBmpcgHvVxy6w9m-MQdh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Computer Application (Humanities) Model Exam Feb 2023 Answer key by Bejoy Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Computer Application (Humanities)...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Applicaion (Commerce) Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1hucXr75effpl4ChhSUNIt4UAuN7DSZAN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1EJ016B1RgjGDfHl2QAmQmyOpJjMfh1Up/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/19goRTDFcE47mbUvZ6zqhxmiz0lRHWa79/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1o1Uk6eXKpt9RKU57jI-rRk0kL771pa-N/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1xBmUwG-veJUghAliPiPN3jCLR1zZDOXD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1HniMZHB3iHg15uSw0ib0hJQUDf-JIfC1/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1Q2PwieYDENlv_gt07eJoJo7Mc_JjnFyE/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/1g2-WhHZqrn-YOpis6OV63ebnRqBU3r3k/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a><a href="https://drive.google.com/file/d/12vYum4oaM2rPFMH7cNSrujdp8jrOnibW/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Com) Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Com) Model...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Applicaion (Humanities) Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1uj5O5KrrrAPA8pPyjnhu_IJg9JzSL65X/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Hum) Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Hum) Model...</a><a href="https://drive.google.com/file/d/1k-gAGzudNTFMyd9R6EoN8eS8TMppKmOy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Hum) Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Hum) Model...</a><a href="https://drive.google.com/file/d/1lUEDz2d2C9NhOMNShkFFe2ivLvLxwVHE/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Hum) Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Hum) Model...</a><a href="https://drive.google.com/file/d/1nrAuYYpHj9t9VzERcVVJEXtQX90ib-86/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Hum) Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application (Hum) Model...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Science Model Question paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1sAJJIsGprN0xhzo_B6nuvo_V66RIvFcr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/19yazUoY3LzUHYQ4sGq2imDHlWX0KicSN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/173pQU3tH12UEfRoUCnLCIlYSTC_3PTNM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/1vsTlaO4Ngr-ibxj-r2FoNPQB0TYllxAM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/1sjSysOy0QNQdIP17NpdR2o7Xc0HQXeFx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/1AiWO_nsaDVUgyuk78sZG8pKemQj7TSuU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a><a href="https://drive.google.com/file/d/12grk7QVdFdQpKpYF5SfZ6E7R2sWN7EXm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Model Question P...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Science Model Exam Question Paper 2023 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1HglkXlH3sU3l-mjW8iRLI3rq_6iWcuEZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Computer Science Model Exam Question Paper Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Computer Science Model Exam Quest...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Application (Com) Model Exam Question Paper Feb 2023 and key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1y2altSu8EKBHz0DBwnd-Wd98quz75zqI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Commerce) Model Exam Question Paper Feb 2023 (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Computer Application (Commerce) M...</a><a href="https://drive.google.com/file/d/1DB3MmUYEu1R4gn8NCrbOLbz5A9pmkLb0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application (Commerce) Model Exam Question Paper Feb 2023 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Computer Application (Commerce) M...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1joXS5bah7j_rOLiT82II1wKG4WAgYEDN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Computer Application (Commerce) Model Exam Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Computer Application (Commerce) M...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Science Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Rpx88n6oyBx314IMGsKeAejW-edtpbY5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Science Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Science Pre Model Exam 2...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Application (Com) Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1-ObsqVeK__VvFNkf2AMJPMQIi4AgjM8l/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Computer Application Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Computer Application Pre Model Ex...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">9 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Computer Science Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1QMeh4zrEI-Wwru00l4mR6nVcOp6AD0Zh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Computer Science Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Computer Science Model Exam Quest...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/12Tg2LowXprAAcS91dssHX-5UZrF8vD56/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Computer Science Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Computer Science Model Exam 2022...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One CA (Commerce) Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1lsYDDFQOu93gCUoWsvwHObNaqb_nhkjf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Computer Application (Commerce) Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Computer Application (Commerce) M...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1Pgy8af61vF0DiDZqZVJiiJrMjCS8tHny/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Computer Application (Commerce) Model Exam Question Paper with key 2022.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Computer Application (Commerce) M...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- Computer Science Question paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1sRaK5Doj2mpNFJRh8nhKu_GDwDamma7k/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam June 2022 Question Paper - COMPUTER SCIENCE.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam June 2022 Question Paper - CO...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1G7pNBMfDFJL7ylu57fSmLq5QlLtcbG0d/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Computer Science.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- CA (Humanities) Question Paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1qRmJAHhswI4S3tYHEavf1Ipt7SaCKhg7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- Computer Applications (Hmanities) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam 2022- Computer Applications (...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/19DQpUODRF0yheZfeO8jvGVv_3aXAeq9S/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Computer Application (Humanities).pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam 2022- CA (Commerce) Question Paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1bp0n2_hxoxrFavm5MBdZeGrjrMJxcEKV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Board Exam 2022- Computer Application (Commerce) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Board Exam 2022- Computer Application (C...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1DCfQjqhva1hS02h5PZCarwmqwBqzk5bi/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam 2022- CA (Commerce) Answer Key by Shahija Mam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam 2022- CA (Commerce) Answer Ke...</a><a href="https://drive.google.com/file/d/1CI7OFCYwN9ZfXN2ff3WuBgfBoiiIypLl/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Computer Application (Commerce).pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- Computer Science Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1HKqkFGlyLvi6cr2lJUpPrQWeVNMaQzgw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2022 Question Paper- COMPUTER SCIENCE.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2022 Question Paper- COMPUTER...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1BTQJuhOOmJnMYJKJvKZ1r1B0y7wk8V4c/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One CS Model Exam 2022 Answer Key by Subair Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One CS Model Exam 2022 Answer Key by Subair...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- CA (Commerce) Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1B-fScf3WV9w6YvKanUlOQNOg6wl0lX7J/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2022 Question Paper-COMPUTER APPLICATION (COMMERCE).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2022 Question Paper-COMPUTER...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1CXyKQ5B190baSo_FQ2YTZOYr2FbBH0pp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One CA (Commerce) Model Exam 2022 Answer Key by Shahija Mam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One CA (Commerce) Model Exam 2022 Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam June 2022- CS Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1waGvrBm3wA9BSw87UA5Xy574MiCPsbbz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam 2022- COMPUTER SCIENCE Question Paper &amp; Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam 2022- COMPUTER SCIENCE Questi...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Other Question Papers</span>
+                </div>
+                <h4 class="card-title">Plus one Imporovement exam Jan 2022- Question paper and key- Computer Science</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1qFp0xfyD5WqARBL3lnKpKuAEqbi4xux8/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2021-22 Question Paper-Computer Science.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2021-22 Question Paper-...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1l23YmcRDGTj5CxFhm3WquSsC-SJwi0J5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Official Answer Key-Computer Science.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Official Answer...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">9 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Computer Application (Humanities) Half yearly Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1RMTESVGEMyoBcT09xLkZsu3bUao02qGz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Second Term December 2017 Question Paper COMPUTER APPLICATION (HUMANITIES).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala +1 Second Term December 2017 Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/18re-iJ77uch3La4kYt3A_oAmDwXXSOq3/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yeraly December 2017 Answer Key COMPUTER APPLICATION (HUMANITIES).pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yeraly December 2017 Answer Key CO...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">XI Computer Application Half Yearly Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1GGYWQX5W6AjhvPHiwtse9eJGTDdEryNK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Computer Application (Commerce) Question Paper Eng Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Mid Term Exam 2023 Computer Application...</a><a href="https://drive.google.com/file/d/1MA3fYxS2MjqUt7-rRbaKnR1VJdKKrCDu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam Xmas 2023 Computer Application (Commerce) Question Paper Mal Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Mid Term Exam Xmas 2023 Computer Applica...</a><a href="https://drive.google.com/file/d/1UrHzZsfDkOX4R7xed2Sr7cdrSlKsNp0s/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Computer Application (Commerce) Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala +1 Half Yearly Exam 2022 Computer Applicat...</a><a href="https://drive.google.com/file/d/1IZkVE9WHFW2TYsT5SLNoY0hyIx5QXYgN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Computer Application (Commerce) Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Computer Applicat...</a><a href="https://drive.google.com/file/d/1vn__vfy9uomrZ9FZdfpYTsfevAzUcVC-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="COMPUTER APPLICATION (Commerce) Question Paper Kerala Plus One Second Term Half Yearly Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> COMPUTER APPLICATION (Commerce) Question Paper Ke...</a><a href="https://drive.google.com/file/d/1IVhPfSs6p9-3r0KockTVSD7inIaeA5ll/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="COMPUTER APPLICATION (COMMERCE) Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> COMPUTER APPLICATION (COMMERCE) Question Paper Ke...</a><a href="https://drive.google.com/file/d/1KGOWwvbMEF_7bdbo1e9uP6fjAZd8j2Gf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Second Term December 2017 Question Paper COMPUTER APPLICATION (Commerce).pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Second Term December 2017 Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1AE4lvX29gfjueJkmsej_RJDOtiE4s5Z5/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Second Mid Term Exam 2023 Computer Application (Commerce) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Second Mid Term Exam 2023 Computer Appli...</a><a href="https://drive.google.com/file/d/1J9SZnwATt5tSXB-Q6dY3kpeCeGtyI-KP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Computer Application Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly Exam 2022 Computer Applicat...</a><a href="https://drive.google.com/file/d/1cuN6VhQzH3fbVbVQKM5xcNTKS-97Qz30/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="COMPUTER APPLICATION (Commerce) Answer Key Kerala Plus One Second Term Half Yearly Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> COMPUTER APPLICATION (Commerce) Answer Key Kerala...</a><a href="https://drive.google.com/file/d/1hqX3wqf4Tvq5YRcMRLNCCxNKs1RiwlZ-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="COMPUTER APPLICATION (COMMERCE)  Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> COMPUTER APPLICATION (COMMERCE)  Answer Key Keral...</a><a href="https://drive.google.com/file/d/1hIg8NUSd-vWuTfFr-thE4gAr_xj4rxFa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala XI Half Yearly December 2017 Answer Key Computer Application (Commerce).pdf"><i class="fa-solid fa-circle-check"></i> Kerala XI Half Yearly December 2017 Answer Key Co...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">+1 Computer Science Half Yearly Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ItZ9k_GUjUznJitXyd7X_Ihtc-2g3Dbm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Computer Science Question Paper Mal Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Mid Term Exam 2023 Computer Science Ques...</a><a href="https://drive.google.com/file/d/1NF5v5NcH5LepeFohFGrbN-944AS_E9yJ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Computer Science Question Paper Eng Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Mid Term Exam 2023 Computer Science Ques...</a><a href="https://drive.google.com/file/d/1mPNg-ixDdPU22kTAas2WUUPjFfCjk9Zu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CS Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> CS Question Paper Kerala +1 Second Term Christmas...</a><a href="https://drive.google.com/file/d/10mHo5VKhMZLtw1GLgxdpN92pAGL7gv2z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="COMPUTER SCIENCE Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> COMPUTER SCIENCE Question Paper Kerala Plus One S...</a><a href="https://drive.google.com/file/d/180E3SK5fYU741qGUcpXcy8uAbqGhLs-g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala XI Half Yearly December 2017 Question Paper COMPUTER SCIENCE.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala XI Half Yearly December 2017 Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1n76cP9VQqAuw-42QuU21OHK17rqhkfcf/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Computer Science Question Paper with Answer Key by Subair Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Half Yearly Exam 2022 Computer Science...</a><a href="https://drive.google.com/file/d/1P6JdUHg969FggsEEvL3tbAytvLQZBHoe/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="COMPUTER SCIENCE Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> COMPUTER SCIENCE Answer Key Kerala +1 Second Term...</a><a href="https://drive.google.com/file/d/1PHQNG3eOL57WwAedYwcW3TFgqR3jfVon/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="COMPUTER SCIENCE Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> COMPUTER SCIENCE Answer Key Kerala Plus One Secon...</a><a href="https://drive.google.com/file/d/1wjg2Nu2F_KPQ9Wg3YjvHCfCFYIYmb1wC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala XI Half Yearly December 2017 Answer Key COMPUTER SCIENCE.pdf"><i class="fa-solid fa-circle-check"></i> Kerala XI Half Yearly December 2017 Answer Key CO...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- CA Commerce Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/14vx97FNxHAaQYwgF_vcIb5Eu9-dVc4RC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- Computer Application (Commerce) Question Paper FY 246.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- Computer Application (C...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1h4coqz8HdWhiCCdBfODXzKxb58HB1UOY/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Computer Application (Commerce) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Computer Application (C...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- CA Humanities Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/12vqoRdmAjPPCplGP0roWPuad15VbbiXK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- Computer Application (Humanities) Question Paper FY 245.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- Computer Application (H...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1M8i2SRx_u2Dm4u2cbMmGX8yfAt4kxsvp/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Computer Application (Humanities) Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Computer Application (H...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Computer Science</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/13lGqi_jqoBDu3Id0rP4uKDoe93m7sC5p/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Examination 2021 Question Paper Computer Science.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Examination 2021 Question Paper Co...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1cCiz3gCBLcg4VCfyi-trAoG9C0sh9vAw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Examination 2021 CS Answer key by ACT Malappuram.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Examination 2021 CS Answer key by...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">+1 Model Exam 2021 Question Papers and Answer Keys- CA (Commerce)</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1_iSJ9rBoWrA9Ctwr3eLJqBhqkCe8eGjv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2021- Question Paper- Comuter Application (Commerce).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2021- Question Paper- Comuter...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1vJdpyt8E9OVn3nLq31mBiqmKIrbO-qwr/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Model Exam 2021- Question Paper- CA (Commerce) - KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Model Exam 2021- Question Paper- CA (Com...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Computer Science (Commerce) Model Question Papers and Keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ODEWqELS1hUC7N4tU9YC-gWiM479TLGZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science (Commerce) Model Question Paper 1 by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science (Commerce) Model Questi...</a><a href="https://drive.google.com/file/d/14f5yRq8zi9vvdEooXivtP32pIOV-NCZv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science (Commerce) Model Question Paper 2 by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science (Commerce) Model Questi...</a><a href="https://drive.google.com/file/d/19ictSFlph-vMej8EuQqW4rW8EUFlYwlC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science (Commerce) Model Question Paper 3 by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science (Commerce) Model Questi...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/15qb-YwG0MUdibQyBck5xhD-ZWI_c3WVC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science (Commerce) Model Question Paper 1 by ACT Malappuram- KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science (Commerce) Model Questi...</a><a href="https://drive.google.com/file/d/1ihqYfUXbof_XXQp4si0tyK4gWwqRnsKy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science (Commerce) Model Question Paper 2 by ACT Malappuram- KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science (Commerce) Model Questi...</a><a href="https://drive.google.com/file/d/1Y84BTlX7O83Gk0k-5pG_QdFBt_OmsJPC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science (Commerce) Model Question Paper 3 by ACT Malappuram- KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science (Commerce) Model Questi...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Computer Science Model question papers and Keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1SgkBjAIRdB4U_Ei9Xc98TCd1vcXhJJaB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 Computer Science Model question paper in New Pattern by Subair Sir.pdf"><i class="fa-solid fa-file-pdf"></i> +1 Computer Science Model question paper in New P...</a><a href="https://drive.google.com/file/d/12n7MIkHQx8za126lXdWYMNF1SPO566lG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Computer Science Complete Revision Questions by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Computer Science Complete Revision Questions by A...</a><a href="https://drive.google.com/file/d/16Lif35z_jXLGMtuS259zuY3LAFFVO776/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science Model exam 1- by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science Model exam 1- by ACT Ma...</a><a href="https://drive.google.com/file/d/1iE3QWrNeq_lCQ3MjpxzUmPSueGG0cUMy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science Model exam 2- by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science Model exam 2- by ACT Ma...</a><a href="https://drive.google.com/file/d/1o6T8PlJdkzvpwGXgJuejVlIr3K_X8x0w/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Computer Science Model exam 3- by ACT Malappuram.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Computer Science Model exam 3- by ACT Ma...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1ALbey0OFAJ5khtdIqMFsK5q5LhS08y6Z/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Computer Science Model question paper in New Pattern by Subair Sir- Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> +1 Computer Science Model question paper in New P...</a><a href="https://drive.google.com/file/d/1D0P5aSaqVj3ETgA07E3xPjxE1mYw08yv/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science Model exam 1- by ACT Malappuram- KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science Model exam 1- by ACT Ma...</a><a href="https://drive.google.com/file/d/13L6mzvU-4YEsAVXEcCsxwIyARn3Lzyj9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science Model exam 2- by ACT Malappuram- KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science Model exam 2- by ACT Ma...</a><a href="https://drive.google.com/file/d/1mDsLViqr7ZiP7TjBSFkuokChUDdX9KRM/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Computer Science Model exam 3- by ACT Malappuram KEY.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Computer Science Model exam 3- by ACT Ma...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2014" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2014 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">1 Paper Set</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2014</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE Plus One Computer Applications Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1nt9PVdZBjigkWtx85g1konp5HTm32xWG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Computer Applications Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Computer Applications Model Q...</a><a href="https://drive.google.com/file/d/12wlm-rRctmuQhymg2uq-chVEZXUYcUKb/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Computer Applications Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Computer Applications Model Q...</a><a href="https://drive.google.com/file/d/1SSzAbhCl_tWWGerudRqZCj3O8-KV57lw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Computer Applications Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Computer Applications Model Q...</a><a href="https://drive.google.com/file/d/1N5Bxix8RxTr6GenPqYEyYgWUA7NvJDbH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Computer Applications Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Computer Applications Model Q...</a><a href="https://drive.google.com/file/d/1EF1ZSCqBkfitPbgDWChE7J4oOB1kp7j8/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Computer Applications Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Computer Applications Model Q...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>

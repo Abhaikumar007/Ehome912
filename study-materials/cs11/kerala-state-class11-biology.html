@@ -3,548 +3,839 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class 11 (Plus One) - Biology Papers</title>
-    <meta name="description" content="Kerala State Board Class 11 (Plus One) Biology Question Papers and Keys.">
+    <title>Biology - Kerala Plus One (Class 11) Papers | EduHome</title>
+    <meta name="description" content="Download Kerala State Board Class 11 (Plus One) Biology Question Papers and Answer Keys on Google Drive.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="../styles.css"> <!-- Same CSS file -->
-    <style>
-        .thread-container { margin: 20px auto; max-width: 800px; text-align: left; padding: 0 15px; }
-        .year-section { margin-top: 30px; margin-bottom: 20px; }
-        .year-header { font-size: 1.5em; color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 5px; margin-bottom: 15px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
-        .attachment-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; display: flex; align-items: flex-start; gap: 15px; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: #333; }
-        .attachment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .attachment-card i { color: #dc3545; font-size: 2em; margin-top: 5px; }
-        .attachment-info { display: flex; flex-direction: column; }
-        .attachment-title { font-weight: bold; font-size: 0.95em; margin-bottom: 5px; line-height: 1.3; }
-        .attachment-source { font-size: 0.8em; color: #666; }
-    </style>
+    <link rel="stylesheet" href="../styles.css">
+    
+<style>
+    :root {
+        --primary-blue: #005a87;
+        --secondary-blue: #0077cc;
+        --card-bg: #ffffff;
+        --border-color: #e2e8f0;
+        --text-dark: #1e293b;
+        --text-muted: #64748b;
+        --btn-qp: #0284c7;
+        --btn-qp-hover: #0369a1;
+        --btn-key: #16a34a;
+        --btn-key-hover: #15803d;
+        --btn-folder: #7c3aed;
+        --btn-folder-hover: #6d28d9;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc;
+        color: var(--text-dark);
+        margin: 0;
+        padding-bottom: 50px;
+        line-height: 1.5;
+    }
+
+    .subject-header {
+        background: linear-gradient(135deg, #005a87 0%, #003b59 100%);
+        color: white;
+        padding: 2.2rem 1rem 1.8rem 1rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .subject-header h1 {
+        margin: 0 0 8px 0;
+        font-size: 2.2rem;
+        font-weight: 700;
+    }
+
+    .subject-header p {
+        margin: 0;
+        font-size: 1.05rem;
+        opacity: 0.9;
+    }
+
+    .container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 15px;
+    }
+
+    .breadcrumbs {
+        margin: -5px auto 15px auto;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+
+    .breadcrumbs a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+        text-decoration: underline;
+    }
+
+    .back-btn-box {
+        margin-bottom: 20px;
+    }
+
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background-color: #e2e8f0;
+        color: #1e293b;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: background 0.2s ease;
+    }
+
+    .back-btn:hover {
+        background-color: #cbd5e1;
+    }
+
+    .section-nav-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .section-nav-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        background: #ffffff;
+        border: 1px solid var(--border-color);
+        border-radius: 30px;
+        color: var(--text-dark);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.88rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
+    }
+
+    .section-nav-pill:hover {
+        background: var(--primary-blue);
+        color: #ffffff;
+        border-color: var(--primary-blue);
+    }
+
+    .search-box-wrapper {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 45px;
+        font-size: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        background: #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+        box-sizing: border-box;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--secondary-blue);
+        box-shadow: 0 0 0 3px rgba(0, 119, 204, 0.15);
+    }
+
+    .search-icon {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 1.1rem;
+    }
+
+    .exam-section {
+        margin-bottom: 45px;
+        scroll-margin-top: 20px;
+    }
+
+    .section-title-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #cbd5e1;
+        margin-bottom: 20px;
+    }
+
+    .section-title-bar .title-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .section-title-bar h2 {
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--primary-blue);
+        margin: 0;
+    }
+
+    .section-title-bar .badge-count {
+        background: #e2e8f0;
+        color: #475569;
+        font-size: 0.85rem;
+        padding: 3px 10px;
+        border-radius: 12px;
+        font-weight: 600;
+    }
+
+    .subsection-heading {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: #334155;
+        margin: 22px 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+        gap: 18px;
+    }
+
+    .exam-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 18px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .exam-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+        border-color: #cbd5e1;
+    }
+
+    .card-top {
+        margin-bottom: 12px;
+    }
+
+    .card-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .badge {
+        font-size: 0.74rem;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+    .badge-year { background: #e0f2fe; color: #0369a1; }
+    .badge-code { background: #f1f5f9; color: #334155; }
+    .badge-set { background: #dcfce7; color: #15803d; }
+    .badge-region { background: #fef3c7; color: #b45309; }
+    .badge-supp { background: #fae8ff; color: #86198f; }
+
+    .card-title {
+        font-size: 1.02rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--text-dark);
+        margin: 0;
+    }
+
+    .card-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        border-top: 1px solid #f1f5f9;
+        padding-top: 12px;
+    }
+
+    .action-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 6px;
+        text-decoration: none;
+        transition: background 0.2s, transform 0.1s;
+        flex: 1 1 auto;
+        text-align: center;
+    }
+
+    .btn-qp {
+        background-color: var(--btn-qp);
+        color: white;
+    }
+
+    .btn-qp:hover {
+        background-color: var(--btn-qp-hover);
+        color: white;
+    }
+
+    .btn-key {
+        background-color: var(--btn-key);
+        color: white;
+    }
+
+    .btn-key:hover {
+        background-color: var(--btn-key-hover);
+        color: white;
+    }
+
+    .btn-folder {
+        background-color: var(--btn-folder);
+        color: white;
+    }
+
+    .btn-folder:hover {
+        background-color: var(--btn-folder-hover);
+        color: white;
+    }
+
+    footer {
+        text-align: center;
+        padding: 25px 0;
+        margin-top: 50px;
+        border-top: 1px solid #e2e8f0;
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    footer a {
+        color: var(--primary-blue);
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .subject-header { padding: 1.5rem 1rem 1.2rem 1rem; margin-bottom: 14px; }
+        .subject-header h1 { font-size: 1.5rem; }
+        .subject-header p { font-size: 0.92rem; }
+        .breadcrumbs { font-size: 0.85rem; line-height: 1.6; margin-bottom: 12px; }
+        .back-btn { min-height: 44px; padding: 10px 16px; }
+        .section-nav-pills {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(248, 250, 252, 0.96);
+            backdrop-filter: blur(6px);
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 10px 4px;
+            margin: 0 -4px 16px -4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .section-nav-pills::-webkit-scrollbar { display: none; }
+        .section-nav-pill { flex: 0 0 auto; padding: 8px 16px; min-height: 24px; }
+        .search-box-wrapper { margin-bottom: 20px; }
+        .search-input { padding: 12px 16px 12px 42px; font-size: 0.95rem; }
+        .exam-section { scroll-margin-top: 68px; margin-bottom: 32px; }
+        .section-title-bar { flex-wrap: wrap; gap: 8px; }
+        .section-title-bar h2 { font-size: 1.2rem; }
+        .cards-grid { grid-template-columns: 1fr; gap: 14px; }
+        .exam-card { padding: 15px; }
+        .card-title { font-size: 0.98rem; overflow-wrap: anywhere; }
+        .btn { min-height: 44px; padding: 10px 12px; font-size: 0.9rem; box-sizing: border-box; }
+    }
+
+    @media (max-width: 480px) {
+        .back-btn { width: 100%; justify-content: center; box-sizing: border-box; }
+        .action-group { flex-direction: column; }
+        .btn { width: 100%; }
+    }
+
+    html { scroll-behavior: smooth; }
+
+    #backToTopBtn {
+        position: fixed;
+        bottom: 20px;
+        right: 18px;
+        z-index: 99;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 46px;
+        height: 46px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-blue);
+        color: #ffffff;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+        cursor: pointer;
+    }
+
+    #backToTopBtn:hover {
+        background: var(--secondary-blue);
+    }
+</style>
+
 </head>
 <body>
 
-    <header>
-        <h1>Biology - Class 11 (Plus One)</h1>
-        <p>Question Papers and Answer Keys</p>
+    <header class="subject-header">
+        <h1><i class="fa-solid fa-dna"></i> Biology</h1>
+        <p>Kerala Plus One (Class 11) Question Papers &amp; Answer Keys (122 PDFs)</p>
     </header>
 
-     <nav class="breadcrumbs">
-         <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Biology
-     </nav>
-     <div class="back-link-container">
-         <a href="kerala-state-class11.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
-     </div>
-    <main>
-        <section class="thread-container">
-            <h2>Available Papers:</h2>
-            <div class="year-section">
-                <h3 class="year-header">2026 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71157" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Question paper BIOLOGY English Medium.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71158" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026 Question paper BIOLOGY Malayalam Medium.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=71159" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">SSLC Model Examination 2026  BIOLOGY MM  Answer Key by Rasheed Odakkal Sir.pdf</span>
-                            <span class="attachment-source">SSLC Model exam 2026- Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2025 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68432" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 BOTANY (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Biology Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68433" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 BOTANY (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Biology Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68430" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 ZOOLOGY (Mal Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Biology Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68431" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Model Exam Questionn Paper 2025 ZOOLOGY (Eng Med).pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Biology Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68419" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Model Exam 2025 Biology Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam 2025 Biology Question Paper with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68732" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Botany (Eng Med) Question Paper.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68734" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Botany Answer Key.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68731" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Zoology (Eng Med) Question Paper.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=68733" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam 2025 Zoology Answer Key.pdf</span>
-                            <span class="attachment-source">Plus one Board exam 2025 Biology question paper and answer key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2024 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64948" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Final exam March 2024 Biology Question paper EM.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Biology Question paper and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64949" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Botany (FY-426) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Biology Question paper and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=64959" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Board Exam 2024 Zoology (FY-426) Official Answer Key.pdf</span>
-                            <span class="attachment-source">Kerala plus one Annual Exam 2024 Biology Question paper and answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2022 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52257" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Biology Question Paper.pdf</span>
-                            <span class="attachment-source">Biology (Botany&Zoology)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=52258" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2022- Biology (Botany& Zoology) Answer Key by Sunil Kumar Sir.pdf</span>
-                            <span class="attachment-source">Biology (Botany&Zoology)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58649" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Biology Model Exam Question Paper 2022.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Biology Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58647" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Botany Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Biology Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=58648" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus one Zoology Model Exam 2022 Answer key.pdf</span>
-                            <span class="attachment-source">Kerala Plus One Biology Model Exam Question Paper 2022 with answer key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54070" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam May 2022- Botany Question Paper.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54073" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam May 2022- Botany Answer Key by Nandini Mam.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54072" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam May 2022- Zoology Question Paper.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=54071" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Annual Exam May 2022- Zoology Answer Key by Navas Sir.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56507" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Botany.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=56508" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Board Exam June 2022 Official Answer Key- Zoology.pdf</span>
-                            <span class="attachment-source">Plus One Board Exam June 2022- Biology (Botany & Zoology) Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2021 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53614" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Official Answer Key-Botany.pdf</span>
-                            <span class="attachment-source">Biology (Botany&Zoology)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=53615" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Improvement Exam 2021-22 Official Answer Key-Zoology.pdf</span>
-                            <span class="attachment-source">Biology (Botany&Zoology)</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50588" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Biology Question Paper.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50589" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Botany Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50590" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Final Exam 2021- Zoology Official Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50467" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Exam 2021 Botany Answer key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=50469" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One Exam 2021 Zoology Answer key.pdf</span>
-                            <span class="attachment-source">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2020 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39844" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ZOOLOGY PLUS ONE Question Paper Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39845" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ZOOLOGY PLUS ONE ANSWER KEY Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39873" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Plus One BIOLOGY Answer Key Annual Exam March 2020 by Sunil Sir.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39920" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">BIOLOGY Question Paper Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39921" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">BIOLOGY Answer Key Kerala +1 Annual Exam March 2020.pdf</span>
-                            <span class="attachment-source">Plus One Annual Exam March 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39565" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">BIOLOGY Question Paper Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39566" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">BOTANY Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=39567" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">ZOOLOGY Answer Key Kerala Plus One Model Exam February 2020.pdf</span>
-                            <span class="attachment-source">Plus One Model Exam Feb 2020- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2019 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30714" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Question Paper March 2019- BIOLOGY.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30715" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- BOTANY Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=30716" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Exam March 2019- ZOOLOGY Answer Key.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2019- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35319" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One  SAY June 2019 Question Paper- Biology.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35357" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- BOTANY.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=35374" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One SAY June 2019 Answer Key- Zoology.pdf</span>
-                            <span class="attachment-source">Plus One Improvement Exam June 2019- Question Papers and Keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2018 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25306" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One March 2018 Question paper- BIOLOGY.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25357" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key- Zoology.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=25358" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">HSE Plus One Exam March 2018 Answer Key-Botany.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2018- Question papers and keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2017 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20533" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Biology Question paper March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=20534" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE 11th Biology Answer key March 2017.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2017- Question papers and answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22541" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala 11th Biology Improvement exam question paper July 2017.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22542" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 SAY exam July 2017 Botany answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22543" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Zoology Improvement exam July 2017 answer key.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam July 2017 Question papers with answers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2016 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=15455" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala HSE Plus One March 2016 exam model question paper biology.pdf</span>
-                            <span class="attachment-source">Model question papers for Plus One exam</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22669" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Biology question paper March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22687" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Botany answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22714" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Zoology answer key March 2016.pdf</span>
-                            <span class="attachment-source">Plus One March 2016 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22610" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One Biology- Zoology Improvement exam question paper September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22611" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala Plus One SAY exam Botany Answer Key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22612" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala XI Improvement exam Zoology answer key September 2016 .pdf</span>
-                            <span class="attachment-source">XI th Improvement exam September 2016 with answer keys</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
-            <div class="year-section">
-                <h3 class="year-header">2015 Papers</h3>
-                <div class="pdf-grid">
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22649" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement Biology-Zoology question paper March 2015.pdf</span>
-                            <span class="attachment-source">Plus One Exam March 2015 Question papers</span>
-                        </div>
-                    </a>
-                    <a href="https://www.educationobserver.com/forum/attachment.php?aid=22631" class="attachment-card" target="_blank">
-                        <i class="fa-solid fa-file-pdf"></i>
-                        <div class="attachment-info">
-                            <span class="attachment-title">Kerala +1 Improvement Biology question paper September 2015.pdf</span>
-                            <span class="attachment-source">Plus One Improvement exam September 2015 Question papers</span>
-                        </div>
-                    </a>
-                </div>
-            </div>
+    <div class="container">
+        <nav class="breadcrumbs">
+            <a href="../index.html">Home</a> &gt; <a href="../kerala-state.html">Kerala State Board</a> &gt; <a href="kerala-state-class11.html">Class 11 (Plus One)</a> &gt; Biology
+        </nav>
 
-        </section>
-    </main>
+        <div class="back-btn-box">
+            <a href="kerala-state-class11.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Subjects</a>
+        </div>
 
-    <footer>
-        <p>© 2024 EduHome | <a href="#">Disclaimer</a> | <a href="#">About</a></p>
-    </footer>
+        <nav class="section-nav-pills" aria-label="Filter by Year">
+            <a href="#year-2026" class="section-nav-pill">2026</a><a href="#year-2025" class="section-nav-pill">2025</a><a href="#year-2024" class="section-nav-pill">2024</a><a href="#year-2023" class="section-nav-pill">2023</a><a href="#year-2022" class="section-nav-pill">2022</a><a href="#year-2021" class="section-nav-pill">2021</a><a href="#year-2013" class="section-nav-pill">2013</a>
+        </nav>
+
+        <div class="search-box-wrapper">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="paperSearch" class="search-input" placeholder="Search by year (e.g. 2025), exam (Model, Annual, Onam, Christmas), Mal Med / Eng Med..." onkeyup="filterPapers()">
+        </div>
+
+        <main>
+            
+            <section id="year-2026" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2026 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2026</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board exam 2026 Zoology question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1LZk6SuwLoqnLPc_QkwqhK_M2Y2BAEe_7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annaul Exam 2026 Zoology  Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annaul Exam 2026 Zoology  Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1KNdRbSqR9ue_Q17vpNYfLyG9vofUvBfy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="KERALA PLUS ONE BOARD EXAMINATION 2026 ZOOLOGY ANSWER KEY.pdf"><i class="fa-solid fa-circle-check"></i> KERALA PLUS ONE BOARD EXAMINATION 2026 ZOOLOGY AN...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2026</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board exam 2026 Botany question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1uAOmEc20Pl_PPnxhdBlGrOQvwgP1MF-U/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annaul Exam 2026 Botany  Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annaul Exam 2026 Botany  Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1RZzOMqFL3LL5m_kf-UrQyKgT6p6yia0H/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Fianl exam 2026- Botany Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Fianl exam 2026- Botany Answer key.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2025" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2025 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus one Board exam 2025 Biology question paper and answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1_AnX4CoeBQMj-Seqa_FtA5a94GnojeU_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Botany (Eng Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam 2025 Botany (Eng Med) Questi...</a><a href="https://drive.google.com/file/d/1E78K3n1SSHYFeiZ4iYx54tjv1OxyDei7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam 2025 Zoology (Eng Med) Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Annual Exam 2025 Zoology (Eng Med) Quest...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1qnBR3-9QC1caEGuGsFfIZtk_eRO0r1qt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 Botany Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 Botany Answer Key.pdf</a><a href="https://drive.google.com/file/d/1Wq7OESK_kP4WiKv42imoYu2o6RNts3lD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam 2025 Zoology Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam 2025 Zoology Answer Key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2025</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2025 Biology Question Paper with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1ZU-0eW0x_2ZZREw8bc51zpglUFkMWYjZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 BOTANY (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Questionn Paper 2025 BOTANY (...</a><a href="https://drive.google.com/file/d/1tAse-6J79gSHZ4DSzL9fyRTQmJWr-45g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 BOTANY (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Questionn Paper 2025 BOTANY (...</a><a href="https://drive.google.com/file/d/1GvEan3L7rhgf6pJdprvlxxPqFFO64vzR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 ZOOLOGY (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Model Exam Questionn Paper 2025 ZOOLOGY...</a><a href="https://drive.google.com/file/d/13Qnto5blJUIA8sGGYK5sOWoGDdgZKNQT/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam Questionn Paper 2025 ZOOLOGY (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Model Exam Questionn Paper 2025 ZOOLOGY...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1bX3oQOErPrU1mPnMf2J3UWrYYrxHI5Sm/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Model Exam 2025 Biology Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Model Exam 2025 Biology Answer Ke...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2024" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2024 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">3 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala plus one Annual Exam 2024 Biology Question paper and answer keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1HniGYNK1LWroA8r4RhsxGM_0Fw2IYnOz/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final exam March 2024 Biology Question paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Final exam March 2024 Biology Que...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1xiPtO_HMI2VZKBN89ZjWrJkshGQt7ZjH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Botany (FY-426) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Botany (FY-426) O...</a><a href="https://drive.google.com/file/d/1aU1H_h6m0vxdzeXZnGkuSMEdeLomFM3s/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Board Exam 2024 Zoology (FY-426) Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Board Exam 2024 Zoology (FY-426)...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2024 Biology Question Paper with Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1zKAot6Zdjf60fidk2rxY1WPeBlxXw22x/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Biology Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Model Exam 2024 Biology Question...</a><a href="https://drive.google.com/file/d/1KJ5uHhJ1EqzvZfvELfZV0yjBBn4-ZKBw/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Model Exam 2024 Biology Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Model Exam 2024 Biology Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1dWU5z0Z6kSfxEDcehPiSLZbAZl1i9A6s/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Model Exam 2024 Biology Answer Key by Dr. Sunil Sir.pdf"><i class="fa-solid fa-circle-check"></i> Kerala +1 Model Exam 2024 Biology Answer Key by D...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2024</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Botany Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1EumzYrq9EB8NK3luoGYQg8o6PS40bHRl/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1QFj_euVW42KTGtnL8a17wd2Y1DVI1dsj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1lyDM1AvshakPUwSd37tsLWtZhpMCw-Vx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1AncakI_FVDCsg2mh6_r9E43dxv0sicRh/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1NW8lXkfi1iQk0x4FJX5LnVc0Orq2YhpP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 5.pdf</a><a href="https://drive.google.com/file/d/1LP8oB_OvNvZUon2G9COG4iQVQpWgmPht/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 6.pdf</a><a href="https://drive.google.com/file/d/1zeX1V13r5EQ39xjn6eWWW-lBgNdU_2fC/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 7.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 7.pdf</a><a href="https://drive.google.com/file/d/1h8kyT-shkODlTbPumHLpyoZnOst_qnBi/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 8.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 8.pdf</a><a href="https://drive.google.com/file/d/1KfftjNdgkuCu7F0x1vOqBFqJmuc3h86P/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 9.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 9.pdf</a><a href="https://drive.google.com/file/d/1sjrBIchbYO7jwcQsIb_CQO3tKK6aFgEn/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Model Question Paper 10.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Model Question Paper 10.pdf</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2023" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2023 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Final Exam March 2023 Biology Question paper with Answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1aYK42FAR6TxRAjRfrR3bXAfDemAmRzZ9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Final Exam March 2023 Biology Question paper.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Final Exam March 2023 Biology Que...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1cNwuSq64HwJ2RWV7xET9v-DOlFnagXaj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Botany answer key 2023 by MBTA.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Botany answer key 2023 by MBTA.pdf</a><a href="https://drive.google.com/file/d/1yy7zPvGaG3lCFWUbjzfPj_v98yzsbXhX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Zoology answer key 2023 by Shilpa Mam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Zoology answer key 2023 by Shilpa Mam.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Zoology Model Question Paper sets</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1pEM39wxoOJpOQ0zGo4en9-lAdiNQ0-Ze/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Model Question Paper 1.pdf</a><a href="https://drive.google.com/file/d/1IwTYBoXMXUeIcna6kuMiCs8uyCOzdAqg/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Model Question Paper 2.pdf</a><a href="https://drive.google.com/file/d/1j4jkqekAeI_OfnQa9VlB9A6taIavSOct/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Model Question Paper 3.pdf</a><a href="https://drive.google.com/file/d/1IQ71OmuHhZ7NYkWIMZBsk8QPH4EDcyB2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Model Question Paper 4.pdf</a><a href="https://drive.google.com/file/d/1lIZNCAnVEfWZiJpIWS8dWTtWeEHoFOHx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Model Question Paper 5.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Biology Model Exam Question Paper 2023 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1PsSg3RInw4W2xD4RUXBVF5W3qf_SnGUN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Biology Model Exam Question Paper Feb 2023 (Mal Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala Plus One Biology Model Exam Question Paper...</a><a href="https://drive.google.com/file/d/1iVBFcmqeCMO7L8sxEIKvtGaL_JsryA46/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Biology Model Exam Question Paper Feb 2023 (Eng Med).pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala Plus One Biology Model Exam Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1AUjT8TBhhN9kh6SiLM712s_JhTy0FUVa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Biology Model Exam Feb 2023 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Biology Model Exam Feb 2023 Answe...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Zoology Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Nl5OxukDQ5xIZQHXm-pM4AOY2FEJfeOP/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Zoology Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Zoology Pre Model Exam 2023 by RR...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2023</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Botany Pre Model Exam Question Papers 2023</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1GbbLRdbgL9CdgbDfRrkmVLJ-5cAJxm4E/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus One Botany Pre Model Exam 2023 by RRV GHSS Kilimanoor.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus One Botany Pre Model Exam 2023 by RRV...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2022" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2022 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">7 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Biology Model Exam Question Paper 2022 with answer key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1C1P1UqLUNfj4YBtfkjrliV1M5cy1EAqZ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala Plus one Biology Model Exam Question Paper 2022.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala Plus one Biology Model Exam Question Paper...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/15NyPgISMHfGmV3FDksZEEOZLEWDM2BZt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Botany Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Botany Model Exam 2022 Answer key...</a><a href="https://drive.google.com/file/d/1l7avPgkzH_EBmAl6-aF4_93fjNf3mJk9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus one Zoology Model Exam 2022 Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus one Zoology Model Exam 2022 Answer ke...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Board Exam June 2022- Biology (Botany &amp; Zoology) Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1AxqAF7Ul6_f4q5OVyURSxUk3jMlWWruS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam May 2022- Botany Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam May 2022- Botany Question Pa...</a><a href="https://drive.google.com/file/d/1All-VyXv7pssRob773H9bcsLbqOpyAdG/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Annual Exam May 2022- Zoology Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Annual Exam May 2022- Zoology Question P...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1ACQyQ6oo9Hya1rP2MtQtw3UO2Tc6U-JR/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam May 2022- Botany Answer Key by Nandini Mam.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam May 2022- Botany Answer Key...</a><a href="https://drive.google.com/file/d/1IMeu4cI73Fv78XgFbzhNvWWLGKDQxDom/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Annual Exam May 2022- Zoology Answer Key by Navas Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Annual Exam May 2022- Zoology Answer Key...</a><a href="https://drive.google.com/file/d/1m4ctrVO8o97zjkukRftVmlHoTeRrJQHi/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Botany.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a><a href="https://drive.google.com/file/d/1RB9Fxxc0CnrNeSsgWL1tK-xV2v3P6Isg/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Board Exam June 2022 Official Answer Key- Zoology.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Board Exam June 2022 Official Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022- Zoology Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1-K9nOVBGEUrgiuGYYpivJggb1ndODC0T/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2022- Zoology Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2022- Zoology Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1JLVfQLczdGTPCgaZHnY3M5nk2E-I0Mte/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Zoology Model Exam Answer Key by Navas Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Zoology Model Exam Answer Key by Navas S...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Model Exam 2022 - Botany Question paper with Answer Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1GkbcC7vE7OIfmTgiuypHuCSRpvGtIZ7W/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2022- Botany Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2022- Botany Question Paper 1...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1a_d0cPsS84DY35t67rAF--ehdiR6BGsU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Botany Model Exam Answer Key by CBTA.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Botany Model Exam Answer Key by CBTA.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Botany Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1jShzU8A4fmORLyZTWUkjcrl5d_4hT42K/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (1).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1m2OgcutWD11M-9mEvynKadFhXIGI-W9I/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (2).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1G7Rf8BTk2um3vl5XlYEeK77Ep7gQhLwA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (3).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1W_rPQD-44akHfCi0an-M9EK7zGOCiGgs/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (4).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1UXv46Wd6NpO3qZTeXvR-UVO-xOv_AepQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (5).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1b5YLPf54dnyDBY3P4lNCI9EzADQzI7CB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="CBTA Biology (Botany) Pre Model Exam 2022 Question Paper (6).pdf"><i class="fa-solid fa-file-pdf"></i> CBTA Biology (Botany) Pre Model Exam 2022 Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1ppa2zF5zHv7HyudRkoAKPnV_zZuMfSOo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (1).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a><a href="https://drive.google.com/file/d/176q9eVAeRvySsOxtBsA5y7VHYgV6Whwn/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (2).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1SDWfKG4kmXCClSlb6AKSQwAXdmt4SVgo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (3).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1ni5tyMfdRvktNouSPyZRhzwLa5kCTOEo/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (4).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1cALzvdk5LVBnJWjctOdzf3EItlqS20yu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (5).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1URKd-TT9p41MgDJe_wPBJKAmNfyba17H/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="CBTA Biology (Botany) Pre Model Exam 2022 Answer Key (6).pdf"><i class="fa-solid fa-circle-check"></i> CBTA Biology (Botany) Pre Model Exam 2022 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Question Banks &amp; Notes</span>
+                </div>
+                <h4 class="card-title">Kerala Plus One Zoology Question Banks- All Chapters</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1W34GUYOTcL0Zi9xtK2Xaba-DvreZJEoa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1uihlxk9JHLJ6XIMIMN-vXwEmY7zzAaNH/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/14SNSMeAafBEmzbW52veiElyIVpXi3Td4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/15TwQTPX4PL4qKoZxWmTUd9S_UEVjrpjV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1oji6NOLJK5iJvaBRcKY3OfBNim9HIv2c/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1v4ifBn6CTTj9NiZwZdn4PuRaqzbp5Ol7/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a><a href="https://drive.google.com/file/d/1ash7cMs6YVmlrf1YC29xs1MHQlnvL8X9/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="ZTAM Plus One Zoology Pre model exam 2022 Question Paper 6.pdf"><i class="fa-solid fa-file-pdf"></i> ZTAM Plus One Zoology Pre model exam 2022 Questio...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/10wG4lnHxfrIvT7s_oRcy4xoneMtMNhsy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/182Ox4PbNMbXWSGSKRBNDv4Uh4w59JMNA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 1.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1vPUC-MbVcXrACRlKgXF-cQyDaNPFPbSN/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 2.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/14EPCAzaRRqyw4wPu-G_-NN1fburdqdaK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 3.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1Ln8K9VPL8lsHmk8uevIXRDknvbPjuLo4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 4.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1SKdXtp3rvphYOI23OCyr8ABFpfZeKtHK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 5.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a><a href="https://drive.google.com/file/d/1U54oGc6KkQ4me1XIbZein8A7RYFdVY9g/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZTAM Plus One Zoology Pre model exam 2022 Answer Key 6.pdf"><i class="fa-solid fa-circle-check"></i> ZTAM Plus One Zoology Pre model exam 2022 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2022</span><span class="badge badge-code">Improvement / SAY Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Improvement exam 2022- Biology Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/10qJ1mUThuukxJGqJEsbfHyxq6FUC5dia/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Improvement Exam 2022- Biology Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Improvement Exam 2022- Biology Question...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/12ZB55FylASX-Vm-Qwr5bNoMc-lccozGA/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Official Answer Key-Botany.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Official Answer...</a><a href="https://drive.google.com/file/d/1WDhvQIalhoz7DS6m8lHyx4Z2f_r8AeRK/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2021-22 Official Answer Key-Zoology.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2021-22 Official Answer...</a><a href="https://drive.google.com/file/d/10YpF5XIXAgSYPdLccdH2BbCOenn-N0Ug/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Improvement Exam 2022- Biology (Botany&amp; Zoology) Answer Key by Sunil Kumar Sir.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Improvement Exam 2022- Biology (Botany&amp;...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2021" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2021 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">5 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Term / Onam / Christmas Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Biology Half Yearly Exam Previous Year Question Papers with Answers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1veDtyT_Iy3AY5TwbvMF6ySTZAqmEZEn-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Mid Term Exam 2023 Biology Question Paper Eng Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Plus One Mid Term Exam 2023 Biology Question Pape...</a><a href="https://drive.google.com/file/d/1xbwCv5m_eoYcpoybhzULOyZyofKoz_ku/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Second Mid Term Exam 2023 Biology Question Paper Mal Med.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Plus One Second Mid Term Exam 2023 Biology Questi...</a><a href="https://drive.google.com/file/d/143El4SlIkrZfGNtE_xrwgwpNZVzgeGK-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Biology Question Paper MM.pdf"><i class="fa-solid fa-file-pdf"></i> [Mal Med] Kerala +1 Half Yearly Exam 2022 Biology Question...</a><a href="https://drive.google.com/file/d/19hCTJIaEWIoWiMMTjjpVPBG724Cpn1ta/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala +1 Half Yearly Exam 2022 Biology Question Paper EM.pdf"><i class="fa-solid fa-file-pdf"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Biology Question...</a><a href="https://drive.google.com/file/d/10kFdI9jlERKurWRSOs92VwBxKwSpdA8l/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="BIOLOGY Question Paper Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-file-pdf"></i> BIOLOGY Question Paper Kerala +1 Second Term Chri...</a><a href="https://drive.google.com/file/d/1AdY9b6GLdgyEOvCIvnubmWNqfBy8BVoq/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="BIOLOGY Question Paper Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-file-pdf"></i> BIOLOGY Question Paper Kerala Plus One Second Ter...</a><a href="https://drive.google.com/file/d/1HGl1qI_efqyu14pG06JGyxj8N0G7JLhQ/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala XI Half Yearly December 2017 Question Paper BIOLOGY.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala XI Half Yearly December 2017 Question Pape...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/13oUtEQP6s4Mqcue0IN2VixEX5z0RSoIa/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Mid Term Exam 2023 Biology Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Mid Term Exam 2023 Biology Answer Key.pdf</a><a href="https://drive.google.com/file/d/1me4ccHWcpPycTtJO2EFZv_llQh_AId1H/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala +1 Half Yearly Exam 2022 Biology Answer Key EM by Dr.Sunil Sir.pdf"><i class="fa-solid fa-circle-check"></i> [Eng Med] Kerala +1 Half Yearly Exam 2022 Biology Answer Ke...</a><a href="https://drive.google.com/file/d/1puPnvRaw68Y_Pry4l0om_e3nphk615lt/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="BOTANY Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> BOTANY Answer Key Kerala +1 Second Term Christmas...</a><a href="https://drive.google.com/file/d/1DFBy-i95PxhwMpNnAxaKoYDwVFcsHh4J/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZOOLOGY Answer Key Kerala +1 Second Term Christmas Exam Dec 2019.pdf"><i class="fa-solid fa-circle-check"></i> ZOOLOGY Answer Key Kerala +1 Second Term Christma...</a><a href="https://drive.google.com/file/d/1jOCGNieCwmeDsM_77MuhkdIoUMjNl01-/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="BOTANY Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> BOTANY Answer Key Kerala Plus One Second Term Exa...</a><a href="https://drive.google.com/file/d/1NWKQyWXBYpxDqC-SMEXwZ20vVVldPf4t/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="ZOOLOGY Answer Key Kerala Plus One Second Term Exam Dec 2018.pdf"><i class="fa-solid fa-circle-check"></i> ZOOLOGY Answer Key Kerala Plus One Second Term Ex...</a><a href="https://drive.google.com/file/d/1AvvLb7DFCIEsMij5nZnxE51kvulahO26/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Half Yearly December 2017 Answer Key BOTANY.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Half Yearly December 2017 Answer...</a><a href="https://drive.google.com/file/d/1GtwQorM1KpCFen9f2x2ek9-g9ksieFd4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Kerala Plus One Half Yearly December 2017 Answer Key ZOOLOGY.pdf"><i class="fa-solid fa-circle-check"></i> Kerala Plus One Half Yearly December 2017 Answer...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Annual / Board Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Final Exam 2021- BIOLOGY Question Paper and Key</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Jt5vV82lxslV3JW4B0QxyHrQCAe5S6O2/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Final Exam 2021- Biology Question Paper.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Final Exam 2021- Biology Question Paper.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/12LnD8fIcfGOXquX4MsXqwYyw4kM7obfX/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Botany Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Botany Official Answer...</a><a href="https://drive.google.com/file/d/1Fdi3TeNOwtDcS_uPzQh_ERtX6n3VXk4Y/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Final Exam 2021- Zoology Official Answer Key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Final Exam 2021- Zoology Official Answer...</a><a href="https://drive.google.com/file/d/1FnnSp3KmMFDfPI1cpM_of1nBI1bwBIqI/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Exam 2021 Botany Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Exam 2021 Botany Answer key.pdf</a><a href="https://drive.google.com/file/d/1OjAVeCw8ohb61ZifyJKJIXZjiliTU34B/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Exam 2021 Zoology Answer key.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Exam 2021 Zoology Answer key.pdf</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Model Exam 2021 Question Papers and Answer Keys- Biology (Botany &amp; Zoology)</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1uv3QK7nqs9Q-qMabwrrmVoxASdVhMQxB/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Model Exam 2021- Question Paper- Biology (Botany &amp; Zoology).pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Model Exam 2021- Question Paper- Biology...</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1o2hYHHThRW2XiNipB2VbzyEB4AegolPx/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Model Exam 2021- BOTANY Model Exam Answer Key by CBTA.pdf"><i class="fa-solid fa-circle-check"></i> +1 Model Exam 2021- BOTANY Model Exam Answer Key...</a><a href="https://drive.google.com/file/d/1hbSWbCvQQHBrgYQ5nJ7b4646ulkiiKXy/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="+1 Model Exam 2021- Zoology Model Exam Answer Key by Navas Sir.pdf"><i class="fa-solid fa-circle-check"></i> +1 Model Exam 2021- Zoology Model Exam Answer Key...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Zoology Model Question Papers and Answer Keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1dZrf5fzSX8lj7uPuG878zj00WqR92DC0/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Plus One Zoology Question Bank by Navas Sir.pdf"><i class="fa-solid fa-file-pdf"></i> Plus One Zoology Question Bank by Navas Sir.pdf</a><a href="https://drive.google.com/file/d/1azQKan4ym504fPd0hucMrE0oVRQkKQsc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="+1 previous year chapterwise question papers by Navas Sir.pdf"><i class="fa-solid fa-file-pdf"></i> +1 previous year chapterwise question papers by N...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2021</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Plus One Botany Model Question Papers and Answer Keys</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1tQfbqYhYC8nr299HLYO4FSirpibvC311/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Botany Model Questions-All Chapters by MBTA.pdf"><i class="fa-solid fa-file-pdf"></i> Botany Model Questions-All Chapters by MBTA.pdf</a></div><div class="action-group"><a href="https://drive.google.com/file/d/1rBwppNGv1HJf3klDjAK0aEM7JGXoVTMD/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-key" title="Plus One Question Pool with Answer Key for Botany- All Chapters by CBTA.pdf"><i class="fa-solid fa-circle-check"></i> Plus One Question Pool with Answer Key for Botany...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+            <section id="year-2013" class="exam-section">
+                <div class="section-title-bar">
+                    <div class="title-group">
+                        <i class="fa-solid fa-calendar-days fa-lg" style="color: #005a87;"></i>
+                        <h2>2013 Question Papers &amp; Keys</h2>
+                    </div>
+                    <span class="badge-count">2 Paper Sets</span>
+                </div>
+                <div class="cards-grid">
+                    
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2013</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE plus one Zoology Model Question Papers</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1Ntfr0CSDUrxvlckvu2oBCR7z2vK2EXVS/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Zoology Model question paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Zoology Model question paper...</a><a href="https://drive.google.com/file/d/1e2gJZE1AorANyeQeHjE7mIprpVxuhcM4/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Zoology Model question paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Zoology Model question paper...</a><a href="https://drive.google.com/file/d/11r2-04S4iXk3rL36P7n31M8WbChQRmxU/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Zoology Model question paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Zoology Model question paper...</a><a href="https://drive.google.com/file/d/1tVz94J8luOEBdwT1PvhJDRHU8E-VTnUj/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Zoology Model question paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Zoology Model question paper...</a><a href="https://drive.google.com/file/d/1X0tmsH9hXd1ThzHSjVk7CZlWTqYpcJgV/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Zoology Model question paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Zoology Model question paper...</a></div>
+            </div>
+        </div>
+        <div class="exam-card">
+            <div class="card-top">
+                <div class="card-badges">
+                    <span class="badge badge-year">2013</span><span class="badge badge-code">Model Exams</span>
+                </div>
+                <h4 class="card-title">Kerala HSE 11th Botony Model Question Paper</h4>
+            </div>
+            <div class="card-actions">
+                <div class="action-group"><a href="https://drive.google.com/file/d/1vjQ24RxqMhlmSgowaywaCOGwT9v5f0po/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Botony Model Question Paper 1.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Botony Model Question Paper 1...</a><a href="https://drive.google.com/file/d/1FAeeQiJ7BtqPzPNNF4K_sNRfSDdvYuF_/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Botony Model Question Paper 2.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Botony Model Question Paper 2...</a><a href="https://drive.google.com/file/d/1E71iBgIoKuo80yMft9EXRWIMvKo7Gh_e/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Botony Model Question Paper 3.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Botony Model Question Paper 3...</a><a href="https://drive.google.com/file/d/1i_fniNDzUu2F4_SbcuQea_kb9kkSQFvc/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Botony Model Question Paper 4.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Botony Model Question Paper 4...</a><a href="https://drive.google.com/file/d/1LhaDgfn9HWuY8QE44KDcqnL1RaW1MDXu/view?usp=sharing" target="_blank" rel="noopener" class="btn btn-qp" title="Kerala HSE Plus One Botony Model Question Paper 5.pdf"><i class="fa-solid fa-file-pdf"></i> Kerala HSE Plus One Botony Model Question Paper 5...</a></div>
+            </div>
+        </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2026 EduHome | Kerala State Board Class 11 Portal | Powered by Google Drive</p>
+        </footer>
+    </div>
+
+    
+<button id="backToTopBtn" type="button" aria-label="Back to top" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+    <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+window.addEventListener('scroll', function() {
+    const btn = document.getElementById('backToTopBtn');
+    if (btn) {
+        btn.style.display = window.scrollY > 300 ? 'inline-flex' : 'none';
+    }
+});
+
+function filterPapers() {
+    const query = document.getElementById('paperSearch').value.toLowerCase().trim();
+    const cards = document.querySelectorAll('.exam-card');
+
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? '' : 'none';
+    });
+
+    document.querySelectorAll('.subsection-group').forEach(sub => {
+        const visible = sub.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sub.style.display = visible.length > 0 ? '' : 'none';
+    });
+
+    document.querySelectorAll('.exam-section').forEach(sec => {
+        const visibleCards = sec.querySelectorAll('.exam-card:not([style*="display: none"])');
+        sec.style.display = visibleCards.length > 0 ? '' : 'none';
+    });
+}
+</script>
+
+
 </body>
 </html>
