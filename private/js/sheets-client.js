@@ -251,6 +251,7 @@ window.sb_loadFromCloud = async function () {
                         school: r.school || (local ? local.school : 'EduHome Campus'),
                         phone: r.phone || (local ? local.phone : ''),
                         joiningDate: r.joining_date || (local ? (local.joiningDate || local.joining_date) : '2026-01-15'),
+                        joining_date: r.joining_date || (local ? (local.joining_date || local.joiningDate) : '2026-01-15'),
                         amount: (local && local.amount) ? String(local.amount) : '',
                         subjects: initSubjects,
                         pin: r.pin || (local ? local.pin : '')
@@ -468,11 +469,23 @@ window.sb_saveStudent = async function (student) {
             const phone = _cleanPhone(student.phone);
             const subjectsList = Array.isArray(student.subjects) ? student.subjects : (student.subjects ? [student.subjects] : []);
             const subjectsStr = subjectsList.join(', ');
-            const joiningDate = student.joiningDate || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const joiningDate = student.joiningDate || student.joining_date || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            const cleanJoiningDate = (() => {
+                const jd = student.joiningDate || student.joining_date;
+                if (!jd) return null;
+                const trimmed = String(jd).trim();
+                if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+                const parsed = new Date(trimmed);
+                if (!isNaN(parsed.getTime())) {
+                    const y = parsed.getFullYear();
+                    const m = String(parsed.getMonth() + 1).padStart(2, '0');
+                    const d = String(parsed.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${d}`;
+                }
+                return null;
+            })();
 
             // A. Update or Insert student WITHOUT clobbering existing PIN
-            // Note: school and joiningDate are preserved in LocalStorage and master_hub,
-            // but omitted from Supabase students table payload because they are not columns on the students table.
             const stuPayload = {
                 name: name,
                 class_name: className,
@@ -500,12 +513,35 @@ window.sb_saveStudent = async function (student) {
                 tests_completed: student.tests_completed || 0,
                 top_percent: student.top_percent || 0
             };
+            if (cleanJoiningDate && window._supabaseHasJoiningDateColumn !== false) {
+                stuPayload.joining_date = cleanJoiningDate;
+            }
             if (window._supabaseHasSubjectsColumn === true) {
                 stuPayload.subjects = subjectsStr;
             }
 
             // Check if student exists in Supabase
             const { data: existingStu } = await sb.from('students').select('id, pin').eq('roll_no', rollNo).maybeSingle();
+            const stripMissingStudentColumn = (errObj) => {
+                const msg = String((errObj && errObj.message) || '').toLowerCase();
+                let removed = false;
+                if (msg.includes('joining_date') && 'joining_date' in stuPayload) {
+                    delete stuPayload.joining_date;
+                    window._supabaseHasJoiningDateColumn = false;
+                    removed = true;
+                }
+                if ((msg.includes('subjects') || !removed) && 'subjects' in stuPayload) {
+                    delete stuPayload.subjects;
+                    window._supabaseHasSubjectsColumn = false;
+                    removed = true;
+                }
+                if (!removed && 'joining_date' in stuPayload) {
+                    delete stuPayload.joining_date;
+                    window._supabaseHasJoiningDateColumn = false;
+                    removed = true;
+                }
+                return removed;
+            };
             let stuError = null;
             if (existingStu) {
                 // UPDATE: Only update PIN if explicitly provided and valid 4-digits; NEVER overwrite with default 1234
@@ -515,9 +551,7 @@ window.sb_saveStudent = async function (student) {
                     stuPayload.pin = String(Math.floor(1000 + Math.random() * 9000));
                 }
                 let res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
-                if (res.error && _isMissingColumnError(res.error)) {
-                    delete stuPayload.subjects;
-                    window._supabaseHasSubjectsColumn = false;
+                while (res.error && _isMissingColumnError(res.error) && stripMissingStudentColumn(res.error)) {
                     res = await sb.from('students').update(stuPayload).eq('roll_no', rollNo);
                 }
                 stuError = res.error;
@@ -528,9 +562,7 @@ window.sb_saveStudent = async function (student) {
                     ? String(student.pin).trim()
                     : String(Math.floor(1000 + Math.random() * 9000));
                 let res = await sb.from('students').insert(stuPayload);
-                if (res.error && _isMissingColumnError(res.error)) {
-                    delete stuPayload.subjects;
-                    window._supabaseHasSubjectsColumn = false;
+                while (res.error && _isMissingColumnError(res.error) && stripMissingStudentColumn(res.error)) {
                     res = await sb.from('students').insert(stuPayload);
                 }
                 stuError = res.error;
@@ -548,6 +580,7 @@ window.sb_saveStudent = async function (student) {
                         const sRoll = String(s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
                         return sRoll === normRollNo;
                     });
+                    const savedJoinDate = cleanJoiningDate || joiningDate || student.joiningDate || (idx >= 0 ? (storedList[idx].joiningDate || storedList[idx].joining_date || '') : '');
                     const updatedObj = {
                         ...(idx >= 0 ? storedList[idx] : {}),
                         id: rollNo,
@@ -559,7 +592,8 @@ window.sb_saveStudent = async function (student) {
                         school: student.school || (idx >= 0 ? storedList[idx].school : 'EduHome Campus'),
                         phone: stuPayload.phone,
                         pin: stuPayload.pin || (existingStu && existingStu.pin) || (student.pin || ''),
-                        joiningDate: joiningDate || student.joiningDate || (idx >= 0 ? storedList[idx].joiningDate : ''),
+                        joiningDate: savedJoinDate,
+                        joining_date: savedJoinDate,
                         amount: String(student.amount != null ? student.amount : (idx >= 0 ? storedList[idx].amount : '')),
                         subjects: subjectsList
                     };

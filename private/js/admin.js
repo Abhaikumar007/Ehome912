@@ -1485,7 +1485,12 @@ window.restoreData = function (input) {
 function _syncStudentToCloud(student) {
     if (typeof sb_saveStudent === 'function') {
         _showSyncToast('☁️ Syncing to cloud...');
-        sb_saveStudent(student).then(function (ok) {
+        var syncPromise = sb_saveStudent(student);
+        window._activeStudentSyncPromise = syncPromise;
+        syncPromise.then(function (ok) {
+            if (window._activeStudentSyncPromise === syncPromise) {
+                window._activeStudentSyncPromise = null;
+            }
             if (ok) {
                 _showSyncToast('✅ Synced to cloud');
                 // Immediately refresh table so UI is in lockstep with confirmed cloud sync
@@ -1496,6 +1501,9 @@ function _syncStudentToCloud(student) {
                 _showSyncToast('⚠️ Cloud sync failed - saved locally', true);
             }
         }).catch(function(err) {
+            if (window._activeStudentSyncPromise === syncPromise) {
+                window._activeStudentSyncPromise = null;
+            }
             console.warn('[Sync] error:', err);
             _showSyncToast('⚠️ Cloud sync error - saved locally', true);
         });
@@ -1547,42 +1555,69 @@ if (document.getElementById('addStudentForm')) {
         }
 
         if (id) {
-            // EDIT MODE: Match student by id or rollNo (case-insensitive)
+            // EDIT MODE: Match student by id or rollNo (case-insensitive) in localStorage or cloud cache
             const normTargetId = String(id).toUpperCase().trim();
-            const index = students.findIndex(s => {
+            const matchByIdOrRoll = s => {
                 const sId = String(s.id || '').toUpperCase().trim();
                 const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
                 return sId === normTargetId || sRoll === normTargetId;
-            });
-            if (index !== -1) {
-                const existingDate = students[index].joiningDate || students[index].joining_date || '';
-                const finalJoiningDate = joiningDate ? joiningDate : (existingDate || new Date().toISOString().slice(0, 10));
-
-                const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
-                const resolvedRoll = students[index].rollNo || students[index].roll_no || students[index].id || id;
-                const inputPin = document.getElementById('pin') ? document.getElementById('pin').value.trim() : '';
-                const assignedPin = (inputPin && /^\d{4}$/.test(inputPin)) ? inputPin : (students[index].pin || '');
-                students[index] = {
-                    ...students[index],
-                    id: resolvedRoll,
-                    rollNo: resolvedRoll,
-                    name,
-                    class: studentClass,
-                    syllabus: syllabusType,
-                    batch: syllabusType === "Both" ? `${classGradeStr} (Both)` : `${classGradeStr} (${syllabusType})`,
-                    school,
-                    phone,
-                    pin: assignedPin,
-                    joiningDate: finalJoiningDate,
-                    amount: String(amount != null ? amount : ''),
-                    subjects
-                };
-                studentToSync = students[index];
-                alert('Student Updated Successfully!');
+            };
+            const index = students.findIndex(matchByIdOrRoll);
+            let existingRecord = index !== -1 ? students[index] : null;
+            if (!existingRecord && Array.isArray(window._lastCloudStudents)) {
+                existingRecord = window._lastCloudStudents.find(matchByIdOrRoll) || null;
             }
+            const baseRecord = existingRecord || { id: id, rollNo: id };
+
+            const existingDate = baseRecord.joiningDate || baseRecord.joining_date || '';
+            const nowLocal = new Date();
+            const todayIso = nowLocal.getFullYear() + '-' + String(nowLocal.getMonth() + 1).padStart(2, '0') + '-' + String(nowLocal.getDate()).padStart(2, '0');
+            const finalJoiningDate = joiningDate ? joiningDate : (existingDate || todayIso);
+
+            const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
+            const resolvedRoll = baseRecord.rollNo || baseRecord.roll_no || baseRecord.id || id;
+            const inputPin = document.getElementById('pin') ? document.getElementById('pin').value.trim() : '';
+            const assignedPin = (inputPin && /^\d{4}$/.test(inputPin)) ? inputPin : (baseRecord.pin || '');
+            const parsedAmount = (amount !== '' && amount !== null && amount !== undefined && !isNaN(Number(amount)))
+                ? Number(amount)
+                : baseRecord.monthly_fee;
+
+            const updatedStudent = {
+                ...baseRecord,
+                id: resolvedRoll,
+                rollNo: resolvedRoll,
+                name,
+                class: studentClass,
+                syllabus: syllabusType,
+                board: syllabusType,
+                batch: syllabusType === "Both" ? `${classGradeStr} (Both)` : `${classGradeStr} (${syllabusType})`,
+                school,
+                phone,
+                pin: assignedPin,
+                joiningDate: finalJoiningDate,
+                joining_date: finalJoiningDate,
+                monthly_fee: parsedAmount,
+                amount: String(amount != null ? amount : ''),
+                subjects
+            };
+            if (index !== -1) {
+                students[index] = updatedStudent;
+            } else {
+                students.push(updatedStudent);
+            }
+            if (Array.isArray(window._lastCloudStudents)) {
+                const cloudIdx = window._lastCloudStudents.findIndex(matchByIdOrRoll);
+                if (cloudIdx !== -1) {
+                    window._lastCloudStudents[cloudIdx] = updatedStudent;
+                }
+            }
+            studentToSync = updatedStudent;
+            alert('Student Updated Successfully!');
         } else {
-            // ADD MODE: Default to today if left blank
-            const finalJoiningDate = joiningDate || new Date().toISOString().slice(0, 10);
+            // ADD MODE: Default to today (local date) if left blank
+            const nowLocal = new Date();
+            const todayIso = nowLocal.getFullYear() + '-' + String(nowLocal.getMonth() + 1).padStart(2, '0') + '-' + String(nowLocal.getDate()).padStart(2, '0');
+            const finalJoiningDate = joiningDate || todayIso;
             const classGradeStr = studentClass.startsWith('Class') ? studentClass : 'Class ' + studentClass;
             const generatedId = Date.now().toString();
             const rawClassNum = String(studentClass).replace(/[^0-9]/g, '');
@@ -1595,11 +1630,13 @@ if (document.getElementById('addStudentForm')) {
                 name,
                 class: studentClass,
                 syllabus: syllabusType,
+                board: syllabusType,
                 batch: syllabusType === "Both" ? `${classGradeStr} (Both)` : `${classGradeStr} (${syllabusType})`,
                 school,
                 phone,
                 pin: newPin,
                 joiningDate: finalJoiningDate,
+                joining_date: finalJoiningDate,
                 amount: String(amount != null ? amount : ''),
                 subjects
             };
@@ -1609,10 +1646,9 @@ if (document.getElementById('addStudentForm')) {
         }
 
         saveStudents(students);
-        if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
-
-        // ── Sync to Cloud ──────────────────────────────
+        // Start cloud sync BEFORE refreshing list so renderStudentManagementList awaits the write
         if (studentToSync) _syncStudentToCloud(studentToSync);
+        if (typeof renderStudentManagementList === 'function') renderStudentManagementList();
 
         e.target.reset();
         document.getElementById('studentId').value = '';
@@ -4074,11 +4110,18 @@ if (document.getElementById('studentListBody')) {
         const tbody = document.getElementById('studentListBody');
         const toggle = document.getElementById('sourceToggleSwitch');
         const isCloud = toggle ? toggle.checked : true;
+        const myRenderSeq = (window._renderStudentListSeq = (window._renderStudentListSeq || 0) + 1);
         
         tbody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>';
         
         let students = [];
         if (isCloud) {
+            // Wait if a student save/update is currently writing to Supabase
+            if (window._activeStudentSyncPromise) {
+                try { await window._activeStudentSyncPromise; } catch (_) {}
+            }
+            if (myRenderSeq !== window._renderStudentListSeq) return;
+
             // Wait briefly if sheets-client.js is still initializing
             if (typeof sb_getStudents !== 'function') {
                 for (let i = 0; i < 5; i++) {
@@ -4086,10 +4129,12 @@ if (document.getElementById('studentListBody')) {
                     await new Promise(r => setTimeout(r, 200));
                 }
             }
+            if (myRenderSeq !== window._renderStudentListSeq) return;
 
             if (typeof sb_getStudents === 'function') {
                 try {
                     const cloudData = await sb_getStudents();
+                    if (myRenderSeq !== window._renderStudentListSeq) return;
                     if (cloudData && Array.isArray(cloudData) && cloudData.length > 0) {
                         students = cloudData;
                         window._lastCloudStudents = cloudData;
@@ -4102,6 +4147,7 @@ if (document.getElementById('studentListBody')) {
                         }
                     }
                 } catch (cErr) {
+                    if (myRenderSeq !== window._renderStudentListSeq) return;
                     console.warn('[Sync] Fetch from cloud failed, using local cache:', cErr);
                     students = getStudents();
                 }
@@ -4113,6 +4159,7 @@ if (document.getElementById('studentListBody')) {
             students = getStudents();
         }
 
+        if (myRenderSeq !== window._renderStudentListSeq) return;
         tbody.innerHTML = '';
 
         if (students.length === 0) {
@@ -4138,7 +4185,10 @@ if (document.getElementById('studentListBody')) {
             if (s.joiningDate || s.joining_date) {
                 const rawDate = s.joiningDate || s.joining_date;
                 try {
-                    const parsed = new Date(rawDate);
+                    const mIso = String(rawDate).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    const parsed = mIso
+                        ? new Date(Number(mIso[1]), Number(mIso[2]) - 1, Number(mIso[3]))
+                        : new Date(rawDate);
                     joinText = isNaN(parsed.getTime()) ? rawDate : parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 } catch(e) {
                     joinText = rawDate;
