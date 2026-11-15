@@ -111,6 +111,27 @@ function _formatToDateInputValue(dateStr) {
     return '';
 }
 
+/**
+ * Formats a student joining date into an unambiguous DD MMM YYYY string
+ * using local calendar components for ISO YYYY-MM-DD values.
+ */
+function _formatJoiningDateDisplay(rawDate) {
+    if (!rawDate) return '';
+    const trimmed = String(rawDate).trim();
+    if (!trimmed) return '';
+    try {
+        const mIso = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        const parsed = mIso
+            ? new Date(Number(mIso[1]), Number(mIso[2]) - 1, Number(mIso[3]))
+            : new Date(trimmed);
+        return isNaN(parsed.getTime())
+            ? trimmed
+            : parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    } catch (e) {
+        return trimmed;
+    }
+}
+
 // Master Roster of all 50 students with full subjects, fees, schools, and joining dates
 const MASTER_STUDENTS_ROSTER = [
     {
@@ -1862,10 +1883,11 @@ if (document.getElementById('feesClassSelect')) {
                     '</div>';
             });
 
+            const joinDisplay = _formatJoiningDateDisplay(student.joiningDate || student.joining_date);
             tr.innerHTML = '<td>' +
                 '<strong>' + student.name + '</strong>' +
                 (student.class ? ('<br><span class="badge badge-light border">Class ' + student.class + '</span>') : '') +
-                (student.joiningDate ? ('<small class="text-muted ml-1" style="font-size:0.75rem;">Joined: ' + new Date(student.joiningDate).toLocaleDateString() + '</small>') : '') +
+                (joinDisplay ? ('<small class="text-muted ml-1" style="font-size:0.75rem;">Joined: ' + joinDisplay + '</small>') : '') +
                 '</td>' +
                 '<td>' + student.phone + '</td>' +
                 '<td>' + subjectsHtml + '</td>';
@@ -4181,19 +4203,7 @@ if (document.getElementById('studentListBody')) {
 
                 students.forEach((s) => {
             const tr = document.createElement('tr');
-            let joinText = '';
-            if (s.joiningDate || s.joining_date) {
-                const rawDate = s.joiningDate || s.joining_date;
-                try {
-                    const mIso = String(rawDate).trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-                    const parsed = mIso
-                        ? new Date(Number(mIso[1]), Number(mIso[2]) - 1, Number(mIso[3]))
-                        : new Date(rawDate);
-                    joinText = isNaN(parsed.getTime()) ? rawDate : parsed.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-                } catch(e) {
-                    joinText = rawDate;
-                }
-            }
+            const joinText = _formatJoiningDateDisplay(s.joiningDate || s.joining_date);
             const feeVal = s.amount || s.monthly_fee || '-';
             const subStr = Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' && s.subjects ? s.subjects : 'General');
             const phoneVal = s.phone || '-';
