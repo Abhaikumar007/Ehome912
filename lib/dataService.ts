@@ -1581,16 +1581,41 @@ export const DataService = {
     const dueInfo = this.calculateDueInfo(studentFeeInfo.joiningDate || studentFeeInfo.dueDate || 25);
 
     try {
-      const query = supabase
+      const feeQuery = supabase
         .from('fees_records')
         .select('*')
         .eq('roll_no', rollNo)
-        .single();
+        .maybeSingle();
 
-      const { data, error } = await withTimeout(query, 2500) as any;
-      if (data && !error) {
-        const studentDueInfo = this.calculateDueInfo(data.joining_date || data.due_date || studentFeeInfo.joiningDate || 25);
-        const payments = Array.isArray(data.recent_payments) ? data.recent_payments : [];
+      const stuQuery = supabase
+        .from('students')
+        .select('joining_date, subjects, fee')
+        .eq('roll_no', rollNo)
+        .maybeSingle();
+
+      const [{ data, error }, { data: stuData }] = await withTimeout(
+        Promise.all([feeQuery, stuQuery]),
+        2500
+      ) as any;
+
+      const formatIsoDate = (iso?: string) => {
+        if (!iso || !/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso || '';
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return iso;
+        const monthsShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        return `${String(d.getDate()).padStart(2, '0')} ${monthsShort[d.getMonth()]} ${d.getFullYear()}`;
+      };
+
+      const stuSubjectsStr = Array.isArray(stuData?.subjects) && stuData.subjects.length > 0
+        ? stuData.subjects.join(', ')
+        : (typeof stuData?.subjects === 'string' && stuData.subjects.trim() ? stuData.subjects : '');
+
+      const dbJoiningRaw = data?.joining_date || stuData?.joining_date || '';
+
+      if ((data && !error) || stuData) {
+        const feeRec = data || {};
+        const studentDueInfo = this.calculateDueInfo(dbJoiningRaw || feeRec.due_date || studentFeeInfo.joiningDate || 25);
+        const payments = Array.isArray(feeRec.recent_payments) ? feeRec.recent_payments : [];
         const approvedPayments = payments.filter((p: any) => p.status !== 'pending_verification');
         const hasPendingVerification = payments.some((p: any) => p.status === 'pending_verification');
 
@@ -1598,13 +1623,13 @@ export const DataService = {
         const feeNow = new Date();
         const { target, isAdvance, unpaidCount } = getFeeTargetMonth(
           approvedPayments,
-          data.joining_date || studentFeeInfo.joiningDateIso,
+          dbJoiningRaw || studentFeeInfo.joiningDateIso,
           feeNow
         );
         const pendingItem = payments.find((p: any) => p.status === 'pending_verification');
 
         // Check if database explicitly marked as cleared by Admin
-        const isExplicitlyClearedInDb = (Number(data.current_due) === 0 || data.due_date === 'All Cleared' || data.status === 'paid');
+        const isExplicitlyClearedInDb = (Number(feeRec.current_due) === 0 || feeRec.due_date === 'All Cleared' || feeRec.status === 'paid');
 
         // Everything up to the current month is paid -> cleared (unless an advance payment is in review)
         const isPaid = (isExplicitlyClearedInDb || isAdvance) && !hasPendingVerification;
@@ -1628,14 +1653,19 @@ export const DataService = {
         // Resolve dynamic monthly fee from Supabase database (Admin updates reflect here!)
         let resolvedMonthlyFee: number | null = null;
 
+        // 0. Check students.fee column first if set
+        if (Number(stuData?.fee) > 0) {
+          resolvedMonthlyFee = Number(stuData.fee);
+        }
+
         // 1. Check loyalty_months metadata tag in Supabase
-        if (Array.isArray(data.loyalty_months)) {
-          const tag = data.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
+        if (!resolvedMonthlyFee && Array.isArray(feeRec.loyalty_months)) {
+          const tag = feeRec.loyalty_months.find((x: any) => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
           if (tag && Number(tag.__monthly_fee || tag.fee_standard) > 0) {
             resolvedMonthlyFee = Number(tag.__monthly_fee || tag.fee_standard);
           }
-        } else if (data.loyalty_months && typeof data.loyalty_months === 'object') {
-          const feeVal = Number((data.loyalty_months as any).__monthly_fee || (data.loyalty_months as any).fee_standard);
+        } else if (!resolvedMonthlyFee && feeRec.loyalty_months && typeof feeRec.loyalty_months === 'object') {
+          const feeVal = Number((feeRec.loyalty_months as any).__monthly_fee || (feeRec.loyalty_months as any).fee_standard);
           if (feeVal > 0) resolvedMonthlyFee = feeVal;
         }
 
@@ -1645,16 +1675,16 @@ export const DataService = {
         }
 
         // 3. Check regular payment history (< 15000)
-        if (!resolvedMonthlyFee && Array.isArray(data.recent_payments) && data.recent_payments.length > 0) {
-          const p = data.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0 && Number(pmt.amount) < 15000 && pmt.status !== 'pending_verification');
+        if (!resolvedMonthlyFee && Array.isArray(feeRec.recent_payments) && feeRec.recent_payments.length > 0) {
+          const p = feeRec.recent_payments.find((pmt: any) => pmt && Number(pmt.amount) > 0 && Number(pmt.amount) < 15000 && pmt.status !== 'pending_verification');
           if (p && Number(p.amount) > 0) {
             resolvedMonthlyFee = Number(p.amount);
           }
         }
 
         // 4. Safe fallback: if current_due divided by unpaidCount yields a realistic monthly fee
-        if (!resolvedMonthlyFee && Number(data.current_due) > 0) {
-          const est = unpaidCount > 1 ? Number(data.current_due) / unpaidCount : Number(data.current_due);
+        if (!resolvedMonthlyFee && Number(feeRec.current_due) > 0) {
+          const est = unpaidCount > 1 ? Number(feeRec.current_due) / unpaidCount : Number(feeRec.current_due);
           if (est > 0 && est <= 10000) {
             resolvedMonthlyFee = est;
           }
@@ -1665,7 +1695,7 @@ export const DataService = {
         }
 
         // Due date of the month being paid = joining day of that month
-        const resolvedJoiningIso = data.joining_date || studentFeeInfo.joiningDateIso || '';
+        const resolvedJoiningIso = dbJoiningRaw || studentFeeInfo.joiningDateIso || '';
         const dueDay = Number(resolvedJoiningIso.slice(8)) || 25;
         const targetDueObj = new Date(target.year, target.monthIndex, dueDay);
         const targetDueStr = `${String(dueDay).padStart(2, '0')} ${target.long} ${target.year}`;
@@ -1680,7 +1710,7 @@ export const DataService = {
           currentDue: computedDue,
           actualDue: computedDue,
           dueDate: isPaid ? 'All Cleared' : targetDueStr,
-          joiningDate: data.joining_date || studentFeeInfo.joiningDate || studentDueInfo.dueDate,
+          joiningDate: formatIsoDate(dbJoiningRaw) || studentFeeInfo.joiningDate || studentDueInfo.dueDate,
           daysLeft: isPaid ? 0 : targetDaysLeft,
           isPaid,
           status: computedStatus as 'due' | 'pending_verification' | 'paid',
@@ -1689,11 +1719,11 @@ export const DataService = {
           nextMonthLabel: target.long,
           overdueMonths: unpaidCount,
           isAdvancePayment: isAdvance,
-          subjects: studentFeeInfo.subjects,
+          subjects: stuSubjectsStr || studentFeeInfo.subjects,
           upiId: 'madhuakshay987@oksbi',
           payeeName: 'EduHome Tuition Center',
-          loyaltyMonths: data.loyalty_months || mockFees.loyaltyMonths,
-          monthsPaidOnTime: data.months_paid_on_time ?? (isPaid ? 10 : 8),
+          loyaltyMonths: feeRec.loyalty_months || mockFees.loyaltyMonths,
+          monthsPaidOnTime: feeRec.months_paid_on_time ?? (isPaid ? 10 : 8),
           recentPayments: (() => {
             const seen = new Set<number>();
             return [...approvedPayments]
