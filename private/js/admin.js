@@ -4277,14 +4277,15 @@ if (document.getElementById('studentListBody')) {
 
     // Two-step delete to avoid native confirm() issues in WebViews
     window.askDeleteStudent = function (id, btn) {
+        if (btn._deleteRevertTimer) clearTimeout(btn._deleteRevertTimer);
         btn.innerText = "Confirm?";
         btn.classList.remove('btn-danger');
         btn.classList.add('btn-warning');
-        btn.setAttribute('onclick', `confirmDeleteStudent('${id}')`);
+        btn.setAttribute('onclick', `confirmDeleteStudent('${id}', this)`);
 
         // Revert after 3 seconds if not clicked
-        setTimeout(() => {
-            if (document.body.contains(btn)) {
+        btn._deleteRevertTimer = setTimeout(() => {
+            if (document.body.contains(btn) && btn.dataset.deleting !== '1') {
                 btn.innerText = "Delete";
                 btn.classList.add('btn-danger');
                 btn.classList.remove('btn-warning');
@@ -4293,39 +4294,74 @@ if (document.getElementById('studentListBody')) {
         }, 3000);
     };
 
-    window.confirmDeleteStudent = function (id) {
+    window.confirmDeleteStudent = async function (id, btn) {
+        if (btn && btn.dataset.deleting === '1') return;
         const normId = String(id || '').toUpperCase().trim();
 
-        // 1. Record in deleted_students blacklist
-        try {
-            let deletedList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
-            if (!deletedList.includes(normId)) {
-                deletedList.push(normId);
-                localStorage.setItem('deleted_students', JSON.stringify(deletedList));
-            }
-        } catch (_) {}
-
-        // 2. Remove from local storage list
-        const students = getStudents();
-        const updated = students.filter(s => {
-            const sId = String(s.id || '').toUpperCase().trim();
-            const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
-            return sId !== normId && sRoll !== normId;
-        });
-        saveStudents(updated);
-
-        // 3. Sync delete to Cloud
-        if (typeof sb_deleteStudent === 'function') {
-            sb_deleteStudent(id).then(function (ok) {
-                if (ok) {
-                    if (typeof _showSyncToast === 'function') _showSyncToast('✓ Deleted from cloud');
-                } else {
-                    if (typeof _showSyncToast === 'function') _showSyncToast('ℹ️ Deleted locally (not found in cloud)', true);
-                }
-            });
+        if (btn) {
+            if (btn._deleteRevertTimer) clearTimeout(btn._deleteRevertTimer);
+            btn.dataset.deleting = '1';
+            btn.disabled = true;
+            btn.classList.remove('btn-warning', 'btn-danger');
+            btn.classList.add('btn-secondary');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Deleting...';
         }
 
-        renderStudentManagementList();
+        try {
+            // 1. Wait for Cloud deletion confirmation first while button spins
+            let cloudOk = false;
+            if (typeof sb_deleteStudent === 'function') {
+                cloudOk = await sb_deleteStudent(id);
+            }
+
+            // 2. Record in deleted_students blacklist
+            try {
+                let deletedList = JSON.parse(localStorage.getItem('deleted_students') || '[]');
+                if (!deletedList.includes(normId)) {
+                    deletedList.push(normId);
+                    localStorage.setItem('deleted_students', JSON.stringify(deletedList));
+                }
+            } catch (_) {}
+
+            // 3. Remove from local storage list & in-memory cloud cache
+            const students = getStudents();
+            const updated = students.filter(s => {
+                const sId = String(s.id || '').toUpperCase().trim();
+                const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+                return sId !== normId && sRoll !== normId;
+            });
+            saveStudents(updated);
+            if (Array.isArray(window._lastCloudStudents)) {
+                window._lastCloudStudents = window._lastCloudStudents.filter(s => {
+                    const sId = String(s.id || '').toUpperCase().trim();
+                    const sRoll = String(s.rollNo || s.roll_no || '').toUpperCase().trim();
+                    return sId !== normId && sRoll !== normId;
+                });
+            }
+
+            if (typeof sb_deleteStudent === 'function' && typeof _showSyncToast === 'function') {
+                if (cloudOk) {
+                    _showSyncToast('✓ Deleted from cloud');
+                } else {
+                    _showSyncToast('ℹ️ Deleted locally (not found in cloud)', true);
+                }
+            }
+
+            renderStudentManagementList();
+        } catch (err) {
+            console.warn('[DeleteStudent] Cloud delete error:', err);
+            if (typeof _showSyncToast === 'function') {
+                _showSyncToast('⚠️ Cloud delete failed — please retry', true);
+            }
+            if (btn && document.body.contains(btn)) {
+                delete btn.dataset.deleting;
+                btn.disabled = false;
+                btn.classList.remove('btn-secondary', 'btn-warning');
+                btn.classList.add('btn-danger');
+                btn.innerText = "Delete";
+                btn.setAttribute('onclick', `askDeleteStudent('${id}', this)`);
+            }
+        }
     };
 
     // Call render initially
