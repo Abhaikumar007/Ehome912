@@ -493,23 +493,6 @@ const MASTER_STUDENTS_ROSTER = [
         ]
     },
     {
-        "id": "EDU-2026-023",
-        "rollNo": "EDU-2026-023",
-        "name": "Vishwathej",
-        "class": "12",
-        "school": "SG",
-        "phone": "9961803001",
-        "joiningDate": "2026-01-01",
-        "amount": "4500",
-        "pin": "3948",
-        "subjects": [
-            "Physics",
-            "Chemistry",
-            "Maths",
-            "Biology"
-        ]
-    },
-    {
         "id": "EDU-2026-024",
         "rollNo": "EDU-2026-024",
         "name": "Ganga",
@@ -719,22 +702,6 @@ const MASTER_STUDENTS_ROSTER = [
         ]
     },
     {
-        "id": "EDU-2026-037",
-        "rollNo": "EDU-2026-037",
-        "name": "Roshan",
-        "class": "12",
-        "school": "Divine",
-        "phone": "8921159422",
-        "joiningDate": "2026-09-10",
-        "amount": "3500",
-        "pin": "8857",
-        "subjects": [
-            "Physics",
-            "Chemistry",
-            "Maths"
-        ]
-    },
-    {
         "id": "EDU-2026-038",
         "rollNo": "EDU-2026-038",
         "name": "Fathima",
@@ -795,22 +762,6 @@ const MASTER_STUDENTS_ROSTER = [
         ]
     },
     {
-        "id": "EDU-2026-042",
-        "rollNo": "EDU-2026-042",
-        "name": "Dwaitha",
-        "class": "11",
-        "school": "MGM mylam",
-        "phone": "6238332685",
-        "joiningDate": "2026-08-08",
-        "amount": "3000",
-        "pin": "7634",
-        "subjects": [
-            "Physics",
-            "Chemistry",
-            "Biology"
-        ]
-    },
-    {
         "id": "EDU-2026-043",
         "rollNo": "EDU-2026-043",
         "name": "Adarsh",
@@ -838,22 +789,6 @@ const MASTER_STUDENTS_ROSTER = [
         "subjects": [
             "Physics",
             "Chemistry",
-            "Biology"
-        ]
-    },
-    {
-        "id": "EDU-2026-045",
-        "rollNo": "EDU-2026-045",
-        "name": "Dharmic Krishna",
-        "class": "10",
-        "school": "Puthoor",
-        "phone": "8547534316",
-        "joiningDate": "2026-09-04",
-        "amount": "3000",
-        "subjects": [
-            "Physics",
-            "Chemistry",
-            "Maths",
             "Biology"
         ]
     },
@@ -955,7 +890,7 @@ function getStudents() {
             const normName = (s.name || '').toLowerCase().trim();
             const roll = (s.rollNo || s.roll_no || s.id || '').toUpperCase().trim();
             const sId = String(s.id || '').toUpperCase().trim();
-            if (deletedSet.has(roll) || deletedSet.has(sId)) {
+            if (deletedSet.has(roll) || deletedSet.has(sId) || roll === 'EDU-2026-023' || roll === 'EDU-2026-037' || roll === 'EDU-2026-042' || roll === 'EDU-2026-045') {
                 needsSave = true;
                 return;
             }
