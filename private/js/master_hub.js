@@ -2157,7 +2157,7 @@ function _closeBootstrapModal(modalId, backdropId) {
 // ─── 3.0 MONTHLY BILLING CYCLE GENERATOR (MOBILE & TOUCH OPTIMIZED) ─────────
 window.requestFeeCycleGeneration = function () {
     const cycleSelect = document.getElementById('cycleMonthSelect');
-    const cycleMonth = cycleSelect ? cycleSelect.value : 'October 2026';
+    const cycleMonth = cycleSelect ? cycleSelect.value : (BULK_MONTH_NAMES[new Date().getMonth()] + ' ' + new Date().getFullYear());
     let students = currentStudents || [];
     if (!students || students.length === 0) {
         try {
@@ -2199,7 +2199,7 @@ window.confirmAndExecuteFeeCycle = async function () {
 
 async function _executeMonthlyFeeCycleGeneration() {
     const cycleSelect = document.getElementById('cycleMonthSelect');
-    const cycleMonth = cycleSelect ? cycleSelect.value : 'October 2026';
+    const cycleMonth = cycleSelect ? cycleSelect.value : (BULK_MONTH_NAMES[new Date().getMonth()] + ' ' + new Date().getFullYear());
     let students = currentStudents || [];
     if (!students || students.length === 0) {
         try {
@@ -2282,7 +2282,7 @@ async function _executeMonthlyFeeCycleGeneration() {
             const rollKey = String(rollNo).toUpperCase().trim();
             const fRec = (typeof feeMap !== 'undefined' && feeMap) ? feeMap.get(rollKey) : null;
             const pmts = Array.isArray(fRec?.recent_payments) ? fRec.recent_payments : [];
-            const isCyclePaid = pmts.some(p => p.fullMonth?.includes(cycleMonth) || (cycleMonth.includes('October') && p.month === 'OCT'));
+            const isCyclePaid = pmts.some(p => p && p.status !== 'pending_verification' && String(p.fullMonth || '').toLowerCase() === String(cycleMonth).toLowerCase());
 
             let loyalty = [];
             if (Array.isArray(fRec?.loyalty_months)) {
@@ -2400,6 +2400,52 @@ const BULK_MONTH_SHORTS = [
     "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"
 ];
 
+/**
+ * Populates MasterHub cycle and bulk-settlement dropdowns for the active calendar year
+ * so no manual HTML option edits are needed at New Year rollover.
+ */
+function _initMasterHubDynamicFeeYear() {
+    if (typeof document === 'undefined') return;
+    const now = new Date();
+    const curYear = now.getFullYear();
+    const curMonthIdx = now.getMonth();
+
+    const cycleSelect = document.getElementById('cycleMonthSelect');
+    if (cycleSelect) {
+        const curVal = `${BULK_MONTH_NAMES[curMonthIdx]} ${curYear}`;
+        cycleSelect.innerHTML = BULK_MONTH_NAMES.map(m => {
+            const label = `${m} ${curYear}`;
+            const sel = label === curVal ? ' selected' : '';
+            return `<option value="${label}"${sel}>${label}</option>`;
+        }).join('');
+    }
+
+    const endSelect = document.getElementById('bulkPaidEndMonth');
+    if (endSelect) {
+        endSelect.innerHTML = BULK_MONTH_NAMES.map((m, idx) => {
+            const suffix = idx === curMonthIdx ? ' (Current Cycle)' : (idx === 11 ? ' (Full Year)' : '');
+            const sel = idx === curMonthIdx ? ' selected' : '';
+            return `<option value="${idx}"${sel}>${m} ${curYear}${suffix}</option>`;
+        }).join('');
+    }
+
+    document.querySelectorAll('button[onclick*="setBulkPaidPreset"]').forEach(btn => {
+        if (btn.textContent && btn.textContent.includes('2026')) {
+            btn.innerHTML = btn.innerHTML.replace(/\b2026\b/g, String(curYear));
+        }
+    });
+
+    updateBulkPaidRangePreview();
+}
+
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', _initMasterHubDynamicFeeYear);
+    } else {
+        _initMasterHubDynamicFeeYear();
+    }
+}
+
 function updateBulkPaidRangePreview() {
     const startSelect = document.getElementById('bulkPaidStartMonth');
     const endSelect = document.getElementById('bulkPaidEndMonth');
@@ -2416,13 +2462,14 @@ function updateBulkPaidRangePreview() {
         endIdx = startIdx;
     }
 
+    const curYear = new Date().getFullYear();
     const monthCount = endIdx - startIdx + 1;
     const startName = BULK_MONTH_SHORTS[startIdx];
     const endName = BULK_MONTH_SHORTS[endIdx];
     const targetClass = classSelect ? classSelect.value : 'all';
     const targetLabel = targetClass === 'all' ? 'All Classes' : `Class ${targetClass}`;
 
-    badge.innerHTML = `<i class="fas fa-calendar-check mr-1"></i> ${targetLabel}: ${startName} 2026 → ${endName} 2026 (${monthCount} Month${monthCount > 1 ? 's' : ''})`;
+    badge.innerHTML = `<i class="fas fa-calendar-check mr-1"></i> ${targetLabel}: ${startName} ${curYear} → ${endName} ${curYear} (${monthCount} Month${monthCount > 1 ? 's' : ''})`;
 }
 
 function setBulkPaidPreset(startIdx, endIdx) {
@@ -2463,9 +2510,10 @@ window.requestBulkMarkPaid = function () {
     if (titleEl) {
         titleEl.textContent = 'Mark ' + targetStudents.length + ' Students as PAID?';
     }
+    const curYear = new Date().getFullYear();
     const descEl = document.getElementById('bulkPaidModalDesc');
     if (descEl) {
-        descEl.textContent = 'Range: ' + startMonthName + ' 2026 → ' + endMonthName + ' 2026 (' + monthCount + ' billing cycle' + (monthCount > 1 ? 's' : '') + '). This will record verified receipts, award badges, and set dues to ₹0.';
+        descEl.textContent = 'Range: ' + startMonthName + ' ' + curYear + ' → ' + endMonthName + ' ' + curYear + ' (' + monthCount + ' billing cycle' + (monthCount > 1 ? 's' : '') + '). This will record verified receipts, award badges, and set dues to ₹0.';
     }
 
     const opened = _openBootstrapModal('bulkPaidConfirmModal', 'bulkPaidBackdrop');
@@ -2544,13 +2592,16 @@ async function markStudentsPaidUpToMonth() {
     }
 
     try {
+        const now = new Date();
+        const curYear = now.getFullYear();
+        const curMonthIdx = now.getMonth();
         const clearedMonths = [];
         for (let i = startIdx; i <= endIdx; i++) {
             clearedMonths.push({
                 index: i,
                 name: BULK_MONTH_NAMES[i],
                 short: BULK_MONTH_SHORTS[i],
-                full: `${BULK_MONTH_NAMES[i]} 2026`
+                full: `${BULK_MONTH_NAMES[i]} ${curYear}`
             });
         }
 
@@ -2568,12 +2619,11 @@ async function markStudentsPaidUpToMonth() {
             console.warn('[BulkPaid] Warning fetching current records:', fErr);
         }
 
-        const now = new Date();
         const paidOnDateStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
         const recordsToUpsert = [];
 
-        // Check if current cycle (October = index 9) is included in the cleared range
-        const isCurrentCycleCovered = endIdx >= 9;
+        // Check if current cycle month is included in the cleared range
+        const isCurrentCycleCovered = endIdx >= curMonthIdx;
 
         targetStudents.forEach(s => {
             const roll = s.rollNo || s.roll_no || s.id;
@@ -2588,7 +2638,12 @@ async function markStudentsPaidUpToMonth() {
             // Merge recent_payments
             const existingPayments = Array.isArray(fRec?.recent_payments) ? [...fRec.recent_payments] : [];
             clearedMonths.forEach(m => {
-                const pIdx = existingPayments.findIndex(p => p.fullMonth === m.full || p.month === m.short);
+                const pIdx = existingPayments.findIndex(p => {
+                    if (!p) return false;
+                    const full = String(p.fullMonth || '').trim();
+                    if (full) return full.toLowerCase() === m.full.toLowerCase();
+                    return curYear === 2026 && p.month === m.short;
+                });
                 const receiptItem = {
                     month: m.short,
                     fullMonth: m.full,
@@ -2596,7 +2651,7 @@ async function markStudentsPaidUpToMonth() {
                     amount: monthlyFee,
                     onTime: true,
                     status: 'Verified by Center Admin',
-                    receiptNo: `REC-2026-${m.short}-${Math.floor(1000 + Math.random() * 9000)}`,
+                    receiptNo: `REC-${curYear}-${m.short}-${Math.floor(1000 + Math.random() * 9000)}`,
                     utr: 'ADMIN-BULK-SETTLED'
                 };
                 if (pIdx >= 0) {
@@ -2615,7 +2670,7 @@ async function markStudentsPaidUpToMonth() {
             });
 
             const currentDue = isCurrentCycleCovered ? 0 : monthlyFee;
-            const dueDate = isCurrentCycleCovered ? 'All Cleared' : '25 October 2026';
+            const dueDate = isCurrentCycleCovered ? 'All Cleared' : `25 ${BULK_MONTH_NAMES[curMonthIdx]} ${curYear}`;
             const daysLeft = isCurrentCycleCovered ? 0 : 24;
 
             recordsToUpsert.push({
@@ -2646,8 +2701,8 @@ async function markStudentsPaidUpToMonth() {
                 const subjects = (Array.isArray(s.subjects) && s.subjects.length > 0) ? s.subjects : ['General'];
                 clearedMonths.forEach(m => {
                     subjects.forEach(sub => {
-                        localFees[`${sId}_${sub}_${m.name}_2026`] = 'Paid';
-                        localFees[`${s.rollNo}_${sub}_${m.name}_2026`] = 'Paid';
+                        localFees[`${sId}_${sub}_${m.name}_${curYear}`] = 'Paid';
+                        localFees[`${s.rollNo}_${sub}_${m.name}_${curYear}`] = 'Paid';
                     });
                 });
             });
@@ -2686,7 +2741,7 @@ async function markStudentsPaidUpToMonth() {
             alertBox.innerHTML = `
                 <div class="alert alert-success alert-dismissible fade show my-3" role="alert">
                     <i class="fas fa-check-double mr-2"></i>
-                    <strong>Bulk Settlement Complete!</strong> Marked <strong>${targetStudents.length} students</strong> as <strong>PAID</strong> for <strong>${monthCount} months</strong> (${startMonthName} 2026 → ${endMonthName} 2026). Supabase records, receipts, and mobile app dues have been updated.
+                    <strong>Bulk Settlement Complete!</strong> Marked <strong>${targetStudents.length} students</strong> as <strong>PAID</strong> for <strong>${monthCount} months</strong> (${startMonthName} ${curYear} → ${endMonthName} ${curYear}). Supabase records, receipts, and mobile app dues have been updated.
                     <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -2694,7 +2749,7 @@ async function markStudentsPaidUpToMonth() {
             `;
         }
 
-        alert(`✅ Bulk Settlement Successful!\n\n• Students Cleared: ${targetStudents.length}\n• Months Cleared: ${startMonthName} 2026 to ${endMonthName} 2026 (${monthCount} months)\n• Receipts Generated & Verified in Supabase\n• Student App Dues: ${isCurrentCycleCovered ? 'All Cleared (₹0)' : 'Updated'}`);
+        alert(`✅ Bulk Settlement Successful!\n\n• Students Cleared: ${targetStudents.length}\n• Months Cleared: ${startMonthName} ${curYear} to ${endMonthName} ${curYear} (${monthCount} months)\n• Receipts Generated & Verified in Supabase\n• Student App Dues: ${isCurrentCycleCovered ? 'All Cleared (₹0)' : 'Updated'}`);
 
     } catch (err) {
         console.error('[BulkPaid] Error in bulk settlement:', err);

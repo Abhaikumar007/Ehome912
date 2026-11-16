@@ -1008,29 +1008,22 @@ if (document.getElementById('feesClassSelect')) {
                     const pmts = Array.isArray(fRec.recent_payments) ? fRec.recent_payments : [];
                     const mShort = selectedMonth.slice(0, 3).toUpperCase();
 
-                    const approvedReceipt = pmts.find(p => 
-                        (p.month === mShort || (p.fullMonth && p.fullMonth.includes(selectedMonth))) &&
+                    const approvedReceipt = pmts.find(p =>
+                        _paymentMatchesMonthYear(p, selectedMonth, currentYear) &&
                         p.status !== 'pending_verification'
                     );
                     if (approvedReceipt) isPaid = true;
 
-                    const pendingReceipt = pmts.find(p => 
-                        (p.month === mShort || (p.fullMonth && p.fullMonth.includes(selectedMonth))) &&
+                    const pendingReceipt = pmts.find(p =>
+                        _paymentMatchesMonthYear(p, selectedMonth, currentYear) &&
                         p.status === 'pending_verification'
                     );
                     if (pendingReceipt) isPendingVerification = true;
 
-                    // If the selected month appears in the stored payments OR student has current_due=0 (all cleared)
-                    // "All Cleared" means every month through the most-recently-paid one is paid
                     if (!isPaid && (Number(fRec.current_due) === 0 || fRec.due_date === 'All Cleared' || fRec.status === 'paid')) {
-                        const _mlm = {JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
                         const allPmts = Array.isArray(fRec.recent_payments) ? fRec.recent_payments : [];
                         const approvedPmts = allPmts.filter(p => p.status !== 'pending_verification');
-                        // Check if selectedMonth is in the approved list
-                        const foundApproved = approvedPmts.some(p => {
-                            const pLong = p.fullMonth ? p.fullMonth.split(' ')[0] : (_mlm[String(p.month||'').slice(0,3).toUpperCase()]||p.month||'');
-                            return pLong.toLowerCase() === selectedMonth.toLowerCase();
-                        });
+                        const foundApproved = approvedPmts.some(p => _paymentMatchesMonthYear(p, selectedMonth, currentYear));
                         if (foundApproved) isPaid = true;
                     }
                 }
@@ -1180,7 +1173,7 @@ if (document.getElementById('feesClassSelect')) {
             const monthlyFee = _resolveTrueMonthlyFee(student, rec);
 
             if (newStatus === 'Paid') {
-                if (!pmts.some(p => p.month === mShort || (p.fullMonth && p.fullMonth.includes(month)))) {
+                if (!pmts.some(p => _paymentMatchesMonthYear(p, month, year))) {
                     pmts.unshift({
                         month: mShort,
                         fullMonth: month + ' ' + year,
@@ -1193,7 +1186,7 @@ if (document.getElementById('feesClassSelect')) {
                 }
                 rec.recent_payments = pmts;
             } else {
-                rec.recent_payments = pmts.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
+                rec.recent_payments = pmts.filter(p => !_paymentMatchesMonthYear(p, month, year));
             }
 
             // Recalculate current_due strictly from joining date
@@ -1226,6 +1219,22 @@ if (document.getElementById('feesClassSelect')) {
 /**
  * Fee helpers: resolve real monthly fee and calculate dues from student joining date
  */
+function _paymentMatchesMonthYear(p, monthLong, year) {
+    if (!p) return false;
+    const mLong = String(monthLong || '').trim();
+    const mShort = mLong.slice(0, 3).toUpperCase();
+    const targetYear = Number(year) || new Date().getFullYear();
+    const full = String(p.fullMonth || '').trim();
+    const yrMatch = full.match(/\b(20\d\d)\b/);
+    if (yrMatch) {
+        if (Number(yrMatch[1]) !== targetYear) return false;
+        return full.toLowerCase().includes(mLong.toLowerCase()) || String(p.month || '').slice(0, 3).toUpperCase() === mShort;
+    }
+    // Legacy receipt without a 4-digit year in fullMonth: only match in 2026
+    if (targetYear !== 2026) return false;
+    return String(p.month || '').slice(0, 3).toUpperCase() === mShort || (full && full.toLowerCase().includes(mLong.toLowerCase()));
+}
+
 function _resolveTrueMonthlyFee(student, recOrData) {
     if (recOrData && Array.isArray(recOrData.loyalty_months)) {
         const tag = recOrData.loyalty_months.find(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
@@ -1360,8 +1369,8 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
     let pmts = Array.isArray(data.recent_payments) ? [...data.recent_payments] : [];
 
     if (newStatus === 'Paid') {
-        // Add if not already there
-        if (!pmts.some(p => p.month === mShort || (p.fullMonth && p.fullMonth.toLowerCase().includes(month.toLowerCase())))) {
+        // Add if not already there for this specific month + year
+        if (!pmts.some(p => _paymentMatchesMonthYear(p, month, year))) {
             pmts.unshift({
                 month: mShort,
                 fullMonth: month + ' ' + year,
@@ -1373,11 +1382,8 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
             });
         }
     } else {
-        // Remove the month entry
-        pmts = pmts.filter(p => {
-            const pLong = p.fullMonth ? p.fullMonth.split(' ')[0] : '';
-            return !(p.month === mShort || pLong.toLowerCase() === month.toLowerCase());
-        });
+        // Remove only the matching month + year entry
+        pmts = pmts.filter(p => !_paymentMatchesMonthYear(p, month, year));
     }
 
     // Recalculate dues strictly from student's joining date
@@ -1537,7 +1543,7 @@ window.loadSupabaseFeesData = async function() {
                 if (p.status !== 'pending_verification') {
                     const _monthLongMap = {JAN:'January',FEB:'February',MAR:'March',APR:'April',MAY:'May',JUN:'June',JUL:'July',AUG:'August',SEP:'September',OCT:'October',NOV:'November',DEC:'December'};
                     const mName = p.fullMonth ? p.fullMonth.split(' ')[0] : (_monthLongMap[String(p.month || '').slice(0,3).toUpperCase()] || p.month || 'Unknown');
-                    const y = p.fullMonth ? (p.fullMonth.split(' ')[1] || '2026') : '2026';
+                    const y = p.fullMonth ? (p.fullMonth.split(' ')[1] || String(new Date().getFullYear())) : '2026';
                     subjects.forEach(sub => {
                         feesCache[roll + '_' + sub + '_' + mName + '_' + y] = 'Paid';
                         feesCache[roll + '_' + sub + '_' + mName + ' ' + y] = 'Paid';
@@ -1549,13 +1555,15 @@ window.loadSupabaseFeesData = async function() {
                 }
             });
 
-            if (isCleared) {
+            if (isCleared && payments.length === 0) {
+                const curM = new Date().toLocaleString('en-US', { month: 'long' });
+                const curY = String(new Date().getFullYear());
                 subjects.forEach(sub => {
-                    feesCache[roll + '_' + sub + '_October_2026'] = 'Paid';
-                    feesCache[roll + '_' + sub + '_October 2026'] = 'Paid';
+                    feesCache[roll + '_' + sub + '_' + curM + '_' + curY] = 'Paid';
+                    feesCache[roll + '_' + sub + '_' + curM + ' ' + curY] = 'Paid';
                     if (stu && stu.id) {
-                        feesCache[stu.id + '_' + sub + '_October_2026'] = 'Paid';
-                        feesCache[stu.id + '_' + sub + '_October 2026'] = 'Paid';
+                        feesCache[stu.id + '_' + sub + '_' + curM + '_' + curY] = 'Paid';
+                        feesCache[stu.id + '_' + sub + '_' + curM + ' ' + curY] = 'Paid';
                     }
                 });
             }
@@ -1671,6 +1679,8 @@ window.quickMarkPaidUpToMonth = async function() {
         }
 
         const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonthIdx = now.getMonth();
         const paidDateStr = now.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 
         const clearedMonths = [];
@@ -1680,7 +1690,7 @@ window.quickMarkPaidUpToMonth = async function() {
                 index: i,
                 name: monthNames[i],
                 short: monthShorts[i],
-                full: `${monthNames[i]} 2026`
+                full: `${monthNames[i]} ${currentYear}`
             });
         }
 
@@ -1693,9 +1703,9 @@ window.quickMarkPaidUpToMonth = async function() {
             clearedMonths.forEach(m => {
                 subjects.forEach(sub => {
                     allIds.forEach(idVariant => {
-                        localFees[`${idVariant}_${sub}_${m.name}_2026`] = 'Paid';
+                        localFees[`${idVariant}_${sub}_${m.name}_${currentYear}`] = 'Paid';
                         if (sub !== sub.toLowerCase()) {
-                            localFees[`${idVariant}_${sub.toLowerCase()}_${m.name}_2026`] = 'Paid';
+                            localFees[`${idVariant}_${sub.toLowerCase()}_${m.name}_${currentYear}`] = 'Paid';
                         }
                     });
                 });
@@ -1720,7 +1730,7 @@ window.quickMarkPaidUpToMonth = async function() {
             }
 
             const recordsToUpsert = [];
-            const isCurrentCycleCovered = endIdx >= 9; // October or later
+            const isCurrentCycleCovered = endIdx >= currentMonthIdx;
 
             students.forEach(s => {
                 const roll = s.rollNo || s.roll_no || s.id;
@@ -1733,7 +1743,7 @@ window.quickMarkPaidUpToMonth = async function() {
 
                 const existingPayments = Array.isArray(fRec?.recent_payments) ? [...fRec.recent_payments] : [];
                 clearedMonths.forEach(m => {
-                    const pIdx = existingPayments.findIndex(p => p.fullMonth === m.full || p.month === m.short);
+                    const pIdx = existingPayments.findIndex(p => _paymentMatchesMonthYear(p, m.name, currentYear));
                     const receiptItem = {
                         month: m.short,
                         fullMonth: m.full,
@@ -1741,7 +1751,7 @@ window.quickMarkPaidUpToMonth = async function() {
                         amount: monthlyFee,
                         onTime: true,
                         status: 'Verified by Center Admin',
-                        receiptNo: `REC-2026-${m.short}-${Math.floor(1000 + Math.random() * 9000)}`,
+                        receiptNo: `REC-${currentYear}-${m.short}-${Math.floor(1000 + Math.random() * 9000)}`,
                         utr: 'ADMIN-BULK-SETTLED'
                     };
                     if (pIdx >= 0) existingPayments[pIdx] = receiptItem;
@@ -1758,7 +1768,7 @@ window.quickMarkPaidUpToMonth = async function() {
                 recordsToUpsert.push({
                     roll_no: String(roll).trim(),
                     current_due: isCurrentCycleCovered ? 0 : monthlyFee,
-                    due_date: isCurrentCycleCovered ? 'All Cleared' : '25 October 2026',
+                    due_date: isCurrentCycleCovered ? 'All Cleared' : `25 ${monthNames[currentMonthIdx]} ${currentYear}`,
                     days_left: isCurrentCycleCovered ? 0 : 24,
                     months_paid_on_time: Math.max(fRec?.months_paid_on_time || 0, endIdx + 1),
                     loyalty_months: existingLoyalty,
@@ -1836,7 +1846,7 @@ window.quickMarkPaidUpToMonth = async function() {
                                     <i class="fas fa-cloud-upload-alt mr-1"></i> Settled & Synced Directly to Supabase!
                                 </h6>
                                 <p class="mb-1 text-dark" style="font-size: 0.9rem;">
-                                    Marked <strong>${students.length} students</strong> as <strong>PAID</strong> for <strong>${endIdx + 1} months</strong> (January → ${selectedMonth} 2026).
+                                    Marked <strong>${students.length} students</strong> as <strong>PAID</strong> for <strong>${endIdx + 1} months</strong> (January → ${selectedMonth} ${currentYear}).
                                 </p>
                                 <div class="my-1">
                                     <span class="badge badge-success px-2 py-1 mr-2"><i class="fas fa-database mr-1"></i> Supabase: ${recordsUpsertedCount} Records Synced</span>
@@ -1844,7 +1854,7 @@ window.quickMarkPaidUpToMonth = async function() {
                                     <span class="badge badge-primary px-2 py-1"><i class="fas fa-mobile-alt mr-1"></i> Live Mobile Apps Updated</span>
                                 </div>
                                 <small class="text-muted d-block mt-2">
-                                    The fee table below is displaying <strong>${selectedMonth} 2026</strong>. You can switch to any month (January to ${selectedMonth}) to review individual subjects.
+                                    The fee table below is displaying <strong>${selectedMonth} ${currentYear}</strong>. You can switch to any month (January to ${selectedMonth}) to review individual subjects.
                                 </small>
                             </div>
                         </div>

@@ -323,14 +323,15 @@ window.sb_loadFromCloud = async function () {
                             }
                         });
 
-                        // If current cycle (October) is marked all cleared or current_due === 0
-                        if (isCleared) {
+                        if (isCleared && payments.length === 0) {
+                            const curM = new Date().toLocaleString('en-US', { month: 'long' });
+                            const curY = String(new Date().getFullYear());
                             subs.forEach(sub => {
-                                feesObj[st.id + '_' + sub + '_October_2026'] = 'Paid';
-                                feesObj[st.id + '_' + sub + '_October 2026'] = 'Paid';
+                                feesObj[st.id + '_' + sub + '_' + curM + '_' + curY] = 'Paid';
+                                feesObj[st.id + '_' + sub + '_' + curM + ' ' + curY] = 'Paid';
                                 if (st.rollNo) {
-                                    feesObj[st.rollNo + '_' + sub + '_October_2026'] = 'Paid';
-                                    feesObj[st.rollNo + '_' + sub + '_October 2026'] = 'Paid';
+                                    feesObj[st.rollNo + '_' + sub + '_' + curM + '_' + curY] = 'Paid';
+                                    feesObj[st.rollNo + '_' + sub + '_' + curM + ' ' + curY] = 'Paid';
                                 }
                             });
                         }
@@ -933,28 +934,47 @@ window.sb_toggleFee = async function (studentId, subject, month, year, newStatus
                     utr: 'ADMIN-VERIFIED'
                 };
 
-                const pIdx = updatedPayments.findIndex(p => p.fullMonth === fullMonthStr || p.month === mShort);
+                const matchesTargetMonthYear = (p) => {
+                    if (!p) return false;
+                    const full = String(p.fullMonth || '').trim();
+                    const yrM = full.match(/\b(20\d\d)\b/);
+                    if (yrM) {
+                        return Number(yrM[1]) === Number(year) && (full.toLowerCase().includes(String(month).toLowerCase()) || p.month === mShort);
+                    }
+                    return Number(year) === 2026 && p.month === mShort;
+                };
+                const pIdx = updatedPayments.findIndex(matchesTargetMonthYear);
                 if (pIdx >= 0) updatedPayments[pIdx] = paymentEntry;
                 else updatedPayments.push(paymentEntry);
 
                 if (!updatedLoyalty.some(l => l.label === month || l.label === fullMonthStr)) {
-                    updatedLoyalty.push({ label: month, earned: true });
+                    updatedLoyalty.push({ label: fullMonthStr, earned: true });
                 }
 
-                if (month === 'October') {
+                const curMonthName = now.toLocaleString('en-US', { month: 'long' });
+                if (String(month).toLowerCase() === curMonthName.toLowerCase() && Number(year) === now.getFullYear()) {
                     currentDue = 0;
                     dueDate = 'All Cleared';
                     daysLeft = 0;
                     status = 'paid';
                 }
             } else {
-                // Pending / Not Paid — remove receipt & loyalty badge for this month
-                updatedPayments = updatedPayments.filter(p => !(p.month === mShort && (p.fullMonth?.includes(String(year)) || !p.fullMonth)));
-                updatedLoyalty = updatedLoyalty.filter(l => l.label !== month && l.label !== fullMonthStr);
+                // Pending / Not Paid — remove receipt & loyalty badge for this specific month + year
+                updatedPayments = updatedPayments.filter(p => {
+                    if (!p) return false;
+                    const full = String(p.fullMonth || '').trim();
+                    const yrM = full.match(/\b(20\d\d)\b/);
+                    if (yrM) {
+                        return !(Number(yrM[1]) === Number(year) && (full.toLowerCase().includes(String(month).toLowerCase()) || p.month === mShort));
+                    }
+                    return !(Number(year) === 2026 && p.month === mShort);
+                });
+                updatedLoyalty = updatedLoyalty.filter(l => l.label !== fullMonthStr && !(Number(year) === 2026 && l.label === month));
 
-                if (month === 'October') {
+                const curMonthName = now.toLocaleString('en-US', { month: 'long' });
+                if (String(month).toLowerCase() === curMonthName.toLowerCase() && Number(year) === now.getFullYear()) {
                     currentDue = studentFee;
-                    dueDate = '25 October 2026';
+                    dueDate = '25 ' + curMonthName + ' ' + now.getFullYear();
                     daysLeft = 22;
                 }
             }
@@ -1199,11 +1219,13 @@ window.sb_migrateFromLocalStorage = async function () {
                 const subs = (Array.isArray(s.subjects) && s.subjects.length > 0)
                     ? s.subjects
                     : (s.subjects ? String(s.subjects).split(',').map(x => x.trim()).filter(Boolean) : ['General']);
-                const isOctPaid = subs.every(sub => 
-                    feesRaw[s.id + '_' + sub + '_October_2026'] === 'Paid' || 
-                    feesRaw[roll + '_' + sub + '_October_2026'] === 'Paid' ||
-                    feesRaw[s.id + '_' + sub + '_October 2026'] === 'Paid' || 
-                    feesRaw[roll + '_' + sub + '_October 2026'] === 'Paid'
+                const curMonthName = now.toLocaleString('en-US', { month: 'long' });
+                const curYearStr = String(now.getFullYear());
+                const isOctPaid = subs.length > 0 && subs.every(sub => 
+                    feesRaw[s.id + '_' + sub + '_' + curMonthName + '_' + curYearStr] === 'Paid' || 
+                    feesRaw[roll + '_' + sub + '_' + curMonthName + '_' + curYearStr] === 'Paid' ||
+                    feesRaw[s.id + '_' + sub + '_' + curMonthName + ' ' + curYearStr] === 'Paid' || 
+                    feesRaw[roll + '_' + sub + '_' + curMonthName + ' ' + curYearStr] === 'Paid'
                 );
                 const monthlyFee = Number(s.amount) || 4000;
                 const rollKey = String(roll).toUpperCase().trim();
@@ -1233,7 +1255,7 @@ window.sb_migrateFromLocalStorage = async function () {
                 const recPayload = {
                     roll_no: roll,
                     current_due: isOctPaid ? 0 : monthlyFee,
-                    due_date: isOctPaid ? 'All Cleared' : (existingRec?.due_date || '25 October 2026'),
+                    due_date: isOctPaid ? 'All Cleared' : (existingRec?.due_date || ('25 ' + curMonthName + ' ' + curYearStr)),
                     days_left: isOctPaid ? 0 : (existingRec?.days_left ?? 22),
                     loyalty_months: loyalty,
                     subjects: subs.join(', '),
