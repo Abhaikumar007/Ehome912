@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, RefreshControl, Image, Alert, Modal, TextInput, Platform,
+  View, Text, ScrollView, StyleSheet, TouchableOpacity, Linking, RefreshControl, Image, Alert, Modal, TextInput, Platform, ActivityIndicator,
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import * as ImagePicker from 'expo-image-picker';
@@ -72,6 +72,7 @@ export default function FeesScreen() {
   const { student, loading: authLoading } = useAuth();
 
   const [fees, setFees] = useState<any>(defaultFees);
+  const [feesLoading, setFeesLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [verificationModalVisible, setVerificationModalVisible] = useState(false);
   const [allPaymentsModalVisible, setAllPaymentsModalVisible] = useState(false);
@@ -87,7 +88,10 @@ export default function FeesScreen() {
   const targetFeeAmount = Number(fees.monthlyFee || fees.actualDue || fees.currentDue || 4000);
 
   const loadData = async (forceFresh = false) => {
-    if (!rollNo) return;
+    if (!rollNo) {
+      if (!authLoading) setFeesLoading(false);
+      return;
+    }
     try {
       const [res, hist] = await Promise.all([
         DataService.getFees(rollNo, forceFresh),
@@ -97,6 +101,8 @@ export default function FeesScreen() {
       if (hist) setAllPaymentsHistory(hist);
     } catch {
       // ignore
+    } finally {
+      setFeesLoading(false);
     }
   };
 
@@ -423,6 +429,16 @@ export default function FeesScreen() {
             <Ionicons name="heart-outline" size={14} color={Colors.primary} style={{ marginTop: 4 }} />
           </View>
         </View>
+
+        {feesLoading ? (
+          <View style={{ paddingVertical: 80, alignItems: 'center', gap: 12 }}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={{ fontSize: 13, fontFamily: 'Inter_500Medium', color: '#64748B' }}>
+              Loading your fee status...
+            </Text>
+          </View>
+        ) : (
+          <>
         <Text style={styles.pageSub}>Your support keeps the learning going!</Text>
 
         {/* Fee Status Card */}
@@ -843,6 +859,8 @@ export default function FeesScreen() {
         </View>
 
         <View style={{ height: 20 }} />
+          </>
+        )}
       </ScrollView>
 
       {/* Verification / Proof Submission Modal */}
