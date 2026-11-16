@@ -235,7 +235,7 @@ window.sb_loadFromCloud = async function () {
                     const roll = String(r.roll_no || r.id).trim();
                     const local = localMap.get(roll.toUpperCase());
                     const sClass = String(r.class_name || (local ? local.class : '10')).replace('Class ', '').trim();
-                    const sSyl = (r.batch && /cbse/i.test(r.batch)) ? 'CBSE' : (local?.syllabus || 'State Syllabus');
+                    const sSyl = r.board || ((r.batch && /cbse/i.test(r.batch)) ? 'CBSE' : (local?.syllabus || 'State Syllabus'));
                     let initSubjects = (local && Array.isArray(local.subjects) && local.subjects.length > 0) ? [...local.subjects] : [];
                     if (r.subjects) {
                         initSubjects = Array.isArray(r.subjects) ? r.subjects : String(r.subjects).split(',').map(s => s.trim()).filter(Boolean);
@@ -247,12 +247,15 @@ window.sb_loadFromCloud = async function () {
                         name: r.name || (local ? local.name : 'Student'),
                         class: sClass,
                         syllabus: sSyl,
+                        board: r.board || sSyl,
                         batch: r.batch || (local ? local.batch : `Class ${sClass} (${sSyl})`),
                         school: r.school || (local ? local.school : 'EduHome Campus'),
                         phone: r.phone || (local ? local.phone : ''),
                         joiningDate: r.joining_date || (local ? (local.joiningDate || local.joining_date) : '2026-01-15'),
                         joining_date: r.joining_date || (local ? (local.joining_date || local.joiningDate) : '2026-01-15'),
-                        amount: (local && local.amount) ? String(local.amount) : '',
+                        amount: (r.monthly_fee !== null && r.monthly_fee !== undefined && Number(r.monthly_fee) > 0)
+                            ? String(r.monthly_fee)
+                            : ((local && local.amount) ? String(local.amount) : ''),
                         subjects: initSubjects,
                         pin: r.pin || (local ? local.pin : '')
                     };
@@ -486,26 +489,32 @@ window.sb_saveStudent = async function (student) {
             })();
 
             // A. Update or Insert student WITHOUT clobbering existing PIN
+            const stuBoard = (() => {
+                let syl = student.board || student.syllabus;
+                if (!syl) {
+                    if (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch) && !/state/i.test(student.batch))) {
+                        syl = 'CBSE';
+                    } else if (student.batch && /both/i.test(student.batch)) {
+                        syl = 'Both';
+                    } else if (student.batch && /cbse/i.test(student.batch)) {
+                        syl = 'CBSE';
+                    } else {
+                        syl = 'State Syllabus';
+                    }
+                }
+                return syl;
+            })();
             const stuPayload = {
                 name: name,
                 class_name: className,
                 batch: (() => {
-                    let syl = student.syllabus;
-                    if (!syl) {
-                        if (student.school === 'CBSE' || (student.batch && /cbse/i.test(student.batch) && !/state/i.test(student.batch))) {
-                            syl = 'CBSE';
-                        } else if (student.batch && /both/i.test(student.batch)) {
-                            syl = 'Both';
-                        } else if (student.batch && /cbse/i.test(student.batch)) {
-                            syl = 'CBSE';
-                        } else {
-                            syl = 'State Syllabus';
-                        }
-                    }
                     const cleanClass = className.replace(/\s*\((State(\s+Syllabus)?|CBSE|Both)\)/gi, '').trim();
-                    if (syl === 'Both') return `${cleanClass} (Both)`;
-                    return `${cleanClass} (${syl})`;
+                    if (stuBoard === 'Both') return `${cleanClass} (Both)`;
+                    return `${cleanClass} (${stuBoard})`;
                 })(),
+                board: stuBoard,
+                monthly_fee: (monthlyFee > 0 && monthlyFee < 20000) ? monthlyFee : null,
+                school: student.school ? String(student.school).trim() : null,
                 avatar: avatar,
                 phone: phone,
                 streak: student.streak || 0,
@@ -524,23 +533,15 @@ window.sb_saveStudent = async function (student) {
             const { data: existingStu } = await sb.from('students').select('id, pin').eq('roll_no', rollNo).maybeSingle();
             const stripMissingStudentColumn = (errObj) => {
                 const msg = String((errObj && errObj.message) || '').toLowerCase();
-                let removed = false;
-                if (msg.includes('joining_date') && 'joining_date' in stuPayload) {
-                    delete stuPayload.joining_date;
-                    window._supabaseHasJoiningDateColumn = false;
-                    removed = true;
+                for (const col of ['joining_date', 'board', 'monthly_fee', 'school', 'subjects']) {
+                    if (msg.includes(col) && col in stuPayload) {
+                        delete stuPayload[col];
+                        if (col === 'joining_date') window._supabaseHasJoiningDateColumn = false;
+                        if (col === 'subjects') window._supabaseHasSubjectsColumn = false;
+                        return true;
+                    }
                 }
-                if ((msg.includes('subjects') || !removed) && 'subjects' in stuPayload) {
-                    delete stuPayload.subjects;
-                    window._supabaseHasSubjectsColumn = false;
-                    removed = true;
-                }
-                if (!removed && 'joining_date' in stuPayload) {
-                    delete stuPayload.joining_date;
-                    window._supabaseHasJoiningDateColumn = false;
-                    removed = true;
-                }
-                return removed;
+                return false;
             };
             let stuError = null;
             if (existingStu) {
