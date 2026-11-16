@@ -1584,13 +1584,13 @@ export const DataService = {
       const feeQuery = supabase
         .from('fees_records')
         .select('*')
-        .eq('roll_no', rollNo)
+        .ilike('roll_no', rollNo)
         .maybeSingle();
 
       const stuQuery = supabase
         .from('students')
-        .select('joining_date, subjects, fee')
-        .eq('roll_no', rollNo)
+        .select('*')
+        .ilike('roll_no', rollNo)
         .maybeSingle();
 
       const [{ data, error }, { data: stuData }] = await withTimeout(
@@ -1653,9 +1653,10 @@ export const DataService = {
         // Resolve dynamic monthly fee from Supabase database (Admin updates reflect here!)
         let resolvedMonthlyFee: number | null = null;
 
-        // 0. Check students.fee column first if set
-        if (Number(stuData?.fee) > 0) {
-          resolvedMonthlyFee = Number(stuData.fee);
+        // 0. Check students.monthly_fee or students.fee column first if set
+        const stuFeeVal = Number(stuData?.monthly_fee || stuData?.fee || stuData?.tuition_fee);
+        if (stuFeeVal > 0) {
+          resolvedMonthlyFee = stuFeeVal;
         }
 
         // 1. Check loyalty_months metadata tag in Supabase
