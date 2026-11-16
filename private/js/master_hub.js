@@ -2264,6 +2264,16 @@ async function _executeMonthlyFeeCycleGeneration() {
             daysLeft = 20;
         }
 
+        let feeMap = new Map();
+        try {
+            const { data: fRows } = await sb.from('fees_records').select('*');
+            if (Array.isArray(fRows)) {
+                fRows.forEach(r => { if (r.roll_no) feeMap.set(String(r.roll_no).toUpperCase().trim(), r); });
+            }
+        } catch (fErr) {
+            console.warn('[MonthlyFeeCycle] Warning fetching existing fees_records:', fErr);
+        }
+
         const recordsToUpsert = [];
         let totalCycleAmount = 0;
 
@@ -2280,7 +2290,7 @@ async function _executeMonthlyFeeCycleGeneration() {
 
             // Check if student is already cleared/paid for this cycle
             const rollKey = String(rollNo).toUpperCase().trim();
-            const fRec = (typeof feeMap !== 'undefined' && feeMap) ? feeMap.get(rollKey) : null;
+            const fRec = feeMap.get(rollKey) || null;
             const pmts = Array.isArray(fRec?.recent_payments) ? fRec.recent_payments : [];
             const isCyclePaid = pmts.some(p => p && p.status !== 'pending_verification' && String(p.fullMonth || '').toLowerCase() === String(cycleMonth).toLowerCase());
 
