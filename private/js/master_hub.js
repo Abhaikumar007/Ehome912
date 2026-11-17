@@ -2288,11 +2288,17 @@ async function _executeMonthlyFeeCycleGeneration() {
             s.class = sClass;
             totalCycleAmount += monthlyFee;
 
-            // Check if student is already cleared/paid for this cycle
+            // Calculate dues strictly from student's joining date & existing payments
             const rollKey = String(rollNo).toUpperCase().trim();
             const fRec = feeMap.get(rollKey) || null;
             const pmts = Array.isArray(fRec?.recent_payments) ? fRec.recent_payments : [];
+            const isDemo = rollKey === 'EDU-2026-DEMO';
             const isCyclePaid = pmts.some(p => p && p.status !== 'pending_verification' && String(p.fullMonth || '').toLowerCase() === String(cycleMonth).toLowerCase());
+            const calc = isDemo
+                ? { currentDue: 0, dueDate: 'All Cleared', daysLeft: 0 }
+                : (typeof _computeStudentFeeDues === 'function'
+                    ? _computeStudentFeeDues({ ...s, joiningDate: s.joiningDate || s.joining_date || '' }, pmts, monthlyFee)
+                    : { currentDue: isCyclePaid ? 0 : monthlyFee, dueDate: isCyclePaid ? 'All Cleared' : dueDateStr, daysLeft: isCyclePaid ? 0 : daysLeft });
 
             let loyalty = [];
             if (Array.isArray(fRec?.loyalty_months)) {
@@ -2309,9 +2315,9 @@ async function _executeMonthlyFeeCycleGeneration() {
 
             recordsToUpsert.push({
                 roll_no: String(rollNo).trim(),
-                current_due: isCyclePaid ? 0 : monthlyFee,
-                due_date: isCyclePaid ? 'All Cleared' : dueDateStr,
-                days_left: isCyclePaid ? 0 : daysLeft,
+                current_due: calc.currentDue,
+                due_date: calc.dueDate,
+                days_left: calc.daysLeft,
                 loyalty_months: loyalty,
                 recent_payments: pmts,
                 updated_at: new Date().toISOString()

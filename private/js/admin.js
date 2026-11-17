@@ -1352,21 +1352,22 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
     const roll = String(student.rollNo || student.id).toUpperCase().trim();
     const rollUpper = roll;
 
-    // Fetch current record from Supabase
+    // Fetch current record from Supabase (use maybeSingle so missing rows don't abort)
     const { data, error } = await sb
         .from('fees_records')
         .select('*')
-        .eq('roll_no', rollUpper)
-        .single();
+        .ilike('roll_no', rollUpper)
+        .maybeSingle();
 
-    if (error || !data) {
-        console.warn('[sb_toggleFee] Fetch error:', error);
-        return;
+    if (error) {
+        console.error('[sb_toggleFee] Fetch error:', error);
+        throw error;
     }
 
+    const targetRoll = (data && data.roll_no) ? data.roll_no : String(student.rollNo || student.id).trim();
     const monthlyAmt = _resolveTrueMonthlyFee(student, data);
     const mShort = month.slice(0,3).toUpperCase();
-    let pmts = Array.isArray(data.recent_payments) ? [...data.recent_payments] : [];
+    let pmts = Array.isArray(data?.recent_payments) ? [...data.recent_payments] : [];
 
     if (newStatus === 'Paid') {
         // Add if not already there for this specific month + year
@@ -1391,7 +1392,7 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
     const verifiedCount = pmts.filter(p => p.status !== 'pending_verification').length;
 
     // Ensure loyalty_months is an array and carries __monthly_fee and earned_count
-    let updatedLoyalty = Array.isArray(data.loyalty_months) ? [...data.loyalty_months] : [];
+    let updatedLoyalty = Array.isArray(data?.loyalty_months) ? [...data.loyalty_months] : [];
     const feeTagIdx = updatedLoyalty.findIndex(x => x && typeof x === 'object' && ('__monthly_fee' in x || 'fee_standard' in x));
     if (feeTagIdx >= 0) {
         updatedLoyalty[feeTagIdx] = { fee_standard: monthlyAmt, __monthly_fee: monthlyAmt };
@@ -1405,10 +1406,11 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
         updatedLoyalty.push({ earned_count: verifiedCount });
     }
 
-    // Update Supabase (only existing schema columns)
+    // Upsert Supabase (only existing schema columns) so missing fees_records rows are also created
     const { error: upErr } = await sb
         .from('fees_records')
-        .update({
+        .upsert({
+            roll_no: targetRoll,
             recent_payments: pmts,
             current_due: calc.currentDue,
             due_date: calc.dueDate,
@@ -1416,8 +1418,7 @@ window.sb_toggleFee = async function(studentId, subject, month, year, newStatus)
             months_paid_on_time: verifiedCount,
             loyalty_months: updatedLoyalty,
             updated_at: new Date().toISOString()
-        })
-        .eq('roll_no', rollUpper);
+        }, { onConflict: 'roll_no' });
 
     if (upErr) {
         console.error('[sb_toggleFee] Update error:', upErr);
